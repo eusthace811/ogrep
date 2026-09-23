@@ -28,6 +28,9 @@ pub enum QueryPlan {
     And(Vec<TrigramQuery>),
     /// Any branch can match (union of results).
     Or(Vec<Self>),
+    /// Every subplan is necessary. Unlike `And`, this preserves alternatives
+    /// inside concatenations without exponential distribution into DNF.
+    All(Vec<Self>),
     /// No trigrams could be extracted — must scan all files.
     MatchAll,
 }
@@ -115,7 +118,43 @@ pub fn execute_plan_indexed(
                 .map(|p| execute_plan_indexed(p, source, work))
                 .collect(),
         ),
+        QueryPlan::All(plans) => {
+            let mut ordered: Vec<_> = plans.iter().map(|p| (p, estimate(p, source))).collect();
+            ordered.sort_by_key(|(_, n)| *n);
+            let mut result: Option<Vec<u32>> = None;
+            for (p, _) in ordered {
+                let next = execute_plan_indexed(p, source, work);
+                let ids = match result {
+                    None => next,
+                    Some(ids) => intersect_sorted(&ids, &next),
+                };
+                if ids.is_empty() {
+                    return ids;
+                }
+                result = Some(ids);
+            }
+            result.unwrap_or_default()
+        }
         QueryPlan::MatchAll => Vec::new(), // caller enumerates the corpus
+    }
+}
+
+fn estimate(plan: &QueryPlan, source: &impl PostingSource) -> usize {
+    match plan {
+        QueryPlan::And(qs) => qs
+            .iter()
+            .map(|q| source.posting_len(q.hash))
+            .min()
+            .unwrap_or(usize::MAX),
+        QueryPlan::All(ps) => ps
+            .iter()
+            .map(|p| estimate(p, source))
+            .min()
+            .unwrap_or(usize::MAX),
+        QueryPlan::Or(ps) => ps
+            .iter()
+            .fold(0usize, |sum, p| sum.saturating_add(estimate(p, source))),
+        QueryPlan::MatchAll => usize::MAX,
     }
 }
 
@@ -526,6 +565,7 @@ fn decompose_hir(hir: &Hir) -> QueryPlan {
         HirKind::Literal(Literal(bytes)) => literals_to_query_plan(bytes),
         HirKind::Concat(subs) => {
             let mut all_queries = Vec::new();
+            let mut conditions = Vec::new();
             let mut current_literal = Vec::new();
             let mut fold_run = false;
             let flush =
@@ -554,20 +594,20 @@ fn decompose_hir(hir: &Hir) -> QueryPlan {
                     flush(&mut current_literal, &mut fold_run, &mut all_queries);
                     // Recurse into the non-literal child
                     let sub_plan = decompose_hir(sub);
-                    if let QueryPlan::And(queries) = sub_plan {
-                        all_queries.extend(queries);
+                    match sub_plan {
+                        QueryPlan::And(queries) => all_queries.extend(queries),
+                        QueryPlan::MatchAll => {}
+                        other => conditions.push(other),
                     }
-                    // MatchAll or Or children don't contribute AND trigrams
                 }
             }
 
             flush(&mut current_literal, &mut fold_run, &mut all_queries);
 
-            if all_queries.is_empty() {
-                QueryPlan::MatchAll
-            } else {
-                QueryPlan::And(all_queries)
+            if !all_queries.is_empty() {
+                conditions.push(QueryPlan::And(all_queries));
             }
+            simplify(QueryPlan::All(conditions))
         }
         HirKind::Alternation(alts) => {
             let plans: Vec<QueryPlan> = alts.iter().map(decompose_hir).collect();
@@ -595,6 +635,21 @@ fn decompose_hir(hir: &Hir) -> QueryPlan {
 /// Simplify the query plan (dedup trigrams, flatten nested structures).
 fn simplify(plan: QueryPlan) -> QueryPlan {
     match plan {
+        QueryPlan::All(plans) => {
+            let mut conditions = Vec::new();
+            for plan in plans.into_iter().map(simplify) {
+                match plan {
+                    QueryPlan::MatchAll => {}
+                    QueryPlan::All(nested) => conditions.extend(nested),
+                    other => conditions.push(other),
+                }
+            }
+            match conditions.len() {
+                0 => QueryPlan::MatchAll,
+                1 => conditions.pop().unwrap(),
+                _ => QueryPlan::All(conditions),
+            }
+        }
         QueryPlan::And(mut queries) => {
             queries.sort_by_key(|q| q.hash);
             // Dedup by trigram hash. When the same trigram appears with
@@ -637,6 +692,21 @@ where
     F: Fn(TrigramHash) -> Vec<u32>,
 {
     match plan {
+        QueryPlan::All(plans) => {
+            let mut result: Option<Vec<u32>> = None;
+            for p in plans {
+                let next = execute_plan(p, lookup);
+                let ids = match result {
+                    None => next,
+                    Some(ids) => intersect_sorted(&ids, &next),
+                };
+                if ids.is_empty() {
+                    return ids;
+                }
+                result = Some(ids);
+            }
+            result.unwrap_or_default()
+        }
         QueryPlan::And(queries) => {
             if queries.is_empty() {
                 return Vec::new();
@@ -676,6 +746,21 @@ where
     F: Fn(TrigramHash) -> Vec<PostingEntry>,
 {
     match plan {
+        QueryPlan::All(plans) => {
+            let mut result: Option<Vec<u32>> = None;
+            for p in plans {
+                let next = execute_plan_with_masks(p, lookup);
+                let ids = match result {
+                    None => next,
+                    Some(ids) => intersect_sorted(&ids, &next),
+                };
+                if ids.is_empty() {
+                    return ids;
+                }
+                result = Some(ids);
+            }
+            result.unwrap_or_default()
+        }
         QueryPlan::And(queries) => {
             if queries.is_empty() {
                 return Vec::new();
