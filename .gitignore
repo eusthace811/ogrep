@@ -1,5 +1,5 @@
 /target
-.tgrep/
-.tgrep_staging/
-.tgrep_flush_staging/
-.tgrep_save_staging/
+.zgrep/
+.zgrep_staging/
+.zgrep_flush_staging/
+.zgrep_save_staging/

@@ -1,5 +1,5 @@
 [workspace]
-members = ["tgrep-core", "tgrep-cli"]
+members = ["zgrep-core", "zgrep-cli"]
 resolver = "2"
 
 [workspace.package]
@@ -10,7 +10,7 @@ repository = "https://github.com/microsoft/tgrep"
 authors = ["Shengyu Fu"]
 
 [workspace.dependencies]
-tgrep-core = { path = "tgrep-core" }
+zgrep-core = { path = "zgrep-core" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 anyhow = "1"

@@ -1,9 +1,9 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Install tgrep from GitHub releases.
+    Install zgrep from GitHub releases.
 .DESCRIPTION
-    Downloads the latest (or specified) tgrep release for Windows,
+    Downloads the latest (or specified) zgrep release for Windows,
     verifies the SHA256 checksum, and installs the binary.
 .PARAMETER Version
     Version tag to install (e.g. v0.1.0). Defaults to latest.
@@ -17,14 +17,14 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$Repo = if ($env:TGREP_REPO) { $env:TGREP_REPO } else { 'microsoft/tgrep' }
+$Repo = if ($env:ZGREP_REPO) { $env:ZGREP_REPO } else { 'microsoft/zgrep' }
 $Target = 'x86_64-pc-windows-msvc'
 
 function Write-Info { param([string]$Msg) Write-Host $Msg -ForegroundColor Cyan }
 function Write-Err  { param([string]$Msg) Write-Host "error: $Msg" -ForegroundColor Red; exit 1 }
 
 # Resolve version
-if (-not $Version -and $env:TGREP_VERSION) { $Version = $env:TGREP_VERSION }
+if (-not $Version -and $env:ZGREP_VERSION) { $Version = $env:ZGREP_VERSION }
 if (-not $Version) {
     Write-Info 'Resolving latest version...'
     $release = Invoke-RestMethod "https://api.github.com/repos/$Repo/releases/latest"
@@ -34,7 +34,7 @@ if (-not $Version) {
 Write-Info "Version: $Version"
 
 # Resolve install directory
-if (-not $InstallDir -and $env:TGREP_INSTALL_DIR) { $InstallDir = $env:TGREP_INSTALL_DIR }
+if (-not $InstallDir -and $env:ZGREP_INSTALL_DIR) { $InstallDir = $env:ZGREP_INSTALL_DIR }
 if (-not $InstallDir) {
     $InstallDir = Join-Path $HOME '.cargo\bin'
     if (-not (Test-Path $InstallDir)) { New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null }
@@ -43,8 +43,8 @@ Write-Info "Install dir: $InstallDir"
 
 # Download
 $baseUrl  = "https://github.com/$Repo/releases/download/$Version"
-$archive  = "tgrep-$Version-$Target.zip"
-$tmpDir   = Join-Path ([System.IO.Path]::GetTempPath()) "tgrep-install-$([guid]::NewGuid().ToString('N').Substring(0,8))"
+$archive  = "zgrep-$Version-$Target.zip"
+$tmpDir   = Join-Path ([System.IO.Path]::GetTempPath()) "zgrep-install-$([guid]::NewGuid().ToString('N').Substring(0,8))"
 New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
 
 try {
@@ -68,12 +68,12 @@ try {
     # Extract and install
     Write-Info 'Extracting...'
     Expand-Archive -Path (Join-Path $tmpDir $archive) -DestinationPath $tmpDir -Force
-    Copy-Item (Join-Path $tmpDir 'tgrep.exe') -Destination (Join-Path $InstallDir 'tgrep.exe') -Force
+    Copy-Item (Join-Path $tmpDir 'zgrep.exe') -Destination (Join-Path $InstallDir 'zgrep.exe') -Force
 
     # Verify
-    $installed = Join-Path $InstallDir 'tgrep.exe'
+    $installed = Join-Path $InstallDir 'zgrep.exe'
     if (Test-Path $installed) {
-        Write-Info "Installed tgrep to $installed"
+        Write-Info "Installed zgrep to $installed"
     }
 
     # PATH hint

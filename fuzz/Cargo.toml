@@ -1,5 +1,5 @@
 [package]
-name = "tgrep-fuzz"
+name = "zgrep-fuzz"
 version = "0.0.1"
 publish = false
 edition = "2021"
@@ -9,7 +9,7 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-tgrep-core = { path = "../tgrep-core" }
+zgrep-core = { path = "../zgrep-core" }
 
 # Prevent this from interfering with workspaces
 [workspace]

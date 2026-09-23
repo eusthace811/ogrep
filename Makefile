@@ -7,7 +7,7 @@ release:
 	cargo build --workspace --release
 
 install: release
-	cp target/release/tgrep ~/.cargo/bin/tgrep
+	cp target/release/zgrep ~/.cargo/bin/zgrep
 
 test:
 	cargo test --workspace
@@ -24,7 +24,7 @@ lint:
 
 clean:
 	cargo clean
-	rm -rf .tgrep/
+	rm -rf .zgrep/
 
 benchmark:
 	./scripts/benchmark.sh --skip-build $(BENCH_ARGS)

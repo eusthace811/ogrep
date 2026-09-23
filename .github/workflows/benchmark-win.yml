@@ -23,7 +23,7 @@ jobs:
       - name: Run benchmark
         shell: pwsh
         run: |
-          .\scripts\benchmark.ps1 -SkipBuild -BenchDir $env:RUNNER_TEMP\tgrep-bench -ResultsPath benchmark-results.md
+          .\scripts\benchmark.ps1 -SkipBuild -BenchDir $env:RUNNER_TEMP\zgrep-bench -ResultsPath benchmark-results.md
 
       - name: Print results
         shell: pwsh

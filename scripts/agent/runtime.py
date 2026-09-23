@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dependency-free local MCP adapter and shared tgrep service launcher (POSIX)."""
+"""Dependency-free local MCP adapter and shared zgrep service launcher (POSIX)."""
 from __future__ import annotations
 
 import argparse
@@ -314,7 +314,7 @@ class Runtime:
             if not truncated:
                 code = proc.wait(timeout=max(0.1, deadline - time.monotonic()))
                 if code not in (0, 1):
-                    raise ValueError(warnings.decode(errors="replace") or f"tgrep exited with {code}")
+                    raise ValueError(warnings.decode(errors="replace") or f"zgrep exited with {code}")
         finally:
             try:
                 if proc.poll() is None:
@@ -392,7 +392,7 @@ def mcp(runtime):
                         requested = request.get("params", {}).get("protocolVersion")
                         version = requested if requested in ("2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25") else "2025-11-25"
                         result = {"protocolVersion": version, "capabilities": {"tools": {}},
-                                  "serverInfo": {"name": "tgrep", "version": VERSION}, "instructions": INSTRUCTIONS}
+                                  "serverInfo": {"name": "zgrep", "version": VERSION}, "instructions": INSTRUCTIONS}
                     elif method == "ping":
                         result = {}
                     elif method == "tools/list":
@@ -427,7 +427,7 @@ def main():
         mcp(runtime)
     elif args.action == "ensure":
         if not runtime.ensure_server():
-            print(f"tgrep warming up or unavailable; queries can scan. Log: {runtime.state / 'serve.log'}", file=sys.stderr)
+            print(f"zgrep warming up or unavailable; queries can scan. Log: {runtime.state / 'serve.log'}", file=sys.stderr)
     else:
         print(json.dumps({"root": str(runtime.root), "index": str(runtime.index), "status": runtime.status()}))
 
@@ -436,5 +436,5 @@ if __name__ == "__main__":
     try:
         main()
     except (OSError, ValueError) as exc:
-        print(f"tgrep-agent: {exc}", file=sys.stderr)
+        print(f"zgrep-agent: {exc}", file=sys.stderr)
         sys.exit(1)

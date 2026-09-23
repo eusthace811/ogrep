@@ -1101,7 +1101,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f50febec83f5ee1df3015341d8bd429f2d1cc62bcba7ea2076759d315084683"
 
 [[package]]
-name = "tgrep-cli"
+name = "zgrep-cli"
 version = "1.0.10"
 dependencies = [
  "anyhow",
@@ -1121,13 +1121,13 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
- "tgrep-core",
+ "zgrep-core",
  "windows-sys 0.61.2",
  "winresource",
 ]
 
 [[package]]
-name = "tgrep-core"
+name = "zgrep-core"
 version = "1.0.10"
 dependencies = [
  "anyhow",

@@ -19,7 +19,7 @@ export default function (pi: any) {
     child?.kill();
     child = undefined;
     starting = undefined;
-    for (const waiter of pending.values()) waiter.reject(new Error("tgrep MCP disconnected"));
+    for (const waiter of pending.values()) waiter.reject(new Error("zgrep MCP disconnected"));
     pending.clear();
   }
 
@@ -39,9 +39,9 @@ export default function (pi: any) {
       if (!connection || connection.exitCode !== null || connection.signalCode !== null ||
           !connection.stdin || connection.stdin.destroyed || !connection.stdin.writable) {
         stop();
-        return reject(new Error("tgrep MCP disconnected; retry to reconnect"));
+        return reject(new Error("zgrep MCP disconnected; retry to reconnect"));
       }
-      const timer = setTimeout(() => cancel("tgrep MCP timed out"), 40000);
+      const timer = setTimeout(() => cancel("zgrep MCP timed out"), 40000);
       function cleanup() { clearTimeout(timer); signal?.removeEventListener("abort", abort); pending.delete(id); }
       function cancel(message: string) {
         cleanup();
@@ -90,9 +90,9 @@ export default function (pi: any) {
         } catch { stop(); }
       });
       const init = await request("initialize", {
-        protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "tgrep-pi", version: "1.0.0" },
+        protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "zgrep-pi", version: "1.0.0" },
       }, signal);
-      if (!init.capabilities?.tools) throw new Error("tgrep MCP has no tools capability");
+      if (!init.capabilities?.tools) throw new Error("zgrep MCP has no tools capability");
       process.stdin?.write(JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" }) + "\n");
     })();
     const attempt = starting;
@@ -104,8 +104,8 @@ export default function (pi: any) {
 
   for (const tool of tools) {
     pi.registerTool({
-      name: `tgrep_${tool.name}`,
-      label: `tgrep ${tool.name}`,
+      name: `zgrep_${tool.name}`,
+      label: `zgrep ${tool.name}`,
       description: tool.description,
       parameters: tool.inputSchema,
       async execute(_id: string, args: any, signal: AbortSignal, _update: any, ctx: any) {
@@ -123,7 +123,7 @@ export default function (pi: any) {
     warmup.unref();
   });
   pi.on("before_agent_start", async (event: any) => ({
-    systemPrompt: event.systemPrompt + "\n\n" + instructions.replace(/search_code/g, "tgrep_search_code").replace(/find_files/g, "tgrep_find_files"),
+    systemPrompt: event.systemPrompt + "\n\n" + instructions.replace(/search_code/g, "zgrep_search_code").replace(/find_files/g, "zgrep_find_files"),
   }));
   pi.on("session_shutdown", stop);
 }

@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="${TGREP_REPO:-microsoft/tgrep}"
-VERSION="${TGREP_VERSION:-}"
-INSTALL_DIR="${TGREP_INSTALL_DIR:-}"
+REPO="${ZGREP_REPO:-microsoft/zgrep}"
+VERSION="${ZGREP_VERSION:-}"
+INSTALL_DIR="${ZGREP_INSTALL_DIR:-}"
 
 info()  { printf '\033[1;34m%s\033[0m\n' "$*"; }
 error() { printf '\033[1;31merror:\033[0m %s\n' "$*" >&2; exit 1; }
@@ -77,7 +77,7 @@ main() (
     version="$(resolve_version)"
     dir="$(pick_install_dir)"
 
-    info "Installing tgrep ${version} for ${target}"
+    info "Installing zgrep ${version} for ${target}"
     info "  install dir: ${dir}"
 
     local tmpdir
@@ -85,7 +85,7 @@ main() (
     trap 'rm -rf "$tmpdir"' EXIT
 
     local base_url="https://github.com/${REPO}/releases/download/${version}"
-    local archive="tgrep-${version}-${target}.tar.gz"
+    local archive="zgrep-${version}-${target}.tar.gz"
     local checksums="checksums.txt"
 
     info "Downloading ${archive}..."
@@ -117,12 +117,12 @@ main() (
     info "Extracting..."
     tar xzf "${tmpdir}/${archive}" -C "${tmpdir}"
 
-    install -m 755 "${tmpdir}/tgrep" "${dir}/tgrep"
+    install -m 755 "${tmpdir}/zgrep" "${dir}/zgrep"
 
-    if command -v "${dir}/tgrep" &>/dev/null; then
-        info "Installed tgrep $(${dir}/tgrep --version) to ${dir}/tgrep"
+    if command -v "${dir}/zgrep" &>/dev/null; then
+        info "Installed zgrep $(${dir}/zgrep --version) to ${dir}/zgrep"
     else
-        info "Installed tgrep to ${dir}/tgrep"
+        info "Installed zgrep to ${dir}/zgrep"
         info "Make sure ${dir} is in your PATH"
     fi
 )

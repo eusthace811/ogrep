@@ -1,7 +1,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use tgrep_core::query;
+use zgrep_core::query;
 
 fuzz_target!(|data: &[u8]| {
     // Only fuzz valid UTF-8 strings as regex patterns.

@@ -1,18 +1,18 @@
-# tgrep for coding agents
+# zgrep for coding agents
 
 A short guide for AI agents (and the humans who wire them up) that want to
-use `tgrep` as a fast search tool inside a repository. It complements the
+use `zgrep` as a fast search tool inside a repository. It complements the
 [README](README.md), which documents every flag; this file covers the few
 things an agent has to get right.
 
 ## The mental model
 
-tgrep is ripgrep with a pre-built trigram index and an optional server.
+zgrep is ripgrep with a pre-built trigram index and an optional server.
 
 ```
-tgrep index .        # once: build the index into ./.tgrep
-tgrep serve .        # once per session: keep the index warm and watch for changes
-tgrep "pattern" .    # every search: finds the server, answers in milliseconds
+zgrep index .        # once: build the index into ./.zgrep
+zgrep serve .        # once per session: keep the index warm and watch for changes
+zgrep "pattern" .    # every search: finds the server, answers in milliseconds
 ```
 
 A search resolves in this order:
@@ -21,18 +21,18 @@ A search resolves in this order:
    watcher keeps the index close to the filesystem, though a silently missed
    notification is repaired only by periodic reconciliation (scheduled hourly
    and deferrable for up to four hours while queried); `--no-watch` disables it.
-2. **On-disk index** but no server: read `.tgrep/` directly. Fast, but only as
+2. **On-disk index** but no server: read `.zgrep/` directly. Fast, but only as
    fresh as the last successful index publication. Legacy indexes without
    hidden-file coverage metadata and incomplete builds fall back to scanning.
-   Rebuild with `tgrep index .` or resume `tgrep serve .` to enable indexed queries.
+   Rebuild with `zgrep index .` or resume `zgrep serve .` to enable indexed queries.
 3. **No index**: scan every file, like grep. Correct but slow on large trees.
-   tgrep prints a warning on stderr when this happens.
+   zgrep prints a warning on stderr when this happens.
 
 An agent never has to choose between these; the command is the same. Results
 can differ, though. An on-disk index omits changes since its last build. A
 server started with no index, a partial index, or legacy hidden-file coverage
 lets clients fall back to scanning until it establishes the full corpus.
-`tgrep status .` shows `Hidden coverage: complete` once indexed queries are
+`zgrep status .` shows `Hidden coverage: complete` once indexed queries are
 available, and `Indexing: complete` once the initial build is done. Do not read either as a
 freshness signal: a server that starts on an existing index reconciles it
 against the filesystem in the background while already reporting complete,
@@ -44,29 +44,29 @@ and size rules. It is slow on large trees, so use it deliberately.
 ## Setup
 
 ```bash
-brew install tgrep                      # macOS, Linux
-cargo install --path tgrep-cli --locked # from a checkout
+brew install zgrep                      # macOS, Linux
+cargo install --path zgrep-cli --locked # from a checkout
 ```
 
 Then, from the repository root, once:
 
 ```bash
-tgrep serve . &
+zgrep serve . &
 ```
 
 `serve` builds the index if none exists and answers queries while it builds.
-It writes `.tgrep/serve.json` (PID and port) so clients can find it. Do not
-commit `.tgrep/`; add it to `.gitignore`.
+It writes `.zgrep/serve.json` (PID and port) so clients can find it. Do not
+commit `.zgrep/`; add it to `.gitignore`.
 
 Check that a server is up:
 
 ```bash
-tgrep status .
+zgrep status .
 ```
 
 If your agent framework cannot keep a background process alive, skip `serve`
-and run `tgrep index .` instead. Searches then use the on-disk index. That
-index is not updated by searches or edits, so re-run `tgrep index .` after any
+and run `zgrep index .` instead. Searches then use the on-disk index. That
+index is not updated by searches or edits, so re-run `zgrep index .` after any
 change a later search has to see, including your own edits.
 
 ## Searching
@@ -79,13 +79,13 @@ only take effect on a full scan: `-L`/`--follow`, `--one-file-system` and
 `--no-index`.
 
 ```bash
-tgrep -- "fn parse_config" .                 # regex, default
-tgrep -F -- "Vec<Option<T>>" .               # literal string
-tgrep -w -t rust -- handle .                 # whole word, Rust files only
-tgrep -g "src/**" -C 2 -- "TODO|FIXME" .     # glob scope, 2 lines of context
-tgrep -l -- "impl .* for Server" .           # file names only
-tgrep -c -- deprecated .                     # count per file
-tgrep --files -t py .                        # list searchable Python files
+zgrep -- "fn parse_config" .                 # regex, default
+zgrep -F -- "Vec<Option<T>>" .               # literal string
+zgrep -w -t rust -- handle .                 # whole word, Rust files only
+zgrep -g "src/**" -C 2 -- "TODO|FIXME" .     # glob scope, 2 lines of context
+zgrep -l -- "impl .* for Server" .           # file names only
+zgrep -c -- deprecated .                     # count per file
+zgrep --files -t py .                        # list searchable Python files
 ```
 
 Rules of thumb for agents:
@@ -93,7 +93,7 @@ Rules of thumb for agents:
 - **Put `--` before the pattern** and pass the search root explicitly. Shell
   quotes do not stop the parser from reading a bare `index`, `serve`,
   `search`, `status`, `count-files` or `help` as a subcommand;
-  `tgrep -- serve .` searches for the word. Everything after `--` is read as
+  `zgrep -- serve .` searches for the word. Everything after `--` is read as
   the pattern and paths, so all flags must come before it.
 - **Prefer `-F`** when the query is a symbol or a string the user typed. It
   avoids regex-escaping mistakes.
@@ -113,18 +113,18 @@ are `begin`, `match`, `context`, `end`, and `summary`.
 Real output, run from a checkout of this repository:
 
 ```bash
-tgrep --json -F -- "fn main" tgrep-cli/build.rs
+zgrep --json -F -- "fn main" zgrep-cli/build.rs
 ```
 
 ```json
-{"data":{"path":{"text":"tgrep-cli/build.rs"}},"type":"begin"}
-{"data":{"absolute_offset":400,"line_number":11,"lines":{"text":"fn main() {\n"},"path":{"text":"tgrep-cli/build.rs"},"submatches":[{"end":7,"match":{"text":"fn main"},"start":0}]},"type":"match"}
-{"data":{"binary_offset":null,"path":{"text":"tgrep-cli/build.rs"},"stats":{"bytes_printed":260,"bytes_searched":1775,"elapsed":{"human":"0.000010s","nanos":9709,"secs":0},"matched_lines":1,"matches":1,"searches":1,"searches_with_match":1}},"type":"end"}
+{"data":{"path":{"text":"zgrep-cli/build.rs"}},"type":"begin"}
+{"data":{"absolute_offset":400,"line_number":11,"lines":{"text":"fn main() {\n"},"path":{"text":"zgrep-cli/build.rs"},"submatches":[{"end":7,"match":{"text":"fn main"},"start":0}]},"type":"match"}
+{"data":{"binary_offset":null,"path":{"text":"zgrep-cli/build.rs"},"stats":{"bytes_printed":260,"bytes_searched":1775,"elapsed":{"human":"0.000010s","nanos":9709,"secs":0},"matched_lines":1,"matches":1,"searches":1,"searches_with_match":1}},"type":"end"}
 {"data":{"elapsed_total":{"human":"0.000470s","nanos":469542,"secs":0},"stats":{"bytes_printed":515,"bytes_searched":1775,"elapsed":{"human":"0.000470s","nanos":469542,"secs":0},"matched_lines":1,"matches":1,"searches":1,"searches_with_match":1}},"type":"summary"}
 ```
 
 Any parser written for `rg --json` works as is, with one exception: on a line
-that is not valid UTF-8, ripgrep emits base64 `lines.bytes`, while tgrep
+that is not valid UTF-8, ripgrep emits base64 `lines.bytes`, while zgrep
 always emits `lines.text` with each bad byte replaced by U+FFFD. A consumer
 that depends on the raw bytes of such lines will see repaired text instead.
 
@@ -169,7 +169,7 @@ with a custom path.
 
 Legacy or incomplete indexes, and older servers that cannot confirm hidden-file
 coverage, fall back to scanning. A current server upgrades legacy coverage by
-reconciling the tree; `tgrep index .` can rebuild it explicitly.
+reconciling the tree; `zgrep index .` can rebuild it explicitly.
 
 New indexes have a format boundary that older local readers reject instead of
 exposing hidden paths without filtering. Downgrading requires rebuilding with
@@ -182,10 +182,10 @@ legacy-format support for migration.
   worker has processed. Events are queued and applied asynchronously, so a
   search issued right after an edit can run before the index has caught up.
   Use `--no-index` when the very latest edit must be visible.
-- With only an **on-disk index**, results reflect the last `tgrep index`.
-  Files created since then are not found. Run `tgrep index .` again, or
-  start `tgrep serve .`.
-- `tgrep --files` reads from the index too. Add `--no-index` to list what is
+- With only an **on-disk index**, results reflect the last `zgrep index`.
+  Files created since then are not found. Run `zgrep index .` again, or
+  start `zgrep serve .`.
+- `zgrep --files` reads from the index too. Add `--no-index` to list what is
   on disk right now.
 
 ## Keep `index`, `serve` and search flags aligned
@@ -204,35 +204,35 @@ searches a different set of files.
   above 64 MiB.
 
 ```bash
-tgrep index . --index-path /tmp/idx --exclude vendor
-tgrep serve . --index-path /tmp/idx --exclude vendor
-tgrep "pattern" . --index-path /tmp/idx
+zgrep index . --index-path /tmp/idx --exclude vendor
+zgrep serve . --index-path /tmp/idx --exclude vendor
+zgrep "pattern" . --index-path /tmp/idx
 ```
 
 ## Repositories without `.git`
 
-tgrep indexes plain directories normally, but like ripgrep it ignores
+zgrep indexes plain directories normally, but like ripgrep it ignores
 `.gitignore` files outside a Git repository. The index is then larger than
-expected, and tgrep prints a warning saying so. Pass `--no-require-git` to
+expected, and zgrep prints a warning saying so. Pass `--no-require-git` to
 `index`, `serve` and search to apply the ignore rules anyway.
 
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `warning: no index at ... - scanning every file` | No index at the path the search looked in | If a server or index uses `--index-path`, pass the same value to the search; otherwise run `tgrep index .` or `tgrep serve .` |
-| `Server unreachable, falling back to local index` | Server died or `serve.json` is stale | Restart `tgrep serve .` |
-| A new file is not found, no server | On-disk index predates the file | Run `tgrep index .` |
-| A new file is not found, server running | First build still in progress, or the watcher event is still queued | Wait, or pass `--no-index` for this search; re-running `tgrep index .` does not update a running server |
+| `warning: no index at ... - scanning every file` | No index at the path the search looked in | If a server or index uses `--index-path`, pass the same value to the search; otherwise run `zgrep index .` or `zgrep serve .` |
+| `Server unreachable, falling back to local index` | Server died or `serve.json` is stale | Restart `zgrep serve .` |
+| A new file is not found, no server | On-disk index predates the file | Run `zgrep index .` |
+| A new file is not found, server running | First build still in progress, or the watcher event is still queued | Wait, or pass `--no-index` for this search; re-running `zgrep index .` does not update a running server |
 | Search is slow despite a server | Flag bypasses the index (see above) | Drop the flag or scope with `-g`/`-t` |
 
 ## Tool definition sketch
 
-If you expose tgrep to a model as a tool, a minimal schema is:
+If you expose zgrep to a model as a tool, a minimal schema is:
 
 ```json
 {
-  "name": "tgrep",
+  "name": "zgrep",
   "description": "Fast regex search over the repository. ripgrep-compatible flags. Use -F for literal strings, -t/-g to scope, -l for file names only, -C N for context.",
   "parameters": {
     "type": "object",
@@ -246,9 +246,9 @@ If you expose tgrep to a model as a tool, a minimal schema is:
 }
 ```
 
-Before invoking tgrep, canonicalize `path` beneath the configured repository root
+Before invoking zgrep, canonicalize `path` beneath the configured repository root
 and reject paths that resolve outside it. Allowlist search-only flags rather than
-forwarding arbitrary tokens. Then run `tgrep <flags...> -- <pattern> <path>` and
+forwarding arbitrary tokens. Then run `zgrep <flags...> -- <pattern> <path>` and
 return stdout, stderr and the exit code together. Treat `1` as "no results", not
 as a failure. Treat `2` as an error; stderr carries the cause, such as a bad regex.
 Always return stderr: the "no index" warning can arrive with code `0` or `1`.

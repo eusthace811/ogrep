@@ -18,9 +18,9 @@ fi
 verifier[0]="$(command -v "${verifier[0]}")"
 
 mkdir -p "$tmpdir/tools" "$tmpdir/fixture"
-archive="tgrep-v0.0.0-aarch64-apple-darwin.tar.gz"
-printf '#!%s\nprintf "tgrep 0.0.0\\n"\n' "$bash_bin" > "$tmpdir/fixture/tgrep"
-tar czf "$tmpdir/fixture/$archive" -C "$tmpdir/fixture" tgrep
+archive="zgrep-v0.0.0-aarch64-apple-darwin.tar.gz"
+printf '#!%s\nprintf "zgrep 0.0.0\\n"\n' "$bash_bin" > "$tmpdir/fixture/zgrep"
+tar czf "$tmpdir/fixture/$archive" -C "$tmpdir/fixture" zgrep
 (cd "$tmpdir/fixture" && "${verifier[@]}" "$archive") > "$tmpdir/fixture/checksums.txt"
 read -r digest _ < "$tmpdir/fixture/checksums.txt"
 printf '%064d  unrelated.tar.gz\n' 0 >> "$tmpdir/fixture/checksums.txt"
@@ -109,8 +109,8 @@ run_case() (
         SCENARIO="$scenario" \
         DOWNLOADS="$case_dir/downloads" \
         CHECKSUM_CALLS="$case_dir/checksum-calls" \
-        TGREP_VERSION=v0.0.0 \
-        TGREP_INSTALL_DIR="$case_dir/install" \
+        ZGREP_VERSION=v0.0.0 \
+        ZGREP_INSTALL_DIR="$case_dir/install" \
         "$bash_bin" "$installer" > "$case_dir/output" 2>&1 || status=$?
 
     case "$scenario" in
@@ -124,14 +124,14 @@ run_case() (
     fi
 
     if "$expect_success"; then
-        if [ "$status" -ne 0 ] || [ ! -x "$case_dir/install/tgrep" ]; then
+        if [ "$status" -ne 0 ] || [ ! -x "$case_dir/install/zgrep" ]; then
             cat "$case_dir/output"
             fail "$tools/$scenario: installation did not succeed"
         fi
-        cmp "$tmpdir/fixture/tgrep" "$case_dir/install/tgrep"
+        cmp "$tmpdir/fixture/zgrep" "$case_dir/install/zgrep"
     else
         [ "$status" -ne 0 ] || fail "$tools/$scenario: installer should fail"
-        [ ! -e "$case_dir/install/tgrep" ] || fail "$tools/$scenario: installed an unverified binary"
+        [ ! -e "$case_dir/install/zgrep" ] || fail "$tools/$scenario: installed an unverified binary"
         if grep -q 'Extracting' "$case_dir/output"; then
             fail "$tools/$scenario: extracted an unverified archive"
         fi

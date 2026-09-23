@@ -368,7 +368,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tgrep-core"
+name = "zgrep-core"
 version = "1.0.10"
 dependencies = [
  "anyhow",
@@ -386,11 +386,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "tgrep-fuzz"
+name = "zgrep-fuzz"
 version = "0.0.1"
 dependencies = [
  "libfuzzer-sys",
- "tgrep-core",
+ "zgrep-core",
 ]
 
 [[package]]

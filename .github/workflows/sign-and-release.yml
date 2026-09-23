@@ -1,8 +1,8 @@
-# tgrep ADO Pipeline - OneBranch Official
+# zgrep ADO Pipeline - OneBranch Official
 #
 # How it works:
-#   - ADO pipeline is configured to use this YAML from the tgrep GitHub repo
-#   - OneBranch auto-checks out tgrep source to $(Build.SourcesDirectory)\s (no checkout: self needed)
+#   - ADO pipeline is configured to use this YAML from the zgrep GitHub repo
+#   - OneBranch auto-checks out zgrep source to $(Build.SourcesDirectory)\s (no checkout: self needed)
 #     (OneBranch convention: single-repo checkout lands in the 's' subdirectory)
 #   - Rust is installed via RustInstaller@1 (official Microsoft ADO task)
 #   - Cargo is authenticated to ADO DeepPrompt feed via CargoAuthenticate@0
@@ -11,8 +11,8 @@
 #       * [source.crates-io] replace-with: redirects crates.io to ADO feed (ADO build only)
 #       * [target.*] rustflags: BinSkim-required flags (OneBranch BA2007)
 #       * NOTE: the repo-root .cargo/config.toml does NOT redirect crates.io (for external contributors)
-#   - Builds tgrep.exe for Windows x64 and arm64
-#   - Signs tgrep.exe using OneBranch signing (no ESRP service connection needed)
+#   - Builds zgrep.exe for Windows x64 and arm64
+#   - Signs zgrep.exe using OneBranch signing (no ESRP service connection needed)
 #   - Packages into zip matching the GitHub release.yml naming convention
 #   - Optionally uploads signed zip to GitHub Release via GitHubRelease@1 ADO task
 #
@@ -45,7 +45,7 @@ variables:
   CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)]  # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
   system.debug: ${{ parameters.debug }}
   ENABLE_PRS_DELAYSIGN: 0  # Disable PRS delay signing; sign directly in container (0=direct, 1=requires host watcher agent)
-  TGREP_TAG: ${{ parameters.ReleaseTag }}
+  ZGREP_TAG: ${{ parameters.ReleaseTag }}
   WindowsContainerImage: 'onebranch.azurecr.io/windows/ltsc2022/vse2022:latest'  # Docker image https://aka.ms/obpipelines/containers
 
 resources:
@@ -81,13 +81,13 @@ extends:
 
     stages:
       - stage: build_and_sign
-        displayName: 'Build and Sign tgrep Windows Binaries'
+        displayName: 'Build and Sign zgrep Windows Binaries'
         jobs:
           # ---------------------------------------------------------------
           # Job 1: Windows x64 (x86_64-pc-windows-msvc)
           # ---------------------------------------------------------------
           - job: build_sign_windows
-            displayName: 'Build tgrep Windows x64 + Sign'
+            displayName: 'Build zgrep Windows x64 + Sign'
             timeoutInMinutes: 120
             cancelTimeoutInMinutes: 1
             pool:
@@ -100,8 +100,8 @@ extends:
 
             steps:
               # ---------------------------------------------------------------
-              # Step 1: Checkout tgrep source code
-              # OneBranch checks out the repo containing this YAML (microsoft/tgrep)
+              # Step 1: Checkout zgrep source code
+              # OneBranch checks out the repo containing this YAML (microsoft/zgrep)
               # into $(Build.SourcesDirectory)\s (OneBranch single-repo convention).
               # ---------------------------------------------------------------
               # ---------------------------------------------------------------
@@ -165,8 +165,8 @@ extends:
               # Step 6: Build Windows x64 release binary
               # ---------------------------------------------------------------
               - script: |
-                  cargo build --release --locked -p tgrep-cli --bin tgrep --target x86_64-pc-windows-msvc
-                displayName: 'Build tgrep Windows x64'
+                  cargo build --release --locked -p zgrep-cli --bin zgrep --target x86_64-pc-windows-msvc
+                displayName: 'Build zgrep Windows x64'
                 workingDirectory: $(Build.SourcesDirectory)\s
                 env:
                   # BinSkim-required flags passed via env var (not .cargo/config.toml) so that
@@ -178,22 +178,22 @@ extends:
               # Step 7: Verify binary exists
               # ---------------------------------------------------------------
               - script: |
-                  dir target\x86_64-pc-windows-msvc\release\tgrep.exe
-                displayName: 'Verify tgrep.exe exists'
+                  dir target\x86_64-pc-windows-msvc\release\zgrep.exe
+                displayName: 'Verify zgrep.exe exists'
                 workingDirectory: $(Build.SourcesDirectory)
 
               # ---------------------------------------------------------------
-              # Step 8: Sign tgrep.exe using OneBranch signing
+              # Step 8: Sign zgrep.exe using OneBranch signing
               # signing_profile: "external_distribution" = Microsoft Authenticode (CP-231522)
               # Exact filename used instead of glob to avoid accidentally signing other .exe files.
               # Reference: https://onebranch.visualstudio.com/Build/_git/OneBranch.Sign?path=/ESRP/Templates/operations
               # ---------------------------------------------------------------
               - task: onebranch.pipeline.signing@1
-                displayName: 'Sign tgrep.exe'
+                displayName: 'Sign zgrep.exe'
                 inputs:
                   command: "sign"
                   signing_profile: "external_distribution"
-                  files_to_sign: "tgrep.exe"
+                  files_to_sign: "zgrep.exe"
                   search_root: "$(Build.SourcesDirectory)/target/x86_64-pc-windows-msvc/release"
 
               # ---------------------------------------------------------------
@@ -201,9 +201,9 @@ extends:
               # Zip name matches the format used in GitHub release.yml for consistency.
               # ---------------------------------------------------------------
               - powershell: |
-                  $tag = "$(TGREP_TAG)"
-                  $zipName = "tgrep-$tag-x86_64-pc-windows-msvc.zip"
-                  $exePath = "$(Build.SourcesDirectory)/target/x86_64-pc-windows-msvc/release/tgrep.exe"
+                  $tag = "$(ZGREP_TAG)"
+                  $zipName = "zgrep-$tag-x86_64-pc-windows-msvc.zip"
+                  $exePath = "$(Build.SourcesDirectory)/target/x86_64-pc-windows-msvc/release/zgrep.exe"
                   $outPath = "$(Build.ArtifactStagingDirectory)/$zipName"
                   # README.md is intentionally omitted: OneBranch uses --filter=blob:none
                   # (partial clone) so the blob is not on disk, and the README is already
@@ -211,7 +211,7 @@ extends:
                   Compress-Archive -Path $exePath -DestinationPath $outPath
                   Write-Host "Packaged: $zipName"
                   dir $outPath
-                displayName: 'Package signed tgrep.exe into zip'
+                displayName: 'Package signed zgrep.exe into zip'
 
               # ---------------------------------------------------------------
               # Step 10: Copy to OneBranch output directory
@@ -233,11 +233,11 @@ extends:
                   displayName: 'Publish signed binary to GitHub Release'
                   inputs:
                     gitHubConnection: 'github.com_msftsiwei_microsoftsso'
-                    repositoryName: 'microsoft/tgrep'
+                    repositoryName: 'microsoft/zgrep'
                     action: 'edit'
                     target: '$(Build.SourceVersion)'
                     tagSource: 'userSpecifiedTag'
-                    tag: '$(TGREP_TAG)'
+                    tag: '$(ZGREP_TAG)'
                     assets: '$(Build.ArtifactStagingDirectory)/*.zip'
                     assetUploadMode: 'replace'
                     addChangeLog: false
@@ -247,7 +247,7 @@ extends:
           # Cross-compiled on x64 Windows host using MSVC arm64 cross-compiler.
           # ---------------------------------------------------------------
           - job: build_sign_windows_arm64
-            displayName: 'Build tgrep Windows arm64 + Sign'
+            displayName: 'Build zgrep Windows arm64 + Sign'
             timeoutInMinutes: 120
             cancelTimeoutInMinutes: 1
             pool:
@@ -295,8 +295,8 @@ extends:
                   configFile: 's/.cargo/config.toml'
 
               - script: |
-                  cargo build --release --locked -p tgrep-cli --bin tgrep --target aarch64-pc-windows-msvc
-                displayName: 'Build tgrep Windows arm64 (cross-compile)'
+                  cargo build --release --locked -p zgrep-cli --bin zgrep --target aarch64-pc-windows-msvc
+                displayName: 'Build zgrep Windows arm64 (cross-compile)'
                 workingDirectory: $(Build.SourcesDirectory)\s
                 env:
                   # BinSkim-required flags passed via env var (not .cargo/config.toml) so that
@@ -305,22 +305,22 @@ extends:
                   RUSTFLAGS: '-Ccontrol-flow-guard -Ctarget-feature=+crt-static -Clink-arg=/DYNAMICBASE'
 
               - script: |
-                  dir target\aarch64-pc-windows-msvc\release\tgrep.exe
-                displayName: 'Verify tgrep.exe (arm64) exists'
+                  dir target\aarch64-pc-windows-msvc\release\zgrep.exe
+                displayName: 'Verify zgrep.exe (arm64) exists'
                 workingDirectory: $(Build.SourcesDirectory)
 
               - task: onebranch.pipeline.signing@1
-                displayName: 'Sign tgrep.exe (arm64)'
+                displayName: 'Sign zgrep.exe (arm64)'
                 inputs:
                   command: "sign"
                   signing_profile: "external_distribution"
-                  files_to_sign: "tgrep.exe"
+                  files_to_sign: "zgrep.exe"
                   search_root: "$(Build.SourcesDirectory)/target/aarch64-pc-windows-msvc/release"
 
               - powershell: |
-                  $tag = "$(TGREP_TAG)"
-                  $zipName = "tgrep-$tag-aarch64-pc-windows-msvc.zip"
-                  $exePath = "$(Build.SourcesDirectory)/target/aarch64-pc-windows-msvc/release/tgrep.exe"
+                  $tag = "$(ZGREP_TAG)"
+                  $zipName = "zgrep-$tag-aarch64-pc-windows-msvc.zip"
+                  $exePath = "$(Build.SourcesDirectory)/target/aarch64-pc-windows-msvc/release/zgrep.exe"
                   $outPath = "$(Build.ArtifactStagingDirectory)/$zipName"
                   # README.md is intentionally omitted: OneBranch uses --filter=blob:none
                   # (partial clone) so the blob is not on disk, and the README is already
@@ -328,7 +328,7 @@ extends:
                   Compress-Archive -Path $exePath -DestinationPath $outPath
                   Write-Host "Packaged: $zipName"
                   dir $outPath
-                displayName: 'Package signed tgrep.exe (arm64) into zip'
+                displayName: 'Package signed zgrep.exe (arm64) into zip'
 
               - task: CopyFiles@2
                 displayName: 'Copy artifacts to ONEBRANCH_ARTIFACT'
@@ -342,11 +342,11 @@ extends:
                   displayName: 'Publish arm64 signed binary to GitHub Release'
                   inputs:
                     gitHubConnection: 'github.com_msftsiwei_microsoftsso'
-                    repositoryName: 'microsoft/tgrep'
+                    repositoryName: 'microsoft/zgrep'
                     action: 'edit'
                     target: '$(Build.SourceVersion)'
                     tagSource: 'userSpecifiedTag'
-                    tag: '$(TGREP_TAG)'
+                    tag: '$(ZGREP_TAG)'
                     assets: '$(Build.ArtifactStagingDirectory)/*.zip'
                     assetUploadMode: 'replace'
                     addChangeLog: false
