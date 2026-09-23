@@ -32,6 +32,93 @@ pub enum QueryPlan {
     MatchAll,
 }
 
+/// Sorted posting access with cheap cardinality estimates. Estimates may be
+/// upper bounds (a live overlay can shadow disk entries), but zero must mean
+/// that the posting is absent. Candidate IDs passed to probes are sorted.
+pub trait PostingSource {
+    fn posting_len(&self, trigram: TrigramHash) -> usize;
+    fn posting_list(&self, trigram: TrigramHash) -> Vec<PostingEntry>;
+    fn probe(&self, trigram: TrigramHash, candidates: &[u32]) -> Vec<PostingEntry>;
+}
+
+/// Work counters, not timing estimates. `postings_copied` excludes entries
+/// inspected in-place by a probe; `candidate_probes` counts requested IDs.
+#[derive(Debug, Default, Clone, serde::Serialize)]
+pub struct QueryWork {
+    pub lists_loaded: usize,
+    pub lists_probed: usize,
+    pub postings_copied: usize,
+    pub candidate_probes: usize,
+}
+
+/// Execute without materializing every posting. Start with the rarest gram,
+/// then probe the mmap/overlay directly when the surviving set is small.
+/// Final file verification remains mandatory: this returns a sound superset.
+pub fn execute_plan_indexed(
+    plan: &QueryPlan,
+    source: &impl PostingSource,
+    work: &mut QueryWork,
+) -> Vec<u32> {
+    match plan {
+        QueryPlan::And(queries) => {
+            let mut ordered: Vec<_> = queries
+                .iter()
+                .map(|q| (q, source.posting_len(q.hash)))
+                .collect();
+            ordered.sort_by_key(|(_, len)| *len);
+            let Some((first, count)) = ordered.first() else {
+                return Vec::new();
+            };
+            if *count == 0 {
+                return Vec::new();
+            }
+            let mut entries = source.posting_list(first.hash);
+            work.lists_loaded += 1;
+            work.postings_copied += entries.len();
+            sort_dedup_postings_by_file_id(&mut entries);
+            let passes = |q: &TrigramQuery, e: &PostingEntry| {
+                q.expected_next
+                    .is_none_or(|b| e.next_mask & trigram::bloom_hash(b) != 0)
+            };
+            let mut candidates: Vec<u32> = entries
+                .iter()
+                .filter(|e| passes(first, e))
+                .map(|e| e.file_id)
+                .collect();
+            for (q, count) in ordered.into_iter().skip(1) {
+                if candidates.is_empty() {
+                    break;
+                }
+                let mut entries = if candidates.len().saturating_mul(16) < count {
+                    work.lists_probed += 1;
+                    work.candidate_probes += candidates.len();
+                    source.probe(q.hash, &candidates)
+                } else {
+                    work.lists_loaded += 1;
+                    source.posting_list(q.hash)
+                };
+                work.postings_copied += entries.len();
+                sort_dedup_postings_by_file_id(&mut entries);
+                let mut i = 0;
+                candidates.retain(|fid| {
+                    while i < entries.len() && entries[i].file_id < *fid {
+                        i += 1;
+                    }
+                    i < entries.len() && entries[i].file_id == *fid && passes(q, &entries[i])
+                });
+            }
+            candidates
+        }
+        QueryPlan::Or(plans) => union_many_sorted(
+            plans
+                .iter()
+                .map(|p| execute_plan_indexed(p, source, work))
+                .collect(),
+        ),
+        QueryPlan::MatchAll => Vec::new(), // caller enumerates the corpus
+    }
+}
+
 impl QueryPlan {
     pub fn is_match_all(&self) -> bool {
         matches!(self, Self::MatchAll)

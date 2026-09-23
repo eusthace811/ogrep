@@ -1304,7 +1304,7 @@ fn search_local_index(
         if is_match_all || opts.files_without_match || opts.invert_match || opts.include_zero {
             reader.all_file_ids()
         } else {
-            query::execute_plan_with_masks(&plan, &|tri| reader.lookup_trigram_with_masks(tri))
+            query::execute_plan_indexed(&plan, &reader, &mut query::QueryWork::default())
         };
 
     // Drop everything outside the searched subtree and re-express the survivors

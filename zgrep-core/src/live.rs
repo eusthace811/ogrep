@@ -57,6 +57,32 @@ impl Default for LiveIndex {
     }
 }
 
+impl crate::query::PostingSource for LiveIndex {
+    fn posting_len(&self, trigram: u32) -> usize {
+        self.inverted.get(&trigram).map_or(0, HashSet::len)
+    }
+    fn posting_list(&self, trigram: u32) -> Vec<PostingEntry> {
+        self.lookup_trigram_with_masks(trigram)
+    }
+    fn probe(&self, trigram: u32, candidates: &[u32]) -> Vec<PostingEntry> {
+        let Some(ids) = self.inverted.get(&trigram) else {
+            return Vec::new();
+        };
+        candidates
+            .iter()
+            .filter(|id| ids.contains(id))
+            .map(|&file_id| {
+                let masks = self.get_masks(trigram, file_id);
+                PostingEntry {
+                    file_id,
+                    loc_mask: masks.loc_mask,
+                    next_mask: masks.next_mask,
+                }
+            })
+            .collect()
+    }
+}
+
 impl LiveIndex {
     pub fn new() -> Self {
         Self::default()

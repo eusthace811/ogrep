@@ -17,8 +17,33 @@ use std::sync::{Arc, RwLock};
 use crate::Result;
 use crate::live::{self, LiveIndex};
 use crate::ondisk::PostingEntry;
+use crate::query::PostingSource;
 use crate::query::{self, QueryPlan};
 use crate::reader::IndexReader;
+
+struct HybridPostings<'a> {
+    index: &'a HybridIndex,
+    reader: &'a Arc<IndexReader>,
+}
+
+impl PostingSource for HybridPostings<'_> {
+    fn posting_len(&self, trigram: u32) -> usize {
+        self.reader
+            .posting_len(trigram)
+            .saturating_add(self.index.live.posting_len(trigram))
+    }
+    fn posting_list(&self, trigram: u32) -> Vec<PostingEntry> {
+        self.index
+            .lookup_trigram_with_masks_using_reader(trigram, self.reader)
+    }
+    fn probe(&self, trigram: u32, candidates: &[u32]) -> Vec<PostingEntry> {
+        let split = candidates.partition_point(|&id| !live::LiveIndex::is_overlay_id(id));
+        let mut entries = self.reader.probe(trigram, &candidates[..split]);
+        entries.retain(|e| self.index.reader_entry_active(self.reader, e.file_id));
+        entries.extend(self.index.live.probe(trigram, &candidates[split..]));
+        entries
+    }
+}
 
 pub struct HybridIndex {
     reader: RwLock<Arc<IndexReader>>,
@@ -202,9 +227,14 @@ impl HybridIndex {
         let ids = if plan.is_match_all() {
             self.all_file_ids_using(&reader)
         } else {
-            query::execute_plan_with_masks(plan, &|tri| {
-                self.lookup_trigram_with_masks_using_reader(tri, &reader)
-            })
+            query::execute_plan_indexed(
+                plan,
+                &HybridPostings {
+                    index: self,
+                    reader: &reader,
+                },
+                &mut query::QueryWork::default(),
+            )
         };
         (ids, reader)
     }

@@ -22,6 +22,25 @@ pub struct IndexReader {
 }
 
 impl IndexReader {
+    /// Borrow a bounded posting range without allocating or decoding it.
+    fn posting_bytes(&self, trigram: u32) -> &[u8] {
+        let Some(i) = self.binary_search(trigram) else {
+            return &[];
+        };
+        let entry = self.read_lookup_entry(i);
+        let Some(postings) = self.postings.as_ref() else {
+            return &[];
+        };
+        let Ok(start) = usize::try_from(entry.offset) else {
+            return &[];
+        };
+        let Some(rest) = postings.get(start..) else {
+            return &[];
+        };
+        let count = (entry.length as usize).min(rest.len() / POSTING_ENTRY_SIZE);
+        &rest[..count * POSTING_ENTRY_SIZE]
+    }
+
     pub fn open(index_dir: &Path) -> Result<Self> {
         let lookup_path = index_dir.join("lookup.bin");
         let postings_path = index_dir.join("index.bin");
@@ -464,6 +483,52 @@ impl IndexReader {
             let buf: &[u8; POSTING_ENTRY_SIZE] =
                 postings[pos..pos + POSTING_ENTRY_SIZE].try_into().unwrap();
             result.push(PostingEntry::decode(buf));
+        }
+        result
+    }
+}
+
+impl crate::query::PostingSource for IndexReader {
+    fn posting_len(&self, trigram: u32) -> usize {
+        self.posting_bytes(trigram).len() / POSTING_ENTRY_SIZE
+    }
+
+    fn posting_list(&self, trigram: u32) -> Vec<PostingEntry> {
+        self.lookup_trigram_with_masks(trigram)
+    }
+
+    fn probe(&self, trigram: u32, candidates: &[u32]) -> Vec<PostingEntry> {
+        let bytes = self.posting_bytes(trigram);
+        let len = bytes.len() / POSTING_ENTRY_SIZE;
+        let id_at = |i: usize| {
+            u32::from_le_bytes(
+                bytes[i * POSTING_ENTRY_SIZE..i * POSTING_ENTRY_SIZE + 4]
+                    .try_into()
+                    .unwrap(),
+            )
+        };
+        let mut result = Vec::with_capacity(candidates.len().min(len));
+        let mut lower = 0;
+        for &id in candidates {
+            // Monotone binary seeks never decode or allocate the common list.
+            let mut upper = len;
+            while lower < upper {
+                let mid = lower + (upper - lower) / 2;
+                if id_at(mid) < id {
+                    lower = mid + 1;
+                } else {
+                    upper = mid;
+                }
+            }
+            if lower == len {
+                break;
+            }
+            if id_at(lower) == id {
+                let start = lower * POSTING_ENTRY_SIZE;
+                result.push(PostingEntry::decode(
+                    bytes[start..start + POSTING_ENTRY_SIZE].try_into().unwrap(),
+                ));
+            }
         }
         result
     }
