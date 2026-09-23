@@ -102,7 +102,17 @@ fn subscription_recovery_detects_equal_size_writes_with_restored_mtime() {
     let fixture = Fixture::new();
     let before = fixture.state.file_evidence.read().unwrap().clone();
     fixture.write(NEW, fixture.modified);
-    let version = builder::file_version(&std::fs::metadata(&fixture.path).unwrap());
+    let mut version = builder::file_version(&std::fs::metadata(&fixture.path).unwrap());
+    // Some Linux filesystems update ctime at scheduler-tick resolution. Ensure
+    // this fixture actually supplies the changed-ctime precondition under test,
+    // even when the index build and both writes finish within the same tick.
+    // Keep both assertions below: this must remain a restored-mtime mutation.
+    let deadline = Instant::now() + Duration::from_secs(2);
+    while before.version(REL_PATH) == Some(&version) && Instant::now() < deadline {
+        std::thread::sleep(Duration::from_millis(10));
+        fixture.write(NEW, fixture.modified);
+        version = builder::file_version(&std::fs::metadata(&fixture.path).unwrap());
+    }
     assert_eq!(before.stamp(REL_PATH), Some(version.stamp()));
     assert_ne!(before.version(REL_PATH), Some(&version));
     fixture.assert_repaired();
