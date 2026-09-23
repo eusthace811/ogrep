@@ -123,3 +123,105 @@ fn missing_required_gram_does_not_load_other_lists() {
     assert_eq!(work.lists_loaded, 0);
     assert_eq!(work.postings_copied, 0);
 }
+
+#[test]
+fn generated_plans_never_exclude_a_regex_match() {
+    use zgrep_core::live::LiveIndex;
+    let atoms = [
+        "alpha", "beta", "gamma", "connect", "timeout", "foobar", "café", "ſhell", "Kelvin", "aa",
+        "x",
+    ];
+    let mut live = LiveIndex::new();
+    let mut texts = vec![
+        "CAFÉ".to_string(),
+        "KELVIN".to_string(),
+        "ſHELL".to_string(),
+    ];
+    let mut seed = 0x981a2375u64;
+    let mut next = || {
+        seed ^= seed << 13;
+        seed ^= seed >> 7;
+        seed ^= seed << 17;
+        seed as usize
+    };
+    for _ in 0..256 {
+        let mut text = String::new();
+        for _ in 0..8 {
+            text.push_str(atoms[next() % atoms.len()]);
+            text.push_str([" ", "\n", "", "-"][next() % 4]);
+        }
+        texts.push(text);
+    }
+    for (i, text) in texts.iter().enumerate() {
+        live.upsert_file(&i.to_string(), text.as_bytes());
+    }
+    let mut patterns: Vec<String> = atoms.iter().map(|s| s.to_string()).collect();
+    for _ in 0..300 {
+        let a = atoms[next() % atoms.len()];
+        let b = atoms[next() % atoms.len()];
+        let c = atoms[next() % atoms.len()];
+        patterns.push(match next() % 6 {
+            0 => format!("({a}|{b}).*{c}"),
+            1 => format!("{a}.{{0,12}}({b}|{c})"),
+            2 => format!("(?:{a})?(?:{b})+"),
+            3 => format!("({a}|x)({b}|{c})"),
+            4 => format!("{a}[ -z]*{b}"),
+            _ => format!("{a}{b}"),
+        });
+    }
+    for ci in [false, true] {
+        for pattern in &patterns {
+            let re = regex::RegexBuilder::new(pattern)
+                .case_insensitive(ci)
+                .build()
+                .unwrap();
+            let plan = query::build_query_plan(pattern, ci).unwrap();
+            let candidates = if plan.is_match_all() {
+                live.all_file_ids()
+            } else {
+                query::execute_plan_indexed(&plan, &live, &mut QueryWork::default())
+            };
+            let paths: BTreeSet<_> = candidates
+                .iter()
+                .map(|&id| live.file_path(id).unwrap())
+                .collect();
+            for (i, text) in texts.iter().enumerate() {
+                if re.is_match(text) {
+                    assert!(
+                        paths.contains(i.to_string().as_str()),
+                        "lost {pattern:?} ci={ci} in {text:?}"
+                    );
+                }
+            }
+        }
+    }
+}
+
+#[test]
+fn fixed_unicode_case_folds_are_sound() {
+    let mut live = zgrep_core::live::LiveIndex::new();
+    for (pattern, text) in [
+        ("kelvin", "KELVIN"),
+        ("shell", "ſHELL"),
+        ("café", "CAFÉ"),
+        ("İstanbul", "İSTANBUL"),
+    ] {
+        live.upsert_file("sample", text.as_bytes());
+        let regex = regex::RegexBuilder::new(&regex::escape(pattern))
+            .case_insensitive(true)
+            .build()
+            .unwrap();
+        assert!(regex.is_match(text));
+        let plan = query::build_literal_plan(pattern, true);
+        let ids = if plan.is_match_all() {
+            live.all_file_ids()
+        } else {
+            query::execute_plan_indexed(&plan, &live, &mut QueryWork::default())
+        };
+        assert_eq!(
+            ids.len(),
+            1,
+            "fixed-string index excluded {pattern:?} in {text:?}"
+        );
+    }
+}

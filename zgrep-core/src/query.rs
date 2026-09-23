@@ -177,12 +177,15 @@ pub fn build_query_plan(pattern: &str, case_insensitive: bool) -> Result<QueryPl
 
 /// Build a query plan for a literal (fixed-string) pattern.
 pub fn build_literal_plan(literal: &str, case_insensitive: bool) -> QueryPlan {
-    let text = if case_insensitive {
-        literal.to_lowercase()
+    if case_insensitive {
+        // The verifier uses Unicode regex case folding, whereas the index only
+        // adds ASCII-folded bytes. Lowercasing the query can exclude valid
+        // matches (K/K, S/ſ, é/É, and expanding lowercase mappings such as İ).
+        // Reuse the conservative class analysis of the escaped literal.
+        build_query_plan(&regex_syntax::escape(literal), true).unwrap_or(QueryPlan::MatchAll)
     } else {
-        literal.to_string()
-    };
-    literals_to_query_plan(text.as_bytes())
+        literals_to_query_plan(literal.as_bytes())
+    }
 }
 
 /// Build one plan covering every pattern the user supplied.
@@ -1281,7 +1284,9 @@ mod tests {
             QueryPlan::And(queries) => {
                 assert!(!queries.is_empty(), "should have trigrams");
                 // Verify these are lowercase trigrams
-                let expected = trigram::extract_from_literal("class alertschema");
+                // Unicode folds of S cannot be required as ASCII bytes. The
+                // unambiguous literal run remains a useful index constraint.
+                let expected = trigram::extract_from_literal("alert");
                 let hashes: Vec<TrigramHash> = queries.iter().map(|q| q.hash).collect();
                 for tri in &expected {
                     assert!(hashes.contains(tri), "missing trigram {tri:#010x}");
