@@ -34,7 +34,7 @@ fn compile_windows_resources() {
         "FileDescription",
         "zgrep - trigram-indexed grep for large codebases",
     );
-    res.set("CompanyName", "Microsoft Corporation");
+    res.set("CompanyName", "zgrep contributors");
     res.set(
         "LegalCopyright",
         "Copyright (c) Microsoft Corporation. All rights reserved.",

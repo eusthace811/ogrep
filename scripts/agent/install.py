@@ -174,12 +174,32 @@ def agent_paths(agent, scope, root):
     return Path(os.environ.get("PI_CODING_AGENT_DIR", str(Path.home() / ".pi/agent"))).expanduser().absolute()
 
 
+def binary_help(binary):
+    subprocess.run([str(binary), "--version"], check=True, capture_output=True, timeout=5)
+    help_text = subprocess.run([str(binary), "--help"], check=True, capture_output=True, text=True, timeout=5).stdout
+    for flag in ("--no-index", "--index-path", "--json", "--files"):
+        if flag not in help_text:
+            raise ValueError(f"{binary} does not support required flag {flag}; provide this fork's binary")
+
+
 def binary_path(args, base):
     if args.binary:
         binary = Path(args.binary).expanduser().resolve(strict=True)
-    elif shutil.which("zgrep"):
-        binary = Path(shutil.which("zgrep")).resolve()
     else:
+        # Unix normally has gzip's unrelated `zgrep`. Probe capabilities before
+        # adopting a PATH entry; an explicit --binary still fails loudly.
+        binary = None
+        for name in ("zgrep-code", "zgrep"):
+            candidate = shutil.which(name)
+            if candidate:
+                try:
+                    binary_help(candidate)
+                    binary = Path(candidate).resolve()
+                    break
+                except (OSError, ValueError, subprocess.SubprocessError):
+                    continue
+        if binary is not None:
+            return str(binary)
         binary = base / "bin/zgrep"
         reject_symlinks(binary)
         if not binary.exists():
@@ -192,11 +212,7 @@ def binary_path(args, base):
                 subprocess.run(["cargo", "build", "--release", "--locked", "-p", "zgrep-cli"], cwd=checkout, check=True)
             binary.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(built, binary)
-    subprocess.run([str(binary), "--version"], check=True, capture_output=True, timeout=5)
-    help_text = subprocess.run([str(binary), "--help"], check=True, capture_output=True, text=True, timeout=5).stdout
-    for flag in ("--no-index", "--index-path", "--json", "--files"):
-        if flag not in help_text:
-            raise ValueError(f"zgrep does not support required flag {flag}; upgrade it")
+    binary_help(binary)
     return str(binary)
 
 

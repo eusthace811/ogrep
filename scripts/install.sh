@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="${ZGREP_REPO:-microsoft/zgrep}"
+REPO="${ZGREP_REPO:-}"
 VERSION="${ZGREP_VERSION:-}"
 INSTALL_DIR="${ZGREP_INSTALL_DIR:-}"
 
@@ -63,6 +63,7 @@ pick_install_dir() {
 
 # Keep the temporary directory in scope for the EXIT trap.
 main() (
+    [ -n "$REPO" ] || error "Set ZGREP_REPO to your fork's owner/repository, or build locally with cargo build --release --locked"
     local -a checksum_cmd
     if command -v sha256sum >/dev/null 2>&1; then
         checksum_cmd=(sha256sum)
@@ -117,12 +118,12 @@ main() (
     info "Extracting..."
     tar xzf "${tmpdir}/${archive}" -C "${tmpdir}"
 
-    install -m 755 "${tmpdir}/zgrep" "${dir}/zgrep"
+    install -m 755 "${tmpdir}/zgrep" "${dir}/zgrep-code"
 
-    if command -v "${dir}/zgrep" &>/dev/null; then
-        info "Installed zgrep $(${dir}/zgrep --version) to ${dir}/zgrep"
+    if command -v "${dir}/zgrep-code" &>/dev/null; then
+        info "Installed zgrep $("${dir}/zgrep-code" --version) to ${dir}/zgrep-code"
     else
-        info "Installed zgrep to ${dir}/zgrep"
+        info "Installed zgrep to ${dir}/zgrep-code"
         info "Make sure ${dir} is in your PATH"
     fi
 )

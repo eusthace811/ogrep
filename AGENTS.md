@@ -44,8 +44,8 @@ and size rules. It is slow on large trees, so use it deliberately.
 ## Setup
 
 ```bash
-brew install zgrep                      # macOS, Linux
-cargo install --path zgrep-cli --locked # from a checkout
+cargo build --release --locked         # from this checkout
+./target/release/zgrep --version       # use this explicit path
 ```
 
 Then, from the repository root, once:

@@ -25,8 +25,8 @@ jobs:
             target: x86_64-apple-darwin
           - os: macos-latest
             target: aarch64-apple-darwin
-          # Windows builds are handled by the ADO OneBranch sign-and-release pipeline
-          # which produces signed binaries. See .github/workflows/sign-and-release.yml.
+          # Windows signing infrastructure was specific to upstream.
+          # This fork currently packages Unix targets only.
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -45,6 +45,9 @@ jobs:
         if: matrix.use_cross
         run: cargo install cross --locked --version 0.2.5
 
+      - name: Validate on build host
+        run: cargo test --workspace --locked
+
       - name: Build release binary
         if: ${{ !matrix.use_cross }}
         run: cargo build --release --locked -p zgrep-cli --bin zgrep --target ${{ matrix.target }}
@@ -57,7 +60,7 @@ jobs:
         run: |
           staging=$(mktemp -d)
           cp target/${{ matrix.target }}/release/zgrep "$staging/"
-          cp README.md "$staging/"
+          cp README.md LICENSE "$staging/"
           tar czf zgrep-${{ github.ref_name }}-${{ matrix.target }}.tar.gz -C "$staging" .
 
       - name: Upload artifact

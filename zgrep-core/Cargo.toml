@@ -3,7 +3,6 @@ name = "zgrep-core"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
-repository.workspace = true
 authors.workspace = true
 description = "Trigram index library for fast full-text search on large codebases"
 keywords = ["trigram", "search", "index", "grep", "full-text"]

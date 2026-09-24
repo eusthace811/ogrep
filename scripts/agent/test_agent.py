@@ -15,6 +15,7 @@ import tempfile
 import time
 import tomllib
 import unittest
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import install
@@ -48,6 +49,22 @@ class InstallerTests(unittest.TestCase):
         argv = ["install.py", action, "--agent", agent, "--root", str(self.project), "--binary", str(self.fake), *extra]
         with patch.object(sys, "argv", argv), contextlib.redirect_stdout(io.StringIO()):
             return install.main()
+
+    def test_gzip_zgrep_on_path_is_not_adopted(self):
+        gzip = self.root / "gzip-zgrep"
+        gzip.write_text('#!/bin/sh\necho "zgrep (gzip) 1.12"\n')
+        gzip.chmod(0o755)
+        private = self.base / "bin/zgrep"
+        private.parent.mkdir(parents=True)
+        shutil.copy2(self.fake, private)
+        with patch.object(install.shutil, "which", side_effect=lambda name: str(gzip) if name == "zgrep" else None):
+            self.assertEqual(install.binary_path(SimpleNamespace(binary=None), self.base), str(private))
+        with self.assertRaisesRegex(ValueError, "required flag"):
+            install.binary_path(SimpleNamespace(binary=str(gzip)), self.base)
+
+    def test_distinct_path_name_is_preferred(self):
+        with patch.object(install.shutil, "which", side_effect=lambda name: str(self.fake) if name == "zgrep-code" else None):
+            self.assertEqual(install.binary_path(SimpleNamespace(binary=None), self.base), str(self.fake))
 
     def test_install_reinstall_partial_uninstall_preserves_user_configuration(self):
         codex = self.project / ".codex"

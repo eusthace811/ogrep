@@ -7,7 +7,8 @@ release:
 	cargo build --workspace --release
 
 install: release
-	cp target/release/zgrep ~/.cargo/bin/zgrep
+	mkdir -p ~/.cargo/bin
+	install -m 755 target/release/zgrep ~/.cargo/bin/zgrep-code
 
 test:
 	cargo test --workspace

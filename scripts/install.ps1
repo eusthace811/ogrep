@@ -17,11 +17,13 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$Repo = if ($env:ZGREP_REPO) { $env:ZGREP_REPO } else { 'microsoft/zgrep' }
+$Repo = $env:ZGREP_REPO
 $Target = 'x86_64-pc-windows-msvc'
 
 function Write-Info { param([string]$Msg) Write-Host $Msg -ForegroundColor Cyan }
 function Write-Err  { param([string]$Msg) Write-Host "error: $Msg" -ForegroundColor Red; exit 1 }
+
+if (-not $Repo) { Write-Err 'Set ZGREP_REPO to your fork owner/repository, or build locally with cargo build --release --locked' }
 
 # Resolve version
 if (-not $Version -and $env:ZGREP_VERSION) { $Version = $env:ZGREP_VERSION }
@@ -68,10 +70,10 @@ try {
     # Extract and install
     Write-Info 'Extracting...'
     Expand-Archive -Path (Join-Path $tmpDir $archive) -DestinationPath $tmpDir -Force
-    Copy-Item (Join-Path $tmpDir 'zgrep.exe') -Destination (Join-Path $InstallDir 'zgrep.exe') -Force
+    Copy-Item (Join-Path $tmpDir 'zgrep.exe') -Destination (Join-Path $InstallDir 'zgrep-code.exe') -Force
 
     # Verify
-    $installed = Join-Path $InstallDir 'zgrep.exe'
+    $installed = Join-Path $InstallDir 'zgrep-code.exe'
     if (Test-Path $installed) {
         Write-Info "Installed zgrep to $installed"
     }
