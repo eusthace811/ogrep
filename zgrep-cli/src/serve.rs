@@ -1776,7 +1776,7 @@ fn handle_search(
 
     // Collect candidates and their paths/full_paths while holding the index lock briefly
     let t_index = Instant::now();
-    let (candidate_info, raw_candidate_count, filtered_candidate_count, total_files) = {
+    let (candidate_info, raw_candidate_count, filtered_candidate_count, total_files, query_work) = {
         let index = state.index.read().unwrap();
         // Check the same generation whose candidates and visibility we read.
         if state.indexing.load(Ordering::SeqCst) || !state.hidden_complete.load(Ordering::SeqCst) {
@@ -1789,7 +1789,7 @@ fn handle_search(
         // posting-list results.  Without this, a concurrent `swap_reader`
         // between the query and the path lookups would silently drop every
         // candidate whose ID does not exist in the new reader.
-        let (candidates, reader_snapshot) = index.execute_query_with_masks(&plan);
+        let (candidates, reader_snapshot, query_work) = index.execute_query_with_work(&plan);
         let raw_count = candidates.len();
         let total_files = opts.stats.then(|| index.num_files_using(&reader_snapshot));
 
@@ -1850,7 +1850,7 @@ fn handle_search(
             );
         }
 
-        (filtered, raw_count, filtered_count, total_files)
+        (filtered, raw_count, filtered_count, total_files, query_work)
     }; // index lock released here
     let index_ms = t_index.elapsed().as_secs_f64() * 1000.0;
 
@@ -1982,6 +1982,7 @@ fn handle_search(
             "raw_candidates": raw_candidate_count,
             "candidates": filtered_candidate_count,
             "total_files": total_files,
+            "work": query_work,
         });
     }
 

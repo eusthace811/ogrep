@@ -223,7 +223,17 @@ impl HybridIndex {
     /// resolution would resolve IDs against a different reader, silently
     /// dropping every candidate whose ID does not exist in the new reader.
     pub fn execute_query_with_masks(&self, plan: &QueryPlan) -> (Vec<u32>, Arc<IndexReader>) {
+        let (ids, reader, _) = self.execute_query_with_work(plan);
+        (ids, reader)
+    }
+
+    /// Candidate snapshot plus deterministic planning-work diagnostics.
+    pub fn execute_query_with_work(
+        &self,
+        plan: &QueryPlan,
+    ) -> (Vec<u32>, Arc<IndexReader>, query::QueryWork) {
         let reader = self.reader();
+        let mut work = query::QueryWork::default();
         let ids = if plan.is_match_all() {
             self.all_file_ids_using(&reader)
         } else {
@@ -233,10 +243,10 @@ impl HybridIndex {
                     index: self,
                     reader: &reader,
                 },
-                &mut query::QueryWork::default(),
+                &mut work,
             )
         };
-        (ids, reader)
+        (ids, reader, work)
     }
 
     /// Like [`all_file_ids`] but uses a caller-provided reader snapshot.

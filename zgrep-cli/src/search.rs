@@ -1201,6 +1201,9 @@ fn search_via_server(
             )
         {
             print_index_stats(plan, raw, candidates, total);
+            if let Some(work) = stats.get("work") {
+                eprintln!("Index work: {work}");
+            }
             narrowing_note = index_narrowing_note(raw, total);
         }
         eprintln!(
@@ -1300,11 +1303,12 @@ fn search_local_index(
     // The trigram plan selects files that contain the pattern, which is exactly
     // the wrong filter, so it has to be bypassed. Same for `--files-without-match`
     // and `--include-zero`, which both have to report files the plan excluded.
+    let mut query_work = query::QueryWork::default();
     let candidate_ids =
         if is_match_all || opts.files_without_match || opts.invert_match || opts.include_zero {
             reader.all_file_ids()
         } else {
-            query::execute_plan_indexed(&plan, &reader, &mut query::QueryWork::default())
+            query::execute_plan_indexed(&plan, &reader, &mut query_work)
         };
 
     // Drop everything outside the searched subtree and re-express the survivors
@@ -1360,6 +1364,7 @@ fn search_local_index(
         let raw = candidate_ids.len() as u64;
         let total = reader.num_files() as u64;
         print_index_stats(&plan_summary(&plan), raw, candidates.len() as u64, total);
+        eprintln!("Index work: {}", serde_json::to_string(&query_work)?);
         let narrowing_note = index_narrowing_note(raw, total);
         let (matches, matched_lines) = writer.match_totals();
         eprintln!(

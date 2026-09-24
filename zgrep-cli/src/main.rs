@@ -250,7 +250,7 @@ struct Cli {
 
     // ── Index control ────────────────────────────────
     /// Print query plan and timing stats.
-    #[arg(long = "stats", global = true)]
+    #[arg(long = "stats", visible_alias = "explain", global = true)]
     stats: bool,
 
     /// Skip the index, grep all files directly.

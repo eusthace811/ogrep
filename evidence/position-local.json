@@ -1,0 +1,3888 @@
+{
+  "schema": 1,
+  "mode": "local",
+  "cache": "warm OS cache",
+  "rounds": 15,
+  "seed": 77291,
+  "corpus": "/home/eusth/projects/Experiments/tgrep/build/corpora/cpython",
+  "queries_sha256": "5a727f642d1c61d2f161a261e32b9af85c0c7e387bc2d90c7953b72a8e4c868b",
+  "queries": [
+    {
+      "name": "literal-rare",
+      "pattern": "PyUnicode_DecodeUTF8Stateful",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    },
+    {
+      "name": "literal-common",
+      "pattern": "PyObject",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    },
+    {
+      "name": "literal-absent",
+      "pattern": "PyUnicode_ZgrepMissing999",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    },
+    {
+      "name": "literal-long",
+      "pattern": "PyObject_GetOptionalAttrString",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    },
+    {
+      "name": "short",
+      "pattern": "if",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    },
+    {
+      "name": "broad",
+      "pattern": "return",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    },
+    {
+      "name": "alternation",
+      "pattern": "(PyLong|PyFloat).*FromString",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py"
+      ]
+    },
+    {
+      "name": "nested-alternation",
+      "pattern": "(PyObject|PyType).*(GetAttr|SetAttr)",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py"
+      ]
+    },
+    {
+      "name": "regex-selective",
+      "pattern": "PyUnicode_[A-Za-z]+UTF8",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py"
+      ]
+    },
+    {
+      "name": "regex-common",
+      "pattern": "def test_.*error",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py"
+      ]
+    },
+    {
+      "name": "case-insensitive",
+      "pattern": "memoryerror",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-i"
+      ]
+    },
+    {
+      "name": "scoped",
+      "pattern": "PyObject_Call",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F",
+        "-g",
+        "Python/**"
+      ]
+    }
+  ],
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "cpu_count": 32,
+  "affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ],
+  "engines": {
+    "upstream": {
+      "path": "/home/eusth/projects/Experiments/tgrep/build/baseline/release/tgrep",
+      "sha256": "b1bb0f7d512a7824a82f33c745aa776cceb17332130d6c2e78f20576dada0754",
+      "version": "tgrep 1.0.10",
+      "index_bytes": 81379402
+    },
+    "fork": {
+      "path": "/home/eusth/projects/Experiments/tgrep/zgrep/target/release/zgrep",
+      "sha256": "0124585c7c0c6ee2b16aa6ec08c872c6881254cf01c5a80213eb9b816f3f117e",
+      "version": "zgrep 1.0.10",
+      "index_bytes": 81379386
+    },
+    "rg": {
+      "path": "/home/eusth/.local/bin/rg",
+      "sha256": "be2fbcdd985161603bfa268c7647eec670b9e94374f0e972da708d7de670a8fb",
+      "version": "ripgrep 14.1.0\n\nfeatures:-simd-accel,+pcre2\nsimd(compile):+SSE2,-SSSE3,-AVX2\nsimd(runtime):+SSE2,+SSSE3,+AVX2\n\nPCRE2 10.42 is available (JIT is available)"
+    }
+  },
+  "samples": [
+    {
+      "round": 0,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 8.583321
+    },
+    {
+      "round": 0,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 14.596916
+    },
+    {
+      "round": 0,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 15.716787
+    },
+    {
+      "round": 0,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 13.264547
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 8.715192
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 25.848226
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 7.874349
+    },
+    {
+      "round": 0,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 8.227243
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 55.775025
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.432012
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "short",
+      "ms": 68.750108
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 19.486224
+    },
+    {
+      "round": 0,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 13.795899
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 9.630864
+    },
+    {
+      "round": 0,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 15.378042
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 19.093623
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.541557
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 42.772569
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 3.87067
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.050629
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 67.870985
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.437298
+    },
+    {
+      "round": 0,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 16.649092
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.742793
+    },
+    {
+      "round": 0,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 14.224375
+    },
+    {
+      "round": 0,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 24.027272
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 4.163645
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 3.456351
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 8.078505
+    },
+    {
+      "round": 0,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 13.8165
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 55.273929
+    },
+    {
+      "round": 0,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 13.059204
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 8.885009
+    },
+    {
+      "round": 0,
+      "engine": "rg",
+      "query": "short",
+      "ms": 27.500715
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 14.61151
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.853413
+    },
+    {
+      "round": 1,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 15.081535
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 8.645913
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 7.738711
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.39237
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "short",
+      "ms": 68.291995
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 4.164992
+    },
+    {
+      "round": 1,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 14.42108
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 8.969075
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 14.775659
+    },
+    {
+      "round": 1,
+      "engine": "rg",
+      "query": "short",
+      "ms": 26.4413
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.348714
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 4.382147
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 42.704564
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 55.325558
+    },
+    {
+      "round": 1,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 15.59635
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 9.677524
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 19.433762
+    },
+    {
+      "round": 1,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 21.098892
+    },
+    {
+      "round": 1,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 14.982293
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.272198
+    },
+    {
+      "round": 1,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 13.39175
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 8.599675
+    },
+    {
+      "round": 1,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 13.99428
+    },
+    {
+      "round": 1,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 16.401453
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.524066
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.542959
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 55.441158
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 7.949156
+    },
+    {
+      "round": 1,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 14.058565
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 25.572308
+    },
+    {
+      "round": 1,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 15.789852
+    },
+    {
+      "round": 1,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 8.956947
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 3.881266
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.253758
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 68.667328
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 19.140172
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 56.938671
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 3.482161
+    },
+    {
+      "round": 2,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 14.96942
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 9.704246
+    },
+    {
+      "round": 2,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 27.543623
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.475983
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 8.851152
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 68.577538
+    },
+    {
+      "round": 2,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 12.96368
+    },
+    {
+      "round": 2,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 15.090791
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 8.502898
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 42.698154
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 7.813371
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 3.806958
+    },
+    {
+      "round": 2,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 7.927842
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 4.01405
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 7.65777
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 25.797826
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 19.214487
+    },
+    {
+      "round": 2,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 15.448518
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.61251
+    },
+    {
+      "round": 2,
+      "engine": "rg",
+      "query": "short",
+      "ms": 27.748697
+    },
+    {
+      "round": 2,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 13.459059
+    },
+    {
+      "round": 2,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 13.082779
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 55.774858
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.194365
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.759892
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 18.998319
+    },
+    {
+      "round": 2,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 14.507907
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 8.54455
+    },
+    {
+      "round": 2,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 14.795608
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "short",
+      "ms": 68.319724
+    },
+    {
+      "round": 2,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 13.133535
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.646317
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 14.496607
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.207945
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 8.579326
+    },
+    {
+      "round": 3,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 13.920952
+    },
+    {
+      "round": 3,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 7.943908
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 19.302633
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.721841
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 14.297104
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 68.790864
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 8.113628
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.439037
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.719401
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 26.143319
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 9.794437
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 8.753476
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 4.024196
+    },
+    {
+      "round": 3,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 28.116592
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 55.008256
+    },
+    {
+      "round": 3,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 13.224673
+    },
+    {
+      "round": 3,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 15.838123
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 9.069284
+    },
+    {
+      "round": 3,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 14.87087
+    },
+    {
+      "round": 3,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 16.454154
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.528062
+    },
+    {
+      "round": 3,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 12.850369
+    },
+    {
+      "round": 3,
+      "engine": "rg",
+      "query": "short",
+      "ms": 29.358654
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 3.894916
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 3.300799
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.276667
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 19.353304
+    },
+    {
+      "round": 3,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 13.213914
+    },
+    {
+      "round": 3,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 15.220399
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 8.099633
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 43.106668
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.218301
+    },
+    {
+      "round": 3,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 14.38164
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "short",
+      "ms": 70.346601
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 56.107051
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.626456
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.568782
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 8.794785
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.923744
+    },
+    {
+      "round": 4,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 15.751617
+    },
+    {
+      "round": 4,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 8.06532
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 19.092654
+    },
+    {
+      "round": 4,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 14.80317
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 4.101167
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 3.68744
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 68.921829
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 19.086675
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 25.715991
+    },
+    {
+      "round": 4,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 14.372099
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 3.392013
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.155298
+    },
+    {
+      "round": 4,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 15.099082
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 9.607076
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 42.973158
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.7981
+    },
+    {
+      "round": 4,
+      "engine": "rg",
+      "query": "short",
+      "ms": 29.195476
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 55.461085
+    },
+    {
+      "round": 4,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 13.398491
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 55.05746
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 7.843591
+    },
+    {
+      "round": 4,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 26.193727
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 15.385229
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "short",
+      "ms": 69.110271
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 8.394229
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 8.788976
+    },
+    {
+      "round": 4,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 14.454291
+    },
+    {
+      "round": 4,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 14.597096
+    },
+    {
+      "round": 4,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 16.306002
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 8.846709
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.212111
+    },
+    {
+      "round": 4,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 13.610706
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 8.443904
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 7.690883
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 8.8649
+    },
+    {
+      "round": 5,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 14.310212
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.583254
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 42.817441
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 25.652442
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 68.737485
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.088875
+    },
+    {
+      "round": 5,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 25.026928
+    },
+    {
+      "round": 5,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 16.030862
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 9.007221
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 3.84712
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 18.705749
+    },
+    {
+      "round": 5,
+      "engine": "rg",
+      "query": "short",
+      "ms": 27.888361
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 54.964901
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 56.0936
+    },
+    {
+      "round": 5,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 13.248718
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.526403
+    },
+    {
+      "round": 5,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 14.013066
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 3.971787
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 3.290308
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 28.661584
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 7.878434
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.529837
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.108018
+    },
+    {
+      "round": 5,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 15.549935
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 10.125513
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.840436
+    },
+    {
+      "round": 5,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 8.444164
+    },
+    {
+      "round": 5,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 16.320259
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "short",
+      "ms": 72.718889
+    },
+    {
+      "round": 5,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 15.048858
+    },
+    {
+      "round": 5,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 13.404629
+    },
+    {
+      "round": 5,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 15.243246
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 14.726428
+    },
+    {
+      "round": 6,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 13.102069
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.397392
+    },
+    {
+      "round": 6,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 14.209916
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 19.28698
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 7.899146
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 25.537657
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.472309
+    },
+    {
+      "round": 6,
+      "engine": "rg",
+      "query": "short",
+      "ms": 27.839578
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 14.893764
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 18.85548
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 9.612341
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.548139
+    },
+    {
+      "round": 6,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 14.089971
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 7.770184
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 56.435529
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 55.500185
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.137314
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 4.223988
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 43.260438
+    },
+    {
+      "round": 6,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 25.767085
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.78547
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 9.023792
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.148321
+    },
+    {
+      "round": 6,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 13.494839
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 68.325411
+    },
+    {
+      "round": 6,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 7.947475
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 8.9651
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 8.776342
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 3.350809
+    },
+    {
+      "round": 6,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 15.694841
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 3.940946
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "short",
+      "ms": 68.858336
+    },
+    {
+      "round": 6,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 13.470086
+    },
+    {
+      "round": 6,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 15.753164
+    },
+    {
+      "round": 6,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 14.979582
+    },
+    {
+      "round": 6,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 14.388686
+    },
+    {
+      "round": 7,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 15.320239
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 19.234223
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.4583
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 18.940086
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 7.720765
+    },
+    {
+      "round": 7,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 24.819826
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 3.945919
+    },
+    {
+      "round": 7,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 16.439008
+    },
+    {
+      "round": 7,
+      "engine": "rg",
+      "query": "short",
+      "ms": 31.348856
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 7.795469
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 8.56228
+    },
+    {
+      "round": 7,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 13.676278
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.049504
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 3.367986
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.390954
+    },
+    {
+      "round": 7,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 13.057504
+    },
+    {
+      "round": 7,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 14.732919
+    },
+    {
+      "round": 7,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 15.586396
+    },
+    {
+      "round": 7,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 12.857053
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 69.190531
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.227073
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.4958
+    },
+    {
+      "round": 7,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 8.780805
+    },
+    {
+      "round": 7,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 12.9216
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 54.903213
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 8.686649
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 42.706221
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.714309
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 9.361551
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "short",
+      "ms": 69.794865
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 55.181059
+    },
+    {
+      "round": 7,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 15.297473
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 4.151312
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 9.115934
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 25.997103
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 14.918917
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 3.615448
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 9.578122
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 8.55158
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 14.784477
+    },
+    {
+      "round": 8,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 13.258927
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.557418
+    },
+    {
+      "round": 8,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 15.206291
+    },
+    {
+      "round": 8,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 14.955347
+    },
+    {
+      "round": 8,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 13.704052
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 55.936056
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 26.376466
+    },
+    {
+      "round": 8,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 14.446205
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 8.421153
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 42.776202
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 18.788613
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.613303
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "short",
+      "ms": 69.73097
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 8.947812
+    },
+    {
+      "round": 8,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 24.052924
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.226501
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.362061
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 68.474075
+    },
+    {
+      "round": 8,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 15.404995
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 18.860909
+    },
+    {
+      "round": 8,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 15.61159
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.882399
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 4.100189
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 3.800471
+    },
+    {
+      "round": 8,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 14.15609
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 54.981086
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 8.163069
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.564963
+    },
+    {
+      "round": 8,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 12.835266
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 7.973178
+    },
+    {
+      "round": 8,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 7.881858
+    },
+    {
+      "round": 8,
+      "engine": "rg",
+      "query": "short",
+      "ms": 25.923003
+    },
+    {
+      "round": 9,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 13.00977
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 26.547605
+    },
+    {
+      "round": 9,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 13.082931
+    },
+    {
+      "round": 9,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 12.930337
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 9.810741
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "short",
+      "ms": 68.105572
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 8.984658
+    },
+    {
+      "round": 9,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 15.929372
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 68.676471
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 8.099739
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 18.945876
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 4.047944
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 8.205531
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.451894
+    },
+    {
+      "round": 9,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 13.424169
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 15.575594
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 4.011033
+    },
+    {
+      "round": 9,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 15.688948
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 3.555261
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 8.7602
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 19.446423
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.188875
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.471051
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.481216
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 43.190283
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 8.653741
+    },
+    {
+      "round": 9,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 8.132717
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 55.221072
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.196862
+    },
+    {
+      "round": 9,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 14.612506
+    },
+    {
+      "round": 9,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 25.77448
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.337308
+    },
+    {
+      "round": 9,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 15.544849
+    },
+    {
+      "round": 9,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 17.449316
+    },
+    {
+      "round": 9,
+      "engine": "rg",
+      "query": "short",
+      "ms": 29.146949
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 54.918749
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.75667
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 54.998788
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.556543
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 3.476859
+    },
+    {
+      "round": 10,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 16.048769
+    },
+    {
+      "round": 10,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 13.186814
+    },
+    {
+      "round": 10,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 15.383407
+    },
+    {
+      "round": 10,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 14.977574
+    },
+    {
+      "round": 10,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 13.826941
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 8.863286
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 25.547578
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.57162
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 8.422832
+    },
+    {
+      "round": 10,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 13.110778
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.133026
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 19.865324
+    },
+    {
+      "round": 10,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 25.782349
+    },
+    {
+      "round": 10,
+      "engine": "rg",
+      "query": "short",
+      "ms": 26.934401
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 14.565178
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 43.116644
+    },
+    {
+      "round": 10,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 15.02953
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 68.718905
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 8.829916
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 8.098701
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 7.858283
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "short",
+      "ms": 70.802851
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.910062
+    },
+    {
+      "round": 10,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 16.349665
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 3.930072
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.735639
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 3.995888
+    },
+    {
+      "round": 10,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 7.859747
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 18.815308
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 55.589564
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 9.685976
+    },
+    {
+      "round": 10,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 14.113217
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 7.784257
+    },
+    {
+      "round": 11,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 14.484324
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.342071
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 9.166362
+    },
+    {
+      "round": 11,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 12.815342
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 3.889912
+    },
+    {
+      "round": 11,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 13.345277
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 55.499465
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 9.73365
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 7.91418
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 18.900045
+    },
+    {
+      "round": 11,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 13.716496
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "short",
+      "ms": 68.1492
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 3.520736
+    },
+    {
+      "round": 11,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 15.552076
+    },
+    {
+      "round": 11,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 15.311176
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 4.030142
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 8.552316
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 14.642446
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 19.431518
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.758517
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 69.289912
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.593483
+    },
+    {
+      "round": 11,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 15.281217
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.218365
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.407663
+    },
+    {
+      "round": 11,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 8.239666
+    },
+    {
+      "round": 11,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 14.939764
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 8.565622
+    },
+    {
+      "round": 11,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 14.42799
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 56.459143
+    },
+    {
+      "round": 11,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 26.60895
+    },
+    {
+      "round": 11,
+      "engine": "rg",
+      "query": "short",
+      "ms": 28.29127
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 27.753138
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 27.446112
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 45.337831
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "short",
+      "ms": 69.933604
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.514755
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 43.556346
+    },
+    {
+      "round": 12,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 13.281529
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 9.268974
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 9.060948
+    },
+    {
+      "round": 12,
+      "engine": "rg",
+      "query": "short",
+      "ms": 23.921345
+    },
+    {
+      "round": 12,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 13.599317
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.178222
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 9.74995
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 3.393892
+    },
+    {
+      "round": 12,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 13.658136
+    },
+    {
+      "round": 12,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 15.101779
+    },
+    {
+      "round": 12,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 7.91725
+    },
+    {
+      "round": 12,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 26.093171
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 3.899591
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 26.884861
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 7.848098
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 18.975877
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.572557
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 3.96864
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.581757
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 14.639425
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 68.777422
+    },
+    {
+      "round": 12,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 15.817375
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 55.493387
+    },
+    {
+      "round": 12,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 14.120262
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.397607
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 7.784525
+    },
+    {
+      "round": 12,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 14.349447
+    },
+    {
+      "round": 12,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 15.509083
+    },
+    {
+      "round": 12,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 14.917301
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 19.281787
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 8.888482
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 55.308063
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.959629
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.578077
+    },
+    {
+      "round": 13,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 14.71651
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "short",
+      "ms": 68.522863
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 14.626298
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 19.194673
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 8.560227
+    },
+    {
+      "round": 13,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 13.413403
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 9.319388
+    },
+    {
+      "round": 13,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 14.534326
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 43.030986
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 9.699118
+    },
+    {
+      "round": 13,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 16.088999
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 69.373495
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.905149
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 55.996412
+    },
+    {
+      "round": 13,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 8.162874
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 26.878486
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 8.067995
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 3.944757
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.52602
+    },
+    {
+      "round": 13,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 15.992283
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.728964
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 57.812672
+    },
+    {
+      "round": 13,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 13.238433
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 4.085795
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 3.46167
+    },
+    {
+      "round": 13,
+      "engine": "rg",
+      "query": "short",
+      "ms": 34.228336
+    },
+    {
+      "round": 13,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 14.070322
+    },
+    {
+      "round": 13,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 13.203281
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.790061
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.705378
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 19.563153
+    },
+    {
+      "round": 13,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 22.506497
+    },
+    {
+      "round": 13,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 15.24566
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 8.491787
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 8.225342
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "alternation",
+      "ms": 8.858645
+    },
+    {
+      "round": 14,
+      "engine": "rg",
+      "query": "literal-absent",
+      "ms": 14.255465
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.427738
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "query": "literal-common",
+      "ms": 26.440105
+    },
+    {
+      "round": 14,
+      "engine": "rg",
+      "query": "regex-common",
+      "ms": 15.005336
+    },
+    {
+      "round": 14,
+      "engine": "rg",
+      "query": "broad",
+      "ms": 24.336136
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "query": "case-insensitive",
+      "ms": 8.255383
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.875377
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "broad",
+      "ms": 56.386713
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "short",
+      "ms": 69.040013
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "query": "nested-alternation",
+      "ms": 43.464189
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "case-insensitive",
+      "ms": 7.800455
+    },
+    {
+      "round": 14,
+      "engine": "rg",
+      "query": "alternation",
+      "ms": 15.126274
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "regex-common",
+      "ms": 19.037304
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.232392
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "query": "broad",
+      "ms": 55.504396
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "literal-rare",
+      "ms": 3.93499
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "query": "regex-common",
+      "ms": 20.097346
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "query": "literal-rare",
+      "ms": 4.071774
+    },
+    {
+      "round": 14,
+      "engine": "rg",
+      "query": "regex-selective",
+      "ms": 13.914586
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "regex-selective",
+      "ms": 8.702861
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "query": "literal-absent",
+      "ms": 3.409376
+    },
+    {
+      "round": 14,
+      "engine": "rg",
+      "query": "literal-long",
+      "ms": 14.37157
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "query": "regex-selective",
+      "ms": 8.64766
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "nested-alternation",
+      "ms": 14.973087
+    },
+    {
+      "round": 14,
+      "engine": "rg",
+      "query": "case-insensitive",
+      "ms": 14.536647
+    },
+    {
+      "round": 14,
+      "engine": "rg",
+      "query": "short",
+      "ms": 26.189301
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "query": "literal-long",
+      "ms": 4.779873
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "query": "alternation",
+      "ms": 9.438303
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "scoped",
+      "ms": 5.575087
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "query": "short",
+      "ms": 69.539443
+    },
+    {
+      "round": 14,
+      "engine": "rg",
+      "query": "literal-common",
+      "ms": 15.716582
+    },
+    {
+      "round": 14,
+      "engine": "rg",
+      "query": "scoped",
+      "ms": 7.777994
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "query": "scoped",
+      "ms": 5.46358
+    },
+    {
+      "round": 14,
+      "engine": "rg",
+      "query": "literal-rare",
+      "ms": 13.17716
+    },
+    {
+      "round": 14,
+      "engine": "rg",
+      "query": "nested-alternation",
+      "ms": 16.437567
+    }
+  ],
+  "validation": {
+    "literal-rare": {
+      "upstream": {
+        "rows": 9,
+        "sha256": "707d90038f75141954084851df7b95306678d6a63a0e3d11140c2c145d886135",
+        "exit": 0
+      },
+      "fork": {
+        "rows": 9,
+        "sha256": "707d90038f75141954084851df7b95306678d6a63a0e3d11140c2c145d886135",
+        "exit": 0
+      },
+      "rg": {
+        "rows": 9,
+        "sha256": "707d90038f75141954084851df7b95306678d6a63a0e3d11140c2c145d886135",
+        "exit": 0
+      }
+    },
+    "literal-common": {
+      "upstream": {
+        "rows": 850,
+        "sha256": "bf4cd5ba6c218818a47d13752be9194261321fe0e1844368f350e98f286ffda9",
+        "exit": 0
+      },
+      "fork": {
+        "rows": 850,
+        "sha256": "bf4cd5ba6c218818a47d13752be9194261321fe0e1844368f350e98f286ffda9",
+        "exit": 0
+      },
+      "rg": {
+        "rows": 850,
+        "sha256": "bf4cd5ba6c218818a47d13752be9194261321fe0e1844368f350e98f286ffda9",
+        "exit": 0
+      }
+    },
+    "literal-absent": {
+      "upstream": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit": 1
+      },
+      "fork": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit": 1
+      },
+      "rg": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit": 1
+      }
+    },
+    "literal-long": {
+      "upstream": {
+        "rows": 12,
+        "sha256": "fad699880bfad9e9a4208895d7a74bd2751caf93cef52b83ab7451b08fbcbdd6",
+        "exit": 0
+      },
+      "fork": {
+        "rows": 12,
+        "sha256": "fad699880bfad9e9a4208895d7a74bd2751caf93cef52b83ab7451b08fbcbdd6",
+        "exit": 0
+      },
+      "rg": {
+        "rows": 12,
+        "sha256": "fad699880bfad9e9a4208895d7a74bd2751caf93cef52b83ab7451b08fbcbdd6",
+        "exit": 0
+      }
+    },
+    "short": {
+      "upstream": {
+        "rows": 2970,
+        "sha256": "a68a922e99e90f7e89c6a342d6c7b02d01b1b20fe009073de786ec450fc33358",
+        "exit": 0
+      },
+      "fork": {
+        "rows": 2970,
+        "sha256": "a68a922e99e90f7e89c6a342d6c7b02d01b1b20fe009073de786ec450fc33358",
+        "exit": 0
+      },
+      "rg": {
+        "rows": 2970,
+        "sha256": "a68a922e99e90f7e89c6a342d6c7b02d01b1b20fe009073de786ec450fc33358",
+        "exit": 0
+      }
+    },
+    "broad": {
+      "upstream": {
+        "rows": 2565,
+        "sha256": "d47d415a373fbe1b978f8e7568fefc91831accfd3c3473f32d72dbf156a9afa1",
+        "exit": 0
+      },
+      "fork": {
+        "rows": 2565,
+        "sha256": "d47d415a373fbe1b978f8e7568fefc91831accfd3c3473f32d72dbf156a9afa1",
+        "exit": 0
+      },
+      "rg": {
+        "rows": 2565,
+        "sha256": "d47d415a373fbe1b978f8e7568fefc91831accfd3c3473f32d72dbf156a9afa1",
+        "exit": 0
+      }
+    },
+    "alternation": {
+      "upstream": {
+        "rows": 18,
+        "sha256": "02e5347c8bc97fac4717e1ea9ed0845cc823cc227666177ed74b4b52dc28bf5b",
+        "exit": 0
+      },
+      "fork": {
+        "rows": 18,
+        "sha256": "02e5347c8bc97fac4717e1ea9ed0845cc823cc227666177ed74b4b52dc28bf5b",
+        "exit": 0
+      },
+      "rg": {
+        "rows": 18,
+        "sha256": "02e5347c8bc97fac4717e1ea9ed0845cc823cc227666177ed74b4b52dc28bf5b",
+        "exit": 0
+      }
+    },
+    "nested-alternation": {
+      "upstream": {
+        "rows": 149,
+        "sha256": "3192a4c03c3b57b711afae6ad3a07886d57a11b420cccd617fb5f58d7bc2c518",
+        "exit": 0
+      },
+      "fork": {
+        "rows": 149,
+        "sha256": "3192a4c03c3b57b711afae6ad3a07886d57a11b420cccd617fb5f58d7bc2c518",
+        "exit": 0
+      },
+      "rg": {
+        "rows": 149,
+        "sha256": "3192a4c03c3b57b711afae6ad3a07886d57a11b420cccd617fb5f58d7bc2c518",
+        "exit": 0
+      }
+    },
+    "regex-selective": {
+      "upstream": {
+        "rows": 137,
+        "sha256": "9097495b06f84c413866a13d40a94194483f009b17b1c7247bc0b978609d40aa",
+        "exit": 0
+      },
+      "fork": {
+        "rows": 137,
+        "sha256": "9097495b06f84c413866a13d40a94194483f009b17b1c7247bc0b978609d40aa",
+        "exit": 0
+      },
+      "rg": {
+        "rows": 137,
+        "sha256": "9097495b06f84c413866a13d40a94194483f009b17b1c7247bc0b978609d40aa",
+        "exit": 0
+      }
+    },
+    "regex-common": {
+      "upstream": {
+        "rows": 281,
+        "sha256": "dfc75c5c6462287d7e58772503d3d25cb5437a355258a44c6ce4c86d3ab05199",
+        "exit": 0
+      },
+      "fork": {
+        "rows": 281,
+        "sha256": "dfc75c5c6462287d7e58772503d3d25cb5437a355258a44c6ce4c86d3ab05199",
+        "exit": 0
+      },
+      "rg": {
+        "rows": 281,
+        "sha256": "dfc75c5c6462287d7e58772503d3d25cb5437a355258a44c6ce4c86d3ab05199",
+        "exit": 0
+      }
+    },
+    "case-insensitive": {
+      "upstream": {
+        "rows": 102,
+        "sha256": "691cab1d7bc8ada755b39ac3b1e7be14a860f98e7601d26d62cf9bb69625acac",
+        "exit": 0
+      },
+      "fork": {
+        "rows": 102,
+        "sha256": "691cab1d7bc8ada755b39ac3b1e7be14a860f98e7601d26d62cf9bb69625acac",
+        "exit": 0
+      },
+      "rg": {
+        "rows": 102,
+        "sha256": "691cab1d7bc8ada755b39ac3b1e7be14a860f98e7601d26d62cf9bb69625acac",
+        "exit": 0
+      }
+    },
+    "scoped": {
+      "upstream": {
+        "rows": 23,
+        "sha256": "5b0c8a61d40691587c8291711df271464673906e7dab52ac80def70cb0a1e850",
+        "exit": 0
+      },
+      "fork": {
+        "rows": 23,
+        "sha256": "5b0c8a61d40691587c8291711df271464673906e7dab52ac80def70cb0a1e850",
+        "exit": 0
+      },
+      "rg": {
+        "rows": 23,
+        "sha256": "5b0c8a61d40691587c8291711df271464673906e7dab52ac80def70cb0a1e850",
+        "exit": 0
+      }
+    }
+  },
+  "summary": {
+    "literal-rare": {
+      "upstream": {
+        "median_ms": 4.047944,
+        "p95_ms": 4.223988,
+        "min_ms": 3.881266,
+        "max_ms": 4.223988
+      },
+      "fork": {
+        "median_ms": 3.899591,
+        "p95_ms": 4.382147,
+        "min_ms": 3.68744,
+        "max_ms": 4.382147
+      },
+      "rg": {
+        "median_ms": 13.224673,
+        "p95_ms": 14.372099,
+        "min_ms": 12.835266,
+        "max_ms": 14.372099
+      }
+    },
+    "literal-common": {
+      "upstream": {
+        "median_ms": 25.997103,
+        "p95_ms": 27.753138,
+        "min_ms": 25.537657,
+        "max_ms": 27.753138
+      },
+      "fork": {
+        "median_ms": 26.049504,
+        "p95_ms": 27.446112,
+        "min_ms": 25.719401,
+        "max_ms": 27.446112
+      },
+      "rg": {
+        "median_ms": 15.753164,
+        "p95_ms": 16.454154,
+        "min_ms": 14.795608,
+        "max_ms": 16.454154
+      }
+    },
+    "literal-absent": {
+      "upstream": {
+        "median_ms": 3.456351,
+        "p95_ms": 4.164992,
+        "min_ms": 3.290308,
+        "max_ms": 4.164992
+      },
+      "fork": {
+        "median_ms": 3.196862,
+        "p95_ms": 3.52602,
+        "min_ms": 3.050629,
+        "max_ms": 3.52602
+      },
+      "rg": {
+        "median_ms": 13.258927,
+        "p95_ms": 14.42108,
+        "min_ms": 12.815342,
+        "max_ms": 14.42108
+      }
+    },
+    "literal-long": {
+      "upstream": {
+        "median_ms": 4.721841,
+        "p95_ms": 4.923744,
+        "min_ms": 4.451894,
+        "max_ms": 4.923744
+      },
+      "fork": {
+        "median_ms": 4.437298,
+        "p95_ms": 4.840436,
+        "min_ms": 4.207945,
+        "max_ms": 4.840436
+      },
+      "rg": {
+        "median_ms": 13.599317,
+        "p95_ms": 14.42799,
+        "min_ms": 12.857053,
+        "max_ms": 14.42799
+      }
+    },
+    "short": {
+      "upstream": {
+        "median_ms": 68.737485,
+        "p95_ms": 69.539443,
+        "min_ms": 67.870985,
+        "max_ms": 69.539443
+      },
+      "fork": {
+        "median_ms": 69.040013,
+        "p95_ms": 72.718889,
+        "min_ms": 68.105572,
+        "max_ms": 72.718889
+      },
+      "rg": {
+        "median_ms": 27.839578,
+        "p95_ms": 34.228336,
+        "min_ms": 23.921345,
+        "max_ms": 34.228336
+      }
+    },
+    "broad": {
+      "upstream": {
+        "median_ms": 55.308063,
+        "p95_ms": 56.435529,
+        "min_ms": 54.903213,
+        "max_ms": 56.435529
+      },
+      "fork": {
+        "median_ms": 55.589564,
+        "p95_ms": 57.812672,
+        "min_ms": 54.918749,
+        "max_ms": 57.812672
+      },
+      "rg": {
+        "median_ms": 25.767085,
+        "p95_ms": 28.116592,
+        "min_ms": 21.098892,
+        "max_ms": 28.116592
+      }
+    },
+    "alternation": {
+      "upstream": {
+        "median_ms": 9.685976,
+        "p95_ms": 10.125513,
+        "min_ms": 9.361551,
+        "max_ms": 10.125513
+      },
+      "fork": {
+        "median_ms": 8.969075,
+        "p95_ms": 9.319388,
+        "min_ms": 8.846709,
+        "max_ms": 9.319388
+      },
+      "rg": {
+        "median_ms": 15.206291,
+        "p95_ms": 15.688948,
+        "min_ms": 14.977574,
+        "max_ms": 15.688948
+      }
+    },
+    "nested-alternation": {
+      "upstream": {
+        "median_ms": 43.030986,
+        "p95_ms": 45.337831,
+        "min_ms": 42.698154,
+        "max_ms": 45.337831
+      },
+      "fork": {
+        "median_ms": 14.726428,
+        "p95_ms": 15.575594,
+        "min_ms": 14.297104,
+        "max_ms": 15.575594
+      },
+      "rg": {
+        "median_ms": 15.817375,
+        "p95_ms": 17.449316,
+        "min_ms": 15.320239,
+        "max_ms": 17.449316
+      }
+    },
+    "regex-selective": {
+      "upstream": {
+        "median_ms": 8.583321,
+        "p95_ms": 9.007221,
+        "min_ms": 8.422832,
+        "max_ms": 9.007221
+      },
+      "fork": {
+        "median_ms": 8.702861,
+        "p95_ms": 9.060948,
+        "min_ms": 8.421153,
+        "max_ms": 9.060948
+      },
+      "rg": {
+        "median_ms": 13.704052,
+        "p95_ms": 16.320259,
+        "min_ms": 13.39175,
+        "max_ms": 16.320259
+      }
+    },
+    "regex-common": {
+      "upstream": {
+        "median_ms": 19.086675,
+        "p95_ms": 20.097346,
+        "min_ms": 18.705749,
+        "max_ms": 20.097346
+      },
+      "fork": {
+        "median_ms": 19.281787,
+        "p95_ms": 28.661584,
+        "min_ms": 18.860909,
+        "max_ms": 28.661584
+      },
+      "rg": {
+        "median_ms": 14.939764,
+        "p95_ms": 15.586396,
+        "min_ms": 14.349447,
+        "max_ms": 15.586396
+      }
+    },
+    "case-insensitive": {
+      "upstream": {
+        "median_ms": 7.973178,
+        "p95_ms": 8.394229,
+        "min_ms": 7.720765,
+        "max_ms": 8.394229
+      },
+      "fork": {
+        "median_ms": 7.848098,
+        "p95_ms": 8.225342,
+        "min_ms": 7.65777,
+        "max_ms": 8.225342
+      },
+      "rg": {
+        "median_ms": 14.534326,
+        "p95_ms": 15.59635,
+        "min_ms": 14.209916,
+        "max_ms": 15.59635
+      }
+    },
+    "scoped": {
+      "upstream": {
+        "median_ms": 5.475983,
+        "p95_ms": 5.578077,
+        "min_ms": 5.342071,
+        "max_ms": 5.578077
+      },
+      "fork": {
+        "median_ms": 5.572557,
+        "p95_ms": 5.910062,
+        "min_ms": 5.407663,
+        "max_ms": 5.910062
+      },
+      "rg": {
+        "median_ms": 8.06532,
+        "p95_ms": 8.956947,
+        "min_ms": 7.777994,
+        "max_ms": 8.956947
+      }
+    }
+  },
+  "corpus_revision": "b54ae4cdfce4b84b22889b5c5b9ed0ab9bcb3702",
+  "cpu": "Intel(R) Core(TM) i9-14900KS"
+}

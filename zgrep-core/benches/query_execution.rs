@@ -23,6 +23,7 @@ fn and_plan(hashes: &[u32]) -> QueryPlan {
             .map(|hash| TrigramQuery {
                 hash,
                 expected_next: None,
+                position: None,
             })
             .collect(),
     )

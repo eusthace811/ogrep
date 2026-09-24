@@ -1,0 +1,14 @@
+[
+  {"name":"literal-rare","pattern":"TypeVisitableExt","flags":["-F","-t","rust"]},
+  {"name":"literal-common","pattern":"Result","flags":["-F","-t","rust"]},
+  {"name":"literal-absent","pattern":"TypeVisitableZgrepMissing999","flags":["-F","-t","rust"]},
+  {"name":"literal-long","pattern":"rustc_middle::ty::TyCtxt","flags":["-F","-t","rust"]},
+  {"name":"short","pattern":"fn","flags":["-F","-t","rust"]},
+  {"name":"broad","pattern":"impl","flags":["-F","-t","rust"]},
+  {"name":"alternation","pattern":"(TyCtxt|InferCtxt).*<'tcx>","flags":["-t","rust"]},
+  {"name":"nested-alternation","pattern":"(struct|enum).*(TypeError|RegionError)","flags":["-t","rust"]},
+  {"name":"regex-selective","pattern":"impl.*TypeVisitable","flags":["-t","rust"]},
+  {"name":"regex-common","pattern":"fn test_.*parse","flags":["-t","rust"]},
+  {"name":"case-insensitive","pattern":"borrowchecker","flags":["-i","-t","rust"]},
+  {"name":"scoped","pattern":"TyCtxt","flags":["-F","-t","rust","-g","compiler/**"]}
+]

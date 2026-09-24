@@ -65,7 +65,20 @@ fn disk_and_live_results_cover_exact_matches() {
         let expected =
             query::execute_plan_with_masks(&plan, &|h| reader.lookup_trigram_with_masks(h));
         let actual = query::execute_plan_indexed(&plan, &reader, &mut QueryWork::default());
-        assert_eq!(actual, expected, "eager/lazy mismatch for {pattern}");
+        assert!(
+            actual.iter().all(|id| expected.binary_search(id).is_ok()),
+            "positional result must be a subset of the eager candidates for {pattern}"
+        );
+        let disk_regex = regex::Regex::new(pattern).unwrap();
+        if !plan.is_match_all() {
+            for id in reader.all_file_ids() {
+                let text = std::fs::read_to_string(dir.path().join(reader.file_path(id).unwrap()))
+                    .unwrap();
+                if disk_regex.is_match(&text) {
+                    assert!(actual.contains(&id), "disk false negative for {pattern}");
+                }
+            }
+        }
         let (ids, snapshot) = hybrid.execute_query_with_masks(&plan);
         let paths: BTreeSet<_> = ids
             .iter()
@@ -224,4 +237,23 @@ fn fixed_unicode_case_folds_are_sound() {
             "fixed-string index excluded {pattern:?} in {text:?}"
         );
     }
+}
+
+#[test]
+fn positions_reject_scattered_grams_but_never_join_separate_runs() {
+    let mut live = zgrep_core::live::LiveIndex::new();
+    live.upsert_file("scattered", b"abcdXbcde");
+    live.upsert_file("adjacent", b"abcde");
+    let plan = query::build_literal_plan("abcde", false);
+    let eager = query::execute_plan_with_masks(&plan, &|h| live.lookup_trigram_with_masks(h));
+    assert_eq!(eager.len(), 2, "fixture must get through next-byte masks");
+    let mut work = QueryWork::default();
+    let ids = query::execute_plan_indexed(&plan, &live, &mut work);
+    assert_eq!(ids.len(), 1);
+    assert_eq!(live.file_path(ids[0]), Some("adjacent"));
+    assert_eq!(work.position_rejections, 1);
+    live.upsert_file("separate", b"abcde------abcde");
+    let plan = query::build_query_plan("abcde.*abcde", false).unwrap();
+    let ids = query::execute_plan_indexed(&plan, &live, &mut QueryWork::default());
+    assert!(ids.contains(&live.file_id_for_path("separate").unwrap()));
 }

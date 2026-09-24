@@ -19,6 +19,9 @@ pub struct TrigramQuery {
     pub hash: TrigramHash,
     /// Expected next character for next_mask Bloom check.
     pub expected_next: Option<u8>,
+    /// Byte offset modulo eight within this AND node's single literal run.
+    /// None for manually constructed unordered conjunctions.
+    pub position: Option<u8>,
 }
 
 /// A node in the query plan tree.
@@ -52,6 +55,7 @@ pub struct QueryWork {
     pub lists_probed: usize,
     pub postings_copied: usize,
     pub candidate_probes: usize,
+    pub position_rejections: usize,
 }
 
 /// Execute without materializing every posting. Start with the rarest gram,
@@ -83,11 +87,13 @@ pub fn execute_plan_indexed(
                 q.expected_next
                     .is_none_or(|b| e.next_mask & trigram::bloom_hash(b) != 0)
             };
-            let mut candidates: Vec<u32> = entries
-                .iter()
-                .filter(|e| passes(first, e))
-                .map(|e| e.file_id)
-                .collect();
+            entries.retain(|e| passes(first, e));
+            for e in &mut entries {
+                e.loc_mask = first
+                    .position
+                    .map_or(u8::MAX, |offset| e.loc_mask.rotate_right(offset.into()));
+            }
+            let mut candidates = entries;
             for (q, count) in ordered.into_iter().skip(1) {
                 if candidates.is_empty() {
                     break;
@@ -95,7 +101,10 @@ pub fn execute_plan_indexed(
                 let mut entries = if candidates.len().saturating_mul(16) < count {
                     work.lists_probed += 1;
                     work.candidate_probes += candidates.len();
-                    source.probe(q.hash, &candidates)
+                    source.probe(
+                        q.hash,
+                        &candidates.iter().map(|e| e.file_id).collect::<Vec<_>>(),
+                    )
                 } else {
                     work.lists_loaded += 1;
                     source.posting_list(q.hash)
@@ -103,14 +112,27 @@ pub fn execute_plan_indexed(
                 work.postings_copied += entries.len();
                 sort_dedup_postings_by_file_id(&mut entries);
                 let mut i = 0;
-                candidates.retain(|fid| {
-                    while i < entries.len() && entries[i].file_id < *fid {
+                candidates.retain_mut(|candidate| {
+                    while i < entries.len() && entries[i].file_id < candidate.file_id {
                         i += 1;
                     }
-                    i < entries.len() && entries[i].file_id == *fid && passes(q, &entries[i])
+                    if i == entries.len()
+                        || entries[i].file_id != candidate.file_id
+                        || !passes(q, &entries[i])
+                    {
+                        return false;
+                    }
+                    if let Some(offset) = q.position {
+                        candidate.loc_mask &= entries[i].loc_mask.rotate_right(offset.into());
+                        if candidate.loc_mask == 0 {
+                            work.position_rejections += 1;
+                            return false;
+                        }
+                    }
+                    true
                 });
             }
-            candidates
+            candidates.into_iter().map(|e| e.file_id).collect()
         }
         QueryPlan::Or(plans) => union_many_sorted(
             plans
@@ -526,6 +548,7 @@ fn literals_to_query_plan(bytes: &[u8]) -> QueryPlan {
             TrigramQuery {
                 hash,
                 expected_next,
+                position: Some((i % 8) as u8),
             }
         })
         .collect();
@@ -567,19 +590,18 @@ fn decompose_hir(hir: &Hir) -> QueryPlan {
     match hir.kind() {
         HirKind::Literal(Literal(bytes)) => literals_to_query_plan(bytes),
         HirKind::Concat(subs) => {
-            let mut all_queries = Vec::new();
             let mut conditions = Vec::new();
             let mut current_literal = Vec::new();
             let mut fold_run = false;
             let flush =
-                |literal: &mut Vec<u8>, fold: &mut bool, queries: &mut Vec<TrigramQuery>| {
+                |literal: &mut Vec<u8>, fold: &mut bool, conditions: &mut Vec<QueryPlan>| {
                     // Fold the entire run, including case-sensitive neighbours,
                     // so trigrams and next-byte masks refer to the same index text.
                     if *fold {
                         literal.make_ascii_lowercase();
                     }
                     if let QueryPlan::And(run) = literals_to_query_plan(literal) {
-                        queries.extend(run);
+                        conditions.push(QueryPlan::And(run));
                     }
                     literal.clear();
                     *fold = false;
@@ -594,22 +616,17 @@ fn decompose_hir(hir: &Hir) -> QueryPlan {
                     current_literal.push(byte);
                     fold_run = true;
                 } else {
-                    flush(&mut current_literal, &mut fold_run, &mut all_queries);
+                    flush(&mut current_literal, &mut fold_run, &mut conditions);
                     // Recurse into the non-literal child
                     let sub_plan = decompose_hir(sub);
                     match sub_plan {
-                        QueryPlan::And(queries) => all_queries.extend(queries),
                         QueryPlan::MatchAll => {}
                         other => conditions.push(other),
                     }
                 }
             }
 
-            flush(&mut current_literal, &mut fold_run, &mut all_queries);
-
-            if !all_queries.is_empty() {
-                conditions.push(QueryPlan::And(all_queries));
-            }
+            flush(&mut current_literal, &mut fold_run, &mut conditions);
             simplify(QueryPlan::All(conditions))
         }
         HirKind::Alternation(alts) => {
@@ -1216,10 +1233,12 @@ mod tests {
             QueryPlan::And(vec![TrigramQuery {
                 hash: 1,
                 expected_next: None,
+                position: None,
             }]),
             QueryPlan::And(vec![TrigramQuery {
                 hash: 2,
                 expected_next: None,
+                position: None,
             }]),
         ]);
         let candidates = execute_plan(&plan, &|tri| match tri {
@@ -1275,43 +1294,39 @@ mod tests {
         assert_eq!(entries[1].file_id, 2);
     }
 
-    #[test]
-    fn test_case_insensitive_literal_plan() {
-        // "class AlertSchema" with case-insensitive should produce trigrams
-        // from "class alertschema"
-        let plan = build_literal_plan("class AlertSchema", true);
-        match &plan {
-            QueryPlan::And(queries) => {
-                assert!(!queries.is_empty(), "should have trigrams");
-                // Verify these are lowercase trigrams
-                // Unicode folds of S cannot be required as ASCII bytes. The
-                // unambiguous literal run remains a useful index constraint.
-                let expected = trigram::extract_from_literal("alert");
-                let hashes: Vec<TrigramHash> = queries.iter().map(|q| q.hash).collect();
-                for tri in &expected {
-                    assert!(hashes.contains(tri), "missing trigram {tri:#010x}");
-                }
-            }
-            _ => panic!("expected And plan"),
+    fn required_hashes(plan: &QueryPlan) -> Vec<u32> {
+        match plan {
+            QueryPlan::And(qs) => qs.iter().map(|q| q.hash).collect(),
+            QueryPlan::All(ps) => ps.iter().flat_map(required_hashes).collect(),
+            other => panic!("expected required literal constraints, got {other:?}"),
         }
     }
 
     #[test]
-    fn test_case_insensitive_regex_plan() {
-        // Unicode case folds of S include non-ASCII bytes, so only the
-        // unambiguous ASCII runs can be required by the index.
-        let plan = build_query_plan("class AlertSchema", true).unwrap();
-        match &plan {
-            QueryPlan::And(queries) => {
-                assert!(!queries.is_empty(), "should have trigrams");
-                let expected = trigram::extract_from_literal("alert");
-                let hashes: Vec<TrigramHash> = queries.iter().map(|q| q.hash).collect();
-                for tri in &expected {
-                    assert!(hashes.contains(tri), "missing trigram {tri:#010x}");
-                }
-            }
-            _ => panic!("expected And plan, got {plan:?}"),
+    fn test_case_insensitive_literal_plan() {
+        let plan = build_literal_plan("class AlertSchema", true);
+        // Runs are separate because Unicode S/ſ folds break ASCII adjacency.
+        let hashes = required_hashes(&plan);
+        for tri in trigram::extract_from_literal("alert") {
+            assert!(
+                hashes.contains(&tri),
+                "missing required trigram {tri:#010x}"
+            );
         }
+        assert!(hashes.contains(&trigram::hash(b'c', b'l', b'a')));
+    }
+
+    #[test]
+    fn test_case_insensitive_regex_plan() {
+        let plan = build_query_plan("class AlertSchema", true).unwrap();
+        let hashes = required_hashes(&plan);
+        for tri in trigram::extract_from_literal("alert") {
+            assert!(
+                hashes.contains(&tri),
+                "missing required trigram {tri:#010x}"
+            );
+        }
+        assert!(hashes.contains(&trigram::hash(b'c', b'l', b'a')));
     }
 
     #[test]

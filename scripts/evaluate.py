@@ -52,7 +52,9 @@ def main():
     for entry in args.engine:
         name, executable = entry.split('=', 1)
         engines[name] = Path(shutil.which(executable) or executable).resolve()
-    result = {'schema': 1, 'mode': args.mode, 'cache': 'warm OS cache',
+    if args.rounds < 1:
+        ap.error('--rounds must be positive')
+    result = {'schema': 2, 'mode': args.mode, 'cache': 'warm OS cache',
               'rounds': args.rounds, 'seed': args.seed, 'corpus': str(corpus),
               'queries_sha256': digest(args.queries.read_bytes()), 'queries': queries,
               'platform': platform.platform(), 'cpu_count': os.cpu_count(),
@@ -67,7 +69,7 @@ def main():
     logs = []
     indexes = {}
     def command(name, q):
-        cmd = [str(engines[name]), '-l', '--color', 'never', '-j', '4', *q.get('flags', [])]
+        cmd = [str(engines[name]), '-l', '--color', 'never', '--no-config', '-j', '4', *q.get('flags', [])]
         if name != 'rg':
             cmd += ['--index-path', str(indexes[name])]
         return cmd + ['--', q['pattern'], '.']
@@ -93,9 +95,15 @@ def main():
                                            '--no-watch', '-j', '4'], stdout=log, stderr=log)
                 servers.append(server)
                 deadline = time.monotonic() + 60
-                while not (index / 'serve.json').exists():
+                while True:
                     if server.poll() is not None or time.monotonic() > deadline:
                         raise RuntimeError(f'{name} server failed; see {log.name}')
+                    try:
+                        descriptor = json.loads((index / 'serve.json').read_text())
+                    except (FileNotFoundError, json.JSONDecodeError):
+                        descriptor = {}
+                    if descriptor.get('pid') == server.pid:
+                        break
                     time.sleep(.05)
 
         for q in queries:
@@ -111,6 +119,14 @@ def main():
                 result['validation'].setdefault(q['name'], {})[name] = {
                     'rows': len(rows), 'sha256': digest(b'\n'.join(rows)), 'exit': p.returncode}
                 run(command(name, q), cwd=corpus)  # Second warmup, excluded from timing.
+                if name != 'rg':
+                    diagnostic = command(name, q)
+                    diagnostic.insert(1, '--stats')
+                    stats = run(diagnostic, cwd=corpus).stderr.decode(errors='replace')
+                    used_server = '(via server)' in stats
+                    if used_server != (args.mode == 'server'):
+                        raise AssertionError(f'{name}/{q["name"]}: execution mode differs: {stats}')
+                    result['validation'][q['name']][name]['diagnostics'] = stats
 
         rng = random.Random(args.seed)
         for round_id in range(args.rounds):
@@ -131,6 +147,9 @@ def main():
                 values = sorted(s['ms'] for s in result['samples'] if s['engine'] == name and s['query'] == q['name'])
                 result['summary'][q['name']][name] = {'median_ms': statistics.median(values),
                     'p95_ms': values[min(len(values)-1, int(.95*len(values)))], 'min_ms': min(values), 'max_ms': max(values)}
+        for name, binary in engines.items():
+            if digest(binary.read_bytes()) != result['engines'][name]['sha256']:
+                raise AssertionError(f'{name}: binary changed during evaluation')
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(result, indent=2) + '\n')
     finally:
