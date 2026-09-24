@@ -1,0 +1,909 @@
+[
+  {
+    "name": "upstream-000",
+    "pattern": "fn main",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-001",
+    "pattern": "pub fn",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-002",
+    "pattern": "pub struct",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-003",
+    "pattern": "pub enum",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-004",
+    "pattern": "pub trait",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-005",
+    "pattern": "impl Display",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-006",
+    "pattern": "impl Debug",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-007",
+    "pattern": "impl From",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-008",
+    "pattern": "impl Iterator",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-009",
+    "pattern": "impl Drop",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-010",
+    "pattern": "derive(Debug",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-011",
+    "pattern": "derive(Clone",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-012",
+    "pattern": "derive(Serialize",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-013",
+    "pattern": "#[cfg(test)]",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-014",
+    "pattern": "#[test]",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-015",
+    "pattern": "#[inline]",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-016",
+    "pattern": "#[must_use]",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-017",
+    "pattern": "#[allow(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-018",
+    "pattern": "#[deny(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-019",
+    "pattern": "#[deprecated",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-020",
+    "pattern": "unsafe fn",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-021",
+    "pattern": "unsafe impl",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-022",
+    "pattern": "unsafe {",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-023",
+    "pattern": "Box<dyn",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-024",
+    "pattern": "Arc<Mutex",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-025",
+    "pattern": "Rc<RefCell",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-026",
+    "pattern": "Vec<",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-027",
+    "pattern": "HashMap<",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-028",
+    "pattern": "HashSet<",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-029",
+    "pattern": "BTreeMap<",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-030",
+    "pattern": "Option<",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-031",
+    "pattern": "Result<",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-032",
+    "pattern": "Some(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-033",
+    "pattern": "None",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-034",
+    "pattern": "Ok(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-035",
+    "pattern": "Err(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-036",
+    "pattern": "unwrap()",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-037",
+    "pattern": "expect(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-038",
+    "pattern": "unwrap_or",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-039",
+    "pattern": "match ",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-040",
+    "pattern": "if let Some",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-041",
+    "pattern": "if let Ok",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-042",
+    "pattern": "while let",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-043",
+    "pattern": "loop {",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-044",
+    "pattern": "break;",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-045",
+    "pattern": "continue;",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-046",
+    "pattern": "return Err",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-047",
+    "pattern": "return Ok",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-048",
+    "pattern": "panic!(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-049",
+    "pattern": "todo!()",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-050",
+    "pattern": "unimplemented!()",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-051",
+    "pattern": "unreachable!()",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-052",
+    "pattern": "assert!(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-053",
+    "pattern": "assert_eq!(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-054",
+    "pattern": "debug_assert!(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-055",
+    "pattern": "println!(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-056",
+    "pattern": "eprintln!(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-057",
+    "pattern": "format!(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-058",
+    "pattern": "write!(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-059",
+    "pattern": "writeln!(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-060",
+    "pattern": "vec!",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-061",
+    "pattern": "macro_rules!",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-062",
+    "pattern": "use std::",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-063",
+    "pattern": "use crate::",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-064",
+    "pattern": "use super::",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-065",
+    "pattern": "mod tests",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-066",
+    "pattern": "pub mod",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-067",
+    "pattern": "extern crate",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-068",
+    "pattern": "lifetime",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-069",
+    "pattern": "where ",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-070",
+    "pattern": "'static",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-071",
+    "pattern": "dyn Fn(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-072",
+    "pattern": "async fn",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-073",
+    "pattern": "await",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-074",
+    "pattern": ".map(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-075",
+    "pattern": ".filter(",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-076",
+    "pattern": ".collect()",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-077",
+    "pattern": ".iter()",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-078",
+    "pattern": ".into_iter()",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-079",
+    "pattern": "impl<'a",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-080",
+    "pattern": "PhantomData",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-081",
+    "pattern": "Pin<",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-082",
+    "pattern": "MaybeUninit",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-083",
+    "pattern": "ManuallyDrop",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-084",
+    "pattern": "NonNull",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-085",
+    "pattern": "transmute",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-086",
+    "pattern": "TODO",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-087",
+    "pattern": "FIXME",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-088",
+    "pattern": "HACK",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-089",
+    "pattern": "XXX",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-090",
+    "pattern": "deprecated",
+    "flags": [
+      "-t",
+      "rust",
+      "-F"
+    ]
+  },
+  {
+    "name": "upstream-091",
+    "pattern": "^use std::",
+    "flags": [
+      "-t",
+      "rust"
+    ]
+  },
+  {
+    "name": "upstream-092",
+    "pattern": "^pub fn\\s+\\w+",
+    "flags": [
+      "-t",
+      "rust"
+    ]
+  },
+  {
+    "name": "upstream-093",
+    "pattern": "^\\s*fn\\s+\\w+",
+    "flags": [
+      "-t",
+      "rust"
+    ]
+  },
+  {
+    "name": "upstream-094",
+    "pattern": "struct\\s+\\w+<",
+    "flags": [
+      "-t",
+      "rust"
+    ]
+  },
+  {
+    "name": "upstream-095",
+    "pattern": "enum\\s+\\w+\\s*\\{",
+    "flags": [
+      "-t",
+      "rust"
+    ]
+  },
+  {
+    "name": "upstream-096",
+    "pattern": "trait\\s+\\w+",
+    "flags": [
+      "-t",
+      "rust"
+    ]
+  },
+  {
+    "name": "upstream-097",
+    "pattern": "type\\s+\\w+\\s*=",
+    "flags": [
+      "-t",
+      "rust"
+    ]
+  },
+  {
+    "name": "upstream-098",
+    "pattern": "const\\s+\\w+:\\s+",
+    "flags": [
+      "-t",
+      "rust"
+    ]
+  },
+  {
+    "name": "upstream-099",
+    "pattern": "static\\s+\\w+:",
+    "flags": [
+      "-t",
+      "rust"
+    ]
+  },
+  {
+    "name": "upstream-100",
+    "pattern": "impl\\s+\\w+\\s+for",
+    "flags": [
+      "-t",
+      "rust"
+    ]
+  },
+  {
+    "name": "upstream-101",
+    "pattern": "where\\s+\\w+:\\s+",
+    "flags": [
+      "-t",
+      "rust"
+    ]
+  }
+]
