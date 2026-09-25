@@ -1,4 +1,6 @@
 /target
+/dist
+__pycache__/
 .zgrep/
 .zgrep_staging/
 .zgrep_flush_staging/

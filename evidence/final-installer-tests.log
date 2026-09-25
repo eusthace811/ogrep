@@ -1,0 +1,49 @@
+PASS: busybox/valid
+PASS: busybox/corrupt
+PASS: busybox/missing
+PASS: busybox/malformed
+PASS: busybox/bad-hex
+PASS: busybox/short-hash
+PASS: busybox/duplicate
+PASS: busybox/mixed-malformed
+PASS: busybox/binary
+PASS: busybox/no-newline
+PASS: busybox/suffix-only
+PASS: busybox/suffix-extra
+PASS: shasum/valid
+PASS: shasum/corrupt
+PASS: shasum/missing
+PASS: shasum/malformed
+PASS: shasum/bad-hex
+PASS: shasum/short-hash
+PASS: shasum/duplicate
+PASS: shasum/mixed-malformed
+PASS: shasum/binary
+PASS: shasum/no-newline
+PASS: shasum/suffix-only
+PASS: shasum/suffix-extra
+PASS: sha256sum/valid
+PASS: sha256sum/corrupt
+PASS: sha256sum/missing
+PASS: sha256sum/malformed
+PASS: sha256sum/bad-hex
+PASS: sha256sum/short-hash
+PASS: sha256sum/duplicate
+PASS: sha256sum/mixed-malformed
+PASS: sha256sum/binary
+PASS: sha256sum/no-newline
+PASS: sha256sum/suffix-only
+PASS: sha256sum/suffix-extra
+PASS: sha256sum shasum/valid
+PASS: sha256sum shasum/corrupt
+PASS: sha256sum shasum/missing
+PASS: sha256sum shasum/malformed
+PASS: sha256sum shasum/bad-hex
+PASS: sha256sum shasum/short-hash
+PASS: sha256sum shasum/duplicate
+PASS: sha256sum shasum/mixed-malformed
+PASS: sha256sum shasum/binary
+PASS: sha256sum shasum/no-newline
+PASS: sha256sum shasum/suffix-only
+PASS: sha256sum shasum/suffix-extra
+PASS: none/valid

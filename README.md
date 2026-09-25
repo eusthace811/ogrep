@@ -1,20 +1,35 @@
 # zgrep
 
-An experimental Rust fork of [Microsoft tgrep](https://github.com/microsoft/tgrep), starting from commit `56f8c62`. It provides indexed exact text and regex search with an optional local server.
+Indexed exact text and regex search, forked from [Microsoft tgrep](https://github.com/microsoft/tgrep) at `56f8c62`. Version 0.1.0 improves query planning and fixes Unicode case-insensitive candidate filtering while retaining the existing index format and exact match verification.
 
-This fork is under evaluation. Upstream benchmark results and integrations are not evidence of this fork’s performance or adoption. See [the development record](DEVELOPMENT.md) and `evidence/` for reproducible experiments.
+The installed command is **`zgrep-code`**. Unix systems commonly already have an unrelated gzip utility called `zgrep`; the Cargo build output remains `target/release/zgrep`.
 
 ```sh
-cargo build --release --locked
-./target/release/zgrep index .
-./target/release/zgrep serve .
-./target/release/zgrep -F -- 'fn main' .
+make install                            # ~/.cargo/bin/zgrep-code
+zgrep-code index /path/to/repository
+zgrep-code -F --explain -- 'some_identifier' /path/to/repository
+zgrep-code serve /path/to/repository     # optional foreground server + watcher
 ```
 
-The executable is named `zgrep`; many Unix systems already have an unrelated gzip search command with that name. Use an explicit path or install this binary under a distinct name such as `zgrep-code` to avoid confusion.
+Put `~/.cargo/bin` on PATH, or use `./target/release/zgrep` directly after `cargo build --release --locked`. `python3 scripts/package.py` creates a checksummed local Linux archive from a clean checkout and verifies the unpacked executable.
 
-Indexes and service discovery use `.zgrep/`, separate from upstream’s `.tgrep/`. See [agent usage](AGENTS.md) for index freshness and search semantics. Use `--no-index` when searching current filesystem contents is required.
+## What changed
 
-The inherited full command reference and original performance claims are preserved in [upstream documentation](docs/upstream/README.md). Substitute the local executable name and `.zgrep` directory when using those commands. This fork is not distributed through upstream’s download URLs or Homebrew formula.
+- **Better regex plans:** retain mandatory alternatives inside concatenations instead of discarding useful constraints. The tested nested-alternation queries ran **2.9× faster on CPython and 13.5× on Rust** with local indexes; the server gains were 1.9× and 10.0×.
+- **Less posting work:** order lookups by cardinality, probe common lists for sparse candidates, and use existing position masks to reject impossible literal alignments. No index format migration is needed.
+- **Correct Unicode fixed searches:** indexed `-Fi` now retains matches such as `kelvin` against `KELVIN`, which the inherited planner could incorrectly exclude.
+- **Explain actual work:** `--explain` performs the search and reports posting loads, probes, copies, and positional rejections on stderr. Normal matching output is unchanged.
 
-Original copyright and MIT license are retained in [LICENSE](LICENSE).
+These are measured improvements on specific workloads, not a universal speedup. Ordinary queries are often similar to upstream; some regress. Broad local searches can be slower than ripgrep. See [the complete benchmark report](BENCHMARKS.md), including raw samples, output checks, independent upstream queries, and the sparse-gram prototype we rejected after evaluation.
+
+## Search contracts
+
+Indexes and service discovery use `.zgrep/`, separate from upstream's `.tgrep/`. Ignore rules, supported file types, size limits, and binary/hidden policies determine the searchable corpus. The index is a prefilter; exact matching still verifies candidates.
+
+An on-disk index reflects its last publication. The server's watcher is asynchronous. Use `--no-index` when a query must read current eligible files. Indexing-complete status is not a freshness guarantee. Add `.zgrep/` to the searched repository's `.gitignore`.
+
+Use `zgrep-code --help` for flags, [agent guidance](AGENTS.md) for integration semantics, and [operations](docs/OPERATIONS.md) for installation, freshness, recovery, and platform limits. The local release gates were run on Linux x86-64; macOS/Windows CI definitions are retained but were not executed in this evaluation. No release has been remotely published or signed.
+
+[Changes](CHANGELOG.md) · [Development decisions](DEVELOPMENT.md) · [Research and future directions](docs/RESEARCH.md) · [Inherited command reference](docs/upstream/README.md)
+
+Original copyright and MIT license are retained in [LICENSE](LICENSE). Upstream performance and adoption claims in archived documents are not claims about this fork.

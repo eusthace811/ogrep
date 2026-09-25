@@ -24,7 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - run: rustup component add clippy
-      - run: cargo clippy --workspace --benches -- -D warnings
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
 
   test:
     name: Test (${{ matrix.os }})
@@ -37,9 +37,10 @@ jobs:
       - name: Test Unix installer
         if: runner.os != 'Windows'
         run: bash scripts/test-install.sh
-      - run: cargo build --workspace --verbose
+      - run: cargo build --workspace --locked --verbose
       - name: Test agent integrations
         if: runner.os != 'Windows'
         run: python3 -B -m unittest discover -s scripts/agent -p 'test_*.py' -v
-      - run: cargo build --workspace --benches --verbose
-      - run: cargo test --workspace --verbose
+      - run: cargo build --workspace --benches --locked --verbose
+      - run: cargo test --workspace --locked --verbose
+      - run: cargo test --workspace --examples --locked

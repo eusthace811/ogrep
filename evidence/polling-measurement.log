@@ -1,0 +1,118 @@
+   Compiling zgrep-cli v0.1.0 (/home/eusth/projects/Experiments/tgrep/zgrep/zgrep-cli)
+   Compiling zgrep-core v0.1.0 (/home/eusth/projects/Experiments/tgrep/zgrep/zgrep-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 4.64s
+     Running unittests src/main.rs (target/debug/deps/zgrep-4c4a2cb30a30fb07)
+
+running 1 test
+test serve::poll_tests::measure_polling_1000_files_and_20_file_change_batch ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 284 filtered out; finished in 0.14s
+
+     Running tests/concurrent_search.rs (target/debug/deps/concurrent_search-82e123f10e5e8252)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+     Running tests/default_max_filesize.rs (target/debug/deps/default_max_filesize-e44edb843502a565)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running tests/indexed_files.rs (target/debug/deps/indexed_files-91826ff4da664e85)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/indexed_hidden.rs (target/debug/deps/indexed_hidden-64c4dae859c05583)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
+     Running tests/large_file_search.rs (target/debug/deps/large_file_search-f9a1b9d152356b43)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/memory_cap.rs (target/debug/deps/memory_cap-4599f2a2d529e75b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/ripgrep_compat.rs (target/debug/deps/ripgrep_compat-88a1ffb54ea9f96b)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 234 filtered out; finished in 0.00s
+
+     Running tests/ripgrep_parity.rs (target/debug/deps/ripgrep_parity-f2d21f85e5e6e87c)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+     Running tests/serve_max_filesize.rs (target/debug/deps/serve_max_filesize-2fd4964342ef1083)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/warm_start_gitignore.rs (target/debug/deps/warm_start_gitignore-31d89439a87e62ff)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/watcher_dot_ignore.rs (target/debug/deps/watcher_dot_ignore-6ffade6cd5f907d4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests/watcher_watch_registration.rs (target/debug/deps/watcher_watch_registration-47c8f49defea8876)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/zgrep_core-5332b70086825e74)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 262 filtered out; finished in 0.00s
+
+     Running tests/case_insensitive_roundtrip.rs (target/debug/deps/case_insensitive_roundtrip-ed2bb17edb99b616)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/corrupt_index_reader.rs (target/debug/deps/corrupt_index_reader-93b0042ec4074cd4)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/indexed_planner.rs (target/debug/deps/indexed_planner-9df940c5618a5b36)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running tests/snapshot_consistency.rs (target/debug/deps/snapshot_consistency-98f7a5c61bb06787)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+   Doc-tests zgrep_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

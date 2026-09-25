@@ -108,11 +108,15 @@ def main():
 
         for q in queries:
             expected = None
+            expected_exit = None
             for name in engines:
                 p = run(command(name, q), cwd=corpus)
                 rows = sorted(p.stdout.splitlines())
                 if expected is None:
                     expected = rows
+                    expected_exit = p.returncode
+                if p.returncode != expected_exit:
+                    raise AssertionError(f"Exit mismatch: {name}, {q['name']}: {p.returncode} != {expected_exit}")
                 if rows != expected:
                     raise AssertionError(f"Output mismatch: {name}, {q['name']}; "
                                          f"missing {set(expected)-set(rows)}, extra {set(rows)-set(expected)}")
