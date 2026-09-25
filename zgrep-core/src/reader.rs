@@ -6,6 +6,7 @@
 use memmap2::Mmap;
 use std::fs::File;
 use std::path::Path;
+use std::sync::OnceLock;
 
 use crate::Result;
 use crate::ondisk::{self, LOOKUP_ENTRY_SIZE, LookupEntry, POSTING_ENTRY_SIZE, PostingEntry};
@@ -16,8 +17,9 @@ pub struct IndexReader {
     file_paths: Vec<String>,
     file_table_id: crate::meta::FileTableId,
     /// File IDs sorted by path, for exact membership checks without duplicating
-    /// every path string in a second collection.
-    path_order: Vec<usize>,
+    /// every path string in a second collection. Content-only queries use IDs
+    /// directly and need not pay for constructing this membership index.
+    path_order: OnceLock<Vec<usize>>,
     num_entries: usize,
 }
 
@@ -144,15 +146,12 @@ impl IndexReader {
         for (id, path) in file_entries {
             file_paths[id as usize] = path;
         }
-        let mut path_order: Vec<usize> = (0..file_paths.len()).collect();
-        path_order.sort_unstable_by(|&a, &b| file_paths[a].cmp(&file_paths[b]));
-
         Ok(Self {
             lookup,
             postings,
             file_paths,
             file_table_id,
-            path_order,
+            path_order: OnceLock::new(),
             num_entries,
         })
     }
@@ -166,7 +165,7 @@ impl IndexReader {
             postings: None,
             file_paths: Vec::new(),
             file_table_id: crate::meta::file_table_id(&[]),
-            path_order: Vec::new(),
+            path_order: OnceLock::new(),
             num_entries: 0,
         }
     }
@@ -176,7 +175,7 @@ impl IndexReader {
         self.lookup = None;
         self.postings = None;
         self.file_paths.clear();
-        self.path_order.clear();
+        self.path_order.take();
         self.num_entries = 0;
     }
 
@@ -211,22 +210,31 @@ impl IndexReader {
     }
 
     pub fn contains_path(&self, path: &str) -> bool {
-        self.path_order
+        self.path_order()
             .binary_search_by(|&id| self.file_paths[id].as_str().cmp(path))
             .is_ok()
+    }
+
+    fn path_order(&self) -> &[usize] {
+        self.path_order.get_or_init(|| {
+            let mut order: Vec<_> = (0..self.file_paths.len()).collect();
+            order.sort_unstable_by(|&a, &b| self.file_paths[a].cmp(&self.file_paths[b]));
+            order
+        })
     }
 
     /// Whether the reader contains a path strictly below `directory`.
     pub fn has_descendant_path(&self, directory: &str) -> bool {
         if directory.is_empty() {
-            return !self.path_order.is_empty();
+            return !self.file_paths.is_empty();
         }
         let prefix = directory
             .as_bytes()
             .iter()
             .copied()
             .chain(std::iter::once(b'/'));
-        let lower = self.path_order.partition_point(|&id| {
+        let path_order = self.path_order();
+        let lower = path_order.partition_point(|&id| {
             self.file_paths[id]
                 .as_bytes()
                 .iter()
@@ -234,7 +242,7 @@ impl IndexReader {
                 .cmp(prefix.clone())
                 .is_lt()
         });
-        self.path_order.get(lower).is_some_and(|&id| {
+        path_order.get(lower).is_some_and(|&id| {
             self.file_paths[id]
                 .strip_prefix(directory)
                 .is_some_and(|suffix| suffix.starts_with('/'))
@@ -643,6 +651,62 @@ mod tests {
         assert!(reader.has_descendant_path("src/deep"));
         assert!(!reader.has_descendant_path("sr"));
         assert!(!reader.has_descendant_path("src2/not-a-child.rs"));
+    }
+
+    #[test]
+    fn concurrent_first_path_queries_preserve_ids_and_directory_boundaries() {
+        let tmp = TempDir::new().unwrap();
+        let paths = [
+            "z.rs",
+            "src2/a.rs",
+            "src/deep/b.rs",
+            "src/a.rs",
+            "README.md",
+        ];
+        let files: Vec<u8> = paths
+            .iter()
+            .enumerate()
+            .flat_map(|(id, path)| ondisk::encode_file_entry(id as u32, path).unwrap())
+            .collect();
+        write_index(tmp.path(), &[], &[], &files);
+        let reader = IndexReader::open(tmp.path()).unwrap();
+        for (id, path) in paths.iter().enumerate() {
+            assert_eq!(reader.file_path(id as u32), Some(*path));
+        }
+        assert!(reader.path_order.get().is_none());
+        let barrier = std::sync::Barrier::new(8);
+        std::thread::scope(|scope| {
+            for _ in 0..8 {
+                scope.spawn(|| {
+                    barrier.wait();
+                    for _ in 0..100 {
+                        assert!(reader.contains_path("src/deep/b.rs"));
+                        assert!(!reader.contains_path("src"));
+                        assert!(reader.has_descendant_path("src"));
+                        assert!(reader.has_descendant_path("src/deep"));
+                        assert!(!reader.has_descendant_path("sr"));
+                        assert!(!reader.has_descendant_path("src/deep/b.rs"));
+                    }
+                });
+            }
+        });
+        for (id, path) in paths.iter().enumerate() {
+            assert_eq!(reader.file_path(id as u32), Some(*path));
+        }
+    }
+
+    #[test]
+    fn closed_reader_drops_previously_initialized_path_membership() {
+        let tmp = TempDir::new().unwrap();
+        let files = ondisk::encode_file_entry(0, "src/a.rs").unwrap();
+        write_index(tmp.path(), &[], &[], &files);
+        let mut reader = IndexReader::open(tmp.path()).unwrap();
+        assert!(reader.contains_path("src/a.rs"));
+        reader.close();
+        assert_eq!(reader.file_path(0), None);
+        assert!(!reader.contains_path("src/a.rs"));
+        assert!(!reader.has_descendant_path("src"));
+        assert!(!reader.has_descendant_path(""));
     }
 
     #[test]

@@ -1,0 +1,12 @@
+{
+  "upstream": {
+    "geomean_speedup": 1.2590707917123576,
+    "min_median_speedup": 1.0102791114362726,
+    "max_median_speedup": 1.7251846001821063
+  },
+  "release": {
+    "geomean_speedup": 1.261965648417425,
+    "min_median_speedup": 1.0101148645052618,
+    "max_median_speedup": 1.7002866277714173
+  }
+}

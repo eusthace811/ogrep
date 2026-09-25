@@ -1,0 +1,53 @@
+   Compiling zgrep-core v0.1.0 (/home/eusth/projects/Experiments/tgrep/zgrep/zgrep-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 3.36s
+     Running unittests src/lib.rs (target/debug/deps/zgrep_core-84f720ffce3999d3)
+
+running 21 tests
+test reader::tests::lookup_clamps_length_to_the_entries_that_fit ... ok
+test reader::tests::open_accepts_empty_index ... ok
+test reader::tests::open_rejects_files_with_out_of_range_id ... ok
+test reader::tests::open_rejects_lookup_with_non_multiple_size ... ok
+test reader::tests::validate_lookup_empty_is_ok ... ok
+test reader::tests::is_degenerate_false_for_empty_index ... ok
+test reader::tests::closed_reader_drops_previously_initialized_path_membership ... ok
+test reader::tests::open_rejects_files_with_duplicate_id ... ok
+test reader::tests::lookup_with_offset_inside_a_partial_trailing_entry_returns_empty ... ok
+test reader::tests::lookup_still_returns_every_entry_of_a_well_formed_range ... ok
+test reader::tests::concurrent_first_path_queries_preserve_ids_and_directory_boundaries ... ok
+test reader::tests::open_accepts_dense_files_table ... ok
+test reader::tests::lookup_bounds_work_by_postings_len_not_declared_length ... ok
+test reader::tests::validate_lookup_accepts_sorted_table ... ok
+test reader::tests::validate_lookup_rejects_unsorted_table ... ok
+test reader::tests::descendant_lookup_is_sorted_and_directory_boundary_aware ... ok
+test reader::tests::validate_lookup_rejects_out_of_bounds_postings ... ok
+test reader::tests::validate_lookup_reports_offset_that_overflows_the_range_math ... ok
+test reader::tests::lookup_survives_offset_that_overflows_the_bounds_check ... ok
+test reader::tests::is_degenerate_detects_mmap_counter_disagreement ... ok
+test reader::tests::lookup_with_offset_past_end_returns_empty ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 243 filtered out; finished in 0.01s
+
+     Running tests/case_insensitive_roundtrip.rs (target/debug/deps/case_insensitive_roundtrip-1e7c8ac199dc97e0)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/corrupt_index_reader.rs (target/debug/deps/corrupt_index_reader-804cd49013b09c4e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/indexed_planner.rs (target/debug/deps/indexed_planner-20c4c8b331a09334)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running tests/snapshot_consistency.rs (target/debug/deps/snapshot_consistency-b44d16039fb2e3d8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+

@@ -40,6 +40,7 @@ def main():
     ap.add_argument('--mode', choices=['local', 'server'], default='local')
     ap.add_argument('--rounds', type=int, default=15)
     ap.add_argument('--seed', type=int, default=77291)
+    ap.add_argument('--expected-revision', help='Require this exact clean Git revision and guarded index provenance')
     ap.add_argument('--output', type=Path, required=True)
     args = ap.parse_args()
     corpus = args.corpus.resolve()
@@ -62,6 +63,14 @@ def main():
               'engines': {}, 'samples': [], 'validation': {}, 'summary': {}}
     rev = subprocess.run(['git', '-C', str(corpus), 'rev-parse', 'HEAD'], capture_output=True)
     result['corpus_revision'] = rev.stdout.decode().strip() if rev.returncode == 0 else None
+    snapshot = {'corpus': str(corpus), 'revision': result['corpus_revision']}
+    if args.expected_revision:
+        if result['corpus_revision'] != args.expected_revision:
+            ap.error(f'corpus revision differs: {result["corpus_revision"]} != {args.expected_revision}')
+        clean = subprocess.run(['git', '-C', str(corpus), 'status', '--porcelain'], capture_output=True, check=True)
+        if clean.stdout:
+            ap.error('corpus must have a clean tracked and untracked working tree')
+    result['expected_revision'] = args.expected_revision
     cpuinfo = Path('/proc/cpuinfo')
     result['cpu'] = next((l.partition(':')[2].strip() for l in cpuinfo.read_text().splitlines()
                           if l.startswith('model name')), None) if cpuinfo.exists() else None
@@ -82,11 +91,25 @@ def main():
                 continue
             index = work / name / 'index'
             indexes[name] = index
+            provenance = work / name / 'benchmark-input.json'
+            if args.expected_revision and (index / 'meta.json').exists():
+                try:
+                    previous = json.loads(provenance.read_text())
+                except (FileNotFoundError, json.JSONDecodeError):
+                    previous = None
+                if previous != snapshot:
+                    raise RuntimeError(f'{index}: index snapshot is unproven or changed; use a new --work directory')
             if not (index / 'meta.json').exists():
                 start = time.perf_counter()
                 p = run([str(binary), 'index', str(corpus), '--index-path', str(index), '-j', '4'])
                 result['engines'][name]['index_seconds'] = time.perf_counter() - start
                 result['engines'][name]['index_output'] = (p.stdout + p.stderr).decode(errors='replace')
+                if args.expected_revision:
+                    provenance.write_text(json.dumps(snapshot, indent=2) + '\n')
+            if args.expected_revision:
+                metadata = json.loads((index / 'meta.json').read_text())
+                if Path(metadata['root_path']).resolve() != corpus:
+                    raise RuntimeError(f'{index}: indexed root differs from corpus')
             result['engines'][name]['index_bytes'] = sum(p.stat().st_size for p in index.rglob('*') if p.is_file())
             if args.mode == 'server':
                 log = (work / f'{name}-server.log').open('wb')
@@ -154,6 +177,11 @@ def main():
         for name, binary in engines.items():
             if digest(binary.read_bytes()) != result['engines'][name]['sha256']:
                 raise AssertionError(f'{name}: binary changed during evaluation')
+        if args.expected_revision:
+            final_revision = subprocess.check_output(['git', '-C', str(corpus), 'rev-parse', 'HEAD'], text=True).strip()
+            dirty = subprocess.check_output(['git', '-C', str(corpus), 'status', '--porcelain'])
+            if final_revision != args.expected_revision or dirty:
+                raise AssertionError('corpus changed during evaluation')
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(result, indent=2) + '\n')
     finally:
