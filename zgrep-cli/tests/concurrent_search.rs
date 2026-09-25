@@ -100,12 +100,13 @@ fn start_server(root: &Path) -> ServerGuard {
         thread::sleep(Duration::from_millis(100));
     };
 
+    let guard = ServerGuard { child, port };
+
     // Wait for indexing to complete by polling status
     let start = Instant::now();
     loop {
         if start.elapsed() > Duration::from_secs(60) {
-            // Proceed anyway; tests may still pass with partial index
-            break;
+            panic!("server indexing did not complete within 60 seconds");
         }
         if let Ok(resp) = send_request(port, r#"{"jsonrpc":"2.0","method":"status","id":0}"#)
             && let Ok(v) = serde_json::from_str::<serde_json::Value>(&resp)
@@ -121,7 +122,7 @@ fn start_server(root: &Path) -> ServerGuard {
         thread::sleep(Duration::from_millis(200));
     }
 
-    ServerGuard { child, port }
+    guard
 }
 
 /// Send a single JSON-RPC request and read the response.

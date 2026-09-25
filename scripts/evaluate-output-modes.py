@@ -54,6 +54,11 @@ def main():
         ('word', ['-w'], ['needle', '.']),
         ('glob', ['-g', 'src/**'], ['needle', '.']),
         ('rust-type', ['-t', 'rust'], ['needle', '.']),
+        ('rust-type-negative', ['-T', 'txt'], ['needle', '.']),
+        ('custom-type', ['--type-add', 'custom:*.rs', '-t', 'custom'], ['needle', '.']),
+        ('excluded-type', ['-t', 'rust', '-T', 'rust'], ['needle', '.']),
+        ('list-rust-type', ['--files', '-t', 'rust'], ['.']),
+        ('list-negative-type', ['--files', '-T', 'txt'], ['.']),
         ('hidden', ['--hidden'], ['needle', '.']),
         ('explicit-hidden', [], ['needle', '.hidden.rs']),
         ('multiple', ['-e', 'needle', '-e', 'other'], ['.']),
@@ -75,13 +80,15 @@ def main():
         root.mkdir()
         (root / '.git').mkdir()
         (root / 'src').mkdir()
+        (root / '.hidden-dir').mkdir()
         fixtures = {
             'a.rs': 'before\nalpha needle\nnext\nneedle needle\nneedlework\nother\n',
             'src/b.rs': 'beta needle\r\nKELVIN CAFÉ\r\nend\r\n',
             'empty.rs': '', 'none.rs': 'unrelated content\n',
             'note.txt': 'needle\n', '.hidden.rs': 'needle\n',
             'unterminated.rs': 'needle without a final newline',
-            'ignored.rs': 'needle\n', '.gitignore': 'ignored.rs\n',
+            'ignored.rs': 'needle\n', '.gitignore': 'ignored.rs\n.hidden-ignored.rs\n',
+            '.hidden-dir/nested.rs': 'needle\n', '.hidden-ignored.rs': 'needle\n',
         }
         for path, content in fixtures.items():
             (root / path).write_bytes(content.encode())

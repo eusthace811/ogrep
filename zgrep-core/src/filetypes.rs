@@ -122,9 +122,23 @@ impl TypeDefs {
 
     /// Compile `-t`/`-T` selections into a matcher.
     pub fn build_filter(&self, select: &[String], negate: &[String]) -> Result<TypeFilter> {
+        let selected = self.compile(select)?;
+        let negated = self.compile(negate)?;
+        let mut builder = ignore::types::TypesBuilder::new();
+        for name in select {
+            for glob in &self.map[name] {
+                builder.add(name, glob)?;
+            }
+            builder.select(name);
+        }
         Ok(TypeFilter {
-            select: self.compile(select)?,
-            negate: self.compile(negate)?,
+            select: selected,
+            negate: negated,
+            walk_types: if select.is_empty() {
+                None
+            } else {
+                Some(builder.build()?)
+            },
         })
     }
 
@@ -155,9 +169,21 @@ impl TypeDefs {
 pub struct TypeFilter {
     select: Option<GlobSet>,
     negate: Option<GlobSet>,
+    walk_types: Option<ignore::types::Types>,
 }
 
 impl TypeFilter {
+    /// Positive types whitelist matching hidden files, but not hidden directories.
+    pub fn has_selection(&self) -> bool {
+        self.select.is_some()
+    }
+
+    /// Apply positive type selection during traversal so ignore precedence and
+    /// hidden-file admission use the same rules as ripgrep.
+    pub fn walk_types(&self) -> Option<ignore::types::Types> {
+        self.walk_types.clone()
+    }
+
     /// True when no `-t`/`-T` was given, so the filter passes everything.
     pub fn is_empty(&self) -> bool {
         self.select.is_none() && self.negate.is_none()

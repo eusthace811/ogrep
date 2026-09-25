@@ -530,6 +530,7 @@ pub fn list_files(root: &Path, index_path: Option<&Path>, opts: &SearchOptions) 
         search_binary: true,
         exclude_paths: index_storage_exclusions(&index_dir)?,
         overrides: Some(glob_filter.walk_overrides(&root)?),
+        types: type_filter.walk_types(),
         ..opts.walk_options()
     };
     let walk = walker::walk_dir(&root, &walk_opts);
@@ -628,8 +629,14 @@ fn write_indexed_file_paths(
         .into_iter()
         .filter(|path| seen.insert(path.clone()))
         .filter(|path| {
-            visibility
-                .is_none_or(|visibility| visibility.is_visible(path, scope.prefix(), opts.hidden))
+            visibility.is_none_or(|visibility| {
+                visibility.is_visible_with_file_whitelist(
+                    path,
+                    scope.prefix(),
+                    opts.hidden,
+                    type_filter.has_selection(),
+                )
+            })
         })
         .filter_map(|path| scope.relativize(&path, search_root))
         .filter(|path| within_max_depth(path, opts))
@@ -661,7 +668,7 @@ fn list_files_via_server(
         serde_json::json!({
             "jsonrpc": "2.0",
             "method": "files",
-            "params": { "hidden": opts.hidden, "scope": scope.prefix() },
+            "params": { "hidden": opts.hidden, "scope": scope.prefix(), "whitelist_files": !opts.types.is_empty() },
             "id": 1,
         })
     )?;
@@ -1320,7 +1327,12 @@ fn search_local_index(
         .filter_map(|&fid| {
             let indexed = reader.file_path(fid)?;
             visibility
-                .is_visible(indexed, scope.prefix(), opts.hidden)
+                .is_visible_with_file_whitelist(
+                    indexed,
+                    scope.prefix(),
+                    opts.hidden,
+                    type_filter.has_selection(),
+                )
                 .then_some(())?;
             let rel = scope.relativize(indexed, root)?;
             within_max_depth(&rel, opts).then_some(())?;
@@ -1514,6 +1526,7 @@ fn brute_force_search(
         &walker::WalkOptions {
             exclude_paths: index_storage_exclusions(index_dir)?,
             overrides: Some(glob_filter.walk_overrides(root)?),
+            types: type_filter.walk_types(),
             ..opts.walk_options()
         },
     );

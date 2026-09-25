@@ -394,8 +394,8 @@ fn indexed_candidate_stats_precede_query_size_limit() {
     fs::write(scope.join("decoy.rs"), "haystack\n").unwrap();
 
     let cases: &[(&[&str], u64, usize)] = &[
-        (&["--no-max-filesize"], 9, 2),
-        (&["--max-filesize", "7"], 1, 1),
+        (&["--no-max-filesize"], 10, 3),
+        (&["--max-filesize", "7"], 2, 2),
         (&["--max-filesize", "1"], 0, 0),
     ];
     let mut direct = Vec::new();
@@ -438,7 +438,7 @@ fn indexed_candidate_stats_precede_query_size_limit() {
             } else {
                 assert_eq!(output.stdout, direct[i], "{backend:?} {size_flags:?}");
                 assert!(
-                    stderr.contains("(candidates: 2/8; raw candidates: 7/8)"),
+                    stderr.contains("(candidates: 3/8; raw candidates: 7/8)"),
                     "{backend:?} {size_flags:?}: {stderr}"
                 );
             }
@@ -6281,7 +6281,7 @@ fn search_zip_is_rejected_rather_than_ignored() {
 #[test]
 fn compatibility_no_op_flags_are_accepted() {
     let dir = setup_fixture();
-    for flag in ["--mmap", "--no-mmap", "--crlf", "--no-crlf", "--no-config"] {
+    for flag in ["--mmap", "--no-mmap", "--no-crlf", "--no-config"] {
         zgrep()
             .args([
                 "--no-index",
@@ -6691,4 +6691,21 @@ fn indexed_backreference_still_returns_every_match() {
         out.contains("live.rs") && out.contains("commented.rs"),
         "an unrelaxable pattern still sees every file: {out}"
     );
+}
+
+#[test]
+fn unsupported_crlf_matching_fails_explicitly_and_no_crlf_restores_default() {
+    let dir = TempDir::new().unwrap();
+    let file = dir.path().join("source.rs");
+    fs::write(&file, b"needle\r\n").unwrap();
+    zgrep()
+        .args(["--crlf", "needle$", file.to_str().unwrap()])
+        .assert()
+        .code(2)
+        .stderr(predicate::str::contains("--crlf matching is not supported"));
+    zgrep()
+        .args(["--crlf", "--no-crlf", "needle$", file.to_str().unwrap()])
+        .assert()
+        .code(1)
+        .stdout("");
 }

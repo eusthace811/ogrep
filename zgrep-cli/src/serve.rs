@@ -1442,7 +1442,15 @@ fn handle_files(
         files.extend(extra.iter().cloned());
         files.retain(|path| {
             scope.relative(path).is_some()
-                && visibility.is_visible(path, &scope.prefix, scope.hidden)
+                && visibility.is_visible_with_file_whitelist(
+                    path,
+                    &scope.prefix,
+                    scope.hidden,
+                    params
+                        .get("whitelist_files")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(false),
+                )
         });
         files
     };
@@ -1811,7 +1819,12 @@ fn handle_search(
                     }
                 };
                 let scoped = scope.relative(&rel_path)?;
-                if !visibility.is_visible(&rel_path, &scope.prefix, scope.hidden) {
+                if !visibility.is_visible_with_file_whitelist(
+                    &rel_path,
+                    &scope.prefix,
+                    scope.hidden,
+                    type_filter.has_selection(),
+                ) {
                     return None;
                 }
                 if !type_filter.matches(scoped) {

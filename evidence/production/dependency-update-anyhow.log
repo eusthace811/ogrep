@@ -1,0 +1,6 @@
+    Updating crates.io index
+    Removing allocator-api2 v0.2.21
+    Updating anyhow v1.0.102 -> v1.0.103
+      Adding hashbrown v0.17.1
+    Updating lru v0.16.3 -> v0.18.5
+note: pass `--verbose` to see 69 unchanged dependencies behind latest

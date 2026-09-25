@@ -104,6 +104,8 @@ pub struct WalkResult {
 }
 
 pub struct WalkOptions {
+    /// Positive file types applied before the hidden-entry filter.
+    pub types: Option<ignore::types::Types>,
     pub include_hidden: bool,
     pub no_ignore: bool,
     /// Skip the binary-extension rejection list and consider every file text.
@@ -154,6 +156,7 @@ pub struct WalkOptions {
 impl Default for WalkOptions {
     fn default() -> Self {
         Self {
+            types: None,
             include_hidden: false,
             no_ignore: false,
             search_binary: false,
@@ -347,6 +350,9 @@ pub fn walk_dir_with_ignorecase(
         .threads(opts.threads.unwrap_or_else(walker_thread_count).max(1));
     if let Some(overrides) = &opts.overrides {
         builder.overrides(overrides.clone());
+    }
+    if let Some(types) = &opts.types {
+        builder.types(types.clone());
     }
     // `--ignore-file` is applied even under `--no-ignore`: the user asked for
     // these rules explicitly, so only `--no-ignore-files` turns them off.

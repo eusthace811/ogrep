@@ -2,7 +2,7 @@
 
 Goal: proceed until the release is production ready. The 0.1.0 artifacts and their evidence are retained as a baseline; they do not automatically satisfy this new release audit.
 
-The existing product scope is a local exact-search CLI and agent service, initially validated on Linux/WSL. A platform/scope preference has been requested; work common to all platforms continues while that is unresolved. No claim of native macOS/Windows qualification or shared multi-user service readiness is made by Linux tests.
+The existing product scope is a local exact-search CLI and agent service, initially validated on Linux/WSL. The user asked to proceed without choosing a broader platform scope, so validation continues for Linux/WSL local use. No claim of native macOS/Windows qualification or shared multi-user service readiness is made by Linux tests.
 
 ## Release gates
 
@@ -30,3 +30,9 @@ Research features in `NEXT_EVALUATION.md` (structural navigation, ranked discove
 The new independent 81-check scan/local/server comparison retained its initial 45 failures in `evidence/production/output-modes-before-crlf-fix.json`. Matching previously stripped CR bytes from CRLF input; JSON also invented a final newline for unterminated input, and server JSON omitted source positions. The fixes retain CR as source content, reconstruct only existing terminators, and request position details for server JSON. Targeted CLI tests pass. The old maximum-column test normalized CRLF in its expected output; its expectation now preserves the source CR, with its column-limit assertions retained.
 
 `output-modes-crlf-fixed.json` retains the remaining three failures: positive type selection must admit matching hidden files while respecting hidden ancestor directories and ignore rules. This is a separate scope fix still in progress. Passing targeted tests does not complete the release gates.
+
+The hidden-file/type correction now passes 96 independent checks across scanning, local indexing and the service (`output-modes-type-fixed.json`). The earlier candidate-count regression expected exclusion of `.hidden.rs` under `-t rust`; expected counts now include that real matching file while preserving the raw-candidate, size-limit and backend parity assertions. The service concurrency test now fails on indexing timeout instead of continuing against a partial index.
+
+Dependency audit found patched upstream issues in [crossbeam-epoch](https://rustsec.org/advisories/RUSTSEC-2026-0204.html), [anyhow](https://rustsec.org/advisories/RUSTSEC-2026-0190.html), [lru](https://rustsec.org/advisories/RUSTSEC-2026-0253.html), and [memmap2](https://rustsec.org/advisories/RUSTSEC-2026-0186.html). These are updated to patched versions; the full before/after audit records are retained. notify 8.2 replaces notify 7 to remove its dependency on [unmaintained instant](https://rustsec.org/advisories/RUSTSEC-2024-0384.html); the full watcher and recovery suite must pass again for that upgrade.
+
+Candidate 0.2.0 passes the updated dependency audit with zero vulnerabilities and zero warnings (`dependency-audit-final.json`). All 15 independent recovery checkpoints passed across native watching, explicit polling and budget-triggered polling fallback; 4,501 concurrent queries completed during bulk edits/ignore churn. These include SIGKILL, 50 edits across the crash boundary and restart (`recovery-candidate.json`). This is a controlled fixture, not a filesystem-wide freshness guarantee.

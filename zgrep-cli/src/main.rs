@@ -491,11 +491,11 @@ struct Cli {
     #[arg(long = "trace", global = true)]
     trace: bool,
 
-    /// Accepted for compatibility; zgrep always strips a trailing `\r`.
+    /// Not supported: CRLF-aware anchor and line-terminator matching.
     #[arg(long = "crlf", global = true, overrides_with = "no_crlf")]
     crlf: bool,
 
-    /// Accepted for compatibility; zgrep always strips a trailing `\r`.
+    /// Use default LF matching, preserving CR bytes in source lines.
     #[arg(long = "no-crlf", global = true, overrides_with = "crlf")]
     no_crlf: bool,
 
@@ -1080,6 +1080,11 @@ fn run_cli() {
     // `-z/--search-zip` would need transparent decompression. Failing loudly is
     // the only safe answer: silently ignoring it makes an archive full of hits
     // look like a repo with none.
+    if cli.crlf {
+        eprintln!("zgrep: --crlf matching is not supported; use default LF mode or ripgrep --crlf");
+        process::exit(2);
+    }
+
     if cli.search_zip {
         eprintln!("zgrep: -z/--search-zip is not supported; decompress the files first");
         process::exit(2);

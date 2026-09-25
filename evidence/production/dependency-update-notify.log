@@ -1,0 +1,21 @@
+    Updating crates.io index
+    Removing filetime v0.2.27
+    Updating inotify v0.10.2 -> v0.11.5
+    Updating inotify-sys v0.1.5 -> v0.1.8
+    Removing instant v0.1.13
+    Removing libredox v0.1.15
+    Updating notify v7.0.0 -> v8.2.0
+    Updating notify-types v1.0.1 -> v2.1.0
+    Removing plain v0.2.3
+    Removing redox_syscall v0.7.3
+    Updating windows-sys v0.52.0 -> v0.60.2
+    Updating windows-targets v0.52.6 -> v0.53.5
+    Updating windows_aarch64_gnullvm v0.52.6 -> v0.53.1
+    Updating windows_aarch64_msvc v0.52.6 -> v0.53.1
+    Updating windows_i686_gnu v0.52.6 -> v0.53.1
+    Updating windows_i686_gnullvm v0.52.6 -> v0.53.1
+    Updating windows_i686_msvc v0.52.6 -> v0.53.1
+    Updating windows_x86_64_gnu v0.52.6 -> v0.53.1
+    Updating windows_x86_64_gnullvm v0.52.6 -> v0.53.1
+    Updating windows_x86_64_msvc v0.52.6 -> v0.53.1
+note: pass `--verbose` to see 65 unchanged dependencies behind latest

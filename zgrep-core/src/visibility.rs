@@ -55,6 +55,18 @@ impl PathVisibility {
     /// `prefix` is the search-root-relative slice of the index root, with a
     /// trailing slash (or empty for the whole index).
     pub fn is_visible(&self, indexed: &str, prefix: &str, include_hidden: bool) -> bool {
+        self.is_visible_with_file_whitelist(indexed, prefix, include_hidden, false)
+    }
+
+    /// A positive type selection can admit the final file, while hidden
+    /// ancestor directories still prevent traversal.
+    pub fn is_visible_with_file_whitelist(
+        &self,
+        indexed: &str,
+        prefix: &str,
+        include_hidden: bool,
+        whitelist_file: bool,
+    ) -> bool {
         let Some(relative) = indexed.strip_prefix(prefix) else {
             return false;
         };
@@ -65,7 +77,12 @@ impl PathVisibility {
             .match_indices('/')
             .map(|(offset, _)| prefix.len() + offset)
             .chain(std::iter::once(indexed.len()))
-            .all(|end| !self.hidden.contains_key(&indexed[..end]))
+            .all(|end| {
+                !self.hidden.contains_key(&indexed[..end])
+                    || (whitelist_file
+                        && end == indexed.len()
+                        && self.hidden.get(indexed) == Some(&false))
+            })
     }
 }
 

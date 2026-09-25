@@ -1,0 +1,12 @@
+   Compiling crossbeam-epoch v0.9.20
+   Compiling anyhow v1.0.103
+   Compiling memmap2 v0.9.11
+   Compiling hashbrown v0.17.1
+   Compiling zgrep-cli v0.1.0 (/home/eusth/projects/Experiments/tgrep/zgrep/zgrep-cli)
+   Compiling crossbeam-deque v0.8.6
+   Compiling rayon-core v1.13.0
+   Compiling ignore v0.4.25
+   Compiling lru v0.18.2
+   Compiling rayon v1.11.0
+   Compiling zgrep-core v0.1.0 (/home/eusth/projects/Experiments/tgrep/zgrep/zgrep-core)
+    Finished `release` profile [optimized] target(s) in 8.49s

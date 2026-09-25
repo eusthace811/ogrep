@@ -42,3 +42,7 @@ These are work counts, not bytes read or allocations. Probes inspect mapped entr
 The local release gates cover the complete Rust workspace, the separate ignored polling measurement, example tests, formatting, Clippy, agent integrations, installer checks, real CLI/server smoke tests, and output parity on frozen corpora. Raw records and performance limits are in [BENCHMARKS.md](../BENCHMARKS.md). This does not establish universal performance, zero defects, or support for arbitrary dependency/toolchain updates. Cold-cache latency, production-scale memory profiles, and watcher behavior on other operating systems remain unmeasured here.
 
 The old upstream signing workflow is archived under `docs/upstream/`; it depended on Microsoft's infrastructure. There is no new hosted download repository or signed release. Download installers require an explicit `ZGREP_REPO`. Local installation and packaging need neither an account nor a publishing step.
+
+## Candidate compatibility correction
+
+Default LF matching preserves CR bytes in CRLF source lines, including JSON offsets and unterminated content. `--crlf` previously did nothing despite changing matching semantics in ripgrep. The candidate rejects it with exit 2; use ripgrep when CRLF-aware anchors/terminators are required. `--no-crlf` selects the supported default. This is an explicit compatibility limit, not full ripgrep parity. Positive file type selections admit matching hidden files, but hidden ancestor directories and ignore rules still apply.
