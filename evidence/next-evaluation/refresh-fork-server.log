@@ -1,0 +1,148 @@
+[trace] opened index: 1001 files, 1175 trigrams in 0.2ms
+[trace] serve ready in 3.3ms. TCP on port 37501. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] refresh mode: auto, native watch budget=8192
+[trace] stale check: comparing index against filesystem...
+[trace] watcher subscriptions deferred until the ignore matcher is ready
+[trace] file watcher worker started (complete native coverage: false)
+[trace] gitignore matcher built from stale walk in 0.1ms (0 .gitignore + 0 .ignore files)
+[trace] watcher subscriptions: 2 directories (+1, -0) in 0.2ms
+[trace] stale check: index is up-to-date (1001 files checked in 2ms)
+[trace] watcher: rechecked 1 newly watched directories in 0.1ms
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.9ms (index=0.0ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified subject.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: dropped subject.rs (removed)
+[trace] reindex: modified moved.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified moved.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: dropped moved.rs (removed)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified subject.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified subject.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: dropped subject.rs (removed)
+[trace] reindex: modified moved.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified moved.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: dropped moved.rs (removed)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified subject.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified subject.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: dropped subject.rs (removed)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified moved.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified moved.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: dropped moved.rs (removed)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified subject.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified subject.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: dropped subject.rs (removed)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified moved.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified moved.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: dropped moved.rs (removed)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified subject.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified subject.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: dropped subject.rs (removed)
+[trace] reindex: modified moved.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified moved.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: dropped moved.rs (removed)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified subject.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified subject.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: dropped subject.rs (removed)
+[trace] reindex: modified moved.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified moved.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.1ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: dropped moved.rs (removed)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.0ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] reindex: modified subject.rs
+[trace] search: pattern="ZGREP_REFRESH_" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)

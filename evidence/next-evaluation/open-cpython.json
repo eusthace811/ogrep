@@ -1,0 +1,1633 @@
+{
+  "description": "Warm in-process opening stages of an existing index snapshot; 2 warmups, 100 samples. Identity reads warm the OS cache. No filesystem matching, CLI startup, or cold-cache claim.",
+  "identity": [
+    {
+      "blake3": "241cbaa896f0a65b3d679d56c75b9d45771fc6d2edbe18e68d3733fbfc554f75",
+      "bytes": 1861,
+      "file": "meta.json"
+    },
+    {
+      "blake3": "bef9179ab435d35eb71a507966a951783f93344d7692a62d08ef6ab4f1848be0",
+      "bytes": 273781,
+      "file": "files.bin"
+    },
+    {
+      "blake3": "dab2ef4fa645518e915fca425fe59200d933021686d4fd699ebddcdfa4dc3334",
+      "bytes": 14201,
+      "file": "files-extra.bin"
+    },
+    {
+      "blake3": "e4aa1b4f9d58cb718e72a5380bb7668301f393340e18967c51b130b84a8cd4e9",
+      "bytes": 6930384,
+      "file": "lookup.bin"
+    },
+    {
+      "blake3": "f860e82a8fe3916d638fdbc54a2780ebca80e054198199f5db1a91edbde22ab1",
+      "bytes": 71659572,
+      "file": "index.bin"
+    }
+  ],
+  "index": "../build/eval-cpython/fork/index",
+  "rows": [
+    {
+      "absent_plan_ns": 64440,
+      "drop_ns": 109223,
+      "filenames_ns": 17634,
+      "files": 6250,
+      "meta_ns": 9158,
+      "meta_reload_ns": 7298,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 766689
+    },
+    {
+      "absent_plan_ns": 63498,
+      "drop_ns": 112362,
+      "filenames_ns": 17351,
+      "files": 6250,
+      "meta_ns": 8780,
+      "meta_reload_ns": 7235,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 781302
+    },
+    {
+      "absent_plan_ns": 62780,
+      "drop_ns": 122300,
+      "filenames_ns": 18613,
+      "files": 6250,
+      "meta_ns": 8024,
+      "meta_reload_ns": 7906,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 754377
+    },
+    {
+      "absent_plan_ns": 63905,
+      "drop_ns": 143219,
+      "filenames_ns": 16162,
+      "files": 6250,
+      "meta_ns": 9507,
+      "meta_reload_ns": 7017,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 758966
+    },
+    {
+      "absent_plan_ns": 77088,
+      "drop_ns": 119925,
+      "filenames_ns": 20625,
+      "files": 6250,
+      "meta_ns": 18418,
+      "meta_reload_ns": 9412,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 813490
+    },
+    {
+      "absent_plan_ns": 70283,
+      "drop_ns": 116833,
+      "filenames_ns": 26272,
+      "files": 6250,
+      "meta_ns": 9586,
+      "meta_reload_ns": 9518,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 835412
+    },
+    {
+      "absent_plan_ns": 64666,
+      "drop_ns": 122373,
+      "filenames_ns": 17444,
+      "files": 6250,
+      "meta_ns": 9772,
+      "meta_reload_ns": 7713,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 797429
+    },
+    {
+      "absent_plan_ns": 63208,
+      "drop_ns": 112784,
+      "filenames_ns": 16880,
+      "files": 6250,
+      "meta_ns": 9512,
+      "meta_reload_ns": 7335,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 779365
+    },
+    {
+      "absent_plan_ns": 61750,
+      "drop_ns": 124455,
+      "filenames_ns": 16500,
+      "files": 6250,
+      "meta_ns": 7924,
+      "meta_reload_ns": 7901,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 748149
+    },
+    {
+      "absent_plan_ns": 61550,
+      "drop_ns": 113981,
+      "filenames_ns": 15093,
+      "files": 6250,
+      "meta_ns": 9500,
+      "meta_reload_ns": 7110,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 750564
+    },
+    {
+      "absent_plan_ns": 70752,
+      "drop_ns": 111378,
+      "filenames_ns": 15098,
+      "files": 6250,
+      "meta_ns": 8014,
+      "meta_reload_ns": 6834,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 752432
+    },
+    {
+      "absent_plan_ns": 62373,
+      "drop_ns": 111733,
+      "filenames_ns": 16280,
+      "files": 6250,
+      "meta_ns": 9319,
+      "meta_reload_ns": 6904,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 764020
+    },
+    {
+      "absent_plan_ns": 61371,
+      "drop_ns": 112105,
+      "filenames_ns": 15322,
+      "files": 6250,
+      "meta_ns": 7712,
+      "meta_reload_ns": 6999,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 769363
+    },
+    {
+      "absent_plan_ns": 62146,
+      "drop_ns": 113054,
+      "filenames_ns": 18155,
+      "files": 6250,
+      "meta_ns": 7346,
+      "meta_reload_ns": 8410,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 759431
+    },
+    {
+      "absent_plan_ns": 61544,
+      "drop_ns": 116585,
+      "filenames_ns": 16252,
+      "files": 6250,
+      "meta_ns": 8884,
+      "meta_reload_ns": 7078,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 787235
+    },
+    {
+      "absent_plan_ns": 61367,
+      "drop_ns": 109524,
+      "filenames_ns": 17191,
+      "files": 6250,
+      "meta_ns": 8139,
+      "meta_reload_ns": 7593,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 773958
+    },
+    {
+      "absent_plan_ns": 62177,
+      "drop_ns": 114342,
+      "filenames_ns": 17571,
+      "files": 6250,
+      "meta_ns": 7950,
+      "meta_reload_ns": 7621,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 757752
+    },
+    {
+      "absent_plan_ns": 61976,
+      "drop_ns": 114365,
+      "filenames_ns": 15544,
+      "files": 6250,
+      "meta_ns": 7863,
+      "meta_reload_ns": 7150,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 757295
+    },
+    {
+      "absent_plan_ns": 62686,
+      "drop_ns": 111400,
+      "filenames_ns": 17258,
+      "files": 6250,
+      "meta_ns": 18465,
+      "meta_reload_ns": 7829,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 768278
+    },
+    {
+      "absent_plan_ns": 62960,
+      "drop_ns": 114448,
+      "filenames_ns": 17471,
+      "files": 6250,
+      "meta_ns": 8169,
+      "meta_reload_ns": 7593,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 772094
+    },
+    {
+      "absent_plan_ns": 62773,
+      "drop_ns": 113416,
+      "filenames_ns": 18524,
+      "files": 6250,
+      "meta_ns": 8441,
+      "meta_reload_ns": 8754,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 772960
+    },
+    {
+      "absent_plan_ns": 63018,
+      "drop_ns": 115589,
+      "filenames_ns": 17566,
+      "files": 6250,
+      "meta_ns": 8233,
+      "meta_reload_ns": 7930,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 770215
+    },
+    {
+      "absent_plan_ns": 61272,
+      "drop_ns": 111952,
+      "filenames_ns": 15233,
+      "files": 6250,
+      "meta_ns": 8458,
+      "meta_reload_ns": 6935,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 749016
+    },
+    {
+      "absent_plan_ns": 64160,
+      "drop_ns": 112503,
+      "filenames_ns": 18271,
+      "files": 6250,
+      "meta_ns": 7551,
+      "meta_reload_ns": 7651,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 831719
+    },
+    {
+      "absent_plan_ns": 63319,
+      "drop_ns": 112261,
+      "filenames_ns": 17242,
+      "files": 6250,
+      "meta_ns": 8055,
+      "meta_reload_ns": 7753,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 759835
+    },
+    {
+      "absent_plan_ns": 63534,
+      "drop_ns": 113249,
+      "filenames_ns": 18408,
+      "files": 6250,
+      "meta_ns": 8285,
+      "meta_reload_ns": 8508,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 771965
+    },
+    {
+      "absent_plan_ns": 62466,
+      "drop_ns": 112738,
+      "filenames_ns": 23623,
+      "files": 6250,
+      "meta_ns": 8408,
+      "meta_reload_ns": 8079,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 752856
+    },
+    {
+      "absent_plan_ns": 61852,
+      "drop_ns": 110663,
+      "filenames_ns": 16249,
+      "files": 6250,
+      "meta_ns": 8109,
+      "meta_reload_ns": 8075,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 776417
+    },
+    {
+      "absent_plan_ns": 63187,
+      "drop_ns": 122718,
+      "filenames_ns": 17500,
+      "files": 6250,
+      "meta_ns": 8044,
+      "meta_reload_ns": 8000,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 780041
+    },
+    {
+      "absent_plan_ns": 61577,
+      "drop_ns": 113159,
+      "filenames_ns": 16516,
+      "files": 6250,
+      "meta_ns": 9237,
+      "meta_reload_ns": 7895,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 773413
+    },
+    {
+      "absent_plan_ns": 62602,
+      "drop_ns": 112392,
+      "filenames_ns": 18022,
+      "files": 6250,
+      "meta_ns": 8433,
+      "meta_reload_ns": 7101,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 774878
+    },
+    {
+      "absent_plan_ns": 62731,
+      "drop_ns": 112823,
+      "filenames_ns": 19058,
+      "files": 6250,
+      "meta_ns": 7702,
+      "meta_reload_ns": 33832,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 765733
+    },
+    {
+      "absent_plan_ns": 62988,
+      "drop_ns": 114897,
+      "filenames_ns": 19301,
+      "files": 6250,
+      "meta_ns": 8738,
+      "meta_reload_ns": 8875,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 797069
+    },
+    {
+      "absent_plan_ns": 62411,
+      "drop_ns": 112474,
+      "filenames_ns": 17100,
+      "files": 6250,
+      "meta_ns": 8487,
+      "meta_reload_ns": 7465,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 760577
+    },
+    {
+      "absent_plan_ns": 61762,
+      "drop_ns": 110974,
+      "filenames_ns": 17038,
+      "files": 6250,
+      "meta_ns": 8085,
+      "meta_reload_ns": 7296,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 773011
+    },
+    {
+      "absent_plan_ns": 92048,
+      "drop_ns": 114136,
+      "filenames_ns": 20229,
+      "files": 6250,
+      "meta_ns": 7803,
+      "meta_reload_ns": 8264,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 779053
+    },
+    {
+      "absent_plan_ns": 63267,
+      "drop_ns": 113411,
+      "filenames_ns": 18593,
+      "files": 6250,
+      "meta_ns": 10121,
+      "meta_reload_ns": 8639,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 780240
+    },
+    {
+      "absent_plan_ns": 61509,
+      "drop_ns": 112407,
+      "filenames_ns": 17409,
+      "files": 6250,
+      "meta_ns": 8799,
+      "meta_reload_ns": 8090,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 762842
+    },
+    {
+      "absent_plan_ns": 73932,
+      "drop_ns": 114513,
+      "filenames_ns": 17833,
+      "files": 6250,
+      "meta_ns": 9134,
+      "meta_reload_ns": 7602,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 805162
+    },
+    {
+      "absent_plan_ns": 64749,
+      "drop_ns": 126957,
+      "filenames_ns": 21005,
+      "files": 6250,
+      "meta_ns": 9264,
+      "meta_reload_ns": 28837,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 761352
+    },
+    {
+      "absent_plan_ns": 62487,
+      "drop_ns": 114064,
+      "filenames_ns": 16782,
+      "files": 6250,
+      "meta_ns": 9393,
+      "meta_reload_ns": 7128,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 770134
+    },
+    {
+      "absent_plan_ns": 63014,
+      "drop_ns": 114490,
+      "filenames_ns": 25069,
+      "files": 6250,
+      "meta_ns": 7809,
+      "meta_reload_ns": 8357,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 769283
+    },
+    {
+      "absent_plan_ns": 61424,
+      "drop_ns": 112784,
+      "filenames_ns": 15581,
+      "files": 6250,
+      "meta_ns": 8023,
+      "meta_reload_ns": 7019,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 782009
+    },
+    {
+      "absent_plan_ns": 87994,
+      "drop_ns": 114102,
+      "filenames_ns": 19857,
+      "files": 6250,
+      "meta_ns": 8163,
+      "meta_reload_ns": 8250,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 776013
+    },
+    {
+      "absent_plan_ns": 63172,
+      "drop_ns": 110677,
+      "filenames_ns": 17713,
+      "files": 6250,
+      "meta_ns": 8456,
+      "meta_reload_ns": 8220,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 793695
+    },
+    {
+      "absent_plan_ns": 62671,
+      "drop_ns": 114477,
+      "filenames_ns": 17777,
+      "files": 6250,
+      "meta_ns": 7968,
+      "meta_reload_ns": 7098,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 766711
+    },
+    {
+      "absent_plan_ns": 61972,
+      "drop_ns": 115096,
+      "filenames_ns": 16501,
+      "files": 6250,
+      "meta_ns": 7275,
+      "meta_reload_ns": 7520,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 758997
+    },
+    {
+      "absent_plan_ns": 70972,
+      "drop_ns": 122181,
+      "filenames_ns": 30538,
+      "files": 6250,
+      "meta_ns": 8318,
+      "meta_reload_ns": 10557,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 889954
+    },
+    {
+      "absent_plan_ns": 68010,
+      "drop_ns": 122763,
+      "filenames_ns": 17238,
+      "files": 6250,
+      "meta_ns": 9989,
+      "meta_reload_ns": 8182,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 821989
+    },
+    {
+      "absent_plan_ns": 61140,
+      "drop_ns": 115989,
+      "filenames_ns": 16227,
+      "files": 6250,
+      "meta_ns": 9528,
+      "meta_reload_ns": 7995,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 775569
+    },
+    {
+      "absent_plan_ns": 62244,
+      "drop_ns": 118341,
+      "filenames_ns": 17876,
+      "files": 6250,
+      "meta_ns": 7670,
+      "meta_reload_ns": 7229,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 777646
+    },
+    {
+      "absent_plan_ns": 62683,
+      "drop_ns": 117020,
+      "filenames_ns": 16736,
+      "files": 6250,
+      "meta_ns": 8031,
+      "meta_reload_ns": 7655,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 848718
+    },
+    {
+      "absent_plan_ns": 63858,
+      "drop_ns": 116245,
+      "filenames_ns": 19033,
+      "files": 6250,
+      "meta_ns": 7755,
+      "meta_reload_ns": 8331,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 792692
+    },
+    {
+      "absent_plan_ns": 61242,
+      "drop_ns": 118039,
+      "filenames_ns": 17642,
+      "files": 6250,
+      "meta_ns": 8811,
+      "meta_reload_ns": 8002,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 780239
+    },
+    {
+      "absent_plan_ns": 64972,
+      "drop_ns": 118702,
+      "filenames_ns": 18517,
+      "files": 6250,
+      "meta_ns": 8380,
+      "meta_reload_ns": 7804,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 802061
+    },
+    {
+      "absent_plan_ns": 72638,
+      "drop_ns": 123521,
+      "filenames_ns": 20039,
+      "files": 6250,
+      "meta_ns": 8008,
+      "meta_reload_ns": 9416,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 849511
+    },
+    {
+      "absent_plan_ns": 65648,
+      "drop_ns": 117752,
+      "filenames_ns": 19966,
+      "files": 6250,
+      "meta_ns": 10452,
+      "meta_reload_ns": 9492,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 839331
+    },
+    {
+      "absent_plan_ns": 63560,
+      "drop_ns": 118693,
+      "filenames_ns": 16362,
+      "files": 6250,
+      "meta_ns": 9637,
+      "meta_reload_ns": 7629,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 786380
+    },
+    {
+      "absent_plan_ns": 62091,
+      "drop_ns": 115793,
+      "filenames_ns": 17383,
+      "files": 6250,
+      "meta_ns": 8733,
+      "meta_reload_ns": 7749,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 779731
+    },
+    {
+      "absent_plan_ns": 65264,
+      "drop_ns": 117506,
+      "filenames_ns": 19597,
+      "files": 6250,
+      "meta_ns": 7917,
+      "meta_reload_ns": 8671,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 836434
+    },
+    {
+      "absent_plan_ns": 65972,
+      "drop_ns": 127424,
+      "filenames_ns": 20166,
+      "files": 6250,
+      "meta_ns": 8339,
+      "meta_reload_ns": 9123,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 841387
+    },
+    {
+      "absent_plan_ns": 72934,
+      "drop_ns": 122795,
+      "filenames_ns": 32538,
+      "files": 6250,
+      "meta_ns": 10271,
+      "meta_reload_ns": 10513,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 811393
+    },
+    {
+      "absent_plan_ns": 81613,
+      "drop_ns": 123769,
+      "filenames_ns": 26110,
+      "files": 6250,
+      "meta_ns": 10005,
+      "meta_reload_ns": 9785,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 885967
+    },
+    {
+      "absent_plan_ns": 68487,
+      "drop_ns": 116079,
+      "filenames_ns": 22455,
+      "files": 6250,
+      "meta_ns": 10731,
+      "meta_reload_ns": 9973,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 836088
+    },
+    {
+      "absent_plan_ns": 65423,
+      "drop_ns": 115953,
+      "filenames_ns": 18681,
+      "files": 6250,
+      "meta_ns": 9636,
+      "meta_reload_ns": 7596,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 789675
+    },
+    {
+      "absent_plan_ns": 62156,
+      "drop_ns": 113711,
+      "filenames_ns": 17764,
+      "files": 6250,
+      "meta_ns": 7621,
+      "meta_reload_ns": 8176,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 769245
+    },
+    {
+      "absent_plan_ns": 63871,
+      "drop_ns": 135209,
+      "filenames_ns": 18618,
+      "files": 6250,
+      "meta_ns": 8905,
+      "meta_reload_ns": 8396,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 811281
+    },
+    {
+      "absent_plan_ns": 63060,
+      "drop_ns": 113271,
+      "filenames_ns": 17805,
+      "files": 6250,
+      "meta_ns": 9537,
+      "meta_reload_ns": 7340,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 779893
+    },
+    {
+      "absent_plan_ns": 64010,
+      "drop_ns": 112808,
+      "filenames_ns": 18122,
+      "files": 6250,
+      "meta_ns": 7920,
+      "meta_reload_ns": 12864,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 763403
+    },
+    {
+      "absent_plan_ns": 62101,
+      "drop_ns": 112276,
+      "filenames_ns": 16616,
+      "files": 6250,
+      "meta_ns": 9050,
+      "meta_reload_ns": 7169,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 766557
+    },
+    {
+      "absent_plan_ns": 63212,
+      "drop_ns": 131646,
+      "filenames_ns": 16676,
+      "files": 6250,
+      "meta_ns": 7899,
+      "meta_reload_ns": 7366,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 814703
+    },
+    {
+      "absent_plan_ns": 65198,
+      "drop_ns": 124473,
+      "filenames_ns": 17035,
+      "files": 6250,
+      "meta_ns": 10041,
+      "meta_reload_ns": 7063,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 781626
+    },
+    {
+      "absent_plan_ns": 65255,
+      "drop_ns": 113921,
+      "filenames_ns": 17625,
+      "files": 6250,
+      "meta_ns": 8709,
+      "meta_reload_ns": 8538,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 770633
+    },
+    {
+      "absent_plan_ns": 63240,
+      "drop_ns": 113616,
+      "filenames_ns": 16799,
+      "files": 6250,
+      "meta_ns": 8125,
+      "meta_reload_ns": 7702,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 784774
+    },
+    {
+      "absent_plan_ns": 63205,
+      "drop_ns": 121658,
+      "filenames_ns": 17356,
+      "files": 6250,
+      "meta_ns": 7753,
+      "meta_reload_ns": 8208,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 796862
+    },
+    {
+      "absent_plan_ns": 64567,
+      "drop_ns": 116918,
+      "filenames_ns": 18669,
+      "files": 6250,
+      "meta_ns": 9052,
+      "meta_reload_ns": 8307,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 808613
+    },
+    {
+      "absent_plan_ns": 62050,
+      "drop_ns": 113560,
+      "filenames_ns": 17096,
+      "files": 6250,
+      "meta_ns": 8324,
+      "meta_reload_ns": 7994,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 780308
+    },
+    {
+      "absent_plan_ns": 63558,
+      "drop_ns": 116292,
+      "filenames_ns": 16953,
+      "files": 6250,
+      "meta_ns": 8545,
+      "meta_reload_ns": 8806,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 773827
+    },
+    {
+      "absent_plan_ns": 70877,
+      "drop_ns": 135114,
+      "filenames_ns": 16546,
+      "files": 6250,
+      "meta_ns": 8421,
+      "meta_reload_ns": 7647,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 791256
+    },
+    {
+      "absent_plan_ns": 62026,
+      "drop_ns": 116554,
+      "filenames_ns": 15376,
+      "files": 6250,
+      "meta_ns": 9458,
+      "meta_reload_ns": 6631,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 771964
+    },
+    {
+      "absent_plan_ns": 63024,
+      "drop_ns": 115797,
+      "filenames_ns": 18121,
+      "files": 6250,
+      "meta_ns": 7692,
+      "meta_reload_ns": 8226,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 781213
+    },
+    {
+      "absent_plan_ns": 63297,
+      "drop_ns": 115117,
+      "filenames_ns": 18318,
+      "files": 6250,
+      "meta_ns": 8219,
+      "meta_reload_ns": 8382,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 779468
+    },
+    {
+      "absent_plan_ns": 63073,
+      "drop_ns": 122795,
+      "filenames_ns": 18253,
+      "files": 6250,
+      "meta_ns": 8144,
+      "meta_reload_ns": 8208,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 808178
+    },
+    {
+      "absent_plan_ns": 63404,
+      "drop_ns": 115073,
+      "filenames_ns": 18534,
+      "files": 6250,
+      "meta_ns": 9350,
+      "meta_reload_ns": 8609,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 778482
+    },
+    {
+      "absent_plan_ns": 61704,
+      "drop_ns": 115072,
+      "filenames_ns": 17412,
+      "files": 6250,
+      "meta_ns": 8781,
+      "meta_reload_ns": 7942,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 770344
+    },
+    {
+      "absent_plan_ns": 60091,
+      "drop_ns": 114431,
+      "filenames_ns": 15636,
+      "files": 6250,
+      "meta_ns": 8389,
+      "meta_reload_ns": 7295,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 768417
+    },
+    {
+      "absent_plan_ns": 65954,
+      "drop_ns": 137142,
+      "filenames_ns": 18118,
+      "files": 6250,
+      "meta_ns": 7433,
+      "meta_reload_ns": 8725,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 775717
+    },
+    {
+      "absent_plan_ns": 79029,
+      "drop_ns": 123568,
+      "filenames_ns": 17414,
+      "files": 6250,
+      "meta_ns": 10316,
+      "meta_reload_ns": 8586,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 788898
+    },
+    {
+      "absent_plan_ns": 66209,
+      "drop_ns": 117652,
+      "filenames_ns": 18459,
+      "files": 6250,
+      "meta_ns": 10663,
+      "meta_reload_ns": 9617,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 792357
+    },
+    {
+      "absent_plan_ns": 65755,
+      "drop_ns": 118997,
+      "filenames_ns": 19595,
+      "files": 6250,
+      "meta_ns": 9255,
+      "meta_reload_ns": 8604,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 784061
+    },
+    {
+      "absent_plan_ns": 109165,
+      "drop_ns": 116021,
+      "filenames_ns": 21004,
+      "files": 6250,
+      "meta_ns": 9005,
+      "meta_reload_ns": 11071,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 809768
+    },
+    {
+      "absent_plan_ns": 63634,
+      "drop_ns": 114095,
+      "filenames_ns": 27143,
+      "files": 6250,
+      "meta_ns": 10195,
+      "meta_reload_ns": 8487,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 795152
+    },
+    {
+      "absent_plan_ns": 62438,
+      "drop_ns": 112989,
+      "filenames_ns": 16725,
+      "files": 6250,
+      "meta_ns": 8359,
+      "meta_reload_ns": 7071,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 778380
+    },
+    {
+      "absent_plan_ns": 63911,
+      "drop_ns": 116011,
+      "filenames_ns": 18217,
+      "files": 6250,
+      "meta_ns": 7923,
+      "meta_reload_ns": 8004,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 786388
+    },
+    {
+      "absent_plan_ns": 64314,
+      "drop_ns": 113513,
+      "filenames_ns": 18336,
+      "files": 6250,
+      "meta_ns": 8526,
+      "meta_reload_ns": 8584,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 832123
+    },
+    {
+      "absent_plan_ns": 62383,
+      "drop_ns": 115334,
+      "filenames_ns": 17230,
+      "files": 6250,
+      "meta_ns": 8421,
+      "meta_reload_ns": 7784,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 777108
+    },
+    {
+      "absent_plan_ns": 62190,
+      "drop_ns": 124826,
+      "filenames_ns": 17146,
+      "files": 6250,
+      "meta_ns": 9099,
+      "meta_reload_ns": 7160,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 774064
+    },
+    {
+      "absent_plan_ns": 62486,
+      "drop_ns": 115762,
+      "filenames_ns": 17141,
+      "files": 6250,
+      "meta_ns": 9239,
+      "meta_reload_ns": 8080,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 775913
+    },
+    {
+      "absent_plan_ns": 64017,
+      "drop_ns": 117790,
+      "filenames_ns": 18562,
+      "files": 6250,
+      "meta_ns": 15237,
+      "meta_reload_ns": 8383,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 828100
+    },
+    {
+      "absent_plan_ns": 62048,
+      "drop_ns": 114125,
+      "filenames_ns": 17440,
+      "files": 6250,
+      "meta_ns": 8555,
+      "meta_reload_ns": 7660,
+      "query_work": {
+        "candidate_probes": 0,
+        "lists_loaded": 2,
+        "lists_probed": 0,
+        "position_rejections": 0,
+        "postings_copied": 13
+      },
+      "reader_ns": 778522
+    }
+  ]
+}

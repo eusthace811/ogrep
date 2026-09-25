@@ -1,0 +1,1532 @@
+{
+  "description": "1000 filler files; 6 cycles of edit, rename, atomic replace, delete, create. Mutation-to-first-correct CLI completion, including file write, CLI/TCP and up to 10 ms polling delay. Native watchers only; not a generation barrier or guarantee for external edits.",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "engines": {
+    "upstream": {
+      "binary": "/home/eusth/projects/Experiments/tgrep/build/baseline/release/tgrep",
+      "sha256": "b1bb0f7d512a7824a82f33c745aa776cceb17332130d6c2e78f20576dada0754",
+      "version": "tgrep 1.0.10",
+      "samples": [
+        {
+          "cycle": 0,
+          "operation": "edit",
+          "visible_ms": 30.446277,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_0_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 2.914599,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 17.046808,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 30.446277,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 0,
+          "operation": "rename",
+          "visible_ms": 27.593714,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_0_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 2.003821,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.930046,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 27.593714,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 0,
+          "operation": "replace",
+          "visible_ms": 26.502735,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_0_replace\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.862528,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.562042,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 26.502735,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 0,
+          "operation": "delete",
+          "visible_ms": 25.894813,
+          "correct": true,
+          "expected": [],
+          "observations": [
+            {
+              "elapsed_ms": 1.910583,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.894217,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.894813,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 0,
+          "operation": "create",
+          "visible_ms": 37.66636,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_0_create\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.826888,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.725675,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.426539,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 37.66636,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 1,
+          "operation": "edit",
+          "visible_ms": 27.298176,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_1_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.892451,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.183027,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 27.298176,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 1,
+          "operation": "rename",
+          "visible_ms": 26.328851,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_1_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.696961,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.251455,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 26.328851,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 1,
+          "operation": "replace",
+          "visible_ms": 28.076719,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_1_replace\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.764467,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.712193,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 28.076719,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 1,
+          "operation": "delete",
+          "visible_ms": 27.672985,
+          "correct": true,
+          "expected": [],
+          "observations": [
+            {
+              "elapsed_ms": 1.715928,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.353832,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 27.672985,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 1,
+          "operation": "create",
+          "visible_ms": 27.796871,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_1_create\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.733207,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.527225,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 27.796871,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 2,
+          "operation": "edit",
+          "visible_ms": 25.935181,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_2_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.980622,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.820022,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.935181,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 2,
+          "operation": "rename",
+          "visible_ms": 25.714536,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_2_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.868584,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.8491,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.714536,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 2,
+          "operation": "replace",
+          "visible_ms": 25.619116,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_2_replace\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.797364,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.710766,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.619116,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 2,
+          "operation": "delete",
+          "visible_ms": 25.689089,
+          "correct": true,
+          "expected": [],
+          "observations": [
+            {
+              "elapsed_ms": 1.90763,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.840158,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.689089,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 2,
+          "operation": "create",
+          "visible_ms": 25.562525,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_2_create\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.782125,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.596183,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.562525,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 3,
+          "operation": "edit",
+          "visible_ms": 37.533883,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_3_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.798616,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.546792,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.532454,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 37.533883,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 3,
+          "operation": "rename",
+          "visible_ms": 25.658316,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_3_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.771656,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.623062,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.658316,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 3,
+          "operation": "replace",
+          "visible_ms": 37.573007,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_3_replace\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.748323,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.576422,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.387659,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 37.573007,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 3,
+          "operation": "delete",
+          "visible_ms": 25.713167,
+          "correct": true,
+          "expected": [],
+          "observations": [
+            {
+              "elapsed_ms": 1.724143,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.797255,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.713167,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 3,
+          "operation": "create",
+          "visible_ms": 26.014291,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_3_create\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.815184,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.930063,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 26.014291,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 4,
+          "operation": "edit",
+          "visible_ms": 25.82401,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_4_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.811566,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.849335,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.82401,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 4,
+          "operation": "rename",
+          "visible_ms": 25.63229,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_4_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.799484,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.713957,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.63229,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 4,
+          "operation": "replace",
+          "visible_ms": 26.416517,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_4_replace\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.786817,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.353442,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 26.416517,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 4,
+          "operation": "delete",
+          "visible_ms": 26.109247,
+          "correct": true,
+          "expected": [],
+          "observations": [
+            {
+              "elapsed_ms": 1.912777,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.016739,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 26.109247,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 4,
+          "operation": "create",
+          "visible_ms": 37.471766,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_4_create\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.813083,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.598351,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.418563,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 37.471766,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 5,
+          "operation": "edit",
+          "visible_ms": 26.465006,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_5_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.912505,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.281395,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 26.465006,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 5,
+          "operation": "rename",
+          "visible_ms": 26.102649,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_5_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 2.003608,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.039211,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 26.102649,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 5,
+          "operation": "replace",
+          "visible_ms": 26.607879,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_5_replace\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.854705,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.04465,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 26.607879,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 5,
+          "operation": "delete",
+          "visible_ms": 25.936762,
+          "correct": true,
+          "expected": [],
+          "observations": [
+            {
+              "elapsed_ms": 1.72617,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.706103,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.936762,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 5,
+          "operation": "create",
+          "visible_ms": 25.644091,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_5_create\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.840191,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.837011,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.644091,
+              "correct": true
+            }
+          ]
+        }
+      ],
+      "initial_status": {
+        "cache_bytes": 0,
+        "cache_capacity": 50000,
+        "cache_max_bytes": 1073741824,
+        "cache_size": 0,
+        "hidden_complete": true,
+        "index_progress": 0,
+        "index_total": 0,
+        "indexing": false,
+        "last_reconcile_at": 1790339283,
+        "last_reconcile_duration_ms": 7,
+        "last_reconcile_error": null,
+        "num_files": 1001,
+        "num_trigrams": 1175,
+        "poll_interval_secs": 120,
+        "reconcile_overdue": false,
+        "reconcile_pending": false,
+        "reconcile_running": false,
+        "watch_budget": 8192,
+        "watch_fallback_reason": null,
+        "watch_mode_active": "native",
+        "watch_mode_requested": "auto",
+        "watcher_active": true
+      },
+      "final_status": {
+        "cache_bytes": 47,
+        "cache_capacity": 50000,
+        "cache_max_bytes": 1073741824,
+        "cache_size": 1,
+        "hidden_complete": true,
+        "index_progress": 0,
+        "index_total": 0,
+        "indexing": false,
+        "last_reconcile_at": 1790339283,
+        "last_reconcile_duration_ms": 7,
+        "last_reconcile_error": null,
+        "num_files": 1001,
+        "num_trigrams": 1175,
+        "poll_interval_secs": 120,
+        "reconcile_overdue": false,
+        "reconcile_pending": false,
+        "reconcile_running": false,
+        "watch_budget": 8192,
+        "watch_fallback_reason": null,
+        "watch_mode_active": "native",
+        "watch_mode_requested": "auto",
+        "watcher_active": true
+      }
+    },
+    "fork": {
+      "binary": "/home/eusth/projects/Experiments/tgrep/zgrep/target/release/zgrep",
+      "sha256": "ea34ade2e6bdaa19226d623f00bb7f3921ab74287bf3c185a82e14240bfd72cc",
+      "version": "zgrep 0.1.0",
+      "samples": [
+        {
+          "cycle": 0,
+          "operation": "edit",
+          "visible_ms": 25.852656,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_0_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.895952,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.898711,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.852656,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 0,
+          "operation": "rename",
+          "visible_ms": 26.022971,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_0_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.930402,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.083012,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 26.022971,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 0,
+          "operation": "replace",
+          "visible_ms": 26.270069,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_0_replace\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.82639,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.120492,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 26.270069,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 0,
+          "operation": "delete",
+          "visible_ms": 25.418429,
+          "correct": true,
+          "expected": [],
+          "observations": [
+            {
+              "elapsed_ms": 1.800347,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.635223,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.418429,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 0,
+          "operation": "create",
+          "visible_ms": 25.71586,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_0_create\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.772203,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.5769,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.71586,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 1,
+          "operation": "edit",
+          "visible_ms": 25.905848,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_1_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.807698,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.738722,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.905848,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 1,
+          "operation": "rename",
+          "visible_ms": 37.188672,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_1_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.784777,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.553134,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.445331,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 37.188672,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 1,
+          "operation": "replace",
+          "visible_ms": 25.975794,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_1_replace\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.954687,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.822752,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.975794,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 1,
+          "operation": "delete",
+          "visible_ms": 25.79513,
+          "correct": true,
+          "expected": [],
+          "observations": [
+            {
+              "elapsed_ms": 1.859813,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.892152,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.79513,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 1,
+          "operation": "create",
+          "visible_ms": 37.545249,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_1_create\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.790031,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.498486,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.282695,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 37.545249,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 2,
+          "operation": "edit",
+          "visible_ms": 26.121635,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_2_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.725428,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.313116,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 26.121635,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 2,
+          "operation": "rename",
+          "visible_ms": 37.470808,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_2_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.759699,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.657382,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.534559,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 37.470808,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 2,
+          "operation": "replace",
+          "visible_ms": 37.553927,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_2_replace\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.692458,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.581556,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.492689,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 37.553927,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 2,
+          "operation": "delete",
+          "visible_ms": 37.239866,
+          "correct": true,
+          "expected": [],
+          "observations": [
+            {
+              "elapsed_ms": 1.776104,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.54485,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.405429,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 37.239866,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 2,
+          "operation": "create",
+          "visible_ms": 37.398357,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_2_create\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.811067,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.662693,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.468076,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 37.398357,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 3,
+          "operation": "edit",
+          "visible_ms": 38.308038,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_3_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.77774,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.537522,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.289531,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 38.308038,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 3,
+          "operation": "rename",
+          "visible_ms": 37.805299,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_3_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.896864,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.759077,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.486831,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 37.805299,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 3,
+          "operation": "replace",
+          "visible_ms": 37.288811,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_3_replace\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.761445,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.584125,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.459466,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 37.288811,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 3,
+          "operation": "delete",
+          "visible_ms": 25.561243,
+          "correct": true,
+          "expected": [],
+          "observations": [
+            {
+              "elapsed_ms": 1.915507,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.778766,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.561243,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 3,
+          "operation": "create",
+          "visible_ms": 25.784714,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_3_create\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.689656,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.746906,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.784714,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 4,
+          "operation": "edit",
+          "visible_ms": 25.798371,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_4_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.917096,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.870215,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.798371,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 4,
+          "operation": "rename",
+          "visible_ms": 26.108972,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_4_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 2.087037,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.009038,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 26.108972,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 4,
+          "operation": "replace",
+          "visible_ms": 26.017116,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_4_replace\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.827963,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.740201,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 26.017116,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 4,
+          "operation": "delete",
+          "visible_ms": 37.961134,
+          "correct": true,
+          "expected": [],
+          "observations": [
+            {
+              "elapsed_ms": 1.671166,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.594218,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.438783,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 37.961134,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 4,
+          "operation": "create",
+          "visible_ms": 25.60112,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_4_create\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.94042,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.793745,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.60112,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 5,
+          "operation": "edit",
+          "visible_ms": 25.527566,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_5_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.741792,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.656234,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.527566,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 5,
+          "operation": "rename",
+          "visible_ms": 25.690414,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_5_edit\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.737104,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.68095,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.690414,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 5,
+          "operation": "replace",
+          "visible_ms": 26.841715,
+          "correct": true,
+          "expected": [
+            "./moved.rs:1:const MARKER: &str = \"ZGREP_REFRESH_5_replace\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.713904,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 14.207112,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 26.841715,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 5,
+          "operation": "delete",
+          "visible_ms": 25.652325,
+          "correct": true,
+          "expected": [],
+          "observations": [
+            {
+              "elapsed_ms": 1.782677,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.786006,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.652325,
+              "correct": true
+            }
+          ]
+        },
+        {
+          "cycle": 5,
+          "operation": "create",
+          "visible_ms": 37.424456,
+          "correct": true,
+          "expected": [
+            "./subject.rs:1:const MARKER: &str = \"ZGREP_REFRESH_5_create\";"
+          ],
+          "observations": [
+            {
+              "elapsed_ms": 1.705681,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 13.546322,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 25.251684,
+              "correct": false
+            },
+            {
+              "elapsed_ms": 37.424456,
+              "correct": true
+            }
+          ]
+        }
+      ],
+      "initial_status": {
+        "cache_bytes": 0,
+        "cache_capacity": 50000,
+        "cache_max_bytes": 1073741824,
+        "cache_size": 0,
+        "hidden_complete": true,
+        "index_progress": 0,
+        "index_total": 0,
+        "indexing": false,
+        "last_reconcile_at": 1790339284,
+        "last_reconcile_duration_ms": 6,
+        "last_reconcile_error": null,
+        "num_files": 1001,
+        "num_trigrams": 1175,
+        "poll_interval_secs": 120,
+        "reconcile_overdue": false,
+        "reconcile_pending": false,
+        "reconcile_running": false,
+        "watch_budget": 8192,
+        "watch_fallback_reason": null,
+        "watch_mode_active": "native",
+        "watch_mode_requested": "auto",
+        "watcher_active": true
+      },
+      "final_status": {
+        "cache_bytes": 47,
+        "cache_capacity": 50000,
+        "cache_max_bytes": 1073741824,
+        "cache_size": 1,
+        "hidden_complete": true,
+        "index_progress": 0,
+        "index_total": 0,
+        "indexing": false,
+        "last_reconcile_at": 1790339284,
+        "last_reconcile_duration_ms": 6,
+        "last_reconcile_error": null,
+        "num_files": 1001,
+        "num_trigrams": 1175,
+        "poll_interval_secs": 120,
+        "reconcile_overdue": false,
+        "reconcile_pending": false,
+        "reconcile_running": false,
+        "watch_budget": 8192,
+        "watch_fallback_reason": null,
+        "watch_mode_active": "native",
+        "watch_mode_requested": "auto",
+        "watcher_active": true
+      }
+    }
+  }
+}

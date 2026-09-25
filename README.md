@@ -24,6 +24,8 @@ These are measured improvements on specific workloads, not a universal speedup. 
 
 The [fresh tgrep comparison](TGREP_COMPARISON.md) adds 6,744 timed invocations and the 102-query workload in local mode: general local performance is effectively tied, while the targeted regex and Unicode improvements hold up.
 
+[Next improvements and evaluation](docs/NEXT_EVALUATION.md) adds startup-stage measurements, a mutation-to-search visibility benchmark, and priorities for broader validation.
+
 ## Search contracts
 
 Indexes and service discovery use `.zgrep/`, separate from upstream's `.tgrep/`. Ignore rules, supported file types, size limits, and binary/hidden policies determine the searchable corpus. The index is a prefilter; exact matching still verifies candidates.
