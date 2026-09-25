@@ -1,6 +1,6 @@
 # zgrep
 
-Indexed exact text and regex search, forked from [Microsoft tgrep](https://github.com/microsoft/tgrep) at `56f8c62`. Version 0.1.0 improves query planning and fixes Unicode case-insensitive candidate filtering while retaining the existing index format and exact match verification.
+Indexed exact text and regex search, forked from [Microsoft tgrep](https://github.com/microsoft/tgrep) at `56f8c62`. Version 0.2.0 reduces local startup work, corrects output and file-filtering behavior, and updates audited dependencies. It retains the improved query planner, existing index format and exact match verification.
 
 The installed command is **`zgrep-code`**. Unix systems commonly already have an unrelated gzip utility called `zgrep`; the Cargo build output remains `target/release/zgrep`.
 
@@ -14,6 +14,9 @@ zgrep-code serve /path/to/repository     # optional foreground server + watcher
 Put `~/.cargo/bin` on PATH, or use `./target/release/zgrep` directly after `cargo build --release --locked`. `python3 scripts/package.py` creates a checksummed local Linux archive from a clean checkout and verifies the unpacked executable.
 
 ## What changed
+
+- **Faster local startup:** lazy path ordering makes the 102-query Rust workload about **1.26× faster** than both tgrep and zgrep 0.1.0. See the [0.2.0 qualification report](PRODUCTION_REPORT.md) for full comparisons, cold-index tests, concurrency limits and raw evidence.
+- **More accurate output:** preserve CRLF bytes and unterminated lines, correct server JSON offsets, and honor positive type selection for hidden files. Unsupported `--crlf` matching now fails explicitly.
 
 - **Better regex plans:** retain mandatory alternatives inside concatenations instead of discarding useful constraints. The tested nested-alternation queries ran **2.9× faster on CPython and 13.5× on Rust** with local indexes; the server gains were 1.9× and 10.0×.
 - **Less posting work:** order lookups by cardinality, probe common lists for sparse candidates, and use existing position masks to reject impossible literal alignments. No index format migration is needed.

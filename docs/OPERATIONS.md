@@ -1,4 +1,4 @@
-# Operating zgrep 0.1.0
+# Operating zgrep 0.2.0
 
 This release was built and exercised on Linux x86-64. The repository includes inherited Linux/macOS/Windows CI jobs, but this evaluation did not run remote CI or certify macOS/Windows packages. A local Linux release archive and checksum can be produced with `python3 scripts/package.py` from a clean checkout. It builds the locked dependencies, smoke-tests the packaged binary, and records source and binary identities in `BUILD.json`. No archive is published automatically by that command.
 
@@ -43,6 +43,14 @@ The local release gates cover the complete Rust workspace, the separate ignored 
 
 The old upstream signing workflow is archived under `docs/upstream/`; it depended on Microsoft's infrastructure. There is no new hosted download repository or signed release. Download installers require an explicit `ZGREP_REPO`. Local installation and packaging need neither an account nor a publishing step.
 
-## Candidate compatibility correction
+## Compatibility limits
 
 Default LF matching preserves CR bytes in CRLF source lines, including JSON offsets and unterminated content. `--crlf` previously did nothing despite changing matching semantics in ripgrep. The candidate rejects it with exit 2; use ripgrep when CRLF-aware anchors/terminators are required. `--no-crlf` selects the supported default. This is an explicit compatibility limit, not full ripgrep parity. Positive file type selections admit matching hidden files, but hidden ancestor directories and ignore rules still apply.
+
+## Service access and resources
+
+The server is a trusted local tool. It binds to loopback and does not provide authentication or multi-user authorization. Other local processes can send search/reload requests; do not forward its port or expose it as a shared service. Run it under the account that owns the repository and protect the repository and index with normal filesystem permissions.
+
+Use `-j 4` to bound the parallel search worker pool on a workstation. More clients can increase queueing and memory use; a worker limit is not admission control. `--max-memory` controls initial index-building flush decisions, not a hard process RSS limit. Broad results, mapped indexes and cached contents consume additional memory. Operating-system service limits can enforce deployment-specific budgets.
+
+For polling-only filesystems, use `serve --watch-mode poll --poll-interval 1` when one-second reconciliation cadence is appropriate; the interval begins after the previous pass finishes. Native mode automatically falls back when watch registration or the configured budget prevents reliable coverage. Check `status` for the active mode. Stop the process before manual index repair; after a crash, restart it and allow reconciliation to finish. Use an independent `--no-index` scan when verifying current files after recovery.

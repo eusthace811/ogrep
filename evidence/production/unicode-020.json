@@ -1,0 +1,281 @@
+{
+  "description": "Known-positive fixed-insensitive cases; separate indexed and scan paths.",
+  "engines": {
+    "upstream": {
+      "path": "/home/eusth/projects/Experiments/tgrep/build/baseline/release/tgrep",
+      "sha256": "b1bb0f7d512a7824a82f33c745aa776cceb17332130d6c2e78f20576dada0754",
+      "version": "tgrep 1.0.10"
+    },
+    "fork": {
+      "path": "/home/eusth/projects/Experiments/tgrep/zgrep/target/release/zgrep",
+      "sha256": "8405e4722970e5e824a419e198e566fd2316f16633fb5fff558a8762af28a751",
+      "version": "zgrep 0.2.0"
+    },
+    "rg": {
+      "path": "/home/eusth/.local/bin/rg",
+      "sha256": "be2fbcdd985161603bfa268c7647eec670b9e94374f0e972da708d7de670a8fb",
+      "version": "ripgrep 14.1.0\n\nfeatures:-simd-accel,+pcre2\nsimd(compile):+SSE2,-SSSE3,-AVX2\nsimd(runtime):+SSE2,+SSSE3,+AVX2\n\nPCRE2 10.42 is available (JIT is available)"
+    }
+  },
+  "fixtures": [
+    [
+      "kelvin.txt",
+      "KELVIN",
+      "kelvin"
+    ],
+    [
+      "shell.txt",
+      "ſHELL",
+      "shell"
+    ],
+    [
+      "cafe.txt",
+      "CAFÉ",
+      "café"
+    ],
+    [
+      "istanbul.txt",
+      "İSTANBUL",
+      "İstanbul"
+    ],
+    [
+      "ascii.txt",
+      "ORDINARY_IDENTIFIER",
+      "ordinary_identifier"
+    ]
+  ],
+  "queries": [
+    {
+      "pattern": "kelvin",
+      "expected_files": [
+        "kelvin.txt"
+      ],
+      "results": {
+        "upstream-indexed": {
+          "files": [],
+          "exit": 1,
+          "diagnostics": "Query plan: AND(4 trigrams) (candidates: 0/5; raw candidates: 0/5)\nSearch completed in 0.4ms: 0 matches (0 matched lines)\n",
+          "correct": false
+        },
+        "upstream-scan": {
+          "files": [
+            "kelvin.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        },
+        "fork-indexed": {
+          "files": [
+            "kelvin.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "Query plan: AND(3 trigrams) (candidates: 1/5; raw candidates: 1/5)\nIndex work: {\"lists_loaded\":3,\"lists_probed\":0,\"postings_copied\":3,\"candidate_probes\":0,\"position_rejections\":0}\nSearch completed in 0.4ms: 1 matches (1 matched lines)\n",
+          "correct": true
+        },
+        "fork-scan": {
+          "files": [
+            "kelvin.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        },
+        "rg-scan": {
+          "files": [
+            "kelvin.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        }
+      }
+    },
+    {
+      "pattern": "shell",
+      "expected_files": [
+        "shell.txt"
+      ],
+      "results": {
+        "upstream-indexed": {
+          "files": [],
+          "exit": 1,
+          "diagnostics": "Query plan: AND(3 trigrams) (candidates: 0/5; raw candidates: 0/5)\nSearch completed in 0.3ms: 0 matches (0 matched lines)\n",
+          "correct": false
+        },
+        "upstream-scan": {
+          "files": [
+            "shell.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        },
+        "fork-indexed": {
+          "files": [
+            "shell.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "Query plan: AND(2 trigrams) (candidates: 1/5; raw candidates: 1/5)\nIndex work: {\"lists_loaded\":2,\"lists_probed\":0,\"postings_copied\":2,\"candidate_probes\":0,\"position_rejections\":0}\nSearch completed in 0.4ms: 1 matches (1 matched lines)\n",
+          "correct": true
+        },
+        "fork-scan": {
+          "files": [
+            "shell.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        },
+        "rg-scan": {
+          "files": [
+            "shell.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        }
+      }
+    },
+    {
+      "pattern": "café",
+      "expected_files": [
+        "cafe.txt"
+      ],
+      "results": {
+        "upstream-indexed": {
+          "files": [],
+          "exit": 1,
+          "diagnostics": "Query plan: AND(3 trigrams) (candidates: 0/5; raw candidates: 0/5)\nSearch completed in 0.3ms: 0 matches (0 matched lines)\n",
+          "correct": false
+        },
+        "upstream-scan": {
+          "files": [
+            "cafe.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        },
+        "fork-indexed": {
+          "files": [
+            "cafe.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "Query plan: AND(1 trigrams) (candidates: 1/5; raw candidates: 1/5)\nIndex work: {\"lists_loaded\":1,\"lists_probed\":0,\"postings_copied\":1,\"candidate_probes\":0,\"position_rejections\":0}\nSearch completed in 0.3ms: 1 matches (1 matched lines)\n",
+          "correct": true
+        },
+        "fork-scan": {
+          "files": [
+            "cafe.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        },
+        "rg-scan": {
+          "files": [
+            "cafe.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        }
+      }
+    },
+    {
+      "pattern": "İstanbul",
+      "expected_files": [
+        "istanbul.txt"
+      ],
+      "results": {
+        "upstream-indexed": {
+          "files": [],
+          "exit": 1,
+          "diagnostics": "Query plan: AND(8 trigrams) (candidates: 0/5; raw candidates: 0/5)\nSearch completed in 0.3ms: 0 matches (0 matched lines)\n",
+          "correct": false
+        },
+        "upstream-scan": {
+          "files": [
+            "istanbul.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        },
+        "fork-indexed": {
+          "files": [
+            "istanbul.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "Query plan: AND(4 trigrams) (candidates: 1/5; raw candidates: 1/5)\nIndex work: {\"lists_loaded\":4,\"lists_probed\":0,\"postings_copied\":4,\"candidate_probes\":0,\"position_rejections\":0}\nSearch completed in 0.4ms: 1 matches (1 matched lines)\n",
+          "correct": true
+        },
+        "fork-scan": {
+          "files": [
+            "istanbul.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        },
+        "rg-scan": {
+          "files": [
+            "istanbul.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        }
+      }
+    },
+    {
+      "pattern": "ordinary_identifier",
+      "expected_files": [
+        "ascii.txt"
+      ],
+      "results": {
+        "upstream-indexed": {
+          "files": [
+            "ascii.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "Query plan: AND(17 trigrams) (candidates: 1/5; raw candidates: 1/5)\nSearch completed in 0.3ms: 1 matches (1 matched lines)\n",
+          "correct": true
+        },
+        "upstream-scan": {
+          "files": [
+            "ascii.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        },
+        "fork-indexed": {
+          "files": [
+            "ascii.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "Query plan: AND(17 trigrams) (candidates: 1/5; raw candidates: 1/5)\nIndex work: {\"lists_loaded\":17,\"lists_probed\":0,\"postings_copied\":17,\"candidate_probes\":0,\"position_rejections\":0}\nSearch completed in 0.3ms: 1 matches (1 matched lines)\n",
+          "correct": true
+        },
+        "fork-scan": {
+          "files": [
+            "ascii.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        },
+        "rg-scan": {
+          "files": [
+            "ascii.txt"
+          ],
+          "exit": 0,
+          "diagnostics": "",
+          "correct": true
+        }
+      }
+    }
+  ]
+}

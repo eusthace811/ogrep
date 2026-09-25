@@ -1,0 +1,45 @@
+[
+  {
+    "command": [
+      "python3",
+      "scripts/evaluate-index-resources.py",
+      "--engine",
+      "upstream=../build/baseline/release/tgrep",
+      "--engine",
+      "release=../build/baseline/zgrep-0.1.0",
+      "--engine",
+      "fork=target/release/zgrep",
+      "--corpus",
+      "../build/corpora-pinned/rust",
+      "--output",
+      "evidence/production/index-resources-rust-020.json"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/evaluate-startup.py",
+      "--binary",
+      "target/release/zgrep",
+      "--corpus",
+      "../build/corpora-pinned/rust",
+      "--index",
+      "../build/production-eval-rust/fork/index",
+      "--output",
+      "evidence/production/startup-rust-020.json"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "python3",
+      "scripts/qualify.py",
+      "--upstream",
+      "../build/baseline/release/tgrep",
+      "--output",
+      "evidence/production/qualification-020.json"
+    ],
+    "exit": 0
+  }
+]

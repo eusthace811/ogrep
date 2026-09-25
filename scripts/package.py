@@ -88,13 +88,15 @@ def main():
         package = temporary / name
         package.mkdir()
         shutil.copy2(binary, package / 'zgrep-code')
-        for filename in ('LICENSE', 'CHANGELOG.md'):
+        for filename in ('LICENSE', 'CHANGELOG.md', 'AGENTS.md'):
             shutil.copy2(ROOT / filename, package / filename)
+        (package / 'OPERATIONS.md').write_text((ROOT / 'docs/OPERATIONS.md').read_text().replace('../AGENTS.md', 'AGENTS.md'))
         (package / 'BUILD.json').write_text(json.dumps(manifest, indent=2) + '\n')
         (package / 'README.md').write_text(
             '# zgrep-code\n\nCopy `zgrep-code` to a directory on PATH.\n\n'
             '```sh\nzgrep-code index /path/to/repository\n'
             'zgrep-code -F --explain -- some_identifier /path/to/repository\n```\n\n'
+            'See [OPERATIONS.md](OPERATIONS.md) for supported behavior, resource controls and recovery.\n\n'
             'For automatic updates, run `zgrep-code serve /path/to/repository`. '
             'Watchers are asynchronous; use `--no-index` to read current eligible files. '
             'Keep `.zgrep/` out of Git. Unix `zgrep` is an unrelated gzip utility.\n\n'
@@ -108,10 +110,14 @@ def main():
         packaged_binary = unpacked / name / 'zgrep-code'
         assert hashlib.sha256(packaged_binary.read_bytes()).hexdigest() == manifest['binary_sha256']
         smoke(packaged_binary, temporary)
+        subprocess.run(['python3', str(ROOT / 'scripts/evaluate-output-modes.py'),
+                        '--binary', str(packaged_binary),
+                        '--output', str(output / 'packaged-output-modes.json')],
+                       cwd=ROOT, check=True)
     checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
     archive.with_suffix(archive.suffix + '.sha256').write_text(f'{checksum}  {archive.name}\n')
     receipt = {**manifest, 'archive': archive.name, 'archive_sha256': checksum,
-               'smoke': 'PASS: extracted binary; local/server Unicode matching, positional filtering, diagnostics'}
+               'smoke': 'PASS: extracted binary; local/server Unicode matching, positional filtering, diagnostics; 96 scan/local/server exact-output checks against ripgrep'}
     (output / 'release-validation.json').write_text(json.dumps(receipt, indent=2) + '\n')
     print(json.dumps(receipt, indent=2))
 

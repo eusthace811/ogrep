@@ -1,0 +1,5070 @@
+{
+  "binary": "/home/eusth/projects/Experiments/tgrep/zgrep/target/release/zgrep",
+  "binary_sha256": "8405e4722970e5e824a419e198e566fd2316f16633fb5fff558a8762af28a751",
+  "rg_version": "ripgrep 14.1.0\n\nfeatures:-simd-accel,+pcre2\nsimd(compile):+SSE2,-SSSE3,-AVX2\nsimd(runtime):+SSE2,+SSSE3,+AVX2\n\nPCRE2 10.42 is available (JIT is available)",
+  "normalization": "Plain output exact bytes decoded as UTF-8; JSON omits performance counters only, preserving semantic events and match counts. Error wording not compared; exit status is.",
+  "checks": [
+    {
+      "mode": "scan",
+      "case": "lines",
+      "flags": [],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "literal",
+      "flags": [
+        "-F"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "regex",
+      "flags": [],
+      "operands": [
+        "(alpha|beta).*needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./src/b.rs:1:beta needle\r\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./src/b.rs:1:beta needle\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "count-lines",
+      "flags": [
+        "-c"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:3\n./note.txt:1\n./src/b.rs:1\n./unterminated.rs:1\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:3\n./note.txt:1\n./src/b.rs:1\n./unterminated.rs:1\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "count-matches",
+      "flags": [
+        "--count-matches"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:4\n./note.txt:1\n./src/b.rs:1\n./unterminated.rs:1\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:4\n./note.txt:1\n./src/b.rs:1\n./unterminated.rs:1\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "files",
+      "flags": [
+        "-l"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs\n./note.txt\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs\n./note.txt\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "without-match",
+      "flags": [
+        "--files-without-match"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./empty.rs\n./none.rs\n"
+      ],
+      "actual": [
+        0,
+        "./empty.rs\n./none.rs\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "quiet-match",
+      "flags": [
+        "-q"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        ""
+      ],
+      "actual": [
+        0,
+        ""
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "quiet-absent",
+      "flags": [
+        "-q"
+      ],
+      "operands": [
+        "absent_9471832",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        1,
+        ""
+      ],
+      "actual": [
+        1,
+        ""
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "context",
+      "flags": [
+        "-C",
+        "1"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs-1-before\n./a.rs:2:alpha needle\n./a.rs-3-next\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./a.rs-6-other\n--\n./note.txt:1:needle\n--\n./src/b.rs:1:beta needle\r\n./src/b.rs-2-KELVIN CAFÉ\r\n--\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs-1-before\n./a.rs:2:alpha needle\n./a.rs-3-next\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./a.rs-6-other\n--\n./note.txt:1:needle\n--\n./src/b.rs:1:beta needle\r\n./src/b.rs-2-KELVIN CAFÉ\r\n--\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "json",
+      "flags": [
+        "--json"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        [
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "alpha needle\n"
+              },
+              "line_number": 2,
+              "absolute_offset": 7,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 6,
+                  "end": 12
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "needle needle\n"
+              },
+              "line_number": 4,
+              "absolute_offset": 25,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                },
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 7,
+                  "end": 13
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "needlework\n"
+              },
+              "line_number": 5,
+              "absolute_offset": 39,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "binary_offset": null,
+              "matches": 4,
+              "matched_lines": 3
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              },
+              "lines": {
+                "text": "needle\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "lines": {
+                "text": "beta needle\r\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 5,
+                  "end": 11
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "lines": {
+                "text": "needle without a final newline"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "summary",
+            "data": {
+              "matches": 7,
+              "matched_lines": 6
+            }
+          }
+        ]
+      ],
+      "actual": [
+        0,
+        [
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 7,
+              "line_number": 2,
+              "lines": {
+                "text": "alpha needle\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 12,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 25,
+              "line_number": 4,
+              "lines": {
+                "text": "needle needle\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                },
+                {
+                  "end": 13,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 7
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 39,
+              "line_number": 5,
+              "lines": {
+                "text": "needlework\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./a.rs"
+              },
+              "matches": 4,
+              "matched_lines": 3
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "needle\n"
+              },
+              "path": {
+                "text": "./note.txt"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./note.txt"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "beta needle\r\n"
+              },
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "submatches": [
+                {
+                  "end": 11,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 5
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "needle without a final newline"
+              },
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "summary",
+            "data": {
+              "matches": 7,
+              "matched_lines": 6
+            }
+          }
+        ]
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "json-context",
+      "flags": [
+        "--json",
+        "-C",
+        "1"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        [
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              }
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "before\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": []
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "alpha needle\n"
+              },
+              "line_number": 2,
+              "absolute_offset": 7,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 6,
+                  "end": 12
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "next\n"
+              },
+              "line_number": 3,
+              "absolute_offset": 20,
+              "submatches": []
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "needle needle\n"
+              },
+              "line_number": 4,
+              "absolute_offset": 25,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                },
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 7,
+                  "end": 13
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "needlework\n"
+              },
+              "line_number": 5,
+              "absolute_offset": 39,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "other\n"
+              },
+              "line_number": 6,
+              "absolute_offset": 50,
+              "submatches": []
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "binary_offset": null,
+              "matches": 4,
+              "matched_lines": 3
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              },
+              "lines": {
+                "text": "needle\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "lines": {
+                "text": "beta needle\r\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 5,
+                  "end": 11
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "lines": {
+                "text": "KELVIN CAFÉ\r\n"
+              },
+              "line_number": 2,
+              "absolute_offset": 13,
+              "submatches": []
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "lines": {
+                "text": "needle without a final newline"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "summary",
+            "data": {
+              "matches": 7,
+              "matched_lines": 6
+            }
+          }
+        ]
+      ],
+      "actual": [
+        0,
+        [
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              }
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "before\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": []
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 7,
+              "line_number": 2,
+              "lines": {
+                "text": "alpha needle\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 12,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "absolute_offset": 20,
+              "line_number": 3,
+              "lines": {
+                "text": "next\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": []
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 25,
+              "line_number": 4,
+              "lines": {
+                "text": "needle needle\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                },
+                {
+                  "end": 13,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 7
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 39,
+              "line_number": 5,
+              "lines": {
+                "text": "needlework\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "absolute_offset": 50,
+              "line_number": 6,
+              "lines": {
+                "text": "other\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": []
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./a.rs"
+              },
+              "matches": 4,
+              "matched_lines": 3
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "needle\n"
+              },
+              "path": {
+                "text": "./note.txt"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./note.txt"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "beta needle\r\n"
+              },
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "submatches": [
+                {
+                  "end": 11,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 5
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "absolute_offset": 13,
+              "line_number": 2,
+              "lines": {
+                "text": "KELVIN CAFÉ\r\n"
+              },
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "submatches": []
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "needle without a final newline"
+              },
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "summary",
+            "data": {
+              "matches": 7,
+              "matched_lines": 6
+            }
+          }
+        ]
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "only-matching",
+      "flags": [
+        "-o"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:needle\n./a.rs:4:needle\n./a.rs:4:needle\n./a.rs:5:needle\n./note.txt:1:needle\n./src/b.rs:1:needle\n./unterminated.rs:1:needle\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:needle\n./a.rs:4:needle\n./a.rs:4:needle\n./a.rs:5:needle\n./note.txt:1:needle\n./src/b.rs:1:needle\n./unterminated.rs:1:needle\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "inverted",
+      "flags": [
+        "-v"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:1:before\n./a.rs:3:next\n./a.rs:6:other\n./none.rs:1:unrelated content\n./src/b.rs:2:KELVIN CAFÉ\r\n./src/b.rs:3:end\r\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:1:before\n./a.rs:3:next\n./a.rs:6:other\n./none.rs:1:unrelated content\n./src/b.rs:2:KELVIN CAFÉ\r\n./src/b.rs:3:end\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "max-count",
+      "flags": [
+        "-m",
+        "1"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "word",
+      "flags": [
+        "-w"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "glob",
+      "flags": [
+        "-g",
+        "src/**"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./src/b.rs:1:beta needle\r\n"
+      ],
+      "actual": [
+        0,
+        "./src/b.rs:1:beta needle\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "rust-type",
+      "flags": [
+        "-t",
+        "rust"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "rust-type-negative",
+      "flags": [
+        "-T",
+        "txt"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "custom-type",
+      "flags": [
+        "--type-add",
+        "custom:*.rs",
+        "-t",
+        "custom"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "excluded-type",
+      "flags": [
+        "-t",
+        "rust",
+        "-T",
+        "rust"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        1,
+        ""
+      ],
+      "actual": [
+        1,
+        ""
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "list-rust-type",
+      "flags": [
+        "--files",
+        "-t",
+        "rust"
+      ],
+      "operands": [
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./.hidden.rs\n./a.rs\n./empty.rs\n./none.rs\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "actual": [
+        0,
+        "./.hidden.rs\n./a.rs\n./empty.rs\n./none.rs\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "list-negative-type",
+      "flags": [
+        "--files",
+        "-T",
+        "txt"
+      ],
+      "operands": [
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs\n./empty.rs\n./none.rs\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs\n./empty.rs\n./none.rs\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "hidden",
+      "flags": [
+        "--hidden"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./.hidden-dir/nested.rs:1:needle\n./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./.hidden-dir/nested.rs:1:needle\n./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "explicit-hidden",
+      "flags": [],
+      "operands": [
+        "needle",
+        ".hidden.rs"
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "1:needle\n"
+      ],
+      "actual": [
+        0,
+        "1:needle\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "multiple",
+      "flags": [
+        "-e",
+        "needle",
+        "-e",
+        "other"
+      ],
+      "operands": [
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./a.rs:6:other\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./a.rs:6:other\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "unicode-kelvin",
+      "flags": [
+        "-Fi"
+      ],
+      "operands": [
+        "kelvin",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./src/b.rs:2:KELVIN CAFÉ\r\n"
+      ],
+      "actual": [
+        0,
+        "./src/b.rs:2:KELVIN CAFÉ\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "unicode-accent",
+      "flags": [
+        "-Fi"
+      ],
+      "operands": [
+        "café",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./src/b.rs:2:KELVIN CAFÉ\r\n"
+      ],
+      "actual": [
+        0,
+        "./src/b.rs:2:KELVIN CAFÉ\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "multiline",
+      "flags": [
+        "-U"
+      ],
+      "operands": [
+        "alpha needle\nnext",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:3:next\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:3:next\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "pcre-lookbehind",
+      "flags": [
+        "-P"
+      ],
+      "operands": [
+        "(?<=alpha )needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "scan",
+      "case": "invalid-regex",
+      "flags": [],
+      "operands": [
+        "[",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        2,
+        ""
+      ],
+      "actual": [
+        2,
+        ""
+      ],
+      "stderr": "zgrep: regex error: regex parse error:\n    [\n    ^\nerror: unclosed character class; PCRE-style fallback failed: Parsing error at position 1: Invalid character class\n"
+    },
+    {
+      "mode": "scan",
+      "case": "missing-root",
+      "flags": [],
+      "operands": [
+        "needle",
+        "missing.rs"
+      ],
+      "correct": true,
+      "expected": [
+        2,
+        ""
+      ],
+      "actual": [
+        2,
+        ""
+      ],
+      "stderr": "zgrep: missing.rs: IO error for operation on missing.rs: No such file or directory (os error 2)\n"
+    },
+    {
+      "mode": "local",
+      "case": "lines",
+      "flags": [],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "literal",
+      "flags": [
+        "-F"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "regex",
+      "flags": [],
+      "operands": [
+        "(alpha|beta).*needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./src/b.rs:1:beta needle\r\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./src/b.rs:1:beta needle\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "count-lines",
+      "flags": [
+        "-c"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:3\n./note.txt:1\n./src/b.rs:1\n./unterminated.rs:1\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:3\n./note.txt:1\n./src/b.rs:1\n./unterminated.rs:1\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "count-matches",
+      "flags": [
+        "--count-matches"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:4\n./note.txt:1\n./src/b.rs:1\n./unterminated.rs:1\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:4\n./note.txt:1\n./src/b.rs:1\n./unterminated.rs:1\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "files",
+      "flags": [
+        "-l"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs\n./note.txt\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs\n./note.txt\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "without-match",
+      "flags": [
+        "--files-without-match"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./empty.rs\n./none.rs\n"
+      ],
+      "actual": [
+        0,
+        "./empty.rs\n./none.rs\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "quiet-match",
+      "flags": [
+        "-q"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        ""
+      ],
+      "actual": [
+        0,
+        ""
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "quiet-absent",
+      "flags": [
+        "-q"
+      ],
+      "operands": [
+        "absent_9471832",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        1,
+        ""
+      ],
+      "actual": [
+        1,
+        ""
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "context",
+      "flags": [
+        "-C",
+        "1"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs-1-before\n./a.rs:2:alpha needle\n./a.rs-3-next\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./a.rs-6-other\n--\n./note.txt:1:needle\n--\n./src/b.rs:1:beta needle\r\n./src/b.rs-2-KELVIN CAFÉ\r\n--\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs-1-before\n./a.rs:2:alpha needle\n./a.rs-3-next\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./a.rs-6-other\n--\n./note.txt:1:needle\n--\n./src/b.rs:1:beta needle\r\n./src/b.rs-2-KELVIN CAFÉ\r\n--\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "json",
+      "flags": [
+        "--json"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        [
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "alpha needle\n"
+              },
+              "line_number": 2,
+              "absolute_offset": 7,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 6,
+                  "end": 12
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "needle needle\n"
+              },
+              "line_number": 4,
+              "absolute_offset": 25,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                },
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 7,
+                  "end": 13
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "needlework\n"
+              },
+              "line_number": 5,
+              "absolute_offset": 39,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "binary_offset": null,
+              "matches": 4,
+              "matched_lines": 3
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              },
+              "lines": {
+                "text": "needle\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "lines": {
+                "text": "beta needle\r\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 5,
+                  "end": 11
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "lines": {
+                "text": "needle without a final newline"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "summary",
+            "data": {
+              "matches": 7,
+              "matched_lines": 6
+            }
+          }
+        ]
+      ],
+      "actual": [
+        0,
+        [
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 7,
+              "line_number": 2,
+              "lines": {
+                "text": "alpha needle\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 12,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 25,
+              "line_number": 4,
+              "lines": {
+                "text": "needle needle\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                },
+                {
+                  "end": 13,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 7
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 39,
+              "line_number": 5,
+              "lines": {
+                "text": "needlework\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./a.rs"
+              },
+              "matches": 4,
+              "matched_lines": 3
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "needle\n"
+              },
+              "path": {
+                "text": "./note.txt"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./note.txt"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "beta needle\r\n"
+              },
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "submatches": [
+                {
+                  "end": 11,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 5
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "needle without a final newline"
+              },
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "summary",
+            "data": {
+              "matches": 7,
+              "matched_lines": 6
+            }
+          }
+        ]
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "json-context",
+      "flags": [
+        "--json",
+        "-C",
+        "1"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        [
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              }
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "before\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": []
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "alpha needle\n"
+              },
+              "line_number": 2,
+              "absolute_offset": 7,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 6,
+                  "end": 12
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "next\n"
+              },
+              "line_number": 3,
+              "absolute_offset": 20,
+              "submatches": []
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "needle needle\n"
+              },
+              "line_number": 4,
+              "absolute_offset": 25,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                },
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 7,
+                  "end": 13
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "needlework\n"
+              },
+              "line_number": 5,
+              "absolute_offset": 39,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "other\n"
+              },
+              "line_number": 6,
+              "absolute_offset": 50,
+              "submatches": []
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "binary_offset": null,
+              "matches": 4,
+              "matched_lines": 3
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              },
+              "lines": {
+                "text": "needle\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "lines": {
+                "text": "beta needle\r\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 5,
+                  "end": 11
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "lines": {
+                "text": "KELVIN CAFÉ\r\n"
+              },
+              "line_number": 2,
+              "absolute_offset": 13,
+              "submatches": []
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "lines": {
+                "text": "needle without a final newline"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "summary",
+            "data": {
+              "matches": 7,
+              "matched_lines": 6
+            }
+          }
+        ]
+      ],
+      "actual": [
+        0,
+        [
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              }
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "before\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": []
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 7,
+              "line_number": 2,
+              "lines": {
+                "text": "alpha needle\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 12,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "absolute_offset": 20,
+              "line_number": 3,
+              "lines": {
+                "text": "next\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": []
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 25,
+              "line_number": 4,
+              "lines": {
+                "text": "needle needle\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                },
+                {
+                  "end": 13,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 7
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 39,
+              "line_number": 5,
+              "lines": {
+                "text": "needlework\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "absolute_offset": 50,
+              "line_number": 6,
+              "lines": {
+                "text": "other\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": []
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./a.rs"
+              },
+              "matches": 4,
+              "matched_lines": 3
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "needle\n"
+              },
+              "path": {
+                "text": "./note.txt"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./note.txt"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "beta needle\r\n"
+              },
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "submatches": [
+                {
+                  "end": 11,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 5
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "absolute_offset": 13,
+              "line_number": 2,
+              "lines": {
+                "text": "KELVIN CAFÉ\r\n"
+              },
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "submatches": []
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "needle without a final newline"
+              },
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "summary",
+            "data": {
+              "matches": 7,
+              "matched_lines": 6
+            }
+          }
+        ]
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "only-matching",
+      "flags": [
+        "-o"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:needle\n./a.rs:4:needle\n./a.rs:4:needle\n./a.rs:5:needle\n./note.txt:1:needle\n./src/b.rs:1:needle\n./unterminated.rs:1:needle\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:needle\n./a.rs:4:needle\n./a.rs:4:needle\n./a.rs:5:needle\n./note.txt:1:needle\n./src/b.rs:1:needle\n./unterminated.rs:1:needle\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "inverted",
+      "flags": [
+        "-v"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:1:before\n./a.rs:3:next\n./a.rs:6:other\n./none.rs:1:unrelated content\n./src/b.rs:2:KELVIN CAFÉ\r\n./src/b.rs:3:end\r\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:1:before\n./a.rs:3:next\n./a.rs:6:other\n./none.rs:1:unrelated content\n./src/b.rs:2:KELVIN CAFÉ\r\n./src/b.rs:3:end\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "max-count",
+      "flags": [
+        "-m",
+        "1"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "word",
+      "flags": [
+        "-w"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "glob",
+      "flags": [
+        "-g",
+        "src/**"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./src/b.rs:1:beta needle\r\n"
+      ],
+      "actual": [
+        0,
+        "./src/b.rs:1:beta needle\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "rust-type",
+      "flags": [
+        "-t",
+        "rust"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "rust-type-negative",
+      "flags": [
+        "-T",
+        "txt"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "custom-type",
+      "flags": [
+        "--type-add",
+        "custom:*.rs",
+        "-t",
+        "custom"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "excluded-type",
+      "flags": [
+        "-t",
+        "rust",
+        "-T",
+        "rust"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        1,
+        ""
+      ],
+      "actual": [
+        1,
+        ""
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "list-rust-type",
+      "flags": [
+        "--files",
+        "-t",
+        "rust"
+      ],
+      "operands": [
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./.hidden.rs\n./a.rs\n./empty.rs\n./none.rs\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "actual": [
+        0,
+        "./.hidden.rs\n./a.rs\n./empty.rs\n./none.rs\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "list-negative-type",
+      "flags": [
+        "--files",
+        "-T",
+        "txt"
+      ],
+      "operands": [
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs\n./empty.rs\n./none.rs\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs\n./empty.rs\n./none.rs\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "hidden",
+      "flags": [
+        "--hidden"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./.hidden-dir/nested.rs:1:needle\n./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./.hidden-dir/nested.rs:1:needle\n./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "explicit-hidden",
+      "flags": [],
+      "operands": [
+        "needle",
+        ".hidden.rs"
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "1:needle\n"
+      ],
+      "actual": [
+        0,
+        "1:needle\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "multiple",
+      "flags": [
+        "-e",
+        "needle",
+        "-e",
+        "other"
+      ],
+      "operands": [
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./a.rs:6:other\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./a.rs:6:other\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "unicode-kelvin",
+      "flags": [
+        "-Fi"
+      ],
+      "operands": [
+        "kelvin",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./src/b.rs:2:KELVIN CAFÉ\r\n"
+      ],
+      "actual": [
+        0,
+        "./src/b.rs:2:KELVIN CAFÉ\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "unicode-accent",
+      "flags": [
+        "-Fi"
+      ],
+      "operands": [
+        "café",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./src/b.rs:2:KELVIN CAFÉ\r\n"
+      ],
+      "actual": [
+        0,
+        "./src/b.rs:2:KELVIN CAFÉ\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "multiline",
+      "flags": [
+        "-U"
+      ],
+      "operands": [
+        "alpha needle\nnext",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:3:next\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:3:next\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "pcre-lookbehind",
+      "flags": [
+        "-P"
+      ],
+      "operands": [
+        "(?<=alpha )needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "local",
+      "case": "invalid-regex",
+      "flags": [],
+      "operands": [
+        "[",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        2,
+        ""
+      ],
+      "actual": [
+        2,
+        ""
+      ],
+      "stderr": "zgrep: regex error: regex parse error:\n    [\n    ^\nerror: unclosed character class; PCRE-style fallback failed: Parsing error at position 1: Invalid character class\n"
+    },
+    {
+      "mode": "local",
+      "case": "missing-root",
+      "flags": [],
+      "operands": [
+        "needle",
+        "missing.rs"
+      ],
+      "correct": true,
+      "expected": [
+        2,
+        ""
+      ],
+      "actual": [
+        2,
+        ""
+      ],
+      "stderr": "zgrep: missing.rs: IO error for operation on missing.rs: No such file or directory (os error 2)\n"
+    },
+    {
+      "mode": "server",
+      "case": "lines",
+      "flags": [],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "literal",
+      "flags": [
+        "-F"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "regex",
+      "flags": [],
+      "operands": [
+        "(alpha|beta).*needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./src/b.rs:1:beta needle\r\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./src/b.rs:1:beta needle\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "count-lines",
+      "flags": [
+        "-c"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:3\n./note.txt:1\n./src/b.rs:1\n./unterminated.rs:1\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:3\n./note.txt:1\n./src/b.rs:1\n./unterminated.rs:1\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "count-matches",
+      "flags": [
+        "--count-matches"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:4\n./note.txt:1\n./src/b.rs:1\n./unterminated.rs:1\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:4\n./note.txt:1\n./src/b.rs:1\n./unterminated.rs:1\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "files",
+      "flags": [
+        "-l"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs\n./note.txt\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs\n./note.txt\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "without-match",
+      "flags": [
+        "--files-without-match"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./empty.rs\n./none.rs\n"
+      ],
+      "actual": [
+        0,
+        "./empty.rs\n./none.rs\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "quiet-match",
+      "flags": [
+        "-q"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        ""
+      ],
+      "actual": [
+        0,
+        ""
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "quiet-absent",
+      "flags": [
+        "-q"
+      ],
+      "operands": [
+        "absent_9471832",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        1,
+        ""
+      ],
+      "actual": [
+        1,
+        ""
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "context",
+      "flags": [
+        "-C",
+        "1"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs-1-before\n./a.rs:2:alpha needle\n./a.rs-3-next\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./a.rs-6-other\n--\n./note.txt:1:needle\n--\n./src/b.rs:1:beta needle\r\n./src/b.rs-2-KELVIN CAFÉ\r\n--\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs-1-before\n./a.rs:2:alpha needle\n./a.rs-3-next\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./a.rs-6-other\n--\n./note.txt:1:needle\n--\n./src/b.rs:1:beta needle\r\n./src/b.rs-2-KELVIN CAFÉ\r\n--\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "json",
+      "flags": [
+        "--json"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        [
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "alpha needle\n"
+              },
+              "line_number": 2,
+              "absolute_offset": 7,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 6,
+                  "end": 12
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "needle needle\n"
+              },
+              "line_number": 4,
+              "absolute_offset": 25,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                },
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 7,
+                  "end": 13
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "needlework\n"
+              },
+              "line_number": 5,
+              "absolute_offset": 39,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "binary_offset": null,
+              "matches": 4,
+              "matched_lines": 3
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              },
+              "lines": {
+                "text": "needle\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "lines": {
+                "text": "beta needle\r\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 5,
+                  "end": 11
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "lines": {
+                "text": "needle without a final newline"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "summary",
+            "data": {
+              "matches": 7,
+              "matched_lines": 6
+            }
+          }
+        ]
+      ],
+      "actual": [
+        0,
+        [
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 7,
+              "line_number": 2,
+              "lines": {
+                "text": "alpha needle\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 12,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 25,
+              "line_number": 4,
+              "lines": {
+                "text": "needle needle\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                },
+                {
+                  "end": 13,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 7
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 39,
+              "line_number": 5,
+              "lines": {
+                "text": "needlework\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./a.rs"
+              },
+              "matches": 4,
+              "matched_lines": 3
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "needle\n"
+              },
+              "path": {
+                "text": "./note.txt"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./note.txt"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "beta needle\r\n"
+              },
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "submatches": [
+                {
+                  "end": 11,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 5
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "needle without a final newline"
+              },
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "summary",
+            "data": {
+              "matches": 7,
+              "matched_lines": 6
+            }
+          }
+        ]
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "json-context",
+      "flags": [
+        "--json",
+        "-C",
+        "1"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        [
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              }
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "before\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": []
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "alpha needle\n"
+              },
+              "line_number": 2,
+              "absolute_offset": 7,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 6,
+                  "end": 12
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "next\n"
+              },
+              "line_number": 3,
+              "absolute_offset": 20,
+              "submatches": []
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "needle needle\n"
+              },
+              "line_number": 4,
+              "absolute_offset": 25,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                },
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 7,
+                  "end": 13
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "needlework\n"
+              },
+              "line_number": 5,
+              "absolute_offset": 39,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "lines": {
+                "text": "other\n"
+              },
+              "line_number": 6,
+              "absolute_offset": 50,
+              "submatches": []
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              },
+              "binary_offset": null,
+              "matches": 4,
+              "matched_lines": 3
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              },
+              "lines": {
+                "text": "needle\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "lines": {
+                "text": "beta needle\r\n"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 5,
+                  "end": 11
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "lines": {
+                "text": "KELVIN CAFÉ\r\n"
+              },
+              "line_number": 2,
+              "absolute_offset": 13,
+              "submatches": []
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "lines": {
+                "text": "needle without a final newline"
+              },
+              "line_number": 1,
+              "absolute_offset": 0,
+              "submatches": [
+                {
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0,
+                  "end": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "binary_offset": null,
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "summary",
+            "data": {
+              "matches": 7,
+              "matched_lines": 6
+            }
+          }
+        ]
+      ],
+      "actual": [
+        0,
+        [
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./a.rs"
+              }
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "before\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": []
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 7,
+              "line_number": 2,
+              "lines": {
+                "text": "alpha needle\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 12,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 6
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "absolute_offset": 20,
+              "line_number": 3,
+              "lines": {
+                "text": "next\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": []
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 25,
+              "line_number": 4,
+              "lines": {
+                "text": "needle needle\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                },
+                {
+                  "end": 13,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 7
+                }
+              ]
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 39,
+              "line_number": 5,
+              "lines": {
+                "text": "needlework\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "absolute_offset": 50,
+              "line_number": 6,
+              "lines": {
+                "text": "other\n"
+              },
+              "path": {
+                "text": "./a.rs"
+              },
+              "submatches": []
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./a.rs"
+              },
+              "matches": 4,
+              "matched_lines": 3
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./note.txt"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "needle\n"
+              },
+              "path": {
+                "text": "./note.txt"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./note.txt"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./src/b.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "beta needle\r\n"
+              },
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "submatches": [
+                {
+                  "end": 11,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 5
+                }
+              ]
+            }
+          },
+          {
+            "type": "context",
+            "data": {
+              "absolute_offset": 13,
+              "line_number": 2,
+              "lines": {
+                "text": "KELVIN CAFÉ\r\n"
+              },
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "submatches": []
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./src/b.rs"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "begin",
+            "data": {
+              "path": {
+                "text": "./unterminated.rs"
+              }
+            }
+          },
+          {
+            "type": "match",
+            "data": {
+              "absolute_offset": 0,
+              "line_number": 1,
+              "lines": {
+                "text": "needle without a final newline"
+              },
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "submatches": [
+                {
+                  "end": 6,
+                  "match": {
+                    "text": "needle"
+                  },
+                  "start": 0
+                }
+              ]
+            }
+          },
+          {
+            "type": "end",
+            "data": {
+              "binary_offset": null,
+              "path": {
+                "text": "./unterminated.rs"
+              },
+              "matches": 1,
+              "matched_lines": 1
+            }
+          },
+          {
+            "type": "summary",
+            "data": {
+              "matches": 7,
+              "matched_lines": 6
+            }
+          }
+        ]
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "only-matching",
+      "flags": [
+        "-o"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:needle\n./a.rs:4:needle\n./a.rs:4:needle\n./a.rs:5:needle\n./note.txt:1:needle\n./src/b.rs:1:needle\n./unterminated.rs:1:needle\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:needle\n./a.rs:4:needle\n./a.rs:4:needle\n./a.rs:5:needle\n./note.txt:1:needle\n./src/b.rs:1:needle\n./unterminated.rs:1:needle\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "inverted",
+      "flags": [
+        "-v"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:1:before\n./a.rs:3:next\n./a.rs:6:other\n./none.rs:1:unrelated content\n./src/b.rs:2:KELVIN CAFÉ\r\n./src/b.rs:3:end\r\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:1:before\n./a.rs:3:next\n./a.rs:6:other\n./none.rs:1:unrelated content\n./src/b.rs:2:KELVIN CAFÉ\r\n./src/b.rs:3:end\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "max-count",
+      "flags": [
+        "-m",
+        "1"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "word",
+      "flags": [
+        "-w"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "glob",
+      "flags": [
+        "-g",
+        "src/**"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./src/b.rs:1:beta needle\r\n"
+      ],
+      "actual": [
+        0,
+        "./src/b.rs:1:beta needle\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "rust-type",
+      "flags": [
+        "-t",
+        "rust"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "rust-type-negative",
+      "flags": [
+        "-T",
+        "txt"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "custom-type",
+      "flags": [
+        "--type-add",
+        "custom:*.rs",
+        "-t",
+        "custom"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "excluded-type",
+      "flags": [
+        "-t",
+        "rust",
+        "-T",
+        "rust"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        1,
+        ""
+      ],
+      "actual": [
+        1,
+        ""
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "list-rust-type",
+      "flags": [
+        "--files",
+        "-t",
+        "rust"
+      ],
+      "operands": [
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./.hidden.rs\n./a.rs\n./empty.rs\n./none.rs\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "actual": [
+        0,
+        "./.hidden.rs\n./a.rs\n./empty.rs\n./none.rs\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "list-negative-type",
+      "flags": [
+        "--files",
+        "-T",
+        "txt"
+      ],
+      "operands": [
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs\n./empty.rs\n./none.rs\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs\n./empty.rs\n./none.rs\n./src/b.rs\n./unterminated.rs\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "hidden",
+      "flags": [
+        "--hidden"
+      ],
+      "operands": [
+        "needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./.hidden-dir/nested.rs:1:needle\n./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./.hidden-dir/nested.rs:1:needle\n./.hidden.rs:1:needle\n./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "explicit-hidden",
+      "flags": [],
+      "operands": [
+        "needle",
+        ".hidden.rs"
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "1:needle\n"
+      ],
+      "actual": [
+        0,
+        "1:needle\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "multiple",
+      "flags": [
+        "-e",
+        "needle",
+        "-e",
+        "other"
+      ],
+      "operands": [
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./a.rs:6:other\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:4:needle needle\n./a.rs:5:needlework\n./a.rs:6:other\n./note.txt:1:needle\n./src/b.rs:1:beta needle\r\n./unterminated.rs:1:needle without a final newline\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "unicode-kelvin",
+      "flags": [
+        "-Fi"
+      ],
+      "operands": [
+        "kelvin",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./src/b.rs:2:KELVIN CAFÉ\r\n"
+      ],
+      "actual": [
+        0,
+        "./src/b.rs:2:KELVIN CAFÉ\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "unicode-accent",
+      "flags": [
+        "-Fi"
+      ],
+      "operands": [
+        "café",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./src/b.rs:2:KELVIN CAFÉ\r\n"
+      ],
+      "actual": [
+        0,
+        "./src/b.rs:2:KELVIN CAFÉ\r\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "multiline",
+      "flags": [
+        "-U"
+      ],
+      "operands": [
+        "alpha needle\nnext",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:3:next\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n./a.rs:3:next\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "pcre-lookbehind",
+      "flags": [
+        "-P"
+      ],
+      "operands": [
+        "(?<=alpha )needle",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        0,
+        "./a.rs:2:alpha needle\n"
+      ],
+      "actual": [
+        0,
+        "./a.rs:2:alpha needle\n"
+      ],
+      "stderr": ""
+    },
+    {
+      "mode": "server",
+      "case": "invalid-regex",
+      "flags": [],
+      "operands": [
+        "[",
+        "."
+      ],
+      "correct": true,
+      "expected": [
+        2,
+        ""
+      ],
+      "actual": [
+        2,
+        ""
+      ],
+      "stderr": "Server unavailable or index coverage not ready, falling back to local index\nzgrep: regex error: regex parse error:\n    [\n    ^\nerror: unclosed character class; PCRE-style fallback failed: Parsing error at position 1: Invalid character class\n"
+    },
+    {
+      "mode": "server",
+      "case": "missing-root",
+      "flags": [],
+      "operands": [
+        "needle",
+        "missing.rs"
+      ],
+      "correct": true,
+      "expected": [
+        2,
+        ""
+      ],
+      "actual": [
+        2,
+        ""
+      ],
+      "stderr": "zgrep: missing.rs: IO error for operation on missing.rs: No such file or directory (os error 2)\n"
+    }
+  ],
+  "fixtures": {
+    "a.rs": "before\nalpha needle\nnext\nneedle needle\nneedlework\nother\n",
+    "src/b.rs": "beta needle\r\nKELVIN CAFÉ\r\nend\r\n",
+    "empty.rs": "",
+    "none.rs": "unrelated content\n",
+    "note.txt": "needle\n",
+    ".hidden.rs": "needle\n",
+    "unterminated.rs": "needle without a final newline",
+    "ignored.rs": "needle\n",
+    ".gitignore": "ignored.rs\n.hidden-ignored.rs\n",
+    ".hidden-dir/nested.rs": "needle\n",
+    ".hidden-ignored.rs": "needle\n"
+  }
+}

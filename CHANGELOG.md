@@ -1,5 +1,16 @@
 # Changes
 
+## 0.2.0
+
+- Defer the reader's sorted path membership table until it is needed. Dense file-ID lookup remains immediate; concurrent first use initializes once. The 102-query Rust local workload improves about 1.26× against both tgrep and 0.1.0.
+- Preserve CRLF source bytes, unterminated JSON lines and server JSON byte offsets.
+- Admit matching hidden files under positive file type selections while retaining hidden-directory and ignore-rule filtering, in scan/local/server search and file listing.
+- Reject unsupported `--crlf` matching with exit 2 instead of silently accepting it. `--no-crlf` selects the supported LF mode.
+- Update crossbeam-epoch, anyhow, lru, memmap2 and notify dependencies; retain the advisory audit and rerun watcher/recovery tests.
+- Add exact-output differential checks, bulk-edit/crash/polling recovery evaluation, concurrent load/resource measurements and verified cold-index-cache experiments. Package an operating guide and test the extracted binary against ripgrep.
+
+Linux/WSL local CLI/service qualification is recorded in [PRODUCTION_REPORT.md](PRODUCTION_REPORT.md). No shared-service or native macOS/Windows qualification is claimed. Index format and asynchronous freshness contracts are unchanged.
+
 ## 0.1.0
 
 Fork of Microsoft tgrep `56f8c62` (1.0.10), retaining its MIT license.

@@ -80,6 +80,7 @@ fn start_server(root: &Path) -> ServerGuard {
         .stdout(std::process::Stdio::null())
         .spawn()
         .expect("failed to start zgrep serve");
+    let mut guard = ServerGuard { child, port: 0 };
 
     // Wait for serve.json to appear
     let serve_json = index_dir.join("serve.json");
@@ -100,7 +101,7 @@ fn start_server(root: &Path) -> ServerGuard {
         thread::sleep(Duration::from_millis(100));
     };
 
-    let guard = ServerGuard { child, port };
+    guard.port = port;
 
     // Wait for indexing to complete by polling status
     let start = Instant::now();
