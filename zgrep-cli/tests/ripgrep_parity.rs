@@ -1147,7 +1147,7 @@ fn max_columns_counts_a_crlf_as_two_bytes() {
         "crlf.txt",
     ]));
     assert_eq!(
-        out, "1:nbcdefgh\n2:[Omitted long matching line]\n3:[Omitted long matching line]\n",
+        out, "1:nbcdefgh\r\n2:[Omitted long matching line]\n3:[Omitted long matching line]\n",
         "9 bytes of text plus CRLF exceeds a limit of 10"
     );
 }

@@ -281,9 +281,10 @@ impl SearchOptions {
 
     /// Whether the reply has to carry per-row `offset` and `term`.
     ///
-    /// Only these two flags read them, and both default off.
+    /// JSON needs source offsets and exact line termination, just as explicit
+    /// byte-offset and maximum-column output need their positional metadata.
     fn wants_position_detail(&self) -> bool {
-        self.byte_offset || self.max_columns.is_some()
+        self.json || self.byte_offset || self.max_columns.is_some()
     }
 
     /// `--only-matching` as the search should actually apply it.

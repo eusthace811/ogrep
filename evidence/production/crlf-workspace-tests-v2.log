@@ -1,0 +1,1264 @@
+   Compiling zgrep-cli v0.1.0 (/home/eusth/projects/Experiments/tgrep/zgrep/zgrep-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.03s
+     Running unittests src/main.rs (target/debug/deps/zgrep-4c4a2cb30a30fb07)
+
+running 285 tests
+test cpu::tests::full_budget_uses_all_cores ... ok
+test cpu::tests::never_exceeds_core_count ... ok
+test cpu::tests::clamps_to_at_least_one_thread ... ok
+test glob_filter::tests::empty_filter_passes_all ... ok
+test glob_filter::tests::bare_extension_matches_at_any_depth ... ok
+test glob_filter::tests::backslash_normalization ... ok
+test glob_filter::tests::globs_are_case_sensitive_by_default ... ok
+test glob_filter::tests::exclude_patterns ... ok
+test glob_filter::tests::glob_character_class ... ok
+test glob_filter::tests::directory_prefix_pattern ... ok
+test glob_filter::tests::special_characters_are_literal ... ok
+test glob_filter::tests::iglob_patterns_are_always_case_insensitive ... ok
+test glob_filter::tests::glob_case_insensitive_flag_applies_to_globs ... ok
+test matching::tests::anchors_disable_the_prescan ... ok
+test glob_filter::tests::include_patterns ... ok
+test matching::tests::an_unrelaxable_pattern_gets_no_prefilter ... ok
+test glob_filter::tests::iglob_negation_excludes_case_insensitively ... ok
+test matching::tests::a_lookaround_pattern_gets_a_prefilter ... ok
+test matching::tests::group_spans_clips_multiline_match_onto_each_line ... ok
+test glob_filter::tests::question_mark_wildcard ... ok
+test matching::tests::group_spans_keeps_separate_ranges_apart ... ok
+test matching::tests::group_spans_merges_overlapping_ranges_on_one_line ... ok
+test matching::tests::line_blocks_keep_a_span_that_crosses_lines_whole ... ok
+test matching::tests::line_blocks_merge_matches_that_share_a_line ... ok
+test matching::tests::line_blocks_treat_an_empty_match_as_one_line ... ok
+test matching::tests::line_of_maps_offsets_to_lines ... ok
+test matching::tests::line_index_preserves_cr_and_splits_only_at_lf ... ok
+test matching::tests::prescan_respects_max_count_and_stop_on_nonmatch ... ok
+test matching::tests::prescan_declines_when_every_line_matches_anyway ... ok
+test matching::tests::stats_keep_original_multiline_matches_and_physical_lines ... ok
+test matching::tests::the_prefilter_survives_replacement ... ok
+test mem::tests::peak_rss_is_at_least_current_rss ... ok
+test mem::tests::private_bytes_are_queryable_and_within_the_resident_set ... ok
+test matching::tests::a_pattern_with_nothing_to_relax_gets_no_prefilter ... ok
+test mem::tests::total_physical_memory_is_nonzero ... ok
+test search::tests::display_path_leaves_ordinary_paths_alone ... ok
+test search::tests::display_path_restores_unc_paths ... ok
+test search::tests::display_path_strips_extended_length_prefix ... ok
+test search::tests::explicit_file_path_outside_cwd_is_editor_openable ... ok
+test search::tests::fused_scan_handles_empty_and_ascii ... ok
+test search::tests::fused_scan_rejects_invalid_utf8 ... ok
+test mem::tests::budgeted_memory_prefers_private_bytes ... ok
+test mem::tests::format_bytes_picks_sensible_units ... ok
+test mem::tests::peak_memory_report_is_available_on_supported_platforms ... ok
+test glob_filter::tests::include_and_exclude ... ok
+test mem::tests::peak_private_is_at_least_current_private ... ok
+test search::tests::indexed_sort_uses_scoped_timestamps_and_orders_missing_metadata ... ok
+test search::tests::stats_deduplicates_lines_across_rows ... ok
+test search::tests::stats_ignores_context_rows ... ok
+test mem::tests::process_rss_is_nonzero ... ok
+test search::tests::explicit_file_path_keeps_unc_shares_usable ... ok
+test search::tests::stats_on_no_rows_is_zero ... ok
+test search::tests::stats_keeps_same_line_number_in_different_files_apart ... ok
+test search::tests::stats_reports_no_matches_for_inverted_rows ... ok
+test mem::tests::default_cap_is_within_bounds ... ok
+test search::tests::stats_requests_match_detail_so_spans_are_available_to_count ... ok
+test search::tests::indexed_sort_preserves_entries_and_component_order ... ok
+test search::tests::stats_treats_a_row_without_spans_as_no_matches ... ok
+test search::tests::only_a_nonempty_full_corpus_gets_a_no_narrowing_note ... ok
+test matching::tests::prescan_proposes_every_line_a_match_spans ... ok
+test search::tests::quiet_file_selection_distinguishes_nonmatching_and_skipped_files ... ok
+test mem::tests::peak_memory_report_names_the_working_set_only_when_it_is_much_larger ... ok
+test search::tests::stats_uses_the_line_count_a_binary_row_carries ... ok
+test search::tests::server_response_requires_explicit_complete_hidden_coverage ... ok
+test matching::tests::the_prefilter_inherits_the_case_insensitive_flag ... ok
+test search::tests::fused_scan_reports_the_first_nul_not_a_later_one ... ok
+test search::tests::stats_counts_one_match_per_span ... ok
+test serve::index_cleanup::tests::cleanup_retired_finishes_after_directory_was_already_removed ... ok
+test matching::tests::the_prefilter_does_not_change_any_answer ... ok
+test serve::index_cleanup::tests::remove_file_reports_missing_files ... ok
+test serve::index_cleanup::tests::cleanup_retired_preserves_unexpected_contents ... ok
+test serve::index_cleanup::tests::cleanup_retired_preserves_pending_publications ... ok
+test serve::poll_tests::measure_polling_1000_files_and_20_file_change_batch ... ignored, bounded local polling measurement; run with --ignored --nocapture
+test matching::tests::prescan_never_drops_a_matching_line ... ok
+test serve::hidden_tests::custom_storage_events_never_enter_the_overlay_or_deferred_queue ... ok
+test serve::poll_tests::memoized_read_failures_with_missing_versions_remain_retryable ... ok
+test search::tests::fused_scan_finds_a_nul_exactly_on_a_chunk_boundary ... ok
+test serve::poll_tests::polling_startup_preserves_a_previous_failed_attempt_and_its_retry_cadence ... ok
+test search::tests::fused_scan_spans_many_chunks_without_a_nul ... ok
+test search::tests::fused_scan_carries_a_sequence_across_a_chunk_boundary ... ok
+test matching::tests::relaxation_is_a_superset_of_every_pattern_it_accepts ... ok
+test serve::hidden_tests::filename_only_legacy_upgrade_publishes_the_core_format_boundary ... ok
+test serve::poll_tests::registration_failure_is_sticky_even_if_the_injection_is_removed ... ok
+test serve::poll_tests::a_callback_handoff_after_the_registration_entry_check_prevents_subscriptions ... ok
+test serve::poll_tests::a_small_eligible_tree_stays_native_and_ignored_trees_cost_no_budget ... ok
+test serve::poll_tests::auto_save_clears_a_recovered_unreadable_memo_entry ... ok
+test serve::poll_tests::polling_startup_runs_again_when_the_completion_interval_has_elapsed ... ok
+test serve::poll_tests::a_fallback_requested_during_a_scan_retains_exactly_one_immediate_catch_up ... ok
+test serve::hidden_tests::hidden_filename_publication_is_coherent_even_when_metadata_publish_fails ... ok
+test serve::hidden_tests::native_hidden_directory_rename_schedules_descendant_reconciliation ... ok
+test serve::hidden_tests::reload_preserves_hidden_coverage_visibility_and_storage_exclusion ... ok
+test serve::poll_tests::polling_startup_skips_a_completed_scheduled_reconciliation ... ok
+test serve::poll_tests::a_running_production_refresh_rejects_a_second_tick_and_keeps_search_available ... ok
+test serve::poll_tests::indexing_and_flushing_preserve_catch_up_until_the_first_idle_tick ... ok
+test serve::poll_tests::polling_startup_retains_catch_up_requested_during_a_previous_scan ... ok
+test serve::poll_tests::incomplete_registration_coverage_releases_watches_instead_of_claiming_native ... ok
+test serve::poll_tests::a_change_after_the_metadata_walk_is_reconciled_on_the_next_poll ... ok
+test serve::hidden_tests::legacy_hidden_coverage_is_published_only_after_reconciliation ... ok
+test serve::poll_tests::explicit_poll_never_creates_a_watcher_or_starts_native_recovery ... ok
+test serve::recovery_tests::subscription_recovery_detects_equal_size_same_second_writes ... ok
+test serve::poll_tests::queue_overflow_repairs_content_but_does_not_abandon_native_watching ... ok
+test serve::poll_tests::legacy_evidence_without_metadata_versions_fails_open_and_converges ... ok
+test serve::poll_tests::explicit_refreshes_do_not_depend_on_the_poll_schedule ... ok
+test serve::recovery_tests::subscription_recovery_keeps_unchanged_versions_on_the_metadata_fast_path ... ok
+test serve::recovery_tests::subscription_recovery_detects_equal_size_writes_with_restored_mtime ... ok
+test serve::tests::a_deferred_metadata_change_does_not_replay_as_a_subtree_arrival ... ok
+test serve::poll_tests::capacity_failure_before_or_after_one_registration_releases_all_watches ... ok
+test serve::tests::a_directory_below_a_symlinked_one_is_not_subscribed_to ... ok
+test serve::poll_tests::root_subscription_failure_drops_the_created_watcher_and_requests_catch_up ... ok
+test serve::recovery_tests::subscription_recovery_verifies_legacy_evidence_once_without_overlay_churn ... ok
+test serve::tests::a_file_that_outgrew_the_cap_between_visits_loses_its_indexed_content ... ok
+test serve::tests::a_file_that_stays_unreadable_is_not_retried_until_it_changes ... ok
+test serve::tests::a_file_written_during_the_build_is_not_stamped_by_it ... ok
+test serve::recovery_tests::subscription_recovery_rejects_changes_after_read_or_before_commit ... ok
+test serve::poll_tests::budget_preflight_releases_the_entire_registry_and_never_restarts_it ... ok
+test serve::poll_tests::watcher_creation_capacity_failure_requests_polling_without_a_registry ... ok
+test serve::tests::a_directory_that_went_away_whole_takes_its_files_with_it ... ok
+test serve::tests::a_path_that_returns_through_a_symlinked_ancestor_is_still_swept ... ok
+test serve::poll_tests::a_failed_poll_preserves_last_success_and_retries_an_unchanged_failed_stamp ... ok
+test serve::tests::a_file_replaced_by_a_fifo_loses_its_indexed_content ... ok
+test serve::tests::a_forced_sync_retires_a_subscription_the_kernel_already_dropped ... ok
+test serve::tests::a_read_stops_one_byte_past_the_cap ... ok
+test serve::tests::a_recovery_scan_notices_an_ignore_file_that_was_deleted ... ok
+test serve::poll_tests::scheduled_poll_skips_a_completed_startup_reconciliation ... ok
+test serve::tests::a_populated_directory_that_arrives_whole_is_indexed_on_every_platform ... ok
+test serve::tests::a_rule_file_rewritten_during_the_build_marks_the_matcher_stale ... ok
+test serve::tests::a_rule_file_stamped_a_second_early_is_still_inside_the_window ... ok
+test serve::tests::a_rule_file_symlinked_into_a_hidden_directory_is_still_watched ... ok
+test serve::tests::a_rule_file_swapped_for_one_of_the_same_size_and_age_is_still_caught ... ok
+test serve::tests::a_recreated_directory_is_subscribed_again_rather_than_assumed_watched ... ok
+test serve::tests::a_scan_checks_every_directory_for_rules_before_indexing_any_file ... ok
+test serve::tests::a_rule_file_replaced_by_a_directory_counts_as_gone ... ok
+test serve::tests::a_scheduled_reconcile_defers_to_a_busy_server_but_not_indefinitely ... ok
+test serve::tests::a_rule_file_swapped_for_an_older_one_is_not_taken_on_faith ... ok
+test serve::tests::a_skipped_file_is_left_unstamped_so_the_next_pass_still_sees_it ... ok
+test serve::tests::a_symlinked_ignore_file_is_still_seen_by_a_recovery_scan ... ok
+test serve::tests::an_edit_to_a_symlinked_rule_files_target_schedules_a_refresh ... ok
+test serve::tests::an_unreadable_path_is_not_treated_as_a_deletion ... ok
+test serve::tests::an_unreadable_file_keeps_its_indexed_content ... ok
+test serve::tests::an_arriving_ignore_file_with_a_preserved_mtime_still_refreshes_the_matcher ... ok
+test serve::tests::active_overlay_and_tombstone_prevent_reader_identity_suppression ... ok
+test serve::tests::authoritative_filename_refresh_retries_a_dirty_sidecar ... ok
+test serve::poll_tests::scheduled_poll_rechecks_busy_state_before_claiming_catch_up ... ok
+test serve::tests::a_deferred_directory_rename_reconciles_filename_only_descendants ... ok
+test serve::poll_tests::native_and_unwatched_startup_refreshes_do_not_depend_on_the_poll_schedule ... ok
+test serve::tests::background_filename_membership_requires_one_complete_walk ... ok
+test serve::tests::binary_marker_offset_is_mapped_back_to_the_source_bytes ... ok
+test serve::poll_tests::watcher_overflow_during_recovery_remains_pending ... ok
+test serve::tests::content_cache_refuses_oversized_entries ... ok
+test serve::tests::a_walk_error_still_publishes_the_watcher_matcher ... ok
+test serve::tests::content_cache_evicts_to_stay_under_byte_budget ... ok
+test serve::tests::changes_deferred_during_a_build_are_applied_once_it_publishes ... ok
+test serve::tests::content_cache_byte_accounting_stays_exact ... ok
+test serve::tests::collected_ignore_matcher_publishes_both_source_kinds ... ok
+test serve::tests::concrete_event_caps_growth_between_verification_reads ... ok
+test serve::tests::concrete_event_rejects_ancestor_swapped_to_outside_symlink_between_reads ... ok
+test serve::tests::a_deferred_directory_rename_reconciles_indexed_descendants ... ok
+test serve::tests::final_background_evidence_keeps_ids_from_prior_checkpoints ... ok
+test serve::tests::content_cache_touch_promotes_recency ... ok
+test serve::tests::create_empty_index_makes_its_own_directory ... ok
+test serve::tests::files_rpc_unions_content_and_filename_only_paths ... ok
+test serve::tests::concrete_event_rejects_file_swapped_to_outside_symlink_between_reads ... ok
+test serve::tests::create_empty_index_replaces_partially_written_files ... ok
+test serve::tests::glob_filter_empty_passes_all ... ok
+test serve::tests::failed_polling_startup_hands_retries_to_the_configured_cadence ... ok
+test serve::tests::glob_filter_case_insensitive ... ok
+test serve::tests::glob_filter_negation_only ... ok
+test serve::tests::glob_filter_backslash_normalization ... ok
+test serve::tests::ignore_reconcile_compares_against_actual_indexed_paths ... ok
+test serve::tests::identifies_live_ignore_rule_changes ... ok
+test serve::tests::glob_filter_unix_patterns ... ok
+test serve::tests::concrete_event_reindexes_equal_length_rewrite_with_matching_version ... ok
+test serve::tests::ignore_sources_include_the_rules_that_live_outside_the_tree ... ok
+test serve::tests::identical_reader_event_refreshes_evidence_without_overlay_commit ... ok
+test serve::tests::exact_reindex_evidence_does_not_suppress_a_to_b_to_a ... ok
+test serve::tests::glob_filter_inclusion_and_exclusion ... ok
+test serve::tests::is_real_dir_rejects_a_symlink_to_a_directory ... ok
+test serve::tests::move_failure_reports_rollback_failure_and_preserves_backups ... ok
+test serve::tests::move_staged_files_publishes_known_files_only ... ok
+test serve::tests::open_within_root_reads_a_regular_file ... ok
+test serve::tests::open_within_root_refuses_a_symlinked_file ... ok
+test serve::tests::ordinary_and_outside_rule_files_add_no_subscriptions ... ok
+test serve::tests::overlay_id_mismatch_prevents_exact_byte_suppression ... ok
+test serve::poll_tests::resumed_build_binary_evidence_describes_the_read_not_the_final_walk ... ok
+test serve::tests::open_within_root_refuses_a_symlinked_ancestor ... ok
+test serve::poll_tests::unchanged_scheduled_polls_preserve_evidence_index_bytes_mtimes_and_cache ... ok
+test serve::tests::open_within_root_refuses_paths_that_escape_or_are_not_literal ... ok
+test serve::tests::a_complete_poll_forgets_an_unindexed_read_failure_that_disappeared ... ok
+test serve::poll_tests::polling_startup_does_not_claim_deferred_work_as_successful ... ok
+test serve::tests::incomplete_watch_sync_preserves_existing_subscriptions_until_a_complete_pass ... ok
+test serve::tests::pre_reload_disk_read_cannot_repopulate_content_cache ... ok
+test serve::tests::publish_file_fails_fast_on_missing_source ... ok
+test serve::tests::publish_file_preserves_original_error_via_source_chain ... ok
+test serve::tests::publish_file_renames_when_target_missing ... ok
+test serve::tests::publish_file_replaces_existing_target ... ok
+test serve::tests::recent_reindex_cache_bounds_bytes_capacity_and_oversized_replacements ... ok
+test serve::tests::rejected_never_indexed_files_do_not_dirty_the_overlay ... ok
+test serve::tests::reader_path_without_a_stamp_is_still_tombstoned ... ok
+test serve::tests::rollback_restores_backup_when_replacement_was_never_published ... ok
+test serve::tests::rollback_restores_backup_when_published_target_is_already_missing ... ok
+test serve::tests::rollback_retry_does_not_delete_an_already_restored_backup ... ok
+test serve::tests::publish_rejected_generation_restores_live_reader ... ok
+test serve::tests::replacing_the_whole_index_forgets_exact_byte_evidence ... ok
+test serve::tests::rpc_reload_build_failure_preserves_active_index ... ok
+test serve::tests::reader_suppression_compares_exact_decoded_bytes ... ok
+test serve::tests::reader_identity_mismatch_missing_or_malformed_evidence_commits_overlay ... ok
+test serve::tests::search_params_missing_or_non_array_string_options_are_empty ... ok
+test serve::tests::search_params_string_arrays_keep_valid_entries_and_pattern_order ... ok
+test serve::poll_tests::verified_binary_reindex_rejects_raced_classification ... ok
+test serve::tests::publish_releases_merge_readers_before_cleanup ... ok
+test serve::tests::separate_forced_events_suppress_only_exact_current_overlay_duplicate ... ok
+test serve::tests::skip_watcher_path_does_not_match_basename_against_exclude_dirs ... ok
+test serve::poll_tests::scheduled_polling_reconciles_add_modify_delete_rename_and_ignore_changes ... ok
+test serve::tests::concrete_event_rejects_change_after_verification_before_commit ... ok
+test serve::tests::skip_watcher_path_honors_exclude_dirs ... ok
+test serve::tests::skip_watcher_path_handles_dot_segments_and_empty ... ok
+test serve::poll_tests::native_reconciliation_retries_failed_files_after_same_second_writes ... ok
+test serve::tests::content_only_git_index_rewrite_is_ignored_but_membership_changes_reconcile ... ok
+test serve::tests::skip_watcher_path_keeps_non_hidden_paths ... ok
+test serve::tests::skip_watcher_path_keeps_nonignored_dot_components ... ok
+test serve::tests::reload_replaces_content_and_filename_paths_together ... ok
+test serve::poll_tests::equal_size_writes_with_restored_mtime_and_same_second_changes_are_polled ... ok
+test serve::poll_tests::verified_binary_reindex_preserves_text_binary_text_transitions ... ok
+test serve::tests::staged_file_move_rolls_back_replaced_files ... ok
+test serve::tests::staged_publication_orders_evidence_after_core_and_before_meta ... ok
+test serve::poll_tests::sustained_searches_do_not_defer_due_polls ... ok
+test serve::poll_tests::native_reconciliation_retries_failed_replacements_with_restored_mtime ... ok
+test serve::tests::stamps_are_published_only_for_what_the_build_indexed ... ok
+test serve::tests::stale_classification_uses_reader_paths_for_deletions_and_case_renames ... ok
+test serve::poll_tests::verified_binary_reindex_preserves_evidence_without_rewriting_the_index ... ok
+test serve::tests::stats_binary_totals_are_independent_of_marker_and_match_rows ... ok
+test serve::tests::skip_watcher_dir_applies_directory_semantics ... ok
+test serve::tests::sweep_removed_files_only_deletes_from_directories_it_enumerated ... ok
+test serve::tests::the_sweep_drops_a_deleted_file_that_never_had_a_stamp ... ok
+test serve::tests::subscription_snapshot_holds_registry_until_its_application ... ok
+test serve::tests::staged_publication_without_evidence_removes_active_evidence ... ok
+test serve::tests::the_sweep_does_not_delete_a_file_that_came_back ... ok
+test serve::tests::skip_watcher_path_honors_gitignore_matcher ... ok
+test serve::tests::subscriptions_are_established_from_the_root_down ... ok
+test serve::tests::watcher_burst_preserves_distinct_path_order ... ok
+test serve::tests::watcher_queue_preserves_changes_and_reports_real_overflow ... ok
+test serve::tests::watcher_queue_rescan_bypasses_kind_filter_and_channel_capacity ... ok
+test serve::tests::watchable_dirs_without_a_matcher_keeps_everything_visible ... ok
+test serve::tests::watcher_burst_stops_at_configured_bounds_without_losing_next_event ... ok
+test serve::tests::watcher_burst_preserves_directory_introduction ... ok
+test serve::tests::watcher_queue_filters_read_only_events_before_the_bounded_channel ... ok
+test serve::tests::watcher_receiver_coalesces_prequeued_duplicate_paths ... ok
+test serve::tests::watcher_keeps_binary_extensions_in_the_filename_index ... ok
+test serve::tests::watcher_receiver_preserves_cap_rejection_for_next_call ... ok
+test serve::tests::watcher_receiver_splits_oversized_first_event_without_path_loss ... ok
+test serve::tests::watcher_receiver_zero_max_leaves_next_event_queued ... ok
+test status::tests::refresh_legacy_status_remains_compatible ... ok
+test status::tests::refresh_status_accepts_null_optional_fields_and_each_mode ... ok
+test status::tests::refresh_status_renders_fallback_timing_and_failure ... ok
+test serve::tests::index_mutation_keeps_write_lock_until_cache_invalidation ... ok
+test serve::tests::watcher_recovery_sweeps_missing_filename_only_paths ... ok
+test serve::tests::unreadable_stale_delta_preserves_reader_and_overlay_entries ... ok
+test serve::tests::watchable_dirs_anchors_rules_at_the_root_not_the_start_directory ... ok
+test serve::tests::rpc_reload_replays_binary_filename_changes_received_after_extraction ... ok
+test serve::tests::watchable_dirs_prunes_ignored_and_storage_subtrees ... ok
+test serve::tests::rpc_reload_replays_event_received_after_extraction ... ok
+test serve::tests::stale_merge_preserves_replaces_and_removes_content_ids ... ok
+test serve::tests::stats_files_only_reply_is_constant_size_per_file ... ok
+test serve::poll_tests::poll_build_paths_repair_post_extraction_changes_without_native_watches ... ok
+test tests::refresh_defaults_and_explicit_modes ... ok
+test serve::tests::rpc_reload_without_watcher_repairs_change_after_extraction ... ok
+test serve::tests::membership_change_during_refresh_schedules_one_corrective_pass ... ok
+test serve::tests::rpc_reload_membership_change_schedules_one_corrective_pass ... ok
+test serve::tests::deferring_more_changes_than_the_cap_gives_up_on_the_whole_set ... ok
+test serve::tests::rpc_reload_schedules_ignore_rule_change_received_during_build ... ok
+test tests::refresh_explicit_values_and_boundaries ... ok
+test serve::tests::unwatched_external_bootstrap_repairs_change_after_extraction ... ok
+test tests::refresh_explicit_conflicts_include_default_values ... ok
+test tests::refresh_rejects_invalid_values ... ok
+test serve::tests::unwatched_resumed_build_repairs_change_after_extraction ... ok
+test serve::tests::first_matcher_publication_uses_one_snapshot_across_git_index_aba ... ok
+test serve::tests::rpc_reload_waits_for_initial_build ... ok
+test serve::tests::rpc_reload_uses_one_snapshot_across_git_index_aba ... ok
+test serve::poll_tests::resumed_build_preserves_binary_evidence_across_batches_and_flushes ... ok
+test serve::tests::tracked_membership_poll_waits_for_reconcile_publication ... ok
+test mem::tests::the_sampler_records_a_peak_the_process_no_longer_holds ... ok
+test serve::tests::a_removal_waits_for_an_in_flight_reindex ... ok
+test serve::tests::content_only_index_churn_during_refresh_does_not_chain_reconciles ... ok
+test serve::tests::an_ignore_refresh_waits_for_a_running_build ... ok
+test serve::poll_tests::a_scan_longer_than_the_interval_schedules_from_completion_not_start ... ok
+
+test result: ok. 284 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.04s
+
+     Running tests/concurrent_search.rs (target/debug/deps/concurrent_search-82e123f10e5e8252)
+
+running 7 tests
+test server_supports_negative_lookahead_fallback ... ok
+test concurrent_searches_on_single_connection ... ok
+test concurrent_searches_with_different_options ... ok
+test concurrent_different_searches ... ok
+test concurrent_search_and_status_requests ... ok
+test concurrent_identical_searches ... ok
+test concurrent_high_volume_searches ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+
+     Running tests/default_max_filesize.rs (target/debug/deps/default_max_filesize-e44edb843502a565)
+
+running 6 tests
+test naming_a_file_still_honours_a_cap_the_user_set ... ok
+test a_walk_drops_files_past_the_default_cap ... ok
+test naming_a_file_defeats_the_inherited_default ... ok
+test a_raised_cap_also_restores_the_file ... ok
+test no_max_filesize_restores_ripgrep_behaviour ... ok
+test the_default_is_last_flag_wins ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.66s
+
+     Running tests/indexed_files.rs (target/debug/deps/indexed_files-91826ff4da664e85)
+
+running 4 tests
+test legacy_filename_index_falls_back_and_indexed_scope_still_filters ... ok
+test indexed_files_include_non_content_paths_and_use_the_snapshot ... ok
+test files_uses_the_live_server_filename_index ... ok
+test indexed_sort_agrees_for_scoped_search_and_file_listing ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running tests/indexed_hidden.rs (target/debug/deps/indexed_hidden-64c4dae859c05583)
+
+running 10 tests
+test default_index_serves_hidden_copilot_formats_without_disabling_ignores ... ok
+test hidden_local_status_requires_coherent_index_coverage ... ok
+test explicitly_named_hidden_root_uses_the_parent_custom_index ... ok
+test unproven_indexes_scan_scoped_hidden_roots_until_server_upgrade ... ok
+test ready_server_serves_hidden_formats_and_accepts_redundant_hidden_flag ... ok
+test custom_index_inside_source_is_excluded_from_build_rebuild_and_reload ... ok
+test hidden_fallback_walks_exclude_custom_index_storage ... ok
+test positive_globs_filter_local_and_server_indexed_corpora ... ok
+test native_watcher_tracks_hidden_updates_ignore_transitions_and_restart ... ok
+test polling_tracks_hidden_updates_ignore_transitions_and_restart ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.35s
+
+     Running tests/large_file_search.rs (target/debug/deps/large_file_search-f9a1b9d152356b43)
+
+running 3 tests
+test a_large_file_with_invalid_utf8_still_searches ... ok
+test a_mapped_file_reports_the_same_lines_as_a_read_one ... ok
+test a_large_utf16_file_still_searches ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/memory_cap.rs (target/debug/deps/memory_cap-4599f2a2d529e75b)
+
+running 1 test
+test memory_capped_build_still_produces_complete_searchable_index ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.30s
+
+     Running tests/planner_features.rs (target/debug/deps/planner_features-c9b4b5ab63fdbbdf)
+
+running 3 tests
+test explain_reports_real_work_without_changing_match_output ... ok
+test indexed_and_scanned_crlf_output_preserves_source_bytes_and_json_offsets ... ok
+test indexed_fixed_case_insensitive_search_keeps_unicode_equivalents ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.12s
+
+     Running tests/ripgrep_compat.rs (target/debug/deps/ripgrep_compat-88a1ffb54ea9f96b)
+
+running 234 tests
+test before_context_short_flag ... ok
+test after_context_long_flag ... ok
+test accepts_multiple_path_arguments ... ok
+test after_context_short_flag ... ok
+test context_short_flag ... ok
+test case_insensitive_with_fixed_strings ... ok
+test context_separator_between_disjoint_matches ... ok
+test byte_offset_flag_prints_line_offsets ... ok
+test color_never_has_no_ansi_codes ... ok
+test capital_i_suppresses_filenames ... ok
+test color_never_leaves_output_plain ... ok
+test column_flag_prints_match_columns ... ok
+test case_insensitive_long_flag ... ok
+test context_separator_still_appears_with_context ... ok
+test column_is_not_printed_on_context_lines ... ok
+test default_engine_rejects_lookaround ... ok
+test count_long_flag ... ok
+test count_files_reports_correct_count ... ok
+test files_mode_accepts_single_file_path ... ok
+test count_files_skips_binary ... ok
+test count_files_stderr_has_details ... ok
+test field_separators_are_configurable ... ok
+test case_sensitive_flag_overrides_smart_case ... ok
+test case_insensitive_short_flag ... ok
+test files_with_matches_long_flag ... ok
+test files_without_match_all_match ... ok
+test files_without_match_short ... ok
+test files_without_match_with_glob ... ok
+test files_without_match_none_match ... ok
+test glob_no_matches ... ok
+test glob_multiple_with_files_only ... ok
+test glob_negation_excludes_files ... ok
+test glob_with_invert_match_and_count ... ok
+test color_always_highlights_the_match ... ok
+test files_without_match_exit_code_success ... ok
+test globs_are_case_sensitive_by_default ... ok
+test empty_file_no_matches ... ok
+test files_mode_preserves_single_file_relative_path_for_globs ... ok
+test explicit_file_search_bypasses_hidden_walk_filter ... ok
+test files_without_match_with_invert_match ... ok
+test glob_single_pattern ... ok
+test count_matches_counts_matches_not_lines ... ok
+test exit_code_one_on_no_match ... ok
+test iglob_matches_case_insensitively ... ok
+test exit_code_zero_on_match ... ok
+test ignore_case_still_wins_over_case_sensitive ... ok
+test context_separator_is_configurable ... ok
+test ignore_file_applies_extra_rules ... ok
+test glob_case_insensitive_flag_applies_to_globs ... ok
+test fixed_strings_dot_not_wildcard ... ok
+test include_zero_reports_unmatched_files ... ok
+test explicit_encoding_finds_bomless_utf16 ... ok
+test hidden_flag_includes_dotfiles ... ok
+test compatibility_no_op_flags_are_accepted ... ok
+test files_without_match_handles_explicit_files_and_quiet_mode ... ok
+test encoding_results_agree_across_search_paths ... ok
+test count_short_flag ... ok
+test binary_note_matches_between_indexed_and_brute_force ... ok
+test files_without_match_long ... ok
+test encoding_none_disables_bom_sniffing ... ok
+test follow_flag_is_accepted_as_dash_l ... ok
+test glob_multiple_patterns ... ok
+test files_with_matches_short_flag ... ok
+test fixed_strings_short_flag ... ok
+test fixed_strings_long_flag ... ok
+test count_reports_binary_files_with_late_nul ... ok
+test dot_flag_is_an_alias_for_hidden ... ok
+test index_honours_no_require_git ... ok
+test index_is_git_gated_by_default_like_ripgrep ... ok
+test index_exclude_single_dir ... ok
+test indexed_backreference_still_returns_every_match ... ok
+test indexed_count ... ok
+test index_exclude_multiple_dirs ... ok
+test indexed_basic_search ... ok
+test indexed_context_lines ... ok
+test include_zero_agrees_across_search_paths ... ok
+test indexed_files_without_match ... ok
+test indexed_extra_patterns_reach_the_query_plan ... ok
+test indexed_files_with_matches ... ok
+test indexed_case_insensitive ... ok
+test indexed_fixed_string_multiple_patterns ... ok
+test invalid_max_filesize_is_an_error_not_a_silent_fallback ... ok
+test indexed_glob_filter ... ok
+test indexed_count_ignores_context_lines ... ok
+test invert_match_long_flag ... ok
+test invert_match_exit_code ... ok
+test invert_match_short_flag ... ok
+test invert_match_with_count ... ok
+test json_context_lines_have_context_type ... ok
+test json_output_includes_file_and_line ... ok
+test json_output_flag ... ok
+test json_output_with_context ... ok
+test latin1_encoding_decodes_high_bytes ... ok
+test json_submatches_cover_every_match_on_a_line ... ok
+test line_number_long_accepted ... ok
+test line_number_short_accepted ... ok
+test line_regexp_beats_word_regexp ... ok
+test max_count_limits_matches_per_file ... ok
+test max_columns_preview_truncates_instead ... ok
+test max_columns_omits_long_lines ... ok
+test indexed_invert_match ... ok
+test max_count_long_flag ... ok
+test indexed_json_output ... ok
+test line_regexp_requires_a_whole_line_match ... ok
+test indexed_no_filename_no_line_number ... ok
+test max_count_with_files_only ... ok
+test indexed_only_matching ... ok
+test missing_path_reports_error_and_exits_2 ... ok
+test indexed_max_filesize_is_honored ... ok
+test missing_path_does_not_stop_remaining_paths ... ok
+test indexed_invert_match_returns_files_without_the_pattern ... ok
+test missing_path_stays_quiet_with_no_messages ... ok
+test indexed_lookaround_finds_the_same_lines_as_a_direct_scan ... ok
+test max_filesize_excludes_large_files ... ok
+test indexed_multiple_patterns_match_the_same_as_brute_force ... ok
+test indexed_passthru_emits_filtered_no_hit_files_beside_a_match ... ok
+test multiple_patterns_with_fixed_strings ... ok
+test max_count_keeps_multiline_matches_whole ... ok
+test indexed_passthru_prints_no_match_and_exits_one ... ok
+test multiline_matches_across_lines ... ok
+test multiple_patterns_long_flag ... ok
+test multiline_dotall_makes_dot_match_newline ... ok
+test max_filesize_accepts_suffixes ... ok
+test multiline_alone_does_not_make_dot_match_newline ... ok
+test max_depth_limits_recursion ... ok
+test no_context_separator_in_vimgrep_output ... ok
+test multiple_patterns_with_e_flag ... ok
+test indexed_pattern_file_is_honored ... ok
+test no_context_separator_without_context_flags ... ok
+test no_heading_outputs_flat_format ... ok
+test indexed_search_reads_non_utf8_files ... ok
+test no_encoding_restores_auto_detection ... ok
+test no_heading_with_line_numbers_is_file_line_content ... ok
+test no_filename_and_no_line_number ... ok
+test no_filename_flat ... ok
+test no_filename_count ... ok
+test indexed_search_excludes_ignored_files_under_no_require_git ... ok
+test no_filename_with_no_line_number_and_context ... ok
+test only_matching_long_flag ... ok
+test indexed_stats_follow_matches_on_a_combined_output_stream ... ok
+test indexed_quiet_exit_codes ... ok
+test non_multiline_anchors_per_line ... ok
+test only_matching_with_count ... ok
+test no_line_number_flat ... ok
+test indexed_fixed_strings ... ok
+test only_matching_short_flag ... ok
+test passthru_no_match_keeps_binary_files_silent ... ok
+test no_line_number_long ... ok
+test null_separator_in_files_mode ... ok
+test passthru_prints_every_line ... ok
+test only_matching_prints_one_line_per_match ... ok
+test null_separator_long_flag ... ok
+test pcre2_version_reports_the_engine ... ok
+test passthru_prints_explicit_no_match_and_exits_one ... ok
+test indexed_smart_case ... ok
+test path_separator_rewrites_printed_paths ... ok
+test search_zip_is_rejected_rather_than_ignored ... ok
+test regex_size_limit_rejects_an_oversized_pattern ... ok
+test pretty_implies_color_and_heading ... ok
+test pattern_file_short_flag ... ok
+test quiet_no_stderr_on_match ... ok
+test quiet_no_match_exits_one ... ok
+test no_ignore_includes_gitignored_files ... ok
+test replace_expands_capture_groups ... ok
+test quiet_with_files_without_match ... ok
+test replace_rewrites_matches ... ok
+test quiet_with_match_exits_zero_even_after_an_error ... ok
+test regex_alternation ... ok
+test quiet_long_form ... ok
+test quiet_with_files_without_match_all_match ... ok
+test replace_with_only_matching_prints_replacements ... ok
+test quiet_match_exits_zero ... ok
+test single_line_file ... ok
+test searches_files_that_are_not_valid_utf8 ... ok
+test indexed_lookahead_finds_the_same_lines_as_a_direct_scan ... ok
+test smart_case_with_uppercase_is_sensitive ... ok
+test smart_case_all_lowercase_is_insensitive ... ok
+test smart_case_long_flag ... ok
+test pcre2_enables_lookaround ... ok
+test stats_follow_matches_on_a_combined_output_stream ... ok
+test stop_on_nonmatch_halts_at_the_first_gap ... ok
+test indexed_max_count ... ok
+test strips_extra_quotes_from_path_argument ... ok
+test searches_files_larger_than_one_mib ... ok
+test trim_strips_whitespace ... ok
+test threads_flag_is_accepted ... ok
+test type_clear_removes_a_builtin_type ... ok
+test indexed_server_returns_candidate_stats_only_when_requested ... ok
+test sort_path_orders_results_deterministically ... ok
+test type_list_includes_ripgrep_builtins ... ok
+test type_add_defines_a_new_type ... ok
+test type_list_reflects_type_add ... ok
+test unknown_encoding_is_a_usage_error ... ok
+test unknown_sort_criteria_is_a_usage_error ... ok
+test type_filter_restricts_to_rust_files ... ok
+test unknown_engine_is_a_usage_error ... ok
+test unknown_type_is_a_usage_error ... ok
+test type_flag_is_repeatable ... ok
+test supports_negative_lookahead_fallback ... ok
+test type_not_excludes_a_type ... ok
+test text_flag_searches_binary_files ... ok
+test unrestricted_double_u_includes_hidden ... ok
+test vimgrep_column_is_one_based ... ok
+test stats_binary_file_counts_matches_on_both_sides_of_nul ... ok
+test vimgrep_emits_one_row_per_match ... ok
+test vimgrep_output_format ... ok
+test unrestricted_uuu_enables_binary_search ... ok
+test utf16_bom_files_are_searched_as_text ... ok
+test unrestricted_single_u_is_no_ignore ... ok
+test word_regexp_long_flag ... ok
+test word_regexp_short_flag ... ok
+test with_filename_accepted ... ok
+test word_regexp_with_case_insensitive ... ok
+test with_filename_and_no_filename_last_wins ... ok
+test with_filename_long_accepted ... ok
+test indexed_word_boundary ... ok
+test sort_path_uses_the_same_order_on_every_search_path ... ok
+test stats_explicit_files_and_binary_notes_count_unrendered_matches ... ok
+test passthru_bypasses_server_for_scoped_no_match ... ok
+test indexed_candidate_stats_precede_query_size_limit ... ok
+test serve_rebuilds_when_existing_index_is_corrupted ... ok
+test serve_rejects_second_server_on_same_index ... ok
+test stats_files_only_server_rpc_returns_one_marker_per_file ... ok
+test indexed_hidden_legacy_and_partial_coverage_scan_until_server_upgrade ... ok
+test new_flags_agree_across_search_paths ... ok
+test passthru_max_count_zero_matches_ripgrep_across_search_paths ... ok
+test indexed_stats_distinguish_full_corpus_candidates_from_server_transport ... ok
+test stats_are_scoped_to_each_root_without_colliding_relative_paths ... ok
+test indexed_hidden_copilot_modes_keep_visibility_and_ignore_parity ... ok
+test stats_scope_depth_filters_and_quiet_early_exit_apply_to_server_totals ... ok
+test stats_ignore_trim_replacement_and_adjacent_span_merging ... ok
+test stats_count_matches_independently_of_count_and_file_output ... ok
+test indexed_inline_case_flags_keep_candidates_selective ... ok
+test stats_multiline_counts_original_matches_before_rendering ... ok
+
+test result: ok. 234 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.98s
+
+     Running tests/ripgrep_parity.rs (target/debug/deps/ripgrep_parity-f2d21f85e5e6e87c)
+
+running 102 tests
+test a_large_but_representable_size_limit_is_accepted ... ok
+test column_flag_implies_line_numbers ... ok
+test byte_offset_maps_back_to_source_bytes ... ok
+test context_does_not_imply_line_numbers ... ok
+test column_maps_back_to_source_bytes ... ok
+test byte_offset_does_not_imply_line_numbers ... ok
+test count_of_a_binary_file_is_not_double_counted ... ok
+test context_separator_marks_the_boundary_between_files ... ok
+test explicit_binary_file_reports_a_note ... ok
+test binary_flag_promotes_traversal_files_to_explicit ... ok
+test double_u_adds_hidden_files ... ok
+test json_binary_offset_and_bytes_searched_are_file_positions ... ok
+test context_separator_is_absent_in_heading_mode ... ok
+test dash_f_makes_every_positional_a_path ... ok
+test context_separator_is_absent_without_context_flags ... ok
+test json_emits_one_summary_for_all_named_paths ... ok
+test dash_e_makes_every_positional_a_path ... ok
+test files_lists_binary_extensions_too ... ok
+test json_bytes_searched_counts_the_file_when_there_is_no_nul ... ok
+test json_stats_for_an_inverted_search_count_lines_not_matches ... ok
+test json_hides_a_binary_file_reached_by_traversal ... ok
+test max_columns_counts_a_crlf_as_two_bytes ... ok
+test json_summary_comes_last_across_named_paths ... ok
+test max_columns_distinguishes_matching_and_context_lines ... ok
+test line_numbers_are_off_when_not_a_tty ... ok
+test max_columns_ignores_a_missing_final_terminator ... ok
+test json_is_ignored_when_counting ... ok
+test binary_flag_includes_extension_rejected_files ... ok
+test missing_directory_reports_the_error_the_os_gives_for_a_missing_directory ... ok
+test json_is_ignored_when_listing_every_file ... ok
+test multiline_max_count_one_keeps_every_match_on_the_matching_line ... ok
+test missing_file_reports_the_error_the_os_gives_for_a_missing_file ... ok
+test multiline_max_count_zero_reports_nothing ... ok
+test multiline_max_count_counts_separate_lines_separately ... ok
+test multiline_max_count_counts_lines_for_dash_c ... ok
+test multiline_max_count_two_takes_two_line_blocks ... ok
+test multiline_vimgrep_still_reports_every_match_on_one_line ... ok
+test multiline_vimgrep_honours_max_count_over_line_blocks ... ok
+test multiline_vimgrep_reports_a_spanning_match_once ... ok
+test multiline_without_vimgrep_still_prints_every_line_of_a_match ... ok
+test oversized_size_limit_is_rejected_rather_than_truncated ... ok
+test binary_note_offset_is_the_byte_in_the_file ... ok
+test dfa_size_limit_error_names_its_own_flag ... ok
+test no_ignore_messages_suppresses_ignore_file_errors ... ok
+test no_context_separator_suppresses_the_boundary_marker ... ok
+test no_messages_also_suppresses_ignore_file_errors ... ok
+test path_display_of_an_explicit_file_is_exactly_as_typed ... ok
+test path_display_dot_argument_keeps_the_dot ... ok
+test path_display_gives_each_argument_its_own_prefix ... ok
+test max_columns_counts_the_newline ... ok
+test json_bytes_searched_stops_at_the_binary_offset_without_a_match ... ok
+test explicit_binary_file_is_listed_and_counted ... ok
+test json_bytes_searched_stops_at_the_binary_offset ... ok
+test json_binary_offset_is_null_under_dash_a ... ok
+test json_binary_offset_is_null_for_a_text_file ... ok
+test json_end_message_carries_the_binary_offset ... ok
+test json_emits_match_events_for_an_explicit_binary_file ... ok
+test max_count_one_keeps_every_match_on_the_matching_line ... ok
+test multiline_max_count_keeps_a_match_that_spans_lines_whole ... ok
+test path_display_keeps_absolute_arguments_absolute ... ok
+test regex_size_limit_error_names_its_own_flag ... ok
+test path_display_mixes_typed_and_native_separators ... ok
+test json_ignores_only_matching ... ok
+test replace_columns_on_invalid_utf8_are_source_columns ... ok
+test path_display_directory_argument_is_prefixed ... ok
+test max_columns_under_only_matching_measures_the_match_alone ... ok
+test json_is_ignored_when_listing_files ... ok
+test replace_columns_on_invalid_utf8_stay_positive ... ok
+test replace_only_matching_byte_offsets_accumulate_the_shift ... ok
+test path_display_preserves_a_trailing_slash_argument ... ok
+test replace_vimgrep_columns_index_the_replaced_line ... ok
+test path_display_without_argument_is_bare ... ok
+test single_file_argument_suppresses_filenames ... ok
+test path_separator_overrides_every_separator ... ok
+test text_output_still_collapses_a_binary_file_to_a_note ... ok
+test per_file_json_elapsed_is_scoped_to_that_file ... ok
+test triple_u_still_needs_dash_a_to_print_binary_lines ... ok
+test single_u_lifts_only_gitignore ... ok
+test valid_utf8_columns_are_unaffected ... ok
+test two_file_arguments_show_filenames ... ok
+test vimgrep_maps_back_to_source_bytes ... ok
+test text_flag_disables_binary_detection ... ok
+test traversal_hides_binary_files_from_files_without_match ... ok
+test single_directory_argument_still_shows_filenames ... ok
+test vimgrep_reports_every_match_on_a_line ... ok
+test triple_u_surfaces_binary_files_as_a_note ... ok
+test traversal_hides_binary_files ... ok
+test unparseable_gitignore_found_during_the_walk_is_reported ... ok
+test unparseable_ignore_file_is_reported ... ok
+test unparseable_ignore_file_does_not_change_the_exit_code ... ok
+test traversal_hides_binary_files_from_list_and_count ... ok
+test replace_on_invalid_utf8_does_not_panic ... ok
+test indexed_search_honors_max_depth ... ok
+test indexed_search_of_a_subdirectory_finds_matches ... ok
+test hidden_flag_bypasses_an_index_without_coverage_metadata ... ok
+test indexed_and_brute_force_agree_on_a_subtree ... ok
+test indexed_search_finds_matches_in_repaired_invalid_utf8 ... ok
+test indexed_and_brute_force_agree_on_binary_visibility ... ok
+test no_ignore_flag_bypasses_the_index ... ok
+test indexed_search_of_a_single_file_finds_matches ... ok
+test search_root_outside_the_index_falls_back_to_brute_force ... ok
+test svg_and_raw_are_classified_by_content_on_both_search_paths ... ok
+
+test result: ok. 102 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running tests/serve_max_filesize.rs (target/debug/deps/serve_max_filesize-2fd4964342ef1083)
+
+running 1 test
+test serving_an_index_built_with_an_explicit_max_filesize_keeps_large_files ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running tests/warm_start_gitignore.rs (target/debug/deps/warm_start_gitignore-31d89439a87e62ff)
+
+running 1 test
+Walking /tmp/.tmpOVzIya...
+Found 2001 text files (0 binary skipped, 0 too large, 0 errors)
+Extracting trigrams...
+Writing index (406 trigrams, 2001 files, 0 spill segment(s))...
+Index built successfully at /tmp/.tmpOVzIya/.zgrep_test_index
+Indexed in 0.1s using external strategy (peak memory 4.5 MiB)
+test warm_start_watcher_does_not_index_gitignored_files ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.27s
+
+     Running tests/watcher_dot_ignore.rs (target/debug/deps/watcher_dot_ignore-6ffade6cd5f907d4)
+
+running 2 tests
+Walking /tmp/.tmpXe6X7t...
+Walking /tmp/.tmp0UHVEw...
+Found 2 text files (0 binary skipped, 0 too large, 0 errors)
+Extracting trigrams...
+Found 2 text files (0 binary skipped, 0 too large, 0 errors)
+Extracting trigrams...
+Writing index (50 trigrams, 2 files, 0 spill segment(s))...
+Writing index (61 trigrams, 2 files, 0 spill segment(s))...
+Index built successfully at /tmp/.tmpXe6X7t/.zgrep_test_index
+Index built successfully at /tmp/.tmp0UHVEw/.zgrep_test_index
+Indexed in 0.0s using external strategy (peak memory 2.5 MiB)
+Indexed in 0.0s using external strategy (peak memory 2.5 MiB)
+test watcher_honors_dot_ignore_and_still_indexes_new_files ... ok
+test late_dot_ignore_refreshes_the_watchers_ignore_rules ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.20s
+
+     Running tests/watcher_watch_registration.rs (target/debug/deps/watcher_watch_registration-47c8f49defea8876)
+
+running 10 tests
+Walking /tmp/.tmplUqO6L...
+Walking /tmp/.tmpr85P52...
+[trace] no existing index found, will build in background
+[trace] opened index: 0 files, 0 trigrams in 0.1ms
+[trace] serve ready in 0.7ms. TCP on port 37553. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] refresh mode: poll (no native watcher), interval=1s
+[trace] background indexing started...
+Walking [trace] bootstrapping index with the external merge sort (memory-bounded)...
+/tmp/.tmpJ3eXPa...
+Walking /tmp/.tmpyRS2hH...
+Walking /tmp/.tmpaQL9N9...
+[trace] no existing index found, will build in background
+[trace] opened index: 0 files, 0 trigrams in 0.2ms
+[trace] serve ready in 0.8ms. TCP on port 38141. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] refresh mode: auto, native watch budget=1
+[trace] background indexing started...
+[trace] bootstrapping index with the external merge sort (memory-bounded)...
+Walking Walking /tmp/.tmp767NTZ/tmp/.tmp2NEh8y...
+...
+[trace] watcher subscriptions deferred until the ignore matcher is ready
+[trace] file watcher worker started (complete native coverage: false)
+Found 2 text files (0 binary skipped, 0 too large, 0 errors)
+Extracting trigrams...
+Found 2 text files (0 binary skipped, 0 too large, 0 errors)
+Extracting trigrams...
+Found 2 text files (0 binary skipped, 0 too large, 0 errors)
+Extracting trigrams...
+Found 2 text files (0 binary skipped, 0 too large, 0 errors)
+Extracting trigrams...
+Found 3 text files (0 binary skipped, 0 too large, 0 errors)
+Extracting trigrams...
+Writing index (49 trigrams, 2 files, Writing index (049 spill segment(s))...
+ trigrams, 2 files, 0 spill segment(s))...
+Found Index built successfully at 2/tmp/.tmpr85P52/.zgrep_test_index text files (
+0 binary skipped, 0 too large, 0 errors)
+Extracting trigrams...
+Writing index (66 trigrams, 2 files, 0 spill segment(s))...
+Index built successfully at /tmp/.tmplUqO6L/.zgrep_test_indexFound 
+2 text files (0 binary skipped, 0 too large, 0 errors)
+Extracting trigrams...
+Index built successfully at /tmp/.tmpJ3eXPa/.zgrep_test_index
+Writing index (27 trigrams, 2 files, 0 spill segment(s))...
+Writing index (66 trigrams, 3 files, 0 spill segment(s))...
+Index built successfully at /tmp/.tmpyRS2hH/.zgrep
+[trace] gitignore matcher built from 0 file(s) in 0.1ms
+Index built successfully at /tmp/.tmpaQL9N9/.zgrep_test_index
+Walking /tmp/.tmpIvvGRR...
+Writing index (68 trigrams, 2 files, 0 spill segment(s))...
+Index built successfully at /tmp/.tmp767NTZ/.zgrep_test_index
+Writing index (27 trigrams, 2 files, 0 spill segment(s))...
+Index built successfully at /tmp/.tmp2NEh8y/.zgrep
+[trace] switching entirely to polling: native watch budget 1 exceeded (2 desired subscriptions); native watching will not be retried
+[trace] gitignore matcher built from 0 file(s) in 0.2ms
+Walking /tmp/.tmpRsnVNj...
+Found 5 text files (0 binary skipped, 0 too large, 0 errors)
+Extracting trigrams...
+Writing index (68 trigrams, 5 files, 0 spill segment(s))...
+Found Index built successfully at 23/tmp/.tmpIvvGRR/.zgrep_test_index text files (
+0 binary skipped, 0 too large, 0 errors)
+Extracting trigrams...
+Walking /tmp/.tmpO91bvL...
+Skipped 3 additional binary files (detected by content)
+Found 128 text files (0 binary skipped, 0 too large, 0 errors)
+Extracting trigrams...
+Writing index (5190 trigrams, 20 files, 0 spill segment(s))...
+Index built successfully at /tmp/.tmpRsnVNj/.zgrep_test_index
+Writing index (20 trigrams, 128 files, 0 spill segment(s))...
+Index built successfully at /tmp/.tmpzbjEyB/index
+Indexed in 0.0s using external strategy (peak memory 2.2 MiB)
+Indexed in 0.0s using external strategy (peak memory 2.2 MiB)
+Indexed in 0.0s using external strategy (peak memory 2.2 MiB)
+[trace] bootstrap complete: 2 files indexed in 0.0s (peak memory 2.5 MiB)
+Indexed in 0.0s using external strategy (peak memory 2.2 MiB)
+Indexed in 0.0s using external strategy (peak memory 2.2 MiB)
+[trace] bootstrap complete: 2 files indexed in 0.0s (peak memory 2.8 MiB)
+Indexed in 0.0s using external strategy (peak memory 2.2 MiB)
+Indexed in 0.0s using external strategy (peak memory 2.5 MiB)
+Indexed in 0.0s using external strategy (peak memory 2.5 MiB)
+test watcher_applies_the_same_file_eligibility_rules_as_the_walker ... ok
+test watcher_does_not_index_through_symlinks ... ok
+test watcher_does_not_subscribe_to_gitignored_directories ... ok
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.0ms (0 .gitignore + 1 .ignore files)
+[trace] stale check: index is up-to-date (2 files checked in 2ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.0ms (0 .gitignore + 1 .ignore files)
+[trace] stale check: index is up-to-date (2 files checked in 2ms)
+[trace] search: pattern="poll_original_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.3ms (index=0.0ms resolve=0.0ms search=0.1ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_original_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.3ms (index=0.0ms resolve=0.0ms search=0.1ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.3ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.3ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.0ms (0 .gitignore + 1 .ignore files)
+[trace] stale check: 1 changed, 1 new, 0 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 1 new, 0 deleted)...
+[trace] flush: reader reopened (3 files, 31 trigrams), overlay pruned
+[trace] stale check: streamed 2 changes into the index in 0.0s
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.0ms (0 .gitignore + 1 .ignore files)
+[trace] stale check: 1 changed, 1 new, 0 deleted (walk: 2ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 1 new, 0 deleted)...
+[trace] flush: reader reopened (3 files, 31 trigrams), overlay pruned
+[trace] stale check: streamed 2 changes into the index in 0.0s
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.3ms (index=0.0ms resolve=0.0ms search=0.1ms)
+[trace] search: pattern="poll_added_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.4ms (index=0.1ms resolve=0.1ms search=0.1ms)
+[trace] search: pattern="poll_added_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+test watcher_honors_ignore_rules_inside_a_subtree_that_arrives_whole ... ok
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.3ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.5ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.8ms (index=0.2ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.7ms (index=0.1ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.5ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.3ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.4ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.0ms (0 .gitignore + 1 .ignore files, no rules found)
+[trace] stale check: 1 changed, 1 new, 0 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 1 new, 0 deleted)...
+[trace] flush: reader reopened (4 files, 33 trigrams), overlay pruned
+[trace] stale check: streamed 2 changes into the index in 0.0s
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.0ms (0 .gitignore + 1 .ignore files, no rules found)
+[trace] stale check: 1 changed, 1 new, 0 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 1 new, 0 deleted)...
+[trace] flush: reader reopened (4 files, 33 trigrams), overlay pruned
+[trace] stale check: streamed 2 changes into the index in 0.0s
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.3ms (index=0.1ms resolve=0.0ms search=0.1ms)
+[trace] search: pattern="poll_unignored_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.4ms (index=0.1ms resolve=0.0ms search=0.1ms)
+test watcher_read_only_walks_do_not_overflow_the_queue ... ok
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.0ms (0 .gitignore + 1 .ignore files, no rules found)
+[trace] stale check: 0 changed, 1 new, 2 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (0 changed, 1 new, 2 deleted)...
+[trace] flush: reader reopened (3 files, 28 trigrams), overlay pruned
+[trace] stale check: streamed 3 changes into the index in 0.0s
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.0ms (0 .gitignore + 1 .ignore files, no rules found)
+[trace] stale check: 0 changed, 1 new, 2 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (0 changed, 1 new, 2 deleted)...
+[trace] flush: reader reopened (3 files, 28 trigrams), overlay pruned
+[trace] stale check: streamed 3 changes into the index in 0.0s
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.3ms (index=0.0ms resolve=0.0ms search=0.1ms)
+[trace] search: pattern="poll_added_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+test explicit_polling_bootstraps_and_refreshes_without_native_watches ... ok
+[trace] search: pattern="poll_modified_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.3ms (index=0.0ms resolve=0.0ms search=0.1ms)
+[trace] search: pattern="poll_added_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+test tiny_native_budget_falls_back_and_finishes_bootstrap ... ok
+test watcher_reconciles_forced_add_and_rm_cached_inside_an_ignored_tree ... ok
+test watcher_indexes_files_in_directories_created_after_startup ... ok
+test watcher_rewatches_a_directory_that_is_removed_and_recreated ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.19s
+
+     Running unittests src/lib.rs (target/debug/deps/zgrep_core-5332b70086825e74)
+
+running 264 tests
+test builder::tests::a_file_whose_size_is_unknown_gets_its_own_batch ... ok
+test builder::tests::a_file_larger_than_the_budget_gets_its_own_batch ... ok
+test builder::tests::batches_are_bounded_by_cumulative_heap_bytes ... ok
+test builder::tests::an_empty_walk_produces_no_batches ... ok
+test builder::tests::batches_cover_every_file_exactly_once ... ok
+test builder::tests::batches_are_still_bounded_by_file_count ... ok
+test builder::tests::external_is_the_default_strategy ... ok
+test builder::tests::configured_limit_is_checked_before_mmap ... ok
+test builder::tests::large_mapped_files_still_fill_a_batch ... ok
+test builder::tests::mapped_bytes_in_flight_stay_bounded ... ok
+test builder::tests::oversized_owned_read_claims_the_budget_exclusively ... ok
+test builder::tests::owned_read_permit_releases_batch_capacity ... ok
+test builder::tests::raced_oversized_files_are_excluded_from_published_stamps ... ok
+test encoding::tests::auto_decodes_utf16be_bom ... ok
+test encoding::tests::auto_decodes_utf16le_bom ... ok
+test encoding::tests::auto_strips_utf8_bom ... ok
+test encoding::tests::binary_files_are_left_alone_for_the_index ... ok
+test encoding::tests::bom_wins_over_explicit_encoding ... ok
+test encoding::tests::decoding_owned_bytes_matches_decoding_borrowed_ones ... ok
+test encoding::tests::explicit_encoding_decodes_bomless_input ... ok
+test encoding::tests::index_and_search_repairs_agree_on_every_invalid_shape ... ok
+test encoding::tests::index_sees_the_same_repaired_bytes_a_search_does ... ok
+test builder::tests::indexed_read_retries_growth_with_the_full_batch_reservation ... ok
+test builder::tests::gitignore_gate_hint_fires_only_when_rules_are_silently_inert ... ok
+test builder::tests::gitignore_gate_hint_is_silent_without_a_gitignore ... ok
+test encoding::tests::invalid_utf8_is_lossy_not_dropped ... ok
+test encoding::tests::latin1_round_trips_high_bytes ... ok
+test builder::tests::indexed_read_without_pre_read_metadata_cannot_gain_trust_after_read ... ok
+test builder::tests::owned_read_rejects_files_beyond_the_batch_budget ... ok
+test builder::tests::owned_read_reports_growth_beyond_its_reservation ... ok
+test encoding::tests::none_keeps_raw_bytes_including_bom ... ok
+test encoding::tests::only_auto_matches_the_index ... ok
+test encoding::tests::owned_valid_utf8_reuses_the_buffer ... ok
+test encoding::tests::parses_special_labels ... ok
+test builder::tests::indexed_read_race_withholds_version_without_changing_decoded_identity ... ok
+test builder::tests::publication_never_stamps_a_missing_read_version_from_current_metadata ... ok
+test builder::tests::indexed_version_is_not_replaced_by_metadata_after_extraction ... ok
+test builder::tests::storage_cannot_cover_the_source_root ... ok
+test encoding::tests::parses_whatwg_labels ... ok
+test encoding::tests::plain_utf8_is_unchanged_in_every_mode ... ok
+test encoding::tests::rejects_unknown_labels ... ok
+test encoding::tests::valid_utf8_is_still_borrowed_for_the_index ... ok
+test external::tests::empty_input_writes_an_empty_index ... ok
+test external::tests::concurrent_sorters_in_one_index_dir_do_not_share_segments ... ok
+test external::tests::arena_allocation_never_exceeds_the_budget ... ok
+test external::tests::external_matches_in_memory_without_spilling ... ok
+test external::tests::merge_read_ahead_is_bounded_by_the_budget_not_by_fan_in ... ok
+test filetypes::tests::aliases_resolve_to_the_same_globs ... ok
+test filetypes::tests::builtin_table_covers_ripgrep_type_count ... ok
+test external::tests::varint_roundtrip_covers_boundaries ... ok
+test external::tests::varint_roundtrip_survives_a_minimal_buffer ... ok
+test builder::tests::indexed_read_mtime_restore_race_withholds_version ... ok
+test filetypes::tests::character_class_globs_match ... ok
+test builder::tests::exact_file_delta_does_not_report_binary_files_as_unreadable ... ok
+test builder::tests::exact_file_delta_skips_and_reports_an_unreadable_input ... ok
+test builder::tests::direct_rebuild_invalidates_old_evidence_before_core_writes ... ok
+test builder::tests::streamed_delta_supports_deletion_without_new_files ... ok
+test builder::tests::build_index_writes_readable_round_trip_index ... ok
+test filetypes::tests::empty_filter_matches_everything ... ok
+test builder::tests::filename_sidecar_captures_paths_outside_the_content_index ... ok
+test external::tests::merge_is_correct_with_minimal_read_buffers ... ok
+test external::tests::merged_posting_lists_are_readable_and_sorted ... ok
+test builder::tests::append_overlay_merges_new_files_into_complete_index ... ok
+test builder::tests::append_overlay_merges_onto_an_external_built_index ... ok
+test external::tests::spill_directory_is_removed_after_write ... ok
+test builder::tests::default_build_includes_dotfiles_and_records_query_visibility ... ok
+test filetypes::tests::globs_do_not_cross_path_separators ... ok
+test filetypes::tests::case_varied_makefile_globs_match ... ok
+test filetypes::tests::multiple_selected_types_union ... ok
+test filetypes::tests::negation_only_includes_everything_else ... ok
+test git_index::tests::a_count_larger_than_the_data_is_refused ... ok
+test git_index::tests::a_header_claiming_four_billion_entries_does_not_reserve_for_them ... ok
+test filetypes::tests::type_add_rejects_malformed_specs ... ok
+test filetypes::tests::type_add_include_rejects_unknown_types ... ok
+test filetypes::tests::unknown_type_is_an_error ... ok
+test filetypes::tests::type_clear_removes_a_definition ... ok
+test git_index::tests::a_directory_without_git_reports_nothing ... ok
+test builder::tests::exact_file_delta_streams_onto_an_existing_index ... ok
+test git_index::tests::matches_paths_without_regard_to_case_or_separator ... ok
+test git_index::tests::reads_a_version_2_index ... ok
+test git_index::tests::refuses_a_truncated_index_instead_of_inventing_entries ... ok
+test git_index::tests::rejects_input_that_is_not_an_index ... ok
+test filetypes::tests::type_add_defines_a_new_type ... ok
+test git_index::tests::tolerates_the_trailing_data_a_real_index_carries ... ok
+test git_index::tests::handles_a_path_at_and_beyond_the_length_field_limit ... ok
+test git_index::tests::follows_a_gitdir_pointer_file ... ok
+test filetypes::tests::type_add_appends_to_an_existing_type ... ok
+test git_index::tests::reads_a_version_4_index_with_prefix_compressed_paths ... ok
+test git_index::tests::finds_tracked_files_under_a_directory ... ok
+test builder::tests::streamed_delta_can_replace_and_delete_reader_files ... ok
+test git_index::tests::reads_ignorecase_from_a_repository_config ... ok
+test filetypes::tests::type_add_include_copies_other_types ... ok
+test git_index::tests::linked_worktree_uses_the_common_config_and_its_own_index ... ok
+test gitignore::tests::builds_matcher_from_windows_style_p4ignore ... ok
+test external::tests::spilling_actually_happens_under_a_small_budget ... ok
+test gitignore::tests::relative_gitignore_paths_trip_the_debug_guard - should panic ... ok
+test live::tests::descendant_lookup_is_directory_boundary_aware ... ok
+test live::tests::clearing_reconciled_paths_removes_entries_and_tombstones_only_for_them ... ok
+test gitignore::tests::with_nested_keeps_deeper_rules_ahead_of_local_rules ... ok
+test meta::tests::file_evidence_is_legacy_compatible_and_roundtrips_ids ... ok
+test filetypes::tests::negation_takes_precedence_over_selection ... ok
+test builder::tests::default_build_never_indexes_its_custom_storage ... ok
+test gitignore::tests::local_whitelist_overrides_global_ignore ... ok
+test builder::tests::build_index_no_ignore_includes_p4ignored_files ... ok
+test gitignore::tests::the_repository_exclude_is_found_through_a_worktree_pointer ... ok
+test meta::tests::legacy_metadata_does_not_prove_hidden_coverage ... ok
+test ondisk::tests::test_buffered_writers_preserve_scratch_on_io_error ... ok
+test ondisk::tests::test_decode_file_entries_empty_ok ... ok
+test meta::tests::invalid_unix_change_nanoseconds_are_not_trusted ... ok
+test gitignore::tests::collects_a_gitignore_that_its_own_rules_ignore ... ok
+test meta::tests::malformed_content_id_drops_only_that_paths_identity ... ok
+test meta::tests::legacy_insert_and_evidence_lifecycle_clear_versions ... ok
+test meta::tests::version_timestamps_roundtrip_before_the_epoch ... ok
+test meta::tests::file_version_distinguishes_subsecond_modified_times ... ok
+test meta::tests::untrusted_or_mismatched_versions_are_not_persisted ... ok
+test ondisk::tests::test_decode_file_entries_rejects_truncated_path ... ok
+test ondisk::tests::test_encode_file_entry_accepts_max_path ... ok
+test ondisk::tests::test_encode_file_entry_rejects_oversized_path ... ok
+test ondisk::tests::test_decode_file_entries_rejects_truncated_header ... ok
+test builder::tests::full_builder_records_exact_decoded_identity_for_text_only ... ok
+test meta::tests::malformed_or_incompatible_versions_fail_open_per_path ... ok
+test ondisk::tests::test_file_entry_roundtrip ... ok
+test meta::tests::precise_versions_roundtrip_without_changing_legacy_stamps ... ok
+test ondisk::tests::test_lookup_roundtrip ... ok
+test ondisk::tests::test_posting_entry_roundtrip ... ok
+test ondisk::tests::test_write_file_entry_roundtrip ... ok
+test ondisk::tests::versioned_file_table_rejects_legacy_readers ... ok
+test query::tests::a_brace_is_only_a_quantifier_when_it_really_is_one ... ok
+test query::tests::a_leading_bracket_is_a_class_member_not_a_terminator ... ok
+test query::tests::a_lookaround_only_pattern_falls_back_to_a_full_scan ... ok
+test query::tests::atomic_groups_become_ordinary_ones ... ok
+test query::tests::ambiguous_classes_and_optional_runs_do_not_require_trigrams ... ok
+test path_index::tests::missing_sidecar_identifies_a_legacy_index ... ok
+test query::tests::a_plain_pattern_is_returned_unchanged ... ok
+test path_index::tests::round_trips_empty_and_nonempty_path_sets ... ok
+test path_index::tests::visibility_and_filename_membership_round_trip_together ... ok
+test path_index::tests::rejects_truncated_and_trailing_data ... ok
+test query::tests::every_lookaround_flavour_is_dropped ... ok
+test query::tests::multi_pattern_plan_absorbs_unindexable_patterns ... ok
+test query::tests::multi_pattern_plan_collapses_to_single_branch ... ok
+test query::tests::character_classes_nest ... ok
+test query::tests::constructs_that_cannot_be_widened_bail_out ... ok
+test query::tests::multi_pattern_plan_supports_fixed_strings ... ok
+test ondisk::tests::test_write_posting_entries_preserves_chunked_encoding ... ok
+test ondisk::tests::test_write_lookup_entries_flushes_at_capacity ... ok
+test gitignore::tests::builds_matcher_from_dot_ignore_without_a_git_repo ... ok
+test builder::tests::owned_read_budget_serializes_fallbacks_that_exceed_the_remaining_capacity ... ok
+test gitignore::tests::returns_none_when_no_rules ... ok
+test query::tests::multi_pattern_plan_unions_every_pattern ... ok
+test query::tests::named_groups_are_not_mistaken_for_lookbehind ... ok
+test query::tests::nested_groups_inside_a_lookaround_are_skipped_wholesale ... ok
+test query::tests::possessive_quantifiers_bail_rather_than_guess ... ok
+test query::tests::negative_lookbehind_is_dropped_but_its_literal_survives ... ok
+test query::tests::test_alternation_plan ... ok
+test query::tests::relaxed_multi_pattern_plan_degrades_instead_of_erroring ... ok
+test query::tests::test_intersect_sorted ... ok
+test query::tests::test_case_insensitive_regex_plan ... ok
+test query::tests::test_case_insensitive_literal_plan ... ok
+test query::tests::test_literal_plan ... ok
+test query::tests::relaxation_never_narrows_the_language ... ok
+test query::tests::test_mask_filtering_finds_match ... ok
+test query::tests::test_case_insensitive_end_to_end ... ok
+test query::tests::test_short_pattern ... ok
+test query::tests::test_mask_filtering_rejects_false_positive ... ok
+test gitignore::tests::root_dot_ignore_overrides_root_gitignore ... ok
+test query::tests::verbose_mode_and_comments_bail_out ... ok
+test query::tests::test_sort_dedup_postings_keeps_sorted_unique_list_unchanged ... ok
+test query::tests::test_sort_dedup_postings_sorts_and_dedups_unsorted_list ... ok
+test query::tests::test_union_many_sorted_handles_disjoint_lists_without_repeated_linear_growth ... ok
+test query::tests::test_union_sorted ... ok
+test query::tests::test_or_execution_returns_sorted_unique_candidates ... ok
+test query::tests::test_wildcard_is_match_all ... ok
+test reader::tests::closed_reader_drops_previously_initialized_path_membership ... ok
+test gitignore::tests::nested_gitignore_rules_stay_scoped_to_their_directory ... ok
+test reader::tests::descendant_lookup_is_sorted_and_directory_boundary_aware ... ok
+test builder::tests::default_builder_constructs_snapshot_but_explicit_none_is_preserved ... ok
+test reader::tests::is_degenerate_false_for_empty_index ... ok
+test reader::tests::concurrent_first_path_queries_preserve_ids_and_directory_boundaries ... ok
+test filetypes::tests::types_added_since_the_old_hardcoded_list ... ok
+test reader::tests::lookup_bounds_work_by_postings_len_not_declared_length ... ok
+test trigram::tests::merged_masks_cover_both_cases_of_a_trigram ... ok
+test reader::tests::lookup_clamps_length_to_the_entries_that_fit ... ok
+test trigram::tests::test_extract_basic ... ok
+test trigram::tests::test_extract_merged_masks_all_lowercase_no_dup ... ok
+test trigram::tests::test_extract_dedup ... ok
+test trigram::tests::merged_masks_match_a_materialised_lowercase_pass ... ok
+test trigram::tests::test_extract_merged_masks_matches_lowercase_copy_semantics ... ok
+test trigram::tests::test_extract_merged_masks_ors_across_cases ... ok
+test reader::tests::open_accepts_empty_index ... ok
+test trigram::tests::test_extract_short ... ok
+test reader::tests::lookup_still_returns_every_entry_of_a_well_formed_range ... ok
+test reader::tests::open_accepts_dense_files_table ... ok
+test reader::tests::open_rejects_files_with_duplicate_id ... ok
+test reader::tests::lookup_with_offset_inside_a_partial_trailing_entry_returns_empty ... ok
+test trigram::tests::test_extract_with_masks_basic ... ok
+test trigram::tests::test_extract_with_masks_short ... ok
+test trigram::tests::test_hash_packing ... ok
+test trigram::tests::test_is_binary ... ok
+test trigram::tests::test_loc_mask_nonzero ... ok
+test trigram::tests::test_next_mask_filters_false_positive ... ok
+test visibility::tests::explicit_hidden_root_does_not_hide_visible_descendants ... ok
+test reader::tests::open_rejects_files_with_out_of_range_id ... ok
+test reader::tests::open_rejects_lookup_with_non_multiple_size ... ok
+test walker::tests::meta_walk_options_default_matches_the_indexing_walk ... ok
+test reader::tests::validate_lookup_empty_is_ok ... ok
+test reader::tests::validate_lookup_accepts_sorted_table ... ok
+test reader::tests::validate_lookup_rejects_out_of_bounds_postings ... ok
+test reader::tests::validate_lookup_rejects_unsorted_table ... ok
+test reader::tests::validate_lookup_reports_offset_that_overflows_the_range_math ... ok
+test gitignore::tests::a_relative_commondir_resolves_against_the_worktree_git_dir ... ok
+test walker::tests::frozen_tracked_exemption_is_immutable_and_detects_changes ... ok
+test reader::tests::is_degenerate_detects_mmap_counter_disagreement ... ok
+test reader::tests::lookup_with_offset_past_end_returns_empty ... ok
+test gitignore::tests::gitignore_is_inert_without_a_git_dir ... ok
+test gitignore::tests::p4ignore_reinclude_keeps_parent_directory_walkable ... ok
+test gitignore::tests::malformed_ignore_line_does_not_discard_valid_rules ... ok
+test walker::tests::dot_ignore_applies_without_a_git_repo ... ok
+test reader::tests::lookup_survives_offset_that_overflows_the_bounds_check ... ok
+test walker::tests::an_unreadable_index_excludes_nothing ... ok
+test walker::tests::build_gitignore_matcher_from_discovered_files ... ok
+test walker::tests::size_limit_requires_successful_metadata ... ok
+test walker::tests::public_matcher_lazily_freezes_tracked_exemptions_on_first_match ... ok
+test walker::tests::the_point_query_matcher_follows_the_case_sensitivity_gate ... ok
+test walker::tests::the_point_query_matcher_hides_exactly_what_the_walk_hides ... ok
+test walker::tests::tracked_fingerprint_includes_whitelisted_files_under_ignored_directories ... ok
+test query::tests::inline_case_flags_narrow_candidates_without_losing_matches ... ok
+test gitignore::tests::deeper_gitignore_negation_overrides_a_shallower_ignore ... ok
+test walker::tests::a_tracked_file_keeps_its_ignored_directory_walkable ... ok
+test gitignore::tests::nested_dot_ignore_overrides_gitignore_in_the_same_directory ... ok
+test walker::tests::no_ignore_turns_the_whole_thing_off ... ok
+test external::tests::external_matches_in_memory_across_many_spills ... ok
+test gitignore::tests::builds_matcher_from_root_gitignore ... ok
+test walker::tests::ignorecase_hides_what_git_hides_and_keeps_what_git_tracks ... ok
+test walker::tests::no_ignore_parent_leaves_a_subdirectory_walk_alone ... ok
+test walker::tests::gitignore_applies_in_subdir_of_git_repo ... ok
+test walker::tests::no_ignore_vcs_turns_the_whole_thing_off_too ... ok
+test walker::tests::walk_dir_exclude_single_dir ... ok
+test walker::tests::walk_dir_collects_dot_ignore_files_separately ... ok
+test walker::tests::walk_dir_can_collect_gitignore_files_without_indexing_them ... ok
+test walker::tests::walk_dir_exclude_multiple_dirs ... ok
+test walker::tests::parent_ignore_crosses_repository_boundary_but_gitignore_does_not ... ok
+test walker::tests::metadata_walk_honours_no_require_git ... ok
+test walker::tests::hidden_visibility_matches_walks_with_ignore_whitelists_and_scoped_roots ... ok
+test walker::tests::walk_dir_collects_and_indexes_gitignore_when_hidden_included ... ok
+test walker::tests::metadata_walk_reports_precise_same_second_versions ... ok
+test walker::tests::both_walks_agree_on_what_the_tree_contains ... ok
+test walker::tests::walk_file_metadata_includes_nonignored_ignore_sources ... ok
+test walker::tests::walks_default_to_a_64_mib_size_cap ... ok
+test walker::tests::walk_dir_retains_binary_extensions_for_file_listing ... ok
+test walker::tests::walk_dir_no_excludes_returns_all_files ... ok
+test walker::tests::without_ignorecase_the_walk_is_unchanged ... ok
+test walker::tests::walk_file_metadata_excludes_dirs ... ok
+test walker::tests::no_ignore_disables_p4ignore_for_walks_and_metadata ... ok
+test walker::tests::no_require_git_applies_gitignore_outside_a_git_repo ... ok
+test walker::tests::no_ignore_exclude_leaves_the_repository_exclude_file_unread ... ok
+test walker::tests::metadata_walk_honours_a_raised_max_file_size ... ok
+test walker::tests::walk_dir_exclude_nonexistent_dir_is_noop ... ok
+test walker::tests::walk_dir_exclude_skips_nested_files ... ok
+test walker::tests::walks_respect_root_p4ignore ... ok
+test walker::tests::metadata_walk_detects_same_size_write_with_restored_mtime ... ok
+test builder::tests::mapped_indexed_read_verifies_version_after_extraction ... ok
+test builder::tests::external_strategy_leaves_no_spill_directory_behind ... ok
+test builder::tests::external_strategy_index_is_searchable ... ok
+test builder::tests::external_strategy_matches_in_memory_index_contents ... ok
+
+test result: ok. 264 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.54s
+
+     Running tests/case_insensitive_roundtrip.rs (target/debug/deps/case_insensitive_roundtrip-ed2bb17edb99b616)
+
+running 1 test
+test case_insensitive_search_roundtrip ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/corrupt_index_reader.rs (target/debug/deps/corrupt_index_reader-93b0042ec4074cd4)
+
+running 3 tests
+test truncated_postings_still_yield_the_entries_that_fit ... ok
+test adversarial_lookup_entries_are_handled_without_panic_or_hang ... ok
+test random_index_bytes_never_panic ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/indexed_planner.rs (target/debug/deps/indexed_planner-9df940c5618a5b36)
+
+running 6 tests
+test positions_reject_scattered_grams_but_never_join_separate_runs ... ok
+test fixed_unicode_case_folds_are_sound ... ok
+test missing_required_gram_does_not_load_other_lists ... ok
+test sparse_probes_equal_full_posting_membership ... ok
+test disk_and_live_results_cover_exact_matches ... ok
+test generated_plans_never_exclude_a_regex_match ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.39s
+
+     Running tests/snapshot_consistency.rs (target/debug/deps/snapshot_consistency-98f7a5c61bb06787)
+
+running 7 tests
+test direct_lookups_share_snapshot_overlay_precedence ... ok
+test candidate_totals_account_for_overlay_and_reader_snapshot ... ok
+test match_all_uses_consistent_snapshot ... ok
+test all_query_ids_resolve_via_snapshot ... ok
+test snapshot_survives_reader_swap ... ok
+test new_query_after_swap_resolves_correctly ... ok
+test concurrent_swap_during_query ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+   Doc-tests zgrep_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

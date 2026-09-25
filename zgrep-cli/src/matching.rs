@@ -85,7 +85,10 @@ impl<'a> LineIndex<'a> {
             .unwrap_or(self.content.len())
     }
 
-    /// End offset of line `idx`, excluding its `\n` or `\r\n` terminator.
+    /// End offset of line `idx`, excluding its LF terminator. A preceding CR
+    /// remains part of the searchable/rendered line, as in ripgrep's default
+    /// line mode. Stripping it changes both regex semantics and source bytes
+    /// in ordinary and JSON output.
     pub fn line_end(&self, idx: usize) -> usize {
         let start = self.line_start(idx);
         let mut end = self
@@ -97,14 +100,11 @@ impl<'a> LineIndex<'a> {
         if end > start && bytes[end - 1] == b'\n' {
             end -= 1;
         }
-        if end > start && bytes[end - 1] == b'\r' {
-            end -= 1;
-        }
         end
     }
 
-    /// Byte length of line `idx`'s terminator in the buffer: 2 for `\r\n`, 1
-    /// for a bare `\n`, 0 for a final line that the file does not terminate.
+    /// Byte length of line `idx`'s LF terminator: 1 when terminated, otherwise
+    /// 0. In CRLF input the CR is already counted in `line_text`.
     ///
     /// `-M/--max-columns` measures the line *including* its terminator, so this
     /// is needed to decide whether a line is over the limit.
@@ -1475,10 +1475,10 @@ mod tests {
     }
 
     #[test]
-    fn line_index_matches_str_lines() {
-        for content in ["", "a", "a\n", "a\nb", "a\n\nb", "\n", "a\r\nb\r\n"] {
+    fn line_index_preserves_cr_and_splits_only_at_lf() {
+        for content in ["", "a", "a\n", "a\nb", "a\n\nb", "\n", "a\r\nb\r\n", "a\r"] {
             let index = LineIndex::new(content);
-            let expected: Vec<&str> = content.lines().collect();
+            let expected: Vec<&str> = content.split_terminator('\n').collect();
             assert_eq!(index.line_count(), expected.len(), "count for {content:?}");
             for (i, want) in expected.iter().enumerate() {
                 assert_eq!(&index.line_text(i), want, "line {i} of {content:?}");

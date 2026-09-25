@@ -24,3 +24,9 @@ Passing a startup microbenchmark is not enough to accept the optimization. The n
 Benchmark snapshots are separate detached worktrees so the user's normal corpus checkouts can advance without changing the benchmark inputs. Index metadata must identify the same snapshot root and revision. No runtime test should use a stale index simply because its files exist.
 
 Research features in `NEXT_EVALUATION.md` (structural navigation, ranked discovery, alternative index formats) remain hypotheses, not automatic release requirements. They should enter the release only when they address a measured product need and have their own correctness and cost evidence. The production goal does require completing the release gates above rather than relabeling experimental work as ready.
+
+## Output parity findings
+
+The new independent 81-check scan/local/server comparison retained its initial 45 failures in `evidence/production/output-modes-before-crlf-fix.json`. Matching previously stripped CR bytes from CRLF input; JSON also invented a final newline for unterminated input, and server JSON omitted source positions. The fixes retain CR as source content, reconstruct only existing terminators, and request position details for server JSON. Targeted CLI tests pass. The old maximum-column test normalized CRLF in its expected output; its expectation now preserves the source CR, with its column-limit assertions retained.
+
+`output-modes-crlf-fixed.json` retains the remaining three failures: positive type selection must admit matching hidden files while respecting hidden ancestor directories and ignore rules. This is a separate scope fix still in progress. Passing targeted tests does not complete the release gates.

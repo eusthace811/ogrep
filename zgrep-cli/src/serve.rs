@@ -745,7 +745,7 @@ struct SearchOpts {
     detail: bool,
     /// Whether the client will read per-row `offset` and `term`.
     ///
-    /// Only `-b/--byte-offset` and `-M/--max-columns` look at them.
+    /// JSON, `-b/--byte-offset` and `-M/--max-columns` consume them.
     positions: bool,
     /// Return original per-file match totals independently of rendered rows.
     stats: bool,

@@ -539,7 +539,7 @@ impl OutputWriter {
                 "type": "context",
                 "data": {
                     "path": { "text": self.display_path(&ctx.file) },
-                    "lines": { "text": format!("{content}\n") },
+                    "lines": { "text": format!("{content}{}", stripped_terminator(ctx.terminator_len)) },
                     "line_number": ctx.line_number,
                     "absolute_offset": ctx.absolute_offset,
                     "submatches": [],
@@ -630,7 +630,7 @@ impl OutputWriter {
                     "type": "match",
                     "data": {
                         "path": { "text": self.display_path(&m.file) },
-                        "lines": { "text": format!("{content}\n") },
+                        "lines": { "text": format!("{content}{}", stripped_terminator(m.terminator_len)) },
                         "line_number": m.line_number,
                         "absolute_offset": m.absolute_offset,
                         "submatches": submatches,
@@ -789,5 +789,16 @@ fn native_separators(path: &str) -> String {
         path.to_string()
     } else {
         path.replace('/', std::path::MAIN_SEPARATOR_STR)
+    }
+}
+
+/// Reconstruct only the bytes removed from a source line. Current matching
+/// retains CR and strips LF; older server replies can describe stripped CRLF.
+/// An unterminated source line must not gain a fictitious newline in JSON.
+fn stripped_terminator(len: usize) -> &'static str {
+    match len {
+        0 => "",
+        2 => "\r\n",
+        _ => "\n",
     }
 }
