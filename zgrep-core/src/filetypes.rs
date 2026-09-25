@@ -137,7 +137,7 @@ impl TypeDefs {
             walk_types: if select.is_empty() {
                 None
             } else {
-                Some(builder.build()?)
+                Some(builder)
             },
         })
     }
@@ -165,11 +165,20 @@ impl TypeDefs {
 ///
 /// `-T` takes precedence over `-t`, and when only `-T` is given every file that
 /// is not excluded is included.
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct TypeFilter {
     select: Option<GlobSet>,
     negate: Option<GlobSet>,
-    walk_types: Option<ignore::types::Types>,
+    walk_types: Option<ignore::types::TypesBuilder>,
+}
+
+impl std::fmt::Debug for TypeFilter {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("TypeFilter")
+            .field("select", &self.select)
+            .field("negate", &self.negate)
+            .finish_non_exhaustive()
+    }
 }
 
 impl TypeFilter {
@@ -180,8 +189,14 @@ impl TypeFilter {
 
     /// Apply positive type selection during traversal so ignore precedence and
     /// hidden-file admission use the same rules as ripgrep.
-    pub fn walk_types(&self) -> Option<ignore::types::Types> {
-        self.walk_types.clone()
+    pub fn walk_types(&self) -> Result<Option<ignore::types::Types>> {
+        // Indexed requests never traverse directories. Compile the additional
+        // ignore matcher only when a caller actually starts a filesystem walk.
+        self.walk_types
+            .as_ref()
+            .map(|builder| builder.build())
+            .transpose()
+            .map_err(Into::into)
     }
 
     /// True when no `-t`/`-T` was given, so the filter passes everything.

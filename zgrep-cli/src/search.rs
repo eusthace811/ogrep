@@ -530,7 +530,7 @@ pub fn list_files(root: &Path, index_path: Option<&Path>, opts: &SearchOptions) 
         search_binary: true,
         exclude_paths: index_storage_exclusions(&index_dir)?,
         overrides: Some(glob_filter.walk_overrides(&root)?),
-        types: type_filter.walk_types(),
+        types: type_filter.walk_types()?,
         ..opts.walk_options()
     };
     let walk = walker::walk_dir(&root, &walk_opts);
@@ -1526,7 +1526,7 @@ fn brute_force_search(
         &walker::WalkOptions {
             exclude_paths: index_storage_exclusions(index_dir)?,
             overrides: Some(glob_filter.walk_overrides(root)?),
-            types: type_filter.walk_types(),
+            types: type_filter.walk_types()?,
             ..opts.walk_options()
         },
     );
