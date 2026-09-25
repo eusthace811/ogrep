@@ -1,5 +1,7 @@
 # zgrep 0.1.0 evaluation
 
+A [fresh head-to-head evaluation](TGREP_COMPARISON.md) repeats the comparison with another random order, adds the 102-query workload in local mode, and directly demonstrates the Unicode correctness differences. The release-development measurements below remain unchanged.
+
 The retained approach improves the existing planner without replacing the index: preserve mandatory Boolean subplans, consult posting cardinalities before loading, probe sparse candidates directly, and compare existing position masks within literal runs. It also fixes an inherited Unicode fixed-insensitive false-negative bug and exposes actual index work through `--explain`.
 
 The strongest measured benefit is nested alternation. Across the two selected queries, median local latency improved **2.90× on CPython and 13.47× on Rust**; warm-server latency improved **1.94× and 9.97×**. The broader 102-query upstream-derived server workload improved only **1.026×** in geometric mean query speedup (**1.043×** in the ratio of summed median latencies). These results support a targeted planner improvement, not a universal claim that zgrep is faster than tgrep or ripgrep.

@@ -22,6 +22,8 @@ Put `~/.cargo/bin` on PATH, or use `./target/release/zgrep` directly after `carg
 
 These are measured improvements on specific workloads, not a universal speedup. Ordinary queries are often similar to upstream; some regress. Broad local searches can be slower than ripgrep. See [the complete benchmark report](BENCHMARKS.md), including raw samples, output checks, independent upstream queries, and the sparse-gram prototype we rejected after evaluation.
 
+The [fresh tgrep comparison](TGREP_COMPARISON.md) adds 6,744 timed invocations and the 102-query workload in local mode: general local performance is effectively tied, while the targeted regex and Unicode improvements hold up.
+
 ## Search contracts
 
 Indexes and service discovery use `.zgrep/`, separate from upstream's `.tgrep/`. Ignore rules, supported file types, size limits, and binary/hidden policies determine the searchable corpus. The index is a prefilter; exact matching still verifies candidates.

@@ -1,5 +1,7 @@
 # Evidence inventory
 
+The fresh comparison requested after release is in [`comparison-2026-09-25/`](comparison-2026-09-25/) with its [report](../TGREP_COMPARISON.md). It contains six new timing runs (6,744 invocations), a command manifest, per-query bootstrap summaries, full query tables, fresh ripgrep scan verification, direct Unicode fixtures, and copied server logs. These supplement the original release measurements below.
+
 The final results are explained in [BENCHMARKS.md](../BENCHMARKS.md). JSON files retain samples, complete-output hashes, versions, executable hashes, corpus revisions, and query definitions. Logs record command progress; the JSON is the authoritative timing record.
 
 ## Final performance evidence
