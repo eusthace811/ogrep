@@ -66,7 +66,10 @@ def main():
     ap.add_argument('--compact-files', action='store_true', help='Request optional compact file-list replies')
     ap.add_argument('--search-concurrency', type=int, help='Pass the new server admission limit (omit for old binaries)')
     ap.add_argument('--observe-status', action='store_true', help='Probe status every 50 ms during each load')
+    ap.add_argument('--clients', nargs='+', type=int, default=[1, 4, 16])
     args = ap.parse_args()
+    if args.requests < 1 or any(n < 1 for n in args.clients):
+        ap.error('requests and client counts must be positive')
     binary, root, index = args.binary.resolve(), args.corpus.resolve(), args.index.resolve()
     patterns = ['fn main', 'NonNull', 'typeck', 'absent_ZGREP_897342938', r'impl.*Debug', r'(alloc|dealloc).*Layout']
     expected = []
@@ -98,7 +101,7 @@ def main():
                         **({'expected': expected[query], 'actual': actual} if actual != expected[query] else {})}
             for query in range(len(patterns)):
                 assert request(query)['correct'], f'warmup mismatch for {patterns[query]}'
-            for clients in [1, 4, 16]:
+            for clients in args.clients:
                 work = [i % len(patterns) for i in range(args.requests)]
                 random.Random(941 + clients).shuffle(work)
                 observations = []

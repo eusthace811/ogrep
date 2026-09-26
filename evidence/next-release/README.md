@@ -2,6 +2,8 @@
 
 These are development experiments, not qualification of a new release. The production baseline and its evidence remain in `../release-0.2.0/`.
 
+The [service admission report](../../docs/SERVICE_ADMISSION.md) covers the `admission-*` records, including 18,432 independently checked requests, status probes, resource tests and the measured queueing tradeoff. It uses a later runtime than the compact-response and handle-reuse experiments.
+
 The subsequent [local verification report](../../docs/LOCAL_PROFILING.md) covers phase profiling and reuse of source-file handles, including 4,428 main comparison runs and 861 focused follow-up runs. Its `local-phases-*` and `single-open-*` records use a later runtime source than the compact-reply experiments below; do not combine their ratios as if they were one benchmark.
 
 ## Compact file-list RPC

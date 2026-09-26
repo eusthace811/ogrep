@@ -13,5 +13,5 @@ Each accepted change needs a commit with tests and evidence. Finish with full wo
 Progress after the initial experiments:
 
 - Track 1: [ordinary local phase profiling and handle reuse](LOCAL_PROFILING.md) are implemented and measured against both baselines, with focused regression follow-up. Further matching work is a possible later experiment; final release qualification is still required.
-- Track 2: [compact replies and concurrent-load evidence](../evidence/next-release/README.md) are complete as experiments. Connection/request bounds and responsive control operations still need implementation and validation.
+- Track 2: [compact replies](../evidence/next-release/README.md) and [bounded service admission](SERVICE_ADMISSION.md) are implemented and evaluated. The four-request default trades about 3% throughput for about 30% less peak RSS and lower tail latency in repeated 16-client runs; control probes succeeded. Final combined release checks remain required.
 - Track 3: refresh completion and agent integration are not implemented. A metadata-only reconcile or existing `reload` response cannot be relabeled as the promised barrier.
