@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import random
+import resource
 import socket
 import statistics
 import subprocess
@@ -61,6 +62,7 @@ def main():
     ap.add_argument('--index', type=Path, required=True)
     ap.add_argument('--output', type=Path, required=True)
     ap.add_argument('--requests', type=int, default=1024)
+    ap.add_argument('--compact-files', action='store_true', help='Request optional compact file-list replies')
     args = ap.parse_args()
     binary, root, index = args.binary.resolve(), args.corpus.resolve(), args.index.resolve()
     patterns = ['fn main', 'NonNull', 'typeck', 'absent_ZGREP_897342938', r'impl.*Debug', r'(alloc|dealloc).*Layout']
@@ -72,6 +74,7 @@ def main():
     record = {'binary_sha256': hashlib.sha256(binary.read_bytes()).hexdigest(), 'corpus': str(root),
               'revision': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip(),
               'description': 'Loopback RPC, one TCP connection per request, six mixed regex queries, four server worker threads; independent rg -l -t rust expected file sets. Warm page cache. Raw latency samples retained; not a distributed service test.',
+              'compact_files': args.compact_files,
               'patterns': patterns, 'expected_file_counts': [len(x) for x in expected], 'loads': []}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.with_suffix('.server.log').open('w') as log:
@@ -80,7 +83,8 @@ def main():
             port, record['initial_status'] = ready(server, index)
             def request(query):
                 started = time.perf_counter_ns()
-                result = rpc(port, 'search', {'pattern': patterns[query], 'types': ['rust'], 'files_only': True})
+                result = rpc(port, 'search', {'pattern': patterns[query], 'types': ['rust'],
+                                             'files_only': True, 'compact_files': args.compact_files})
                 elapsed = (time.perf_counter_ns() - started) / 1e6
                 actual = sorted({'./' + row['file'].removeprefix('./') for row in result['matches'] if row['type'] == 'match'})
                 return {'query': query, 'latency_ms': elapsed, 'correct': actual == expected[query],
@@ -91,17 +95,23 @@ def main():
                 work = [i % len(patterns) for i in range(args.requests)]
                 random.Random(941 + clients).shuffle(work)
                 before = resources(server.pid)
+                client_cpu_before = time.process_time()
                 start = time.perf_counter()
                 with ThreadPoolExecutor(max_workers=clients) as pool:
                     samples = list(pool.map(request, work))
                 seconds = time.perf_counter() - start
                 after = resources(server.pid)
+                client_cpu_seconds = time.process_time() - client_cpu_before
                 latencies = sorted(x['latency_ms'] for x in samples)
                 row = {'clients': clients, 'requests': len(samples), 'errors': sum(not x['correct'] for x in samples),
                        'elapsed_seconds': seconds, 'requests_per_second': len(samples)/seconds,
                        'median_ms': statistics.median(latencies), 'p95_ms': latencies[int(.95*(len(latencies)-1))],
                        'p99_ms': latencies[int(.99*(len(latencies)-1))], 'resources_before': before,
-                       'resources_after': after, 'server_cpu_seconds': after['cpu_seconds']-before['cpu_seconds'], 'samples': samples}
+                       'resources_after': after, 'server_cpu_seconds': after['cpu_seconds']-before['cpu_seconds'],
+                       'client_cpu_seconds': client_cpu_seconds,
+                       'client_cpu_cores': client_cpu_seconds / seconds,
+                       'client_peak_rss_kib': resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
+                       'samples': samples}
                 record['loads'].append(row)
                 args.output.write_text(json.dumps(record, indent=2)+'\n')
                 print({k:v for k,v in row.items() if k != 'samples'}, flush=True)
