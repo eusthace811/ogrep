@@ -883,6 +883,7 @@ fn search_via_server(
             "case_insensitive": ci,
             "fixed_string": opts.fixed_string,
             "files_only": opts.files_only,
+            "compact_files": opts.files_only,
             "word_boundary": opts.word_boundary,
             "max_count": opts.match_options().max_count,
             "glob": opts.glob,  // sent as JSON array

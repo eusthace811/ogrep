@@ -27,6 +27,8 @@ def main():
     ap.add_argument('--expected-revision', required=True)
     ap.add_argument('--output', type=Path, required=True)
     ap.add_argument('--rounds', type=int, default=9)
+    ap.add_argument('--compare-formats', action='store_true',
+                    help='Interleave legacy and opt-in compact requests to the same binary')
     args = ap.parse_args()
     assert args.rounds > 0
     binary, root, index = args.binary.resolve(), args.corpus.resolve(), args.index.resolve()
@@ -36,6 +38,7 @@ def main():
     provenance = json.loads((index.parent / 'benchmark-input.json').read_text())
     # evaluate.py records the corpus root and revision beside its index.
     assert provenance['corpus'] == str(root) and provenance['revision'] == revision, provenance
+    assert Path(json.loads((index / 'meta.json').read_text())['root_path']).resolve() == root
     patterns = ['fn main', 'NonNull', 'typeck', 'absent_ZGREP_897342938', r'impl.*Debug', r'(alloc|dealloc).*Layout']
     expected = []
     for pattern in patterns:
@@ -46,7 +49,7 @@ def main():
     record = {
         'binary': str(binary), 'binary_sha256': hashlib.sha256(binary.read_bytes()).hexdigest(),
         'revision': revision, 'corpus': str(root), 'index_provenance': provenance,
-        'platform': platform.platform(), 'rounds': args.rounds,
+        'platform': platform.platform(), 'rounds': args.rounds, 'compare_formats': args.compare_formats,
         'description': 'Sequential loopback ordinary files_only RPC, four server workers, randomized warm rounds after one warmup per query. Receive time includes server work and transport; client JSON parsing timed separately. Server elapsed excludes final response construction/serialization. Compact projection is an offline byte estimate, NOT an implemented performance result. Independent rg expected sets on every request.',
         'patterns': patterns, 'expected_file_counts': list(map(len, expected)), 'samples': [],
     }
@@ -58,10 +61,13 @@ def main():
         try:
             port, record['initial_status'] = load.ready(server, index)
 
-            def request(query, round_id):
+            formats = ['legacy', 'compact'] if args.compare_formats else ['legacy']
+
+            def request(query, round_id, response_format):
                 payload = (json.dumps({'jsonrpc': '2.0', 'id': 1, 'method': 'search',
                                       'params': {'pattern': patterns[query], 'types': ['rust'],
-                                                 'files_only': True}}) + '\n').encode()
+                                                 'files_only': True,
+                                                 'compact_files': response_format == 'compact'}}) + '\n').encode()
                 start = time.perf_counter_ns()
                 with socket.create_connection(('127.0.0.1', port), timeout=60) as sock:
                     connected = time.perf_counter_ns()
@@ -82,20 +88,21 @@ def main():
                 result['matches'] = [({'type': 'match', 'file': row['file']}
                                       if row['type'] == 'match' else row) for row in result['matches']]
                 compact_bytes = len(json.dumps(response, ensure_ascii=False, separators=(',', ':')).encode()) + 1
-                return {'query': query, 'round': round_id, 'correct': True,
+                return {'query': query, 'round': round_id, 'format': response_format, 'correct': True,
                         'connect_ms': (connected-start)/1e6, 'receive_ms': (received-connected)/1e6,
                         'decode_ms': (decoded-decode_start)/1e6, 'end_to_end_ms': (decoded-start)/1e6,
                         'server_elapsed_ms': result['elapsed_ms'], 'bytes': len(raw),
                         'offline_compact_bytes': compact_bytes}
 
-            record['warmups'] = [request(query, -1) for query in range(len(patterns))]
+            record['warmups'] = [request(query, -1, response_format)
+                                 for query in range(len(patterns)) for response_format in formats]
             record['resources_before'] = load.resources(server.pid)
             rng = random.Random(86723)
             for round_id in range(args.rounds):
-                queries = list(range(len(patterns)))
+                queries = [(query, response_format) for query in range(len(patterns)) for response_format in formats]
                 rng.shuffle(queries)
-                for query in queries:
-                    record['samples'].append(request(query, round_id))
+                for query, response_format in queries:
+                    record['samples'].append(request(query, round_id, response_format))
             record['resources_after'] = load.resources(server.pid)
         finally:
             load.stop(server)
@@ -107,16 +114,19 @@ def main():
     for sample, phase in zip(samples, phases):
         sample['trace_ms'] = dict(zip(['elapsed', 'index', 'resolve', 'search'], map(float, phase)))
     record['summary'] = []
-    for query, pattern in enumerate(patterns):
-        selected = [s for s in record['samples'] if s['query'] == query]
+    for query, response_format in [(q, f) for q in range(len(patterns)) for f in formats]:
+        selected = [s for s in record['samples'] if s['query'] == query and s['format'] == response_format]
         fields = ['connect_ms', 'receive_ms', 'decode_ms', 'end_to_end_ms', 'server_elapsed_ms',
                   'bytes', 'offline_compact_bytes']
-        row = {'pattern': pattern, 'files': len(expected[query]),
+        row = {'pattern': patterns[query], 'format': response_format, 'files': len(expected[query]),
                **{f'median_{key}': statistics.median(s[key] for s in selected) for key in fields},
                'median_trace_ms': {key: statistics.median(s['trace_ms'][key] for s in selected)
                                    for key in ['index', 'resolve', 'search']}}
         record['summary'].append(row)
         print(json.dumps(row), flush=True)
+    assert hashlib.sha256(binary.read_bytes()).hexdigest() == record['binary_sha256'], 'binary changed'
+    assert subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip() == revision
+    assert not subprocess.check_output(['git', 'status', '--porcelain', '--untracked-files=no'], cwd=root)
     args.output.write_text(json.dumps(record, indent=2) + '\n')
 
 

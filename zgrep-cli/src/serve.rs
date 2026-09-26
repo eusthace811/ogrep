@@ -716,6 +716,8 @@ impl ServerState {
 #[cfg_attr(test, derive(Default))]
 struct SearchOpts {
     files_only: bool,
+    /// Opt-in path-only match rows for file listings. Absent for legacy clients.
+    compact_files: bool,
     invert_match: bool,
     only_matching: bool,
     max_count: Option<usize>,
@@ -1724,6 +1726,10 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
         scope: SearchScope::parse(params)?,
         opts: SearchOpts {
             files_only,
+            compact_files: params
+                .get("compact_files")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false),
             invert_match,
             only_matching,
             max_count,
@@ -2111,15 +2117,15 @@ fn search_file_matches(
         // `--json` reports binary matches as ordinary match events carrying a
         // `binary_offset`, so those clients ask for the lines as well.
         result.rows.push(marker);
-        if !opts.binary_lines || (opts.files_only && opts.stats) {
+        if !opts.binary_lines || (opts.files_only && (opts.stats || opts.compact_files)) {
             return Ok(result);
         }
     }
 
-    if opts.files_only && opts.stats {
-        // Totals need the full search, but files-only clients consume just the
-        // path. Avoid rendering content or span arrays proportional to hits.
-        // Keep legacy replies unchanged when per-file stats were not requested.
+    if opts.files_only && (opts.stats || opts.compact_files) {
+        // File-list clients consume just the path. Stats still search fully,
+        // while ordinary listings retain their one-hit short circuit. Legacy
+        // callers get the same detailed rows unless they opt into compaction.
         result.rows.push(serde_json::json!({
             "type": "match",
             "file": rel_path,
@@ -9397,6 +9403,69 @@ mod tests {
             "offset must be the byte on disk (9), not the decoded position \
              (13): {marker}"
         );
+    }
+
+    #[test]
+    fn compact_file_replies_are_opt_in_and_do_not_request_full_stats() {
+        let file = DecodedFile::new(
+            b"before\nhello hello\nhello\nafter\n".to_vec(),
+            zgrep_core::encoding::EncodingMode::Auto,
+        );
+        for files_only in [false, true] {
+            for compact in [None, Some(false), Some(true)] {
+                let mut params = serde_json::json!({
+                    "pattern": "hello", "files_only": files_only,
+                    "detail": true, "positions": true,
+                });
+                if let Some(compact) = compact {
+                    params["compact_files"] = compact.into();
+                }
+                let req = parse_search_params(&params).unwrap();
+                assert!(!req.opts.stats);
+                assert_eq!(req.opts.match_options().max_count, files_only.then_some(1));
+                let result = search_file_matches("a.txt", &file, &req.matcher, &req.opts).unwrap();
+                assert!(result.stats.is_none());
+                if files_only && compact == Some(true) {
+                    assert_eq!(
+                        result.rows,
+                        [serde_json::json!({"type": "match", "file": "a.txt"})]
+                    );
+                } else {
+                    // Older callers retain line content and positions, and a
+                    // compact flag cannot truncate ordinary line searches.
+                    assert_eq!(result.rows.len(), if files_only { 1 } else { 2 });
+                    assert_eq!(result.rows[0]["content"], "hello hello");
+                    assert!(result.rows[0].get("columns").is_some());
+                    assert!(result.rows[0].get("offset").is_some());
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn compact_file_replies_keep_binary_markers_and_absence() {
+        for binary_lines in [false, true] {
+            for content in [b"hello\n\0tail\n".as_slice(), b"absent\n", b""] {
+                let file =
+                    DecodedFile::new(content.to_vec(), zgrep_core::encoding::EncodingMode::Auto);
+                let req = parse_search_params(&serde_json::json!({
+                    "pattern": "hello", "files_only": true, "compact_files": true,
+                    "binary_lines": binary_lines,
+                }))
+                .unwrap();
+                let result = search_file_matches("a.txt", &file, &req.matcher, &req.opts).unwrap();
+                if content.contains(&0) {
+                    assert_eq!(
+                        result.rows,
+                        [serde_json::json!({
+                            "type": "binary", "file": "a.txt", "offset": 6, "lines": 1,
+                        })]
+                    );
+                } else {
+                    assert!(result.rows.is_empty());
+                }
+            }
+        }
     }
 
     #[test]
