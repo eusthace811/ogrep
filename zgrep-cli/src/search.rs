@@ -2,7 +2,7 @@
 ///
 /// If a running server is detected (via serve.json), the search is delegated
 /// over TCP. Otherwise, the on-disk index is loaded directly.
-use std::io::{BufRead, BufReader, ErrorKind, Write};
+use std::io::{BufRead, BufReader, ErrorKind, Read, Write};
 use std::net::TcpStream;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
@@ -1694,10 +1694,9 @@ fn validate_utf8_and_find_nul(bytes: &[u8]) -> Option<Option<usize>> {
 /// a file below the threshold, an encoding that transcodes or strips a BOM, or
 /// content that is not already valid UTF-8 and so needs lossy repair.
 fn try_map_text(
-    path: &Path,
+    file: &std::fs::File,
     encoding: zgrep_core::encoding::EncodingMode,
 ) -> Option<(FileText, Option<usize>)> {
-    let file = std::fs::File::open(path).ok()?;
     if file.metadata().ok()?.len() < MMAP_MIN_BYTES {
         return None;
     }
@@ -1705,7 +1704,7 @@ fn try_map_text(
     // dropped before this function's caller finishes with the file. Mapping is
     // undefined behaviour if another process truncates the file underneath us;
     // that is inherent to searching by map and is the tradeoff ripgrep makes.
-    let map = unsafe { memmap2::Mmap::map(&file).ok()? };
+    let map = unsafe { memmap2::Mmap::map(file).ok()? };
     if !zgrep_core::encoding::borrows_whole_input(&map, encoding) {
         return None;
     }
@@ -1723,15 +1722,20 @@ fn read_text_lossy(
     encoding: zgrep_core::encoding::EncodingMode,
 ) -> std::io::Result<FileRead> {
     let read_span = crate::profile::span(crate::profile::Phase::Read);
+    let mut file = std::fs::File::open(path)?;
     // A mapped file is always already-valid UTF-8, so it needs no fixups.
-    if let Some((text, first_nul)) = try_map_text(path, encoding) {
+    if let Some((text, first_nul)) = try_map_text(&file, encoding) {
         return Ok(FileRead {
             text,
             fixups: zgrep_core::encoding::LossyFixups::default(),
             first_nul,
         });
     }
-    let bytes = std::fs::read(path)?;
+    // Mapping does not advance the file position. Keep this handle when a
+    // small file, encoding or invalid UTF-8 requires an owned buffer, instead
+    // of closing it and resolving/opening the path a second time.
+    let mut bytes = Vec::new();
+    file.read_to_end(&mut bytes)?;
     drop(read_span);
     let _decode_span = crate::profile::span(crate::profile::Phase::Decode);
     let (text, fixups) = zgrep_core::encoding::decode_owned_with_fixups(bytes, encoding);

@@ -118,7 +118,7 @@ def main():
 
         check('scan')
         check('local')
-        with (args.output.parent / 'output-modes-server.log').open('w') as log:
+        with args.output.with_suffix('.server.log').open('w') as log:
             server = subprocess.Popen([str(binary), 'serve', str(root), '--index-path', str(index), '--no-watch'],
                                       stdout=log, stderr=log)
             try:
