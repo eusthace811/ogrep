@@ -31,3 +31,29 @@ Representative median milliseconds:
 Phase columns come from diagnostic runs; the first column is the separate ordinary binary. Instrumented/ordinary median ratios across the 12 queries ranged from 0.991 to 1.045; small negative apparent overhead is run variability, not an optimization. These are warm-cache diagnostic measurements on the recorded WSL workstation, not a speedup claim.
 
 The next justified experiments are reducing file-open/read overhead and unnecessary match-location construction. Source inspection found that files below the 1 MiB mapping threshold are opened/stat'ed for a rejected mmap attempt, closed, then reopened by `std::fs::read`. Reusing that open handle is a smaller first experiment than adding threads. Matching is also substantial for broad successful queries, supporting a later existence-only verifier. Decode and postings are not the leading costs in these examples, so SIMD decoding or a new postings format is lower priority here. Selective and absent searches still spend much of their time opening the index.
+
+## Handle reuse experiment
+
+Implemented at `e9f4b57`: open once, attempt mapping using that handle, and read from the same handle if mapping is declined. Mapping does not advance its read position. Decoding, lossy source-offset repair and output semantics remain on their existing paths. This does not introduce parallel reads or retain multiple files' contents.
+
+The [second diagnostic](../evidence/next-release/local-phases-single-open.json) measured the `fn` read phase at 102.86 ms versus 143.63 ms initially, and `impl` at 44.21 versus 61.83 ms. Those separate diagnostic runs are explanatory evidence; the following ordinary-binary comparisons are the performance evidence.
+
+| Local workload | Queries | Candidate / tgrep speedup | Candidate / 0.2.0 speedup | Candidate / immediately preceding source speedup |
+| --- | ---: | ---: | ---: | ---: |
+| Rust broad, upstream-derived | 102 | 1.337x | 1.051x | 1.050x |
+| Rust targeted | 12 | 1.787x | 1.037x | 1.026x |
+| CPython targeted | 12 | 1.231x | 1.011x | Not included in main run |
+
+Ratios are geometric means of per-query median latency ratios, above 1 meaning faster. Nine randomized interleaved rounds yielded **4,428 timed runs**. Every timed output and exit matched its expected result; [independent verification](../evidence/next-release/single-open-scan-verification.json) checked all 126 workload queries against fresh ripgrep scans, binary hashes, clean pinned corpora, complete sample matrices and indexed execution routes. The source immediately before handle reuse was `a10e72f`, built without profiling; it isolates this change from the earlier RPC and instrumentation additions.
+
+The broad workload had 44 descriptive per-query 95% intervals wholly above 1 versus 0.2.0 and none wholly below; versus tgrep all 102 were wholly above 1. Intervals use 5,000 paired-round bootstrap resamples, with no multiple-comparison correction. These characterize variability on this host, not other machines or a population of all queries. [Versus tgrep](../evidence/next-release/single-open-vs-tgrep.json), [versus 0.2.0](../evidence/next-release/single-open-vs-020.json), [versus preceding source](../evidence/next-release/single-open-vs-before.json).
+
+### Unfavorable results and follow-up
+
+Three initial comparisons had intervals below 1: Rust `#[deny(` and `(struct|enum).*(TypeError|RegionError)` versus the immediately preceding source, and CPython `PyObject_GetOptionalAttrString` versus 0.2.0. The median penalties were about 0.91, 0.41 and 0.16 ms respectively. These results remain in the original records.
+
+A separate **41-round follow-up** selected those queries plus common/absent controls before running with a different random seed. It retained **861 additional timed runs**, all independently checked. None of the three slowdowns had an interval wholly below 1 in the follow-up. For the CPython query the 0.2.0/candidate ratio was still 0.992 (interval 0.959–1.010); this is not evidence of a gain on that query. The common-query controls improved while absent-query controls were approximately unchanged. The follow-up does not replace the original aggregate score or prove an absence of small regressions. [Versus 0.2.0](../evidence/next-release/single-open-followup-vs-020.json), [versus preceding source](../evidence/next-release/single-open-followup-vs-before.json), [scan verification](../evidence/next-release/single-open-followup-scan.json).
+
+The default workspace suite passed 953 tests, with one existing polling test ignored; all-target/all-feature Clippy and formatting passed. The output matrix passed all 96 scan/local/server checks. Logs and raw data use the `single-open-` prefix under `evidence/next-release/`.
+
+Measured candidate binary SHA-256: `e7ddcadf9e9bf875776a663f137cd7aba937e6777dc5bdb59402f5aec6f9b5ce`; preserved at `../build/next-local-profile/zgrep-single-open`. The diagnostic and preceding binaries are preserved alongside it. The ordinary CLI measurements use warm OS caches on one WSL workstation. Full next-release qualification, service admission control and refresh completion remain outstanding.

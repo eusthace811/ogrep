@@ -1,0 +1,56 @@
+{
+  "scan_engine": "/home/eusth/.local/bin/rg",
+  "scan_sha256": "be2fbcdd985161603bfa268c7647eec670b9e94374f0e972da708d7de670a8fb",
+  "scan_version": "ripgrep 14.1.0\n\nfeatures:-simd-accel,+pcre2\nsimd(compile):+SSE2,-SSSE3,-AVX2\nsimd(runtime):+SSE2,+SSSE3,+AVX2\n\nPCRE2 10.42 is available (JIT is available)",
+  "evaluations": {
+    "single-open-followup-rust.json": {
+      "timed_samples_checked": 492,
+      "queries_checked_against_scan": {
+        "upstream-018": {
+          "rows": 127,
+          "sha256": "749fc1cabfc93c5f2233ac651bdaae53705aa99f496981061fb31613ea935f67",
+          "exit": 0
+        },
+        "literal-common": {
+          "rows": 3332,
+          "sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "exit": 0
+        },
+        "literal-absent": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "exit": 1
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "exit": 0
+        }
+      },
+      "corpus_clean": true,
+      "binary_identities_match": true
+    },
+    "single-open-followup-cpython.json": {
+      "timed_samples_checked": 369,
+      "queries_checked_against_scan": {
+        "literal-common": {
+          "rows": 850,
+          "sha256": "bf4cd5ba6c218818a47d13752be9194261321fe0e1844368f350e98f286ffda9",
+          "exit": 0
+        },
+        "literal-absent": {
+          "rows": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "exit": 1
+        },
+        "literal-long": {
+          "rows": 12,
+          "sha256": "fad699880bfad9e9a4208895d7a74bd2751caf93cef52b83ab7451b08fbcbdd6",
+          "exit": 0
+        }
+      },
+      "corpus_clean": true,
+      "binary_identities_match": true
+    }
+  }
+}

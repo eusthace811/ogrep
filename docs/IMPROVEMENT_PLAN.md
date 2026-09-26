@@ -9,3 +9,9 @@ The active goal has three required tracks:
 3. Add refresh completion for CLI/RPC and agents. Define which completed edits are covered, timeout/failure behavior, ignored/removed/renamed paths, publication and concurrent mutations. A success response must follow actual searchable publication, not watcher receipt or an indexing-complete flag. Test no-watch/poll/native modes, concurrent refreshes and edits, restart and failures. Agent integration must use the new contract without weakening existing current-scan semantics.
 
 Each accepted change needs a commit with tests and evidence. Finish with full workspace/agent/installer checks, independent output parity, broad/targeted comparisons and a report of improvements, regressions and remaining limits. Packaging, documentation and a completion audit must describe the resulting release. Research experiments do not substitute for any of the three tracks.
+
+Progress after the initial experiments:
+
+- Track 1: [ordinary local phase profiling and handle reuse](LOCAL_PROFILING.md) are implemented and measured against both baselines, with focused regression follow-up. Further matching work is a possible later experiment; final release qualification is still required.
+- Track 2: [compact replies and concurrent-load evidence](../evidence/next-release/README.md) are complete as experiments. Connection/request bounds and responsive control operations still need implementation and validation.
+- Track 3: refresh completion and agent integration are not implemented. A metadata-only reconcile or existing `reload` response cannot be relabeled as the promised barrier.

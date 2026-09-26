@@ -1,0 +1,2445 @@
+{
+  "schema": 2,
+  "mode": "local",
+  "cache": "warm OS cache",
+  "rounds": 41,
+  "seed": 68122,
+  "corpus": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/cpython",
+  "queries_sha256": "47e23bbd2b5c652f1e3492d4519fd6c7167f59e1c54311cc1564f63395c79004",
+  "queries": [
+    {
+      "name": "literal-common",
+      "pattern": "PyObject",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    },
+    {
+      "name": "literal-absent",
+      "pattern": "PyUnicode_ZgrepMissing999",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    },
+    {
+      "name": "literal-long",
+      "pattern": "PyObject_GetOptionalAttrString",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    }
+  ],
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "cpu_count": 32,
+  "affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ],
+  "engines": {
+    "release": {
+      "path": "/home/eusth/projects/Experiments/tgrep/build/baseline/zgrep-0.2.0",
+      "sha256": "45777bbc84a9043cf3de690b781cf623fa1806368ae377ae5de4386f5450351d",
+      "version": "zgrep 0.2.0",
+      "index_bytes": 81217306
+    },
+    "before": {
+      "path": "/home/eusth/projects/Experiments/tgrep/build/next-local-profile/zgrep-normal",
+      "sha256": "07dc2714b02ce6a09591ee15a1032f2712de0fe19a8fa59a81dd288340de87d6",
+      "version": "zgrep 0.2.0",
+      "index_seconds": 0.7059077399972011,
+      "index_output": "Walking /home/eusth/projects/Experiments/tgrep/build/corpora-pinned/cpython...\nFound 6266 text files (102 binary skipped, 0 too large, 0 errors)\nExtracting trigrams...\nSkipped 48 additional binary files (detected by content)\nMerging 3 spill segment(s) into the index...\nWriting index (431618 trigrams, 6218 files, 3 spill segment(s))...\nIndex built successfully at /home/eusth/projects/Experiments/tgrep/build/next-eval-cpython/before/index\nIndexed in 0.7s using external strategy (peak memory 122.7 MiB)\n",
+      "index_bytes": 81217296
+    },
+    "fork": {
+      "path": "/home/eusth/projects/Experiments/tgrep/build/next-local-profile/zgrep-single-open",
+      "sha256": "e7ddcadf9e9bf875776a663f137cd7aba937e6777dc5bdb59402f5aec6f9b5ce",
+      "version": "zgrep 0.2.0",
+      "index_bytes": 81217308
+    }
+  },
+  "samples": [
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 3.796073
+    },
+    {
+      "round": 0,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.019205
+    },
+    {
+      "round": 0,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.348315
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.790306
+    },
+    {
+      "round": 0,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.355972
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.078132
+    },
+    {
+      "round": 0,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 3.067206
+    },
+    {
+      "round": 0,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.677419
+    },
+    {
+      "round": 0,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.569825
+    },
+    {
+      "round": 1,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.212488
+    },
+    {
+      "round": 1,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.927767
+    },
+    {
+      "round": 1,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.326363
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.173046
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.838392
+    },
+    {
+      "round": 1,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.169898
+    },
+    {
+      "round": 1,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 26.386241
+    },
+    {
+      "round": 1,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.906931
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.785104
+    },
+    {
+      "round": 2,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 26.761217
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.107569
+    },
+    {
+      "round": 2,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.708763
+    },
+    {
+      "round": 2,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.771353
+    },
+    {
+      "round": 2,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 3.97834
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.932128
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.815646
+    },
+    {
+      "round": 2,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 3.911952
+    },
+    {
+      "round": 2,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.393087
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.911535
+    },
+    {
+      "round": 3,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.153632
+    },
+    {
+      "round": 3,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 26.636401
+    },
+    {
+      "round": 3,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.77707
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.188519
+    },
+    {
+      "round": 3,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.389301
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.178856
+    },
+    {
+      "round": 3,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 3.95924
+    },
+    {
+      "round": 3,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.784862
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 3.917161
+    },
+    {
+      "round": 4,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.601774
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.42807
+    },
+    {
+      "round": 4,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.088751
+    },
+    {
+      "round": 4,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 26.889491
+    },
+    {
+      "round": 4,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.309747
+    },
+    {
+      "round": 4,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.735923
+    },
+    {
+      "round": 4,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 27.239406
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.092534
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.073091
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.781293
+    },
+    {
+      "round": 5,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.113074
+    },
+    {
+      "round": 5,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.34966
+    },
+    {
+      "round": 5,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.610516
+    },
+    {
+      "round": 5,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.88006
+    },
+    {
+      "round": 5,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.739052
+    },
+    {
+      "round": 5,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.056023
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.038742
+    },
+    {
+      "round": 6,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.961992
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.720358
+    },
+    {
+      "round": 6,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.851239
+    },
+    {
+      "round": 6,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 3.997912
+    },
+    {
+      "round": 6,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.276184
+    },
+    {
+      "round": 6,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.837116
+    },
+    {
+      "round": 6,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 28.016769
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.137752
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.667341
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.956483
+    },
+    {
+      "round": 7,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.875235
+    },
+    {
+      "round": 7,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.4588
+    },
+    {
+      "round": 7,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 5.043041
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 27.033246
+    },
+    {
+      "round": 7,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.988562
+    },
+    {
+      "round": 7,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.162013
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.523949
+    },
+    {
+      "round": 7,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.63019
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.317066
+    },
+    {
+      "round": 8,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.328596
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.044387
+    },
+    {
+      "round": 8,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.911311
+    },
+    {
+      "round": 8,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 3.033791
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.157308
+    },
+    {
+      "round": 8,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.005117
+    },
+    {
+      "round": 8,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.045934
+    },
+    {
+      "round": 8,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.036128
+    },
+    {
+      "round": 9,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 3.932713
+    },
+    {
+      "round": 9,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.142159
+    },
+    {
+      "round": 9,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.816958
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.861235
+    },
+    {
+      "round": 9,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.114003
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 27.2384
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.431209
+    },
+    {
+      "round": 9,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 27.347913
+    },
+    {
+      "round": 9,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.604309
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.048474
+    },
+    {
+      "round": 10,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 3.627076
+    },
+    {
+      "round": 10,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.309577
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.460253
+    },
+    {
+      "round": 10,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.744137
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 27.056915
+    },
+    {
+      "round": 10,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.06855
+    },
+    {
+      "round": 10,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.214425
+    },
+    {
+      "round": 10,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 27.142094
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 27.04536
+    },
+    {
+      "round": 11,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.157381
+    },
+    {
+      "round": 11,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 28.216867
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.927897
+    },
+    {
+      "round": 11,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.874653
+    },
+    {
+      "round": 11,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 3.220397
+    },
+    {
+      "round": 11,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.499467
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.211834
+    },
+    {
+      "round": 11,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.164239
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.888306
+    },
+    {
+      "round": 12,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.488316
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.423513
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.055051
+    },
+    {
+      "round": 12,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.057198
+    },
+    {
+      "round": 12,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.799847
+    },
+    {
+      "round": 12,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.15056
+    },
+    {
+      "round": 12,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 26.955737
+    },
+    {
+      "round": 12,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.833722
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.829986
+    },
+    {
+      "round": 13,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 26.991291
+    },
+    {
+      "round": 13,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.92727
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.687874
+    },
+    {
+      "round": 13,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.974903
+    },
+    {
+      "round": 13,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.160615
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.047535
+    },
+    {
+      "round": 13,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 3.975349
+    },
+    {
+      "round": 13,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.189968
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.302372
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.004415
+    },
+    {
+      "round": 14,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.940552
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.93846
+    },
+    {
+      "round": 14,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 27.205025
+    },
+    {
+      "round": 14,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.297104
+    },
+    {
+      "round": 14,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.051383
+    },
+    {
+      "round": 14,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.953603
+    },
+    {
+      "round": 14,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.170686
+    },
+    {
+      "round": 15,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 3.127432
+    },
+    {
+      "round": 15,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.359923
+    },
+    {
+      "round": 15,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.970568
+    },
+    {
+      "round": 15,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.04821
+    },
+    {
+      "round": 15,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.191057
+    },
+    {
+      "round": 15,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.245445
+    },
+    {
+      "round": 15,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.945287
+    },
+    {
+      "round": 15,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.71647
+    },
+    {
+      "round": 15,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.484629
+    },
+    {
+      "round": 16,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.364937
+    },
+    {
+      "round": 16,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 27.003833
+    },
+    {
+      "round": 16,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 3.050528
+    },
+    {
+      "round": 16,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.42537
+    },
+    {
+      "round": 16,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.009644
+    },
+    {
+      "round": 16,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.92192
+    },
+    {
+      "round": 16,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.957154
+    },
+    {
+      "round": 16,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 26.885207
+    },
+    {
+      "round": 16,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.104861
+    },
+    {
+      "round": 17,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.275476
+    },
+    {
+      "round": 17,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.046976
+    },
+    {
+      "round": 17,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.836575
+    },
+    {
+      "round": 17,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.106633
+    },
+    {
+      "round": 17,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.981676
+    },
+    {
+      "round": 17,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.562184
+    },
+    {
+      "round": 17,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.975655
+    },
+    {
+      "round": 17,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.206241
+    },
+    {
+      "round": 17,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.546252
+    },
+    {
+      "round": 18,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.298384
+    },
+    {
+      "round": 18,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.793993
+    },
+    {
+      "round": 18,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.962622
+    },
+    {
+      "round": 18,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.569027
+    },
+    {
+      "round": 18,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.360114
+    },
+    {
+      "round": 18,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.102339
+    },
+    {
+      "round": 18,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.269814
+    },
+    {
+      "round": 18,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.743107
+    },
+    {
+      "round": 18,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.732016
+    },
+    {
+      "round": 19,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.131983
+    },
+    {
+      "round": 19,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.79992
+    },
+    {
+      "round": 19,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.142542
+    },
+    {
+      "round": 19,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.204617
+    },
+    {
+      "round": 19,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.874273
+    },
+    {
+      "round": 19,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.898217
+    },
+    {
+      "round": 19,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.696275
+    },
+    {
+      "round": 19,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 27.201199
+    },
+    {
+      "round": 19,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 26.895304
+    },
+    {
+      "round": 20,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.155223
+    },
+    {
+      "round": 20,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.948427
+    },
+    {
+      "round": 20,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.092514
+    },
+    {
+      "round": 20,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.938323
+    },
+    {
+      "round": 20,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.853404
+    },
+    {
+      "round": 20,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.21125
+    },
+    {
+      "round": 20,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 26.674447
+    },
+    {
+      "round": 20,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 27.186432
+    },
+    {
+      "round": 20,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.357374
+    },
+    {
+      "round": 21,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.080496
+    },
+    {
+      "round": 21,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.898253
+    },
+    {
+      "round": 21,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 3.246073
+    },
+    {
+      "round": 21,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.509544
+    },
+    {
+      "round": 21,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.577005
+    },
+    {
+      "round": 21,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.156348
+    },
+    {
+      "round": 21,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 29.300984
+    },
+    {
+      "round": 21,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 27.736602
+    },
+    {
+      "round": 21,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 27.512647
+    },
+    {
+      "round": 22,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 26.777191
+    },
+    {
+      "round": 22,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.112533
+    },
+    {
+      "round": 22,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.127056
+    },
+    {
+      "round": 22,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.266856
+    },
+    {
+      "round": 22,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.883285
+    },
+    {
+      "round": 22,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.964109
+    },
+    {
+      "round": 22,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.298309
+    },
+    {
+      "round": 22,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.749103
+    },
+    {
+      "round": 22,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.089841
+    },
+    {
+      "round": 23,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.846065
+    },
+    {
+      "round": 23,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 9.678018
+    },
+    {
+      "round": 23,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 28.036635
+    },
+    {
+      "round": 23,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.244611
+    },
+    {
+      "round": 23,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.353284
+    },
+    {
+      "round": 23,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.285851
+    },
+    {
+      "round": 23,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.098384
+    },
+    {
+      "round": 23,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.278895
+    },
+    {
+      "round": 23,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.999094
+    },
+    {
+      "round": 24,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.060659
+    },
+    {
+      "round": 24,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.987336
+    },
+    {
+      "round": 24,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.945263
+    },
+    {
+      "round": 24,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 3.032229
+    },
+    {
+      "round": 24,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.428693
+    },
+    {
+      "round": 24,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.961198
+    },
+    {
+      "round": 24,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 3.925248
+    },
+    {
+      "round": 24,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.075801
+    },
+    {
+      "round": 24,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.893241
+    },
+    {
+      "round": 25,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.536492
+    },
+    {
+      "round": 25,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.267588
+    },
+    {
+      "round": 25,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.897572
+    },
+    {
+      "round": 25,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.31866
+    },
+    {
+      "round": 25,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.463418
+    },
+    {
+      "round": 25,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 27.14357
+    },
+    {
+      "round": 25,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.103875
+    },
+    {
+      "round": 25,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.936647
+    },
+    {
+      "round": 25,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.221995
+    },
+    {
+      "round": 26,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.977043
+    },
+    {
+      "round": 26,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.932443
+    },
+    {
+      "round": 26,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.898829
+    },
+    {
+      "round": 26,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 27.482149
+    },
+    {
+      "round": 26,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.43109
+    },
+    {
+      "round": 26,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.311296
+    },
+    {
+      "round": 26,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.947891
+    },
+    {
+      "round": 26,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.183885
+    },
+    {
+      "round": 26,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.940312
+    },
+    {
+      "round": 27,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.625276
+    },
+    {
+      "round": 27,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.217
+    },
+    {
+      "round": 27,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.799921
+    },
+    {
+      "round": 27,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.805585
+    },
+    {
+      "round": 27,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.860774
+    },
+    {
+      "round": 27,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.107734
+    },
+    {
+      "round": 27,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.63577
+    },
+    {
+      "round": 27,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.06123
+    },
+    {
+      "round": 27,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.038478
+    },
+    {
+      "round": 28,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.437755
+    },
+    {
+      "round": 28,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.914019
+    },
+    {
+      "round": 28,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.24796
+    },
+    {
+      "round": 28,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 3.109865
+    },
+    {
+      "round": 28,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 3.861951
+    },
+    {
+      "round": 28,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 26.639791
+    },
+    {
+      "round": 28,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.397052
+    },
+    {
+      "round": 28,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.367235
+    },
+    {
+      "round": 28,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.929277
+    },
+    {
+      "round": 29,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.121545
+    },
+    {
+      "round": 29,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.180273
+    },
+    {
+      "round": 29,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.114237
+    },
+    {
+      "round": 29,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 3.02449
+    },
+    {
+      "round": 29,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.823941
+    },
+    {
+      "round": 29,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.864364
+    },
+    {
+      "round": 29,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 3.976613
+    },
+    {
+      "round": 29,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.703225
+    },
+    {
+      "round": 29,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.471572
+    },
+    {
+      "round": 30,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.907074
+    },
+    {
+      "round": 30,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.706355
+    },
+    {
+      "round": 30,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 28.338331
+    },
+    {
+      "round": 30,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.35321
+    },
+    {
+      "round": 30,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.958376
+    },
+    {
+      "round": 30,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.793506
+    },
+    {
+      "round": 30,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.018518
+    },
+    {
+      "round": 30,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.677195
+    },
+    {
+      "round": 30,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.222858
+    },
+    {
+      "round": 31,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 26.722151
+    },
+    {
+      "round": 31,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.272753
+    },
+    {
+      "round": 31,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.78337
+    },
+    {
+      "round": 31,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.283468
+    },
+    {
+      "round": 31,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.069182
+    },
+    {
+      "round": 31,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.197362
+    },
+    {
+      "round": 31,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.112599
+    },
+    {
+      "round": 31,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.679704
+    },
+    {
+      "round": 31,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.766882
+    },
+    {
+      "round": 32,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.085599
+    },
+    {
+      "round": 32,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.434237
+    },
+    {
+      "round": 32,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 3.133489
+    },
+    {
+      "round": 32,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 26.89869
+    },
+    {
+      "round": 32,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.218706
+    },
+    {
+      "round": 32,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.877365
+    },
+    {
+      "round": 32,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.632549
+    },
+    {
+      "round": 32,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.136154
+    },
+    {
+      "round": 32,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.016129
+    },
+    {
+      "round": 33,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.680692
+    },
+    {
+      "round": 33,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.689198
+    },
+    {
+      "round": 33,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.202568
+    },
+    {
+      "round": 33,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.075662
+    },
+    {
+      "round": 33,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.926595
+    },
+    {
+      "round": 33,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.104835
+    },
+    {
+      "round": 33,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.147114
+    },
+    {
+      "round": 33,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.507706
+    },
+    {
+      "round": 33,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.092195
+    },
+    {
+      "round": 34,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 3.030416
+    },
+    {
+      "round": 34,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.141554
+    },
+    {
+      "round": 34,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.077011
+    },
+    {
+      "round": 34,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.903432
+    },
+    {
+      "round": 34,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 3.90274
+    },
+    {
+      "round": 34,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 3.986254
+    },
+    {
+      "round": 34,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.024275
+    },
+    {
+      "round": 34,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.827595
+    },
+    {
+      "round": 34,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 27.698203
+    },
+    {
+      "round": 35,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 27.722501
+    },
+    {
+      "round": 35,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.396001
+    },
+    {
+      "round": 35,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.027126
+    },
+    {
+      "round": 35,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.794833
+    },
+    {
+      "round": 35,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.863431
+    },
+    {
+      "round": 35,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.264969
+    },
+    {
+      "round": 35,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.202303
+    },
+    {
+      "round": 35,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.60949
+    },
+    {
+      "round": 35,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.26315
+    },
+    {
+      "round": 36,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.36112
+    },
+    {
+      "round": 36,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.699676
+    },
+    {
+      "round": 36,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 28.996479
+    },
+    {
+      "round": 36,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.964418
+    },
+    {
+      "round": 36,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.352268
+    },
+    {
+      "round": 36,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.008706
+    },
+    {
+      "round": 36,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.219156
+    },
+    {
+      "round": 36,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 28.029929
+    },
+    {
+      "round": 36,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.034858
+    },
+    {
+      "round": 37,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 27.313812
+    },
+    {
+      "round": 37,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 27.436565
+    },
+    {
+      "round": 37,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.202778
+    },
+    {
+      "round": 37,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.17392
+    },
+    {
+      "round": 37,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.411349
+    },
+    {
+      "round": 37,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 28.045319
+    },
+    {
+      "round": 37,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.37591
+    },
+    {
+      "round": 37,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.994259
+    },
+    {
+      "round": 37,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.24895
+    },
+    {
+      "round": 38,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 26.627543
+    },
+    {
+      "round": 38,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.746476
+    },
+    {
+      "round": 38,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.331544
+    },
+    {
+      "round": 38,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 27.106332
+    },
+    {
+      "round": 38,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.232117
+    },
+    {
+      "round": 38,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 3.071052
+    },
+    {
+      "round": 38,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 2.763709
+    },
+    {
+      "round": 38,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.256502
+    },
+    {
+      "round": 38,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 3.340449
+    },
+    {
+      "round": 39,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.781521
+    },
+    {
+      "round": 39,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 3.994711
+    },
+    {
+      "round": 39,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.584172
+    },
+    {
+      "round": 39,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.999194
+    },
+    {
+      "round": 39,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.22854
+    },
+    {
+      "round": 39,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.894209
+    },
+    {
+      "round": 39,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 3.017304
+    },
+    {
+      "round": 39,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 26.637444
+    },
+    {
+      "round": 39,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.195976
+    },
+    {
+      "round": 40,
+      "engine": "before",
+      "query": "literal-long",
+      "ms": 4.085474
+    },
+    {
+      "round": 40,
+      "engine": "release",
+      "query": "literal-long",
+      "ms": 4.029043
+    },
+    {
+      "round": 40,
+      "engine": "before",
+      "query": "literal-absent",
+      "ms": 2.938441
+    },
+    {
+      "round": 40,
+      "engine": "release",
+      "query": "literal-common",
+      "ms": 27.291996
+    },
+    {
+      "round": 40,
+      "engine": "release",
+      "query": "literal-absent",
+      "ms": 3.008754
+    },
+    {
+      "round": 40,
+      "engine": "fork",
+      "query": "literal-long",
+      "ms": 4.052271
+    },
+    {
+      "round": 40,
+      "engine": "fork",
+      "query": "literal-absent",
+      "ms": 2.83449
+    },
+    {
+      "round": 40,
+      "engine": "fork",
+      "query": "literal-common",
+      "ms": 25.875653
+    },
+    {
+      "round": 40,
+      "engine": "before",
+      "query": "literal-common",
+      "ms": 27.590561
+    }
+  ],
+  "validation": {
+    "literal-common": {
+      "release": {
+        "rows": 850,
+        "sha256": "bf4cd5ba6c218818a47d13752be9194261321fe0e1844368f350e98f286ffda9",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(6 trigrams) (candidates: 851/6218; raw candidates: 1023/6218)\nIndex work: {\"lists_loaded\":6,\"lists_probed\":0,\"postings_copied\":13294,\"candidate_probes\":0,\"position_rejections\":2}\nSearch completed in 26.1ms: 74292 matches (61045 matched lines)\n"
+      },
+      "before": {
+        "rows": 850,
+        "sha256": "bf4cd5ba6c218818a47d13752be9194261321fe0e1844368f350e98f286ffda9",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(6 trigrams) (candidates: 851/6218; raw candidates: 1023/6218)\nIndex work: {\"lists_loaded\":6,\"lists_probed\":0,\"postings_copied\":13294,\"candidate_probes\":0,\"position_rejections\":2}\nSearch completed in 26.2ms: 74292 matches (61045 matched lines)\n"
+      },
+      "fork": {
+        "rows": 850,
+        "sha256": "bf4cd5ba6c218818a47d13752be9194261321fe0e1844368f350e98f286ffda9",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(6 trigrams) (candidates: 851/6218; raw candidates: 1023/6218)\nIndex work: {\"lists_loaded\":6,\"lists_probed\":0,\"postings_copied\":13294,\"candidate_probes\":0,\"position_rejections\":2}\nSearch completed in 25.6ms: 74292 matches (61045 matched lines)\n"
+      }
+    },
+    "literal-absent": {
+      "release": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit": 1,
+        "diagnostics": "Query plan: AND(23 trigrams) (candidates: 0/6218; raw candidates: 0/6218)\nIndex work: {\"lists_loaded\":0,\"lists_probed\":0,\"postings_copied\":0,\"candidate_probes\":0,\"position_rejections\":0}\nSearch completed in 1.1ms: 0 matches (0 matched lines)\n"
+      },
+      "before": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit": 1,
+        "diagnostics": "Query plan: AND(23 trigrams) (candidates: 0/6218; raw candidates: 0/6218)\nIndex work: {\"lists_loaded\":0,\"lists_probed\":0,\"postings_copied\":0,\"candidate_probes\":0,\"position_rejections\":0}\nSearch completed in 0.9ms: 0 matches (0 matched lines)\n"
+      },
+      "fork": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit": 1,
+        "diagnostics": "Query plan: AND(23 trigrams) (candidates: 0/6218; raw candidates: 0/6218)\nIndex work: {\"lists_loaded\":0,\"lists_probed\":0,\"postings_copied\":0,\"candidate_probes\":0,\"position_rejections\":0}\nSearch completed in 0.9ms: 0 matches (0 matched lines)\n"
+      }
+    },
+    "literal-long": {
+      "release": {
+        "rows": 12,
+        "sha256": "fad699880bfad9e9a4208895d7a74bd2751caf93cef52b83ab7451b08fbcbdd6",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(28 trigrams) (candidates: 31/6218; raw candidates: 36/6218)\nIndex work: {\"lists_loaded\":7,\"lists_probed\":21,\"postings_copied\":2392,\"candidate_probes\":756,\"position_rejections\":12}\nSearch completed in 2.2ms: 15 matches (15 matched lines)\n"
+      },
+      "before": {
+        "rows": 12,
+        "sha256": "fad699880bfad9e9a4208895d7a74bd2751caf93cef52b83ab7451b08fbcbdd6",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(28 trigrams) (candidates: 31/6218; raw candidates: 36/6218)\nIndex work: {\"lists_loaded\":7,\"lists_probed\":21,\"postings_copied\":2392,\"candidate_probes\":756,\"position_rejections\":12}\nSearch completed in 2.1ms: 15 matches (15 matched lines)\n"
+      },
+      "fork": {
+        "rows": 12,
+        "sha256": "fad699880bfad9e9a4208895d7a74bd2751caf93cef52b83ab7451b08fbcbdd6",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(28 trigrams) (candidates: 31/6218; raw candidates: 36/6218)\nIndex work: {\"lists_loaded\":7,\"lists_probed\":21,\"postings_copied\":2392,\"candidate_probes\":756,\"position_rejections\":12}\nSearch completed in 2.1ms: 15 matches (15 matched lines)\n"
+      }
+    }
+  },
+  "summary": {
+    "literal-common": {
+      "release": {
+        "median_ms": 26.837116,
+        "p95_ms": 27.722501,
+        "min_ms": 26.121545,
+        "max_ms": 28.036635
+      },
+      "before": {
+        "median_ms": 27.328596,
+        "p95_ms": 28.338331,
+        "min_ms": 26.386241,
+        "max_ms": 29.300984
+      },
+      "fork": {
+        "median_ms": 26.092195,
+        "p95_ms": 27.2384,
+        "min_ms": 25.42807,
+        "max_ms": 27.736602
+      }
+    },
+    "literal-absent": {
+      "release": {
+        "median_ms": 2.947891,
+        "p95_ms": 3.220397,
+        "min_ms": 2.601774,
+        "max_ms": 3.627076
+      },
+      "before": {
+        "median_ms": 2.961992,
+        "p95_ms": 3.24796,
+        "min_ms": 2.735923,
+        "max_ms": 3.604309
+      },
+      "fork": {
+        "median_ms": 2.945287,
+        "p95_ms": 3.141554,
+        "min_ms": 2.679704,
+        "max_ms": 3.411349
+      }
+    },
+    "literal-long": {
+      "release": {
+        "median_ms": 4.17392,
+        "p95_ms": 4.355972,
+        "min_ms": 3.861951,
+        "max_ms": 4.793506
+      },
+      "before": {
+        "median_ms": 4.266856,
+        "p95_ms": 4.794833,
+        "min_ms": 3.90274,
+        "max_ms": 5.043041
+      },
+      "fork": {
+        "median_ms": 4.206241,
+        "p95_ms": 4.577005,
+        "min_ms": 3.796073,
+        "max_ms": 9.678018
+      }
+    }
+  },
+  "corpus_revision": "b54ae4cdfce4b84b22889b5c5b9ed0ab9bcb3702",
+  "expected_revision": "b54ae4cdfce4b84b22889b5c5b9ed0ab9bcb3702",
+  "cpu": "Intel(R) Core(TM) i9-14900KS"
+}

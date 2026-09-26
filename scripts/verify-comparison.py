@@ -44,6 +44,8 @@ def main():
                 assert (len(rows), digest, scan.returncode) == (validated['rows'], validated['sha256'], validated['exit']), (path, query['name'], name)
                 if name != 'rg':
                     assert ('(via server)' in validated['diagnostics']) == (data['mode'] == 'server')
+                    if data['mode'] == 'local':
+                        assert 'Query plan:' in validated['diagnostics'], 'local query fell back to scanning'
             checks[query['name']] = {'rows': len(rows), 'sha256': digest, 'exit': scan.returncode}
         report['evaluations'][path.name] = {'timed_samples_checked': len(data['samples']),
                                            'queries_checked_against_scan': checks,
