@@ -1,0 +1,55 @@
+   Compiling zgrep-cli v0.2.0 (/home/eusth/projects/Experiments/tgrep/zgrep/zgrep-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.22s
+     Running unittests src/main.rs (target/debug/deps/zgrep-4a2a1a65bdc26313)
+
+running 4 tests
+[trace] reindex: modified source.rs
+[trace] stale check: comparing index against filesystem...
+[trace] watcher: replayed 1 change(s) deferred during the initial build in 0.0ms
+[trace] search: pattern="recreated_subtree_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=1.3ms (index=0.0ms resolve=0.0ms search=1.1ms)
+[trace] search: pattern="recreated_subtree_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=1.3ms (index=0.0ms resolve=0.0ms search=1.1ms)
+
+thread 'serve::event_freshness_tests::delayed_directory_removal_recovers_burst' (77989) panicked at zgrep-cli/src/serve/event_freshness_tests.rs:87:5:
+assertion `left == right` failed: burst: {"id":null,"jsonrpc":"2.0","result":{"elapsed_ms":1.304388,"hidden_complete":true,"matches":[],"num_matches":0}}
+  left: Number(0)
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'serve::event_freshness_tests::delayed_directory_removal_recovers_direct' (77991) panicked at zgrep-cli/src/serve/event_freshness_tests.rs:87:5:
+assertion `left == right` failed: direct: {"id":null,"jsonrpc":"2.0","result":{"elapsed_ms":1.256063,"hidden_complete":true,"matches":[],"num_matches":0}}
+  left: Number(0)
+ right: 1
+[trace] search: pattern="recreated_subtree_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=1.3ms (index=0.0ms resolve=0.0ms search=1.2ms)
+
+thread 'serve::event_freshness_tests::delayed_directory_removal_recovers_deferred' (77990) panicked at zgrep-cli/src/serve/event_freshness_tests.rs:87:5:
+assertion `left == right` failed: deferred: {"id":null,"jsonrpc":"2.0","result":{"elapsed_ms":1.300751,"hidden_complete":true,"matches":[],"num_matches":0}}
+  left: Number(0)
+ right: 1
+test serve::event_freshness_tests::delayed_directory_removal_recovers_burst ... FAILED
+test serve::event_freshness_tests::delayed_directory_removal_recovers_direct ... FAILED
+test serve::event_freshness_tests::delayed_directory_removal_recovers_deferred ... FAILED
+[trace] gitignore matcher built from stale walk in 0.0ms (0 .gitignore + 0 .ignore files, no rules found)
+[trace] stale check: 1 changed, 0 new, 0 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 0 new, 0 deleted)...
+[trace] flush: reader reopened (1 files, 17 trigrams), overlay pruned
+[trace] stale check: streamed 1 changes into the index in 0.0s
+[trace] reindex: dropped source.rs (removed)
+[trace] search: pattern="replacement_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+
+thread 'serve::event_freshness_tests::delayed_removal_keeps_recreated_published_file_searchable' (77992) panicked at zgrep-cli/src/serve/event_freshness_tests.rs:34:5:
+assertion `left == right` failed: {"id":null,"jsonrpc":"2.0","result":{"elapsed_ms":0.10296,"hidden_complete":true,"matches":[],"num_matches":0}}
+  left: Number(0)
+ right: 1
+test serve::event_freshness_tests::delayed_removal_keeps_recreated_published_file_searchable ... FAILED
+
+failures:
+
+failures:
+    serve::event_freshness_tests::delayed_directory_removal_recovers_burst
+    serve::event_freshness_tests::delayed_directory_removal_recovers_deferred
+    serve::event_freshness_tests::delayed_directory_removal_recovers_direct
+    serve::event_freshness_tests::delayed_removal_keeps_recreated_published_file_searchable
+
+test result: FAILED. 0 passed; 4 failed; 0 ignored; 0 measured; 293 filtered out; finished in 0.01s
+
+error: test failed, to rerun pass `-p zgrep-cli --bin zgrep`

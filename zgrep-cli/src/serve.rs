@@ -46,6 +46,10 @@ mod recovery_tests;
 mod admission_tests;
 
 #[cfg(test)]
+#[path = "serve/event_freshness_tests.rs"]
+mod event_freshness_tests;
+
+#[cfg(test)]
 #[path = "serve/hidden_tests.rs"]
 mod hidden_tests;
 
@@ -2483,7 +2487,7 @@ fn handle_reload(id: Option<serde_json::Value>, state: &Arc<ServerState>) -> Str
 ///
 /// `handle_fs_event` only needs to know whether an event kind could introduce
 /// a directory; it classifies removals from the filesystem. Keeping that bit
-/// lets create/rename notifications retain subtree handling while duplicate
+/// lets create/rename/remove notifications retain subtree handling while duplicate
 /// writes collapse to one forced read. Paths remain separate because an ignore
 /// rules path returns early from `handle_fs_event`.
 #[derive(Debug, PartialEq, Eq)]
@@ -2585,9 +2589,14 @@ fn event_changes_index(kind: &EventKind) -> bool {
 }
 
 fn event_introduces_dir(kind: &EventKind) -> bool {
+    // A queued removal can describe an earlier occupant of a path that now
+    // holds a recreated directory. Preserve subtree discovery through burst
+    // coalescing and deferred replay even if its Create event was missed.
     matches!(
         kind,
-        EventKind::Create(_) | EventKind::Modify(notify::event::ModifyKind::Name(_))
+        EventKind::Create(_)
+            | EventKind::Remove(_)
+            | EventKind::Modify(notify::event::ModifyKind::Name(_))
     )
 }
 
@@ -4816,9 +4825,9 @@ fn handle_fs_event(state: &Arc<ServerState>, root: &Path, event: &Event) {
             continue;
         }
 
-        let is_remove = matches!(event.kind, EventKind::Remove(_)) || target == EventTarget::Gone;
-
-        if is_remove {
+        // Notifications are hints about earlier state. A removal queued before
+        // a refresh must not delete a replacement that refresh just published.
+        if target == EventTarget::Gone {
             if has_indexed_descendant(state, &rel_path) {
                 // Directory renames/removals can name only the directory,
                 // not its children. Reuse the coalesced recovery path to
@@ -4875,7 +4884,8 @@ fn handle_fs_event(state: &Arc<ServerState>, root: &Path, event: &Event) {
                 // would re-walk and re-subscribe that directory's whole subtree
                 // on the single watcher worker, turning a linear operation into
                 // quadratic work. inotify announces a new directory as `Create`
-                // and one moved in as `Modify(Name)`; nothing else can.
+                // and one moved in as `Modify(Name)`. A delayed Remove can also
+                // name a recreated directory whose arrival was never observed.
                 let introduces_dir = event_introduces_dir(&event.kind);
                 if introduces_dir {
                     // A directory that just appeared can already be full — a

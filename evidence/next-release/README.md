@@ -72,3 +72,7 @@ python3 scripts/profile-rpc.py --binary target/release/zgrep \
   --expected-revision 1a8fa555801329bd0e803d7384b5a21191c61f30 \
   --compare-formats --rounds 9 --output /tmp/rpc-compact.json
 ```
+
+## Refresh prerequisite (2026-09-27)
+
+[Delayed-event correctness and the planned contract](../../docs/REFRESH_COMPLETION.md): four new regression tests fail before the change and pass after it. Full workspace and Clippy logs are retained alongside the before/after logs. This fixes event handling; the refresh API and agent integration remain unfinished.
