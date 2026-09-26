@@ -69,7 +69,8 @@ impl Fixture {
     }
 
     fn assert_files(&self, expected: &[&str]) {
-        let response = process_request(r#"{"jsonrpc":"2.0","method":"files","id":1}"#, &self.state);
+        let (response, _permit) =
+            process_request(r#"{"jsonrpc":"2.0","method":"files","id":1}"#, &self.state);
         let value: serde_json::Value = serde_json::from_str(&response).unwrap();
         let actual: BTreeSet<_> = value["result"]["files"]
             .as_array()

@@ -11,6 +11,7 @@ import resource
 import socket
 import statistics
 import subprocess
+import threading
 import time
 
 
@@ -63,6 +64,8 @@ def main():
     ap.add_argument('--output', type=Path, required=True)
     ap.add_argument('--requests', type=int, default=1024)
     ap.add_argument('--compact-files', action='store_true', help='Request optional compact file-list replies')
+    ap.add_argument('--search-concurrency', type=int, help='Pass the new server admission limit (omit for old binaries)')
+    ap.add_argument('--observe-status', action='store_true', help='Probe status every 50 ms during each load')
     args = ap.parse_args()
     binary, root, index = args.binary.resolve(), args.corpus.resolve(), args.index.resolve()
     patterns = ['fn main', 'NonNull', 'typeck', 'absent_ZGREP_897342938', r'impl.*Debug', r'(alloc|dealloc).*Layout']
@@ -75,10 +78,14 @@ def main():
               'revision': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip(),
               'description': 'Loopback RPC, one TCP connection per request, six mixed regex queries, four server worker threads; independent rg -l -t rust expected file sets. Warm page cache. Raw latency samples retained; not a distributed service test.',
               'compact_files': args.compact_files,
+              'search_concurrency': args.search_concurrency, 'observe_status': args.observe_status,
               'patterns': patterns, 'expected_file_counts': [len(x) for x in expected], 'loads': []}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     with args.output.with_suffix('.server.log').open('w') as log:
-        server = subprocess.Popen([str(binary), 'serve', str(root), '--index-path', str(index), '--no-watch', '-j', '4'], stdout=log, stderr=log)
+        command = [str(binary), 'serve', str(root), '--index-path', str(index), '--no-watch', '-j', '4']
+        if args.search_concurrency is not None:
+            command += ['--search-concurrency', str(args.search_concurrency)]
+        server = subprocess.Popen(command, stdout=log, stderr=log)
         try:
             port, record['initial_status'] = ready(server, index)
             def request(query):
@@ -94,12 +101,33 @@ def main():
             for clients in [1, 4, 16]:
                 work = [i % len(patterns) for i in range(args.requests)]
                 random.Random(941 + clients).shuffle(work)
+                observations = []
+                observation_stop = threading.Event()
+                def observe():
+                    while not observation_stop.wait(.05):
+                        began = time.perf_counter_ns()
+                        try:
+                            status = rpc(port, 'status')
+                            observations.append({'latency_ms': (time.perf_counter_ns()-began)/1e6,
+                                                 'search_admission': status.get('search_admission'),
+                                                 'connection_admission': status.get('connection_admission')})
+                        except Exception as error:
+                            observations.append({'error': str(error)})
+                observer = threading.Thread(target=observe, daemon=True) if args.observe_status else None
+                if observer:
+                    observer.start()
                 before = resources(server.pid)
                 client_cpu_before = time.process_time()
                 start = time.perf_counter()
-                with ThreadPoolExecutor(max_workers=clients) as pool:
-                    samples = list(pool.map(request, work))
-                seconds = time.perf_counter() - start
+                try:
+                    with ThreadPoolExecutor(max_workers=clients) as pool:
+                        samples = list(pool.map(request, work))
+                    seconds = time.perf_counter() - start
+                finally:
+                    observation_stop.set()
+                    if observer:
+                        observer.join(timeout=5)
+                        assert not observer.is_alive(), 'status observer stalled'
                 after = resources(server.pid)
                 client_cpu_seconds = time.process_time() - client_cpu_before
                 latencies = sorted(x['latency_ms'] for x in samples)
@@ -111,11 +139,17 @@ def main():
                        'client_cpu_seconds': client_cpu_seconds,
                        'client_cpu_cores': client_cpu_seconds / seconds,
                        'client_peak_rss_kib': resource.getrusage(resource.RUSAGE_SELF).ru_maxrss,
-                       'samples': samples}
+                       'status_observations': observations, 'samples': samples}
                 record['loads'].append(row)
                 args.output.write_text(json.dumps(record, indent=2)+'\n')
-                print({k:v for k,v in row.items() if k != 'samples'}, flush=True)
+                print({k:v for k,v in row.items() if k not in ('samples', 'status_observations')}, flush=True)
                 assert row['errors'] == 0
+                assert all('error' not in item for item in observations), observations
+                for item in observations:
+                    for key in ['search_admission', 'connection_admission']:
+                        if item[key] is not None:
+                            assert item[key]['active'] <= item[key]['capacity']
+                            assert item[key]['queued'] <= item[key]['queue_capacity']
         finally:
             stop(server)
 

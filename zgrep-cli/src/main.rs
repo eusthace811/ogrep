@@ -5,6 +5,7 @@
 ///   zgrep serve [path]           Start the search server
 ///   zgrep <pattern> [path]       Search (auto-delegates to server)
 ///   zgrep status [path]          Show index/server status
+mod admission;
 mod cpu;
 mod glob_filter;
 mod index;
@@ -692,6 +693,9 @@ enum Command {
             value_parser = clap::value_parser!(u64).range(1..=usize::MAX as u64)
         )]
         watcher_queue_cap: Option<u64>,
+        /// Maximum simultaneous search/file-list requests, including response writes.
+        #[arg(long, default_value_t = 4, value_parser = clap::value_parser!(u64).range(1..=32))]
+        search_concurrency: u64,
     },
 
     /// Search for a pattern.
@@ -1152,6 +1156,7 @@ fn run_cli() {
             exclude,
             auto_save_mutations,
             watcher_queue_cap,
+            search_concurrency,
         }) => {
             let memory_cap = max_memory_mb
                 .map(|mb| mb.saturating_mul(1024 * 1024))
@@ -1168,6 +1173,7 @@ fn run_cli() {
                     exclude_dirs: &exclude,
                     memory_cap_bytes: memory_cap,
                     index_threads,
+                    search_concurrency: search_concurrency as usize,
                     no_ignore,
                     no_require_git: cli.no_require_git,
                     // Same resolved value the search path uses, so the index

@@ -3,7 +3,7 @@
 /// Keeps the trigram index in memory (HybridIndex), watches for filesystem
 /// changes, and serves search/status queries over TCP.
 use std::fs::File;
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader, Read, Write};
 use std::net::{TcpListener, TcpStream};
 use std::num::NonZeroUsize;
 use std::path::{Path, PathBuf};
@@ -26,6 +26,13 @@ use zgrep_core::query;
 
 mod index_cleanup;
 
+const MAX_CONNECTIONS: usize = 64;
+const MAX_QUEUED_SEARCHES: usize = 32;
+const MAX_REQUEST_BYTES: u64 = 1024 * 1024;
+const REQUEST_WAIT: Duration = Duration::from_secs(30);
+const SOCKET_IDLE_TIMEOUT: Duration = Duration::from_secs(30);
+pub const OVERLOADED: i64 = -32002;
+
 #[cfg(test)]
 #[path = "serve/poll_tests.rs"]
 mod poll_tests;
@@ -33,6 +40,10 @@ mod poll_tests;
 #[cfg(test)]
 #[path = "serve/recovery_tests.rs"]
 mod recovery_tests;
+
+#[cfg(test)]
+#[path = "serve/admission_tests.rs"]
+mod admission_tests;
 
 #[cfg(test)]
 #[path = "serve/hidden_tests.rs"]
@@ -450,6 +461,8 @@ impl RecentReindexCache {
 }
 
 struct ServerState {
+    connections: Arc<crate::admission::Gate>,
+    searches: Arc<crate::admission::Gate>,
     index: RwLock<HybridIndex>,
     /// Read under the index lock so visibility and content change together at
     /// publication. Native events update it using metadata they already read.
@@ -777,6 +790,7 @@ impl SearchOpts {
 }
 
 pub struct ServeOptions<'a> {
+    pub search_concurrency: usize,
     pub no_watch: bool,
     pub watch_mode: WatchMode,
     pub poll_interval: Duration,
@@ -797,6 +811,7 @@ pub struct ServeOptions<'a> {
 
 pub fn run(root: &Path, index_path: Option<&Path>, options: ServeOptions<'_>) -> Result<()> {
     let ServeOptions {
+        search_concurrency,
         no_watch,
         watch_mode,
         poll_interval,
@@ -810,6 +825,10 @@ pub fn run(root: &Path, index_path: Option<&Path>, options: ServeOptions<'_>) ->
         auto_save_mutations,
         watcher_queue_cap,
     } = options;
+    anyhow::ensure!(
+        (1..=32).contains(&search_concurrency),
+        "search concurrency must be between 1 and 32"
+    );
     let serve_start = Instant::now();
     let watcher_queue_cap = watcher_queue_cap.unwrap_or(WATCHER_QUEUE_CAP);
     let auto_save_mutations = auto_save_mutations.unwrap_or(AUTO_SAVE_MUTATIONS);
@@ -872,6 +891,8 @@ pub fn run(root: &Path, index_path: Option<&Path>, options: ServeOptions<'_>) ->
     );
 
     let state = Arc::new(ServerState {
+        connections: crate::admission::Gate::new(MAX_CONNECTIONS, 0),
+        searches: crate::admission::Gate::new(search_concurrency, MAX_QUEUED_SEARCHES),
         index: RwLock::new(hybrid),
         visibility: RwLock::new(discovery.visibility),
         hidden_complete: std::sync::atomic::AtomicBool::new(discovery.hidden_complete),
@@ -1030,9 +1051,19 @@ pub fn run(root: &Path, index_path: Option<&Path>, options: ServeOptions<'_>) ->
     // Accept connections
     for stream in listener.incoming() {
         match stream {
-            Ok(stream) => {
+            Ok(mut stream) => {
+                let Ok(connection) = state.connections.acquire(Duration::ZERO) else {
+                    let _ = stream.set_write_timeout(Some(Duration::from_millis(100)));
+                    let _ = writeln!(
+                        stream,
+                        "{}",
+                        json_rpc_error(None, OVERLOADED as i32, "server connection limit reached")
+                    );
+                    continue;
+                };
                 let state = Arc::clone(&state);
                 thread::spawn(move || {
+                    let _connection = connection;
                     if let Err(e) = handle_connection(stream, &state) {
                         eprintln!("[trace] connection error: {e}");
                     }
@@ -1380,25 +1411,50 @@ fn publish_collected_ignore_matcher(
 }
 
 fn handle_connection(stream: TcpStream, state: &Arc<ServerState>) -> Result<()> {
+    stream.set_read_timeout(Some(SOCKET_IDLE_TIMEOUT))?;
+    stream.set_write_timeout(Some(SOCKET_IDLE_TIMEOUT))?;
     let mut reader = BufReader::new(stream.try_clone()?);
     let mut writer = stream;
 
     let mut line = String::new();
-    while reader.read_line(&mut line)? > 0 {
-        let response = process_request(&line, state);
-        writeln!(writer, "{response}")?;
-        writer.flush()?;
+    while (&mut reader)
+        .take(MAX_REQUEST_BYTES + 1)
+        .read_line(&mut line)?
+        > 0
+    {
+        if line.len() as u64 > MAX_REQUEST_BYTES {
+            writeln!(
+                writer,
+                "{}",
+                json_rpc_error(None, -32600, "request exceeds 1 MiB limit")
+            )?;
+            return Ok(());
+        }
+        let (response, permit) = process_request(&line, state);
+        let sent = writeln!(writer, "{response}").and_then(|()| writer.flush());
+        // Keep admission through transmission and response disposal, including
+        // disconnects. Returning a permit before a blocked write multiplies
+        // the number of retained full response strings under slow clients.
+        drop(response);
+        drop(permit);
+        sent?;
         line.clear();
     }
 
     Ok(())
 }
 
-fn process_request(request: &str, state: &Arc<ServerState>) -> String {
+fn process_request(
+    request: &str,
+    state: &Arc<ServerState>,
+) -> (String, Option<crate::admission::Permit>) {
     let req: serde_json::Value = match serde_json::from_str(request) {
         Ok(v) => v,
         Err(e) => {
-            return json_rpc_error(None, -32700, &format!("Parse error: {e}"));
+            return (
+                json_rpc_error(None, -32700, &format!("Parse error: {e}")),
+                None,
+            );
         }
     };
 
@@ -1409,13 +1465,36 @@ fn process_request(request: &str, state: &Arc<ServerState>) -> String {
         .cloned()
         .unwrap_or(serde_json::Value::Null);
 
-    match method {
+    let permit = if matches!(method, "search" | "files") {
+        match state.searches.acquire(REQUEST_WAIT) {
+            Ok(permit) => Some(permit),
+            Err(reason) => {
+                return (
+                    json_rpc_error(
+                        id,
+                        OVERLOADED as i32,
+                        match reason {
+                            crate::admission::Rejected::Full => "server search queue is full",
+                            crate::admission::Rejected::Timeout => {
+                                "server search queue wait timed out"
+                            }
+                        },
+                    ),
+                    None,
+                );
+            }
+        }
+    } else {
+        None
+    };
+    let response = match method {
         "search" => handle_search(id, &params, state),
         "files" => handle_files(id, &params, state),
         "status" => handle_status(id, state),
         "reload" => handle_reload(id, state),
         _ => json_rpc_error(id, -32601, &format!("Method not found: {method}")),
-    }
+    };
+    (response, permit)
 }
 
 fn handle_files(
@@ -2230,6 +2309,9 @@ fn handle_status(id: Option<serde_json::Value>, state: &ServerState) -> String {
 
     let result = serde_json::json!({
         "num_files": index.num_files(),
+        "search_admission": state.searches.status(),
+        "connection_admission": state.connections.status(),
+        "max_request_bytes": MAX_REQUEST_BYTES,
         "num_trigrams": index.num_trigrams(),
         "cache_size": cache.len(),
         "cache_capacity": CACHE_CAPACITY,
@@ -9041,6 +9123,8 @@ mod tests {
         create_empty_index(index_dir).expect("create empty index");
         let hybrid = HybridIndex::open(index_dir, root).expect("open empty index");
         Arc::new(ServerState {
+            connections: crate::admission::Gate::new(MAX_CONNECTIONS, 0),
+            searches: crate::admission::Gate::new(4, MAX_QUEUED_SEARCHES),
             index: RwLock::new(hybrid),
             visibility: RwLock::new(Default::default()),
             hidden_complete: std::sync::atomic::AtomicBool::new(true),
@@ -9203,7 +9287,8 @@ mod tests {
             .insert("asset.bin".to_string());
         state.filename_index_ready.store(true, Ordering::SeqCst);
 
-        let response = process_request(r#"{"jsonrpc":"2.0","method":"files","id":1}"#, &state);
+        let (response, _permit) =
+            process_request(r#"{"jsonrpc":"2.0","method":"files","id":1}"#, &state);
         let value: serde_json::Value = serde_json::from_str(&response).unwrap();
         assert_eq!(
             value.pointer("/result/files").unwrap(),

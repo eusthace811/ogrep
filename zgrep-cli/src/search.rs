@@ -19,6 +19,28 @@ use crate::matching::SearchMatcher;
 use crate::output::{ColorMode, ContextLine, Match, OutputConfig, OutputFormat, OutputWriter};
 use crate::serve::ServerInfo;
 
+#[derive(Debug)]
+struct ServerOverloaded(String);
+
+impl std::fmt::Display for ServerOverloaded {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "server busy: {}; retry later", self.0)
+    }
+}
+impl std::error::Error for ServerOverloaded {}
+
+fn server_error(error: &serde_json::Value) -> anyhow::Error {
+    let message = error
+        .get("message")
+        .and_then(|m| m.as_str())
+        .unwrap_or("unknown error");
+    if error.get("code").and_then(|v| v.as_i64()) == Some(crate::serve::OVERLOADED) {
+        ServerOverloaded(message.to_owned()).into()
+    } else {
+        anyhow::anyhow!("server error: {message}")
+    }
+}
+
 #[derive(Clone)]
 #[cfg_attr(test, derive(Default))]
 pub struct SearchOptions {
@@ -472,25 +494,31 @@ pub fn list_files(root: &Path, index_path: Option<&Path>, opts: &SearchOptions) 
     if filename_index_compatible(opts) {
         if let Ok(info) = ServerInfo::load(&index_dir)
             && let Some((index_root, scope)) = resolve_scope(&index_dir, &root)
-            && let Ok(paths) = list_files_via_server(&info, &scope, opts)
         {
-            write_indexed_file_paths(
-                &index_root,
-                &root,
-                &scope,
-                paths,
-                None,
-                &glob_filter,
-                &type_filter,
-                opts,
-            )?;
-            if opts.stats {
-                eprintln!(
-                    "Filename search completed in {:.1}ms (via server)",
-                    start.elapsed().as_secs_f64() * 1000.0
-                );
+            let paths = match list_files_via_server(&info, &scope, opts) {
+                Ok(paths) => Some(paths),
+                Err(error) if error.is::<ServerOverloaded>() => return Err(error),
+                Err(_) => None,
+            };
+            if let Some(paths) = paths {
+                write_indexed_file_paths(
+                    &index_root,
+                    &root,
+                    &scope,
+                    paths,
+                    None,
+                    &glob_filter,
+                    &type_filter,
+                    opts,
+                )?;
+                if opts.stats {
+                    eprintln!(
+                        "Filename search completed in {:.1}ms (via server)",
+                        start.elapsed().as_secs_f64() * 1000.0
+                    );
+                }
+                return Ok(());
             }
-            return Ok(());
         }
 
         match load_indexed_file_paths(&index_dir) {
@@ -679,11 +707,7 @@ fn list_files_via_server(
     reader.read_line(&mut line)?;
     let response: serde_json::Value = serde_json::from_str(&line)?;
     if let Some(error) = response.get("error") {
-        let message = error
-            .get("message")
-            .and_then(|message| message.as_str())
-            .unwrap_or("unknown error");
-        anyhow::bail!("server error: {message}");
+        return Err(server_error(error));
     }
 
     let result = response
@@ -773,10 +797,10 @@ pub fn run(
         && let Ok(info) = ServerInfo::load(&index_dir)
         && let Some((index_root, scope)) = resolve_scope(&index_dir, &root)
     {
-        if let Ok(had_matches) =
-            search_via_server(&info, &root, &index_root, &scope, opts, ci, writer)
-        {
-            return Ok(had_matches);
+        match search_via_server(&info, &root, &index_root, &scope, opts, ci, writer) {
+            Ok(had_matches) => return Ok(had_matches),
+            Err(error) if error.is::<ServerOverloaded>() => return Err(error),
+            Err(_) => {}
         }
         eprintln!("Server unavailable or index coverage not ready, falling back to local index");
     }
@@ -935,11 +959,7 @@ fn search_via_server(
     let response: serde_json::Value = serde_json::from_str(&line)?;
 
     if let Some(error) = response.get("error") {
-        let msg = error
-            .get("message")
-            .and_then(|m| m.as_str())
-            .unwrap_or("unknown error");
-        anyhow::bail!("server error: {msg}");
+        return Err(server_error(error));
     }
 
     let result = response
