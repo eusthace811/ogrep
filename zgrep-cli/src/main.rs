@@ -11,6 +11,7 @@ mod index;
 mod matching;
 mod mem;
 mod output;
+mod profile;
 mod search;
 mod serve;
 mod status;

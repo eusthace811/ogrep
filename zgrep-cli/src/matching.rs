@@ -631,6 +631,7 @@ pub struct FileMatches<'a> {
 
 impl<'a> FileMatches<'a> {
     pub fn find(content: &'a str, matcher: &SearchMatcher, opts: &MatchOptions) -> Result<Self> {
+        let _match_span = crate::profile::span(crate::profile::Phase::Match);
         let index = LineIndex::new(content);
         let (hits, match_totals) = if opts.max_count == Some(0) {
             (Vec::new(), (0, 0))

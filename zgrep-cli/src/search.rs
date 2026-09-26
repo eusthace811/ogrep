@@ -1284,6 +1284,8 @@ fn search_local_index(
         return brute_force_search(root, index_dir, opts, ci, writer);
     };
 
+    let _profile = crate::profile::Session::start(start);
+    let compile_span = crate::profile::span(crate::profile::Phase::Compile);
     let glob_filter = opts.glob_filter()?;
     let type_filter = opts.type_filter()?;
 
@@ -1305,6 +1307,7 @@ fn search_local_index(
     } else {
         query::build_relaxed_multi_pattern_plan(&opts.all_patterns()?, ci)
     };
+    drop(compile_span);
 
     let is_match_all = plan.is_match_all();
 
@@ -1313,16 +1316,19 @@ fn search_local_index(
     // the wrong filter, so it has to be bypassed. Same for `--files-without-match`
     // and `--include-zero`, which both have to report files the plan excluded.
     let mut query_work = query::QueryWork::default();
+    let postings_span = crate::profile::span(crate::profile::Phase::Postings);
     let candidate_ids =
         if is_match_all || opts.files_without_match || opts.invert_match || opts.include_zero {
             reader.all_file_ids()
         } else {
             query::execute_plan_indexed(&plan, &reader, &mut query_work)
         };
+    drop(postings_span);
 
     // Drop everything outside the searched subtree and re-express the survivors
     // relative to it, so globs, `--max-depth` and printed paths all agree with
     // what the brute-force walk of the same directory would produce.
+    let filter_span = crate::profile::span(crate::profile::Phase::Filter);
     let mut candidates: Vec<(u32, String)> = candidate_ids
         .iter()
         .filter_map(|&fid| {
@@ -1345,6 +1351,7 @@ fn search_local_index(
     if let Some(sort) = opts.sort {
         sort.apply_indexed(&mut candidates, &index_root, &scope, |(_, rel)| rel);
     }
+    drop(filter_span);
 
     let mut had_matches = false;
     // A single-file search root is a file the user named on the command line,
@@ -1352,10 +1359,12 @@ fn search_local_index(
     let explicit = matches!(scope, IndexScope::File(_));
 
     for (_, rel_path) in &candidates {
+        let metadata_span = crate::profile::span(crate::profile::Phase::Metadata);
         let full_path = scope.full_path(&index_root, rel_path);
         if exceeds_max_filesize(&full_path, opts, explicit) {
             continue;
         }
+        drop(metadata_span);
         let read = match read_text_lossy(&full_path, opts.encoding) {
             Ok(c) => c,
             Err(_) => continue,
@@ -1387,6 +1396,7 @@ fn search_local_index(
         );
     }
 
+    let _flush_span = crate::profile::span(crate::profile::Phase::Flush);
     writer.flush()?;
     Ok(had_matches)
 }
@@ -1712,6 +1722,7 @@ fn read_text_lossy(
     path: &Path,
     encoding: zgrep_core::encoding::EncodingMode,
 ) -> std::io::Result<FileRead> {
+    let read_span = crate::profile::span(crate::profile::Phase::Read);
     // A mapped file is always already-valid UTF-8, so it needs no fixups.
     if let Some((text, first_nul)) = try_map_text(path, encoding) {
         return Ok(FileRead {
@@ -1721,6 +1732,8 @@ fn read_text_lossy(
         });
     }
     let bytes = std::fs::read(path)?;
+    drop(read_span);
+    let _decode_span = crate::profile::span(crate::profile::Phase::Decode);
     let (text, fixups) = zgrep_core::encoding::decode_owned_with_fixups(bytes, encoding);
     // The read path already walks these bytes at least once and they are under
     // the mapping threshold or repaired, so a separate scan here is cheap. It
@@ -1855,6 +1868,7 @@ fn search_decoded_file(
     writer: &mut OutputWriter,
     explicit: bool,
 ) -> Result<FileOutcome> {
+    let _verify_span = crate::profile::span(crate::profile::Phase::VerifyRender);
     let FileRead {
         text,
         fixups,

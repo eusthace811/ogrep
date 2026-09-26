@@ -13,6 +13,10 @@ readme = "../README.md"
 name = "zgrep"
 path = "src/main.rs"
 
+[features]
+# Diagnostic builds only: phase timings without changing matching semantics.
+profile-search = []
+
 [dependencies]
 zgrep-core = { workspace = true }
 serde = { workspace = true }
