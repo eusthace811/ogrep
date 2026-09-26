@@ -18,8 +18,8 @@ The measured executable is `45777bbc84a9043cf3de690b781cf623fa1806368ae377ae5de4
 | Load and resources | [Load](../evidence/release-0.2.0/load.json): 3,072 checked requests at 1/4/16 clients; [indexing](../evidence/release-0.2.0/index-resources.json): elapsed, CPU, RSS, storage | Passed; saturation and memory limits reported |
 | Cache/startup | [Cache](../evidence/release-0.2.0/cache.json): 180 checks with mincore-verified cold index pages; [startup](../evidence/release-0.2.0/startup.json): 10 reconciled restarts | Passed for index-file cache; whole-machine/source/device-cold behavior unclaimed |
 | Dependencies and tooling | [Audit](../evidence/release-0.2.0/audit.log): zero vulnerabilities/warnings; format, Clippy, polling/property, 34 agent and 49 installer tests | Passed |
-| Release delivery | Version 0.2.0, local archive, checksum, exact source/binary provenance, extracted-binary checks and operating guide | Packaging pending |
-| Final audit | Current artifact/source/evidence identities, all adopted gates, limitations and clean committed tree | Pending packaging |
+| Release delivery | Version 0.2.0, local archive, checksum, exact source/binary provenance, extracted-binary checks and operating guide | Passed: [receipt](../evidence/release-0.2.0/release-validation.json), matching binary hash and 96 extracted-binary output checks |
+| Final audit | Current artifact/source/evidence identities, all adopted gates, limitations and clean committed tree | Passed: artifact/source/evidence audit; final commit contains all release records |
 
 The cold-cache boundary is explicit: only disposable index file pages were established cold. OS executable/metadata/device caches and the source corpus were not. This does not establish performance on every machine or filesystem. The local server is trusted and unauthenticated; shared multi-user hosting remains outside this product's release contract.
 
@@ -44,3 +44,9 @@ Candidate 0.2.0 passes the updated dependency audit with zero vulnerabilities an
 The first 0.2.0 candidate (`8405e472...`) passed all qualification commands, 6,804 timed output checks and 252 independent scan comparisons. Broad local Rust speedup is 1.262× versus tgrep and 1.257× versus 0.1.0; broad server speed is effectively unchanged. The 12-query CPython server workload is 0.949× versus 0.1.0. A subsequent experiment removed redundant traversal-filter compilation from indexed requests; that small workload regression is retained in the evidence rather than hidden.
 
 The 25-round paired experiment supports deferring traversal-filter compilation: it improves the CPython server workload by 1.063× versus the first 0.2.0 candidate, with equal results. Against 0.1.0 it is 0.987× in that run (near neutral, not a claimed server speedup). The change preserves upfront type-name and glob validation; only filesystem walks compile the second ignore matcher. The final evaluation uses this exact executable throughout, in `evidence/release-0.2.0/`.
+
+## Completion audit
+
+The archive was built from clean commit `4383dd50d69e8163d7d27c9edbbe06dcf1f6b9cd`. Its executable hash exactly matches all final benchmarks, load/recovery tests and qualification records. The archive contains the operating guide; its extracted binary passed the local/server Unicode and positional smoke checks and the independent 96-case output matrix. Runtime source and locked dependencies are unchanged from measured commit `43de89f7489b69b70d11ca8dbc402e409d275ab1`. Final commits add only report, audit and delivery evidence.
+
+The audit verifies each gate above using its full evidence scope. Complete raw results, known regressions and compatibility limitations remain in the report. No performance claim depends on silently dropping failed cases or comparing an outdated index with a changed corpus. The local 0.2.0 release is ready within the documented Linux/WSL trusted-tool contract; it is not remotely published or certified for other operating systems.

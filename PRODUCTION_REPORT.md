@@ -78,7 +78,7 @@ The posting format and practical index size are unchanged; tiny byte differences
 - Dependency audit: **zero vulnerabilities and zero warnings** against the recorded RustSec database. Prior failing audits and fixes are retained under `evidence/production/`.
 - The known-positive Unicode fixture still shows four indexed false negatives in tgrep, all corrected by the fork; all scanners and the ASCII control agree.
 
-[Commands and test provenance](evidence/release-0.2.0/qualification.json); [output cases](evidence/release-0.2.0/output-modes-020.json); [recovery records](evidence/release-0.2.0/recovery.json); [audit](evidence/release-0.2.0/audit.log); [Unicode comparison](evidence/release-0.2.0/unicode-020.json).
+[Commands and test provenance](evidence/release-0.2.0/qualification.json); [output cases](evidence/release-0.2.0/output-modes-020.json); [recovery records](evidence/release-0.2.0/recovery.json); [evaluation audit](evidence/release-0.2.0/audit.log); [packaging-time audit](evidence/release-0.2.0/dependency-audit-at-packaging.json); [Unicode comparison](evidence/release-0.2.0/unicode-020.json).
 
 The new differential tests exposed inherited CRLF stripping, invented newlines in JSON, missing server JSON byte offsets and hidden-file type filtering. Initial failures are preserved, alongside focused regression tests. `--crlf` was silently ignored upstream; 0.2.0 rejects that unsupported matching mode with exit 2. Default LF matching preserves CR source bytes. This release is not full ripgrep compatibility.
 
@@ -91,7 +91,7 @@ The new differential tests exposed inherited CRLF stripping, invented newlines i
 - Intel Core i9-14900KS, 32 available logical CPUs, WSL2 Linux 6.6.87.2 x86-64, Rust 1.98.1. No macOS/Windows runtime qualification or remote publication.
 - Run `python3 scripts/evaluate-release.py --output-directory evidence/NEW-RUN` after preparing the documented frozen corpora and baselines. [Exact command manifest](evidence/release-0.2.0/run.json).
 
-Packaging and extracted-executable validation are the remaining release gate.
+Packaged archive: [zgrep-code-0.2.0-x86_64-unknown-linux-gnu.tar.gz](dist/zgrep-code-0.2.0-x86_64-unknown-linux-gnu.tar.gz). Archive SHA-256: `3863490d9aaa8108cf3f90769a53a67257905b59e1e5d1dc727c5380a1372f4d`. Packaging source commit: `4383dd50d69e8163d7d27c9edbbe06dcf1f6b9cd`; the executable hash matches every final evaluation. The extracted executable passes the Unicode/position smoke checks and all 96 output comparisons. [Packaging receipt](evidence/release-0.2.0/release-validation.json).
 
 ## Operating limits and further improvements
 
