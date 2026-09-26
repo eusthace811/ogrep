@@ -1,5 +1,7 @@
 # Next improvements and evaluation plan
 
+Update: lazy startup ordering, output parity, cold index pages, load/resources and recovery have now been evaluated for 0.2.0. See the [release report](../PRODUCTION_REPORT.md). The proposal and profiling records below are retained as research history.
+
 The existing comparison is reproducible evidence for warm, single-query file-list latency and selected correctness properties. It does not establish the performance limit of the design. New measurements identify local startup as a promising next target and begin evaluating edit visibility.
 
 ## New evidence

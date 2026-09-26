@@ -1,5 +1,7 @@
 # zgrep versus tgrep — fresh evaluation, 25 September 2026
 
+Latest: [0.2.0 production evaluation](PRODUCTION_REPORT.md), including broader startup gains, output correctness, cold index pages, load and recovery. The measurements below are retained 0.1.0 evidence.
+
 This report compares **zgrep 0.1.0** against **tgrep 1.0.10**, upstream source `56f8c62a2255d794bcaafca5f6a05dcc2d793ad0`. It uses new timings with a different randomized execution order, not just the earlier development results. Both executable hashes still match the binaries used in the release evaluation; no runtime code was changed for this comparison.
 
 **Verdict:** zgrep has a repeatable, large advantage for the tested nested-alternation queries and corrects four demonstrated Unicode candidate-filtering failures. For the broader upstream-derived workload, local performance is effectively tied (**1.002×**) and server performance changes modestly (**1.019×** geometric-mean speedup). The evidence supports targeted value, not a general order-of-magnitude improvement.

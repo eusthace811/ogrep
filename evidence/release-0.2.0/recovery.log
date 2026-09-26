@@ -1,0 +1,3 @@
+native: 5 exact-output checkpoints, 181 concurrent queries
+poll: 5 exact-output checkpoints, 2039 concurrent queries
+fallback: 5 exact-output checkpoints, 2076 concurrent queries

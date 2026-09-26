@@ -39,7 +39,7 @@ These are work counts, not bytes read or allocations. Probes inspect mapped entr
 
 ## Validation and release limits
 
-The local release gates cover the complete Rust workspace, the separate ignored polling measurement, example tests, formatting, Clippy, agent integrations, installer checks, real CLI/server smoke tests, and output parity on frozen corpora. Raw records and performance limits are in [BENCHMARKS.md](../BENCHMARKS.md). This does not establish universal performance, zero defects, or support for arbitrary dependency/toolchain updates. Cold-cache latency, production-scale memory profiles, and watcher behavior on other operating systems remain unmeasured here.
+The local release gates cover the complete Rust workspace, the separate ignored polling measurement, example tests, formatting, Clippy, agent integrations, installer checks, real CLI/server smoke tests, and output parity on frozen corpora. Raw records and performance limits are in [BENCHMARKS.md](../BENCHMARKS.md). This does not establish universal performance, zero defects, or support for arbitrary dependency/toolchain updates. Version 0.2.0 adds cold-index-page, concurrency/RSS, indexing-resource and restart measurements in [the release report](../PRODUCTION_REPORT.md). Whole-machine cold caches and watcher behavior on other operating systems remain unmeasured.
 
 The old upstream signing workflow is archived under `docs/upstream/`; it depended on Microsoft's infrastructure. There is no new hosted download repository or signed release. Download installers require an explicit `ZGREP_REPO`. Local installation and packaging need neither an account nor a publishing step.
 

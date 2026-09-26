@@ -1,4 +1,4 @@
-# Production readiness work in progress
+# Production readiness audit — 0.2.0
 
 Goal: proceed until the release is production ready. The 0.1.0 artifacts and their evidence are retained as a baseline; they do not automatically satisfy this new release audit.
 
@@ -6,37 +6,41 @@ The existing product scope is a local exact-search CLI and agent service, initia
 
 ## Release gates
 
-| Gate | Required evidence | Status |
+The measured executable is `45777bbc84a9043cf3de690b781cf623fa1806368ae377ae5de4386f5450351d`; all final evaluation records below refer to that hash.
+
+| Gate | Evidence | Status |
 | --- | --- | --- |
-| Scope and operating contract | Supported platforms, file eligibility, output/error semantics, freshness, resource and service-access boundaries documented | Existing contracts; new scope preference pending |
-| Measured improvement | Preserve 0.1.0 and tgrep binaries; freeze corpus identities; evaluate startup optimization against both with output checks and regressions retained | In progress: lazy path ordering prototype |
-| Core correctness | Complete workspace tests; generated planner checks; new concurrent lazy initialization/close checks; corruption and atomic-publication behavior preserved | Targeted reader checks passed; full candidate suite pending |
-| Broader CLI semantics | Independent exact-output checks for lines, counts, JSON, quiet, context, filters, multiple patterns and Unicode | Pending candidate evaluation |
-| Update and recovery | Existing recovery suite plus real-server edits, bulk mutations, polling fallback, restart/crash and queries during churn | Small native-watcher baseline exists; candidate stress pending |
-| Load and resources | 1/4/16 concurrent clients with retained latency samples and errors; indexing and process memory/CPU measurements | Pending |
-| Cache/startup | Warm local/server and restarted-server measurements; genuine cold-cache measurement where an isolated environment can establish it, or explicitly unresolved cold-cache gate | Pending |
-| Dependencies and tooling | Locked builds, dependency advisory review, format/Clippy, agent and installer tests | Pending candidate checks |
-| Release delivery | Versioned artifact, checksum, exact source/binary provenance, extracted-binary smoke tests and usable operating/recovery guide | 0.1.0 retained; candidate package pending |
-| Final audit | Every adopted gate matched to current evidence; limitations and unresolved items reported; clean committed tree | Not complete |
+| Scope and operating contract | [Operations](OPERATIONS.md): Linux/WSL, eligibility, errors, freshness, local service access, resource controls and recovery | Passed for existing local-tool scope |
+| Measured improvement | [Final report](../PRODUCTION_REPORT.md), 6,804 checked timings, frozen worktrees, retained baselines and regressions, 252 independent scan comparisons | Passed: 1.267× broad local speedup vs tgrep, 1.262× vs 0.1.0 |
+| Core correctness | [Qualification](../evidence/release-0.2.0/qualification.json): 951 workspace tests, generated planner checks, concurrent lazy access/close, corruption and publication tests | Passed |
+| Broader CLI semantics | [Output matrix](../evidence/release-0.2.0/output-modes-020.json): 96 exact-output/exit checks across scan/local/server | Passed within documented compatibility scope |
+| Update and recovery | [Recovery](../evidence/release-0.2.0/recovery.json): 15 checkpoints, bulk churn, native/poll/fallback, SIGKILL/offline changes/restart, 4,296 concurrent queries | Passed |
+| Load and resources | [Load](../evidence/release-0.2.0/load.json): 3,072 checked requests at 1/4/16 clients; [indexing](../evidence/release-0.2.0/index-resources.json): elapsed, CPU, RSS, storage | Passed; saturation and memory limits reported |
+| Cache/startup | [Cache](../evidence/release-0.2.0/cache.json): 180 checks with mincore-verified cold index pages; [startup](../evidence/release-0.2.0/startup.json): 10 reconciled restarts | Passed for index-file cache; whole-machine/source/device-cold behavior unclaimed |
+| Dependencies and tooling | [Audit](../evidence/release-0.2.0/audit.log): zero vulnerabilities/warnings; format, Clippy, polling/property, 34 agent and 49 installer tests | Passed |
+| Release delivery | Version 0.2.0, local archive, checksum, exact source/binary provenance, extracted-binary checks and operating guide | Packaging pending |
+| Final audit | Current artifact/source/evidence identities, all adopted gates, limitations and clean committed tree | Pending packaging |
 
-Passing a startup microbenchmark is not enough to accept the optimization. The next end-to-end comparison must show a useful improvement on the independently derived local workload without losing matching results. First access to the deferred structure, live overlays, and publication must remain correct under concurrent use.
+The cold-cache boundary is explicit: only disposable index file pages were established cold. OS executable/metadata/device caches and the source corpus were not. This does not establish performance on every machine or filesystem. The local server is trusted and unauthenticated; shared multi-user hosting remains outside this product's release contract.
 
-Benchmark snapshots are separate detached worktrees so the user's normal corpus checkouts can advance without changing the benchmark inputs. Index metadata must identify the same snapshot root and revision. No runtime test should use a stale index simply because its files exist.
+Research features in `NEXT_EVALUATION.md` remain hypotheses, not release requirements. Sparse-gram indexing was evaluated and rejected. Concurrency control, smaller file-list replies and refresh completion are supported next investigations, not claims about implemented behavior.
 
-Research features in `NEXT_EVALUATION.md` (structural navigation, ranked discovery, alternative index formats) remain hypotheses, not automatic release requirements. They should enter the release only when they address a measured product need and have their own correctness and cost evidence. The production goal does require completing the release gates above rather than relabeling experimental work as ready.
+## Experiment history
+
+The following records describe intermediate candidates; the table above identifies the final evidence.
 
 ## Output parity findings
 
 The new independent 81-check scan/local/server comparison retained its initial 45 failures in `evidence/production/output-modes-before-crlf-fix.json`. Matching previously stripped CR bytes from CRLF input; JSON also invented a final newline for unterminated input, and server JSON omitted source positions. The fixes retain CR as source content, reconstruct only existing terminators, and request position details for server JSON. Targeted CLI tests pass. The old maximum-column test normalized CRLF in its expected output; its expectation now preserves the source CR, with its column-limit assertions retained.
 
-`output-modes-crlf-fixed.json` retains the remaining three failures: positive type selection must admit matching hidden files while respecting hidden ancestor directories and ignore rules. This is a separate scope fix still in progress. Passing targeted tests does not complete the release gates.
+`output-modes-crlf-fixed.json` retains the remaining three failures: positive type selection must admit matching hidden files while respecting hidden ancestor directories and ignore rules. This was a separate scope fix, completed in the subsequent records. Passing targeted tests does not complete the release gates.
 
 The hidden-file/type correction now passes 96 independent checks across scanning, local indexing and the service (`output-modes-type-fixed.json`). The earlier candidate-count regression expected exclusion of `.hidden.rs` under `-t rust`; expected counts now include that real matching file while preserving the raw-candidate, size-limit and backend parity assertions. The service concurrency test now fails on indexing timeout instead of continuing against a partial index.
 
-Dependency audit found patched upstream issues in [crossbeam-epoch](https://rustsec.org/advisories/RUSTSEC-2026-0204.html), [anyhow](https://rustsec.org/advisories/RUSTSEC-2026-0190.html), [lru](https://rustsec.org/advisories/RUSTSEC-2026-0253.html), and [memmap2](https://rustsec.org/advisories/RUSTSEC-2026-0186.html). These are updated to patched versions; the full before/after audit records are retained. notify 8.2 replaces notify 7 to remove its dependency on [unmaintained instant](https://rustsec.org/advisories/RUSTSEC-2024-0384.html); the full watcher and recovery suite must pass again for that upgrade.
+Dependency audit found patched upstream issues in [crossbeam-epoch](https://rustsec.org/advisories/RUSTSEC-2026-0204.html), [anyhow](https://rustsec.org/advisories/RUSTSEC-2026-0190.html), [lru](https://rustsec.org/advisories/RUSTSEC-2026-0253.html), and [memmap2](https://rustsec.org/advisories/RUSTSEC-2026-0186.html). These are updated to patched versions; the full before/after audit records are retained. notify 8.2 replaces notify 7 to remove its dependency on [unmaintained instant](https://rustsec.org/advisories/RUSTSEC-2024-0384.html); the final full watcher and recovery suite passes with that upgrade.
 
 Candidate 0.2.0 passes the updated dependency audit with zero vulnerabilities and zero warnings (`dependency-audit-final.json`). All 15 independent recovery checkpoints passed across native watching, explicit polling and budget-triggered polling fallback; 4,501 concurrent queries completed during bulk edits/ignore churn. These include SIGKILL, 50 edits across the crash boundary and restart (`recovery-candidate.json`). This is a controlled fixture, not a filesystem-wide freshness guarantee.
 
-The first 0.2.0 candidate (`8405e472...`) passed all qualification commands, 6,804 timed output checks and 252 independent scan comparisons. Broad local Rust speedup is 1.262× versus tgrep and 1.257× versus 0.1.0; broad server speed is effectively unchanged. The 12-query CPython server workload is 0.949× versus 0.1.0. Before freezing the artifact, an experiment will remove redundant traversal-filter compilation from indexed requests; that small workload regression is retained in the evidence rather than hidden.
+The first 0.2.0 candidate (`8405e472...`) passed all qualification commands, 6,804 timed output checks and 252 independent scan comparisons. Broad local Rust speedup is 1.262× versus tgrep and 1.257× versus 0.1.0; broad server speed is effectively unchanged. The 12-query CPython server workload is 0.949× versus 0.1.0. A subsequent experiment removed redundant traversal-filter compilation from indexed requests; that small workload regression is retained in the evidence rather than hidden.
 
-The 25-round paired experiment supports deferring traversal-filter compilation: it improves the CPython server workload by 1.063× versus the first 0.2.0 candidate, with equal results. Against 0.1.0 it is 0.987× in that run (near neutral, not a claimed server speedup). The change preserves upfront type-name and glob validation; only filesystem walks compile the second ignore matcher. A final evaluation will use this exact executable throughout, in `evidence/release-0.2.0/`.
+The 25-round paired experiment supports deferring traversal-filter compilation: it improves the CPython server workload by 1.063× versus the first 0.2.0 candidate, with equal results. Against 0.1.0 it is 0.987× in that run (near neutral, not a claimed server speedup). The change preserves upfront type-name and glob validation; only filesystem walks compile the second ignore matcher. The final evaluation uses this exact executable throughout, in `evidence/release-0.2.0/`.

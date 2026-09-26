@@ -1,5 +1,7 @@
 # zgrep 0.1.0 evaluation
 
+Latest: [0.2.0 production evaluation](PRODUCTION_REPORT.md), including broader startup gains, output correctness, cold index pages, load and recovery. The measurements below are retained 0.1.0 evidence.
+
 A [fresh head-to-head evaluation](TGREP_COMPARISON.md) repeats the comparison with another random order, adds the 102-query workload in local mode, and directly demonstrates the Unicode correctness differences. The release-development measurements below remain unchanged.
 
 The retained approach improves the existing planner without replacing the index: preserve mandatory Boolean subplans, consult posting cardinalities before loading, probe sparse candidates directly, and compare existing position masks within literal runs. It also fixes an inherited Unicode fixed-insensitive false-negative bug and exposes actual index work through `--explain`.

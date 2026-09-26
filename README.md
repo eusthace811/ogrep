@@ -15,7 +15,7 @@ Put `~/.cargo/bin` on PATH, or use `./target/release/zgrep` directly after `carg
 
 ## What changed
 
-- **Faster local startup:** lazy path ordering makes the 102-query Rust workload about **1.26× faster** than both tgrep and zgrep 0.1.0. See the [0.2.0 qualification report](PRODUCTION_REPORT.md) for full comparisons, cold-index tests, concurrency limits and raw evidence.
+- **Faster local startup:** lazy path ordering makes the 102-query Rust workload **1.27× faster than tgrep** and **1.26× faster than zgrep 0.1.0**. See the [0.2.0 qualification report](PRODUCTION_REPORT.md) for full comparisons, cold-index tests, concurrency limits and raw evidence.
 - **More accurate output:** preserve CRLF bytes and unterminated lines, correct server JSON offsets, and honor positive type selection for hidden files. Unsupported `--crlf` matching now fails explicitly.
 
 - **Better regex plans:** retain mandatory alternatives inside concatenations instead of discarding useful constraints. The tested nested-alternation queries ran **2.9× faster on CPython and 13.5× on Rust** with local indexes; the server gains were 1.9× and 10.0×.
