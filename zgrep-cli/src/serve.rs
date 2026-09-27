@@ -274,12 +274,20 @@ fn try_acquire_server_lock(index_dir: &Path) -> Result<File> {
 struct DecodedFile {
     text: String,
     fixups: zgrep_core::encoding::LossyFixups,
+    /// Offset of the first NUL in `text`, found once when the file is cached
+    /// rather than rescanned by every query that verifies it.
+    first_nul: Option<usize>,
 }
 
 impl DecodedFile {
     fn new(bytes: Vec<u8>, encoding: zgrep_core::encoding::EncodingMode) -> Self {
         let (text, fixups) = zgrep_core::encoding::decode_owned_with_fixups(bytes, encoding);
-        Self { text, fixups }
+        let first_nul = memchr::memchr(0, text.as_bytes());
+        Self {
+            text,
+            fixups,
+            first_nul,
+        }
     }
 
     /// Heap cost of this entry, used to bound the cache by memory rather than
@@ -322,6 +330,13 @@ impl ContentCache {
 
     fn peek(&self, key: &str) -> Option<&Arc<DecodedFile>> {
         self.lru.peek(key)
+    }
+
+    /// Whether recency still decides anything: until the cache is half full
+    /// by either bound, nothing is close to eviction and promoting hits only
+    /// costs a write lock and a list splice per candidate.
+    fn recency_matters(&self) -> bool {
+        self.lru.len() * 2 >= self.lru.cap().get() || self.bytes * 2 >= self.max_bytes
     }
 
     /// Promote an entry to most-recently-used.
@@ -2020,56 +2035,57 @@ fn handle_search(
             .collect()
     } else {
         let cache_generation = state.cache_generation.load(Ordering::SeqCst);
-        // Phase 1: read-lock to find cache hits (peek avoids write-lock need)
-        let mut hit_keys: Vec<String> = Vec::new();
-        let mut hits: Vec<(String, Arc<DecodedFile>)> = Vec::with_capacity(candidate_info.len());
-        let mut misses: Vec<(String, PathBuf)> = Vec::new();
-        {
+        // Phase 1: read-lock to find cache hits (peek avoids write-lock need),
+        // one slot per candidate so order needs no map to restore.
+        let (mut slots, recency_matters): (Vec<Option<Arc<DecodedFile>>>, bool) = {
             let cache = state.cache.read().unwrap();
-            for (rel_path, full_path) in &candidate_info {
-                if let Some(cached) = cache.peek(rel_path) {
-                    hit_keys.push(rel_path.clone());
-                    hits.push((rel_path.clone(), Arc::clone(cached)));
-                } else {
-                    misses.push((rel_path.clone(), full_path.clone()));
-                }
-            }
-        } // read lock released
+            let slots = candidate_info
+                .par_iter()
+                .with_min_len(512)
+                .map(|(rel_path, _)| cache.peek(rel_path).cloned())
+                .collect();
+            (slots, cache.recency_matters())
+        }; // read lock released
+        let hit_keys: Vec<String> = if recency_matters {
+            slots
+                .iter()
+                .zip(&candidate_info)
+                .filter(|(slot, _)| slot.is_some())
+                .map(|(_, (rel_path, _))| rel_path.clone())
+                .collect()
+        } else {
+            Vec::new()
+        };
 
-        // Phase 2: read cache misses from disk (no lock held)
-        let disk_results: Vec<(String, Arc<DecodedFile>)> = misses
-            .into_iter()
-            .filter_map(|(rel_path, full_path)| {
-                // Lossy, like the local path: refusing invalid UTF-8 would make
-                // UTF-16 and Latin-1 sources silently invisible over the server
-                // while the same query works with --no-index.
-                let bytes = std::fs::read(&full_path).ok()?;
+        // Phase 2: read cache misses from disk (no lock held). Lossy, like the
+        // local path: refusing invalid UTF-8 would make UTF-16 and Latin-1
+        // sources silently invisible over the server while the same query
+        // works with --no-index.
+        let missing: Vec<usize> = (0..slots.len()).filter(|&i| slots[i].is_none()).collect();
+        let disk_results: Vec<(usize, Arc<DecodedFile>)> = missing
+            .par_iter()
+            .filter_map(|&i| {
+                let bytes = std::fs::read(&candidate_info[i].1).ok()?;
                 let decoded = DecodedFile::new(bytes, zgrep_core::encoding::EncodingMode::Auto);
-                Some((rel_path, Arc::new(decoded)))
+                Some((i, Arc::new(decoded)))
             })
             .collect();
 
         // Phase 3: single write-lock to promote hits and insert misses
         if !hit_keys.is_empty() || !disk_results.is_empty() {
-            update_content_cache(state, cache_generation, &hit_keys, &disk_results);
+            let inserted: Vec<(String, Arc<DecodedFile>)> = disk_results
+                .iter()
+                .map(|(i, content)| (candidate_info[*i].0.clone(), Arc::clone(content)))
+                .collect();
+            update_content_cache(state, cache_generation, &hit_keys, &inserted);
         }
-
-        // Combine hits and disk results, preserving candidate order
-        let mut result_map: std::collections::HashMap<&str, Arc<DecodedFile>> =
-            std::collections::HashMap::with_capacity(hits.len() + disk_results.len());
-        for (rel_path, content) in &hits {
-            result_map.insert(rel_path, Arc::clone(content));
-        }
-        for (rel_path, content) in &disk_results {
-            result_map.insert(rel_path, Arc::clone(content));
+        for (i, content) in disk_results {
+            slots[i] = Some(content);
         }
         candidate_info
             .iter()
-            .filter_map(|(rel_path, _)| {
-                result_map
-                    .remove(rel_path.as_str())
-                    .map(|c| (rel_path.clone(), c))
-            })
+            .zip(slots)
+            .filter_map(|((rel_path, _), slot)| slot.map(|c| (rel_path.clone(), c)))
             .collect()
     };
     let resolve_ms = t_resolve.elapsed().as_secs_f64() * 1000.0;
@@ -2239,11 +2255,7 @@ fn search_file_matches(
     let binary_offset = if opts.text {
         None
     } else {
-        content
-            .as_bytes()
-            .iter()
-            .position(|&b| b == 0)
-            .map(|off| fixups.to_source_offset(off))
+        file.first_nul.map(|off| fixups.to_source_offset(off))
     };
 
     let found = FileMatches::find(content, matcher, &match_opts)?;
