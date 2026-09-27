@@ -1,0 +1,6 @@
+disabled/0: starting
+disabled/0: 14 immediate exact comparisons, {'refresh_median_ms': 7.001391, 'refresh_max_ms': 7.897591, 'status_max_ms': 0.381984, 'search_count': 0}
+native/0: starting
+native/0: 14 immediate exact comparisons, {'refresh_median_ms': 7.765728, 'refresh_max_ms': 8.98497, 'status_max_ms': 0.388589, 'search_count': 0}
+poll/0: starting
+poll/0: 14 immediate exact comparisons, {'refresh_median_ms': 7.0594149999999996, 'refresh_max_ms': 8.143598, 'status_max_ms': 0.399231, 'search_count': 0}

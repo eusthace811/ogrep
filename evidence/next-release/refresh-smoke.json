@@ -1,0 +1,1263 @@
+{
+  "source_commit": "4fc088d4ed99e47763ae04d2af237f378fe0d9e8",
+  "binary": "/home/eusth/projects/Experiments/tgrep/zgrep/target/release/zgrep",
+  "binary_sha256": "1e975f67d925cec6b5f2cdd3c9fd6b8c7cc8dbc6f322d1234ed516768c302138",
+  "version": "zgrep 0.2.0",
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "files": 20,
+  "cycles": 1,
+  "description": "Disposable 1000-file default fixture, 12 edit types per cycle, all modes, quiet and 16-client default load. Each successful CLI receipt is followed immediately by exact line output and filename-set comparisons with independent rg. No visibility polling retries. Load queries use an unchanged independently checked file set. Refresh CPU deltas include concurrent searches when enabled; peak RSS is cumulative per daemon. Not a cross-platform or full-corpus performance claim.",
+  "cases": [
+    {
+      "mode": "disabled",
+      "clients": 0,
+      "checks": [
+        {
+          "label": "initial-build",
+          "latency_ms": 7.502958,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 21,
+            "root": "/tmp/zgrep-barrier-e8wmtxyk/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.019999999999999997,
+          "rss_kib": 8192,
+          "peak_rss_kib": 8192,
+          "content_exit": 0,
+          "content_sha256": "a698d19afd7be2e11760fc679a0d467633c41e77c5cbd9fe3d3f58fee1bc5588",
+          "filename_count": 21,
+          "filenames_sha256": "531957978e32ab071eb945ae7b1b24afef3828786e8afea52573df5619bdd29e",
+          "correct": true
+        },
+        {
+          "label": "0/edit",
+          "latency_ms": 6.966918,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 21,
+            "root": "/tmp/zgrep-barrier-e8wmtxyk/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.010000000000000002,
+          "rss_kib": 8448,
+          "peak_rss_kib": 8448,
+          "content_exit": 0,
+          "content_sha256": "1d3bb5af83bb46375f5025988cef8c4b614e33427fe768932f8ddc72b8d04064",
+          "filename_count": 21,
+          "filenames_sha256": "531957978e32ab071eb945ae7b1b24afef3828786e8afea52573df5619bdd29e",
+          "correct": true
+        },
+        {
+          "label": "0/create",
+          "latency_ms": 7.833262,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-e8wmtxyk/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.019999999999999997,
+          "rss_kib": 8448,
+          "peak_rss_kib": 8448,
+          "content_exit": 0,
+          "content_sha256": "80c08fa057fff861b3bdeca951ff76016a53ade8236dd0933ce02ba3735a013e",
+          "filename_count": 22,
+          "filenames_sha256": "57504a55c828a1ea04846a9d687ead57b1606138909c15fe6989413e33ee0868",
+          "correct": true
+        },
+        {
+          "label": "0/rename",
+          "latency_ms": 6.718099,
+          "receipt": {
+            "elapsed_ms": 4,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-e8wmtxyk/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.0,
+          "rss_kib": 8448,
+          "peak_rss_kib": 8448,
+          "content_exit": 0,
+          "content_sha256": "499b3221854345904ec952b314823302653471242d44d4c45e9cb5d093be3482",
+          "filename_count": 22,
+          "filenames_sha256": "6e24de43ee72e6bc7264dfa05476233766a85405e70e1310669b09d05fcfebcd",
+          "correct": true
+        },
+        {
+          "label": "0/atomic_replace",
+          "latency_ms": 6.826072,
+          "receipt": {
+            "elapsed_ms": 4,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-e8wmtxyk/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.020000000000000004,
+          "rss_kib": 8704,
+          "peak_rss_kib": 8704,
+          "content_exit": 0,
+          "content_sha256": "9e911611968af6e09b7ed4a70722bcb8b78d42a0e8237105ea62e2756e30eb35",
+          "filename_count": 22,
+          "filenames_sha256": "6e24de43ee72e6bc7264dfa05476233766a85405e70e1310669b09d05fcfebcd",
+          "correct": true
+        },
+        {
+          "label": "0/delete",
+          "latency_ms": 7.085585,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 21,
+            "root": "/tmp/zgrep-barrier-e8wmtxyk/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.009999999999999995,
+          "rss_kib": 8704,
+          "peak_rss_kib": 8704,
+          "content_exit": 0,
+          "content_sha256": "4c50fbc714fd5efc016e870871309e14898470039be077a52d0004d57f844e8e",
+          "filename_count": 21,
+          "filenames_sha256": "531957978e32ab071eb945ae7b1b24afef3828786e8afea52573df5619bdd29e",
+          "correct": true
+        },
+        {
+          "label": "0/ignore",
+          "latency_ms": 6.90825,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 21,
+            "root": "/tmp/zgrep-barrier-e8wmtxyk/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.010000000000000009,
+          "rss_kib": 8704,
+          "peak_rss_kib": 8704,
+          "content_exit": 1,
+          "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "filename_count": 21,
+          "filenames_sha256": "acbd5e51d6fd4e1d64b242f0730b91926ba6ff4b417afbde2511a5f4c709650e",
+          "correct": true
+        },
+        {
+          "label": "0/unignore",
+          "latency_ms": 6.718628,
+          "receipt": {
+            "elapsed_ms": 4,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-e8wmtxyk/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.009999999999999995,
+          "rss_kib": 8704,
+          "peak_rss_kib": 8704,
+          "content_exit": 0,
+          "content_sha256": "4c50fbc714fd5efc016e870871309e14898470039be077a52d0004d57f844e8e",
+          "filename_count": 22,
+          "filenames_sha256": "47aa8e6df9322ab1b1dfb3ad1965856d8b4b1222e8f14f5a6bccf0219f32f2ba",
+          "correct": true
+        },
+        {
+          "label": "0/preserved_mtime",
+          "latency_ms": 6.892024,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-e8wmtxyk/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.009999999999999995,
+          "rss_kib": 8704,
+          "peak_rss_kib": 8704,
+          "content_exit": 0,
+          "content_sha256": "dd5b26761efd3ce6d12a060f0d6ba249fa2e4b4c88a3934a1522f93e10d4598c",
+          "filename_count": 22,
+          "filenames_sha256": "47aa8e6df9322ab1b1dfb3ad1965856d8b4b1222e8f14f5a6bccf0219f32f2ba",
+          "correct": true
+        },
+        {
+          "label": "0/subtree_create",
+          "latency_ms": 7.035864,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 23,
+            "root": "/tmp/zgrep-barrier-e8wmtxyk/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.010000000000000009,
+          "rss_kib": 8704,
+          "peak_rss_kib": 8704,
+          "content_exit": 0,
+          "content_sha256": "412454ccdaf30d8aa6816e808954728471dd5d5d27d0df77afec43667d49381f",
+          "filename_count": 23,
+          "filenames_sha256": "ce650f05107945cb4f2df5e23e969b9a9d34cbe764376c53fc46fbb7b8f212d9",
+          "correct": true
+        },
+        {
+          "label": "0/subtree_recreate",
+          "latency_ms": 7.233438,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 23,
+            "root": "/tmp/zgrep-barrier-e8wmtxyk/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.010000000000000009,
+          "rss_kib": 8960,
+          "peak_rss_kib": 8960,
+          "content_exit": 0,
+          "content_sha256": "2fb52f1ff24ca35a05f1f7c42351f4238a98e2c19d6f482474e383bfac48fecd",
+          "filename_count": 23,
+          "filenames_sha256": "92a085b274991bda6c791ef1d97ee1f0767a2c1d3ef0b8f62b054a5ad05e6275",
+          "correct": true
+        },
+        {
+          "label": "0/binary_filename",
+          "latency_ms": 7.897591,
+          "receipt": {
+            "elapsed_ms": 6,
+            "num_files": 23,
+            "root": "/tmp/zgrep-barrier-e8wmtxyk/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.009999999999999981,
+          "rss_kib": 8960,
+          "peak_rss_kib": 8960,
+          "content_exit": 0,
+          "content_sha256": "2fb52f1ff24ca35a05f1f7c42351f4238a98e2c19d6f482474e383bfac48fecd",
+          "filename_count": 24,
+          "filenames_sha256": "ac36eb2635143286c2dc93685718c73b16073d46e986d7b2948bf16ce61fe54c",
+          "correct": true
+        },
+        {
+          "label": "0/hidden",
+          "latency_ms": 7.46593,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 24,
+            "root": "/tmp/zgrep-barrier-e8wmtxyk/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.020000000000000018,
+          "rss_kib": 8960,
+          "peak_rss_kib": 8960,
+          "content_exit": 0,
+          "content_sha256": "4732ac159a98e5f804d9b881dd7d1a96dc365a210ba2b7c3416e349b461aef5f",
+          "filename_count": 25,
+          "filenames_sha256": "86fde814b532225a1cec67ebfd071d43244fb82cce69cf63217b0f37c907308e",
+          "correct": true
+        },
+        {
+          "label": "offline-edit-and-restart",
+          "latency_ms": 8.51449,
+          "receipt": {
+            "elapsed_ms": 6,
+            "num_files": 25,
+            "root": "/tmp/zgrep-barrier-e8wmtxyk/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.01,
+          "rss_kib": 7424,
+          "peak_rss_kib": 7424,
+          "content_exit": 0,
+          "content_sha256": "281ee96f6f9548e2a769436d4318e99e34aecf52218510ff199f1378b34aa1ea",
+          "filename_count": 26,
+          "filenames_sha256": "1325bca6901c81fc17edb7c4fc959e1d4db56f6f2c126851efc87932da3cfc95",
+          "correct": true
+        }
+      ],
+      "status_samples": [
+        {
+          "latency_ms": 0.249396,
+          "manual_refresh": {
+            "pending": false,
+            "running": true
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.257677,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.224583,
+          "manual_refresh": {
+            "pending": false,
+            "running": true
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.216622,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.288616,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.261054,
+          "manual_refresh": {
+            "pending": false,
+            "running": true
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.381984,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 1,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.239866,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        }
+      ],
+      "initial_status": {
+        "cache_bytes": 25,
+        "cache_capacity": 50000,
+        "cache_max_bytes": 1073741824,
+        "cache_size": 1,
+        "connection_admission": {
+          "active": 1,
+          "capacity": 64,
+          "queue_capacity": 0,
+          "queued": 0
+        },
+        "hidden_complete": true,
+        "index_progress": 21,
+        "index_total": 21,
+        "indexing": false,
+        "last_reconcile_at": 1790500917,
+        "last_reconcile_duration_ms": 5,
+        "last_reconcile_error": null,
+        "manual_refresh": {
+          "pending": false,
+          "running": false
+        },
+        "max_request_bytes": 1048576,
+        "num_files": 21,
+        "num_trigrams": 126,
+        "poll_interval_secs": 120,
+        "reconcile_overdue": false,
+        "reconcile_pending": false,
+        "reconcile_running": false,
+        "search_admission": {
+          "active": 0,
+          "capacity": 4,
+          "queue_capacity": 32,
+          "queued": 0
+        },
+        "watch_budget": 8192,
+        "watch_fallback_reason": null,
+        "watch_mode_active": "disabled",
+        "watch_mode_requested": "disabled",
+        "watcher_active": false
+      },
+      "concurrent_search_ms": [],
+      "resources": {
+        "cpu_seconds": 0.18,
+        "VmHWM": 8960,
+        "VmRSS": 8960
+      },
+      "summary": {
+        "refresh_median_ms": 7.001391,
+        "refresh_max_ms": 7.897591,
+        "status_max_ms": 0.381984,
+        "search_count": 0
+      }
+    },
+    {
+      "mode": "native",
+      "clients": 0,
+      "checks": [
+        {
+          "label": "initial-build",
+          "latency_ms": 7.501041,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 21,
+            "root": "/tmp/zgrep-barrier-ykmw0ban/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.01,
+          "rss_kib": 9216,
+          "peak_rss_kib": 9216,
+          "content_exit": 0,
+          "content_sha256": "a698d19afd7be2e11760fc679a0d467633c41e77c5cbd9fe3d3f58fee1bc5588",
+          "filename_count": 21,
+          "filenames_sha256": "531957978e32ab071eb945ae7b1b24afef3828786e8afea52573df5619bdd29e",
+          "correct": true
+        },
+        {
+          "label": "0/edit",
+          "latency_ms": 8.276264,
+          "receipt": {
+            "elapsed_ms": 6,
+            "num_files": 21,
+            "root": "/tmp/zgrep-barrier-ykmw0ban/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.009999999999999998,
+          "rss_kib": 9216,
+          "peak_rss_kib": 9216,
+          "content_exit": 0,
+          "content_sha256": "1d3bb5af83bb46375f5025988cef8c4b614e33427fe768932f8ddc72b8d04064",
+          "filename_count": 21,
+          "filenames_sha256": "531957978e32ab071eb945ae7b1b24afef3828786e8afea52573df5619bdd29e",
+          "correct": true
+        },
+        {
+          "label": "0/create",
+          "latency_ms": 7.458176,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-ykmw0ban/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.010000000000000002,
+          "rss_kib": 9216,
+          "peak_rss_kib": 9216,
+          "content_exit": 0,
+          "content_sha256": "80c08fa057fff861b3bdeca951ff76016a53ade8236dd0933ce02ba3735a013e",
+          "filename_count": 22,
+          "filenames_sha256": "57504a55c828a1ea04846a9d687ead57b1606138909c15fe6989413e33ee0868",
+          "correct": true
+        },
+        {
+          "label": "0/rename",
+          "latency_ms": 7.843458,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-ykmw0ban/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.009999999999999995,
+          "rss_kib": 9216,
+          "peak_rss_kib": 9216,
+          "content_exit": 0,
+          "content_sha256": "499b3221854345904ec952b314823302653471242d44d4c45e9cb5d093be3482",
+          "filename_count": 22,
+          "filenames_sha256": "6e24de43ee72e6bc7264dfa05476233766a85405e70e1310669b09d05fcfebcd",
+          "correct": true
+        },
+        {
+          "label": "0/atomic_replace",
+          "latency_ms": 8.98497,
+          "receipt": {
+            "elapsed_ms": 6,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-ykmw0ban/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.020000000000000004,
+          "rss_kib": 9216,
+          "peak_rss_kib": 9216,
+          "content_exit": 0,
+          "content_sha256": "9e911611968af6e09b7ed4a70722bcb8b78d42a0e8237105ea62e2756e30eb35",
+          "filename_count": 22,
+          "filenames_sha256": "6e24de43ee72e6bc7264dfa05476233766a85405e70e1310669b09d05fcfebcd",
+          "correct": true
+        },
+        {
+          "label": "0/delete",
+          "latency_ms": 8.050069,
+          "receipt": {
+            "elapsed_ms": 6,
+            "num_files": 21,
+            "root": "/tmp/zgrep-barrier-ykmw0ban/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.009999999999999995,
+          "rss_kib": 9216,
+          "peak_rss_kib": 9216,
+          "content_exit": 0,
+          "content_sha256": "4c50fbc714fd5efc016e870871309e14898470039be077a52d0004d57f844e8e",
+          "filename_count": 21,
+          "filenames_sha256": "531957978e32ab071eb945ae7b1b24afef3828786e8afea52573df5619bdd29e",
+          "correct": true
+        },
+        {
+          "label": "0/ignore",
+          "latency_ms": 7.999498,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 21,
+            "root": "/tmp/zgrep-barrier-ykmw0ban/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.010000000000000009,
+          "rss_kib": 9216,
+          "peak_rss_kib": 9216,
+          "content_exit": 1,
+          "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "filename_count": 21,
+          "filenames_sha256": "acbd5e51d6fd4e1d64b242f0730b91926ba6ff4b417afbde2511a5f4c709650e",
+          "correct": true
+        },
+        {
+          "label": "0/unignore",
+          "latency_ms": 8.366758,
+          "receipt": {
+            "elapsed_ms": 6,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-ykmw0ban/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.009999999999999995,
+          "rss_kib": 9216,
+          "peak_rss_kib": 9216,
+          "content_exit": 0,
+          "content_sha256": "4c50fbc714fd5efc016e870871309e14898470039be077a52d0004d57f844e8e",
+          "filename_count": 22,
+          "filenames_sha256": "47aa8e6df9322ab1b1dfb3ad1965856d8b4b1222e8f14f5a6bccf0219f32f2ba",
+          "correct": true
+        },
+        {
+          "label": "0/preserved_mtime",
+          "latency_ms": 6.966169,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-ykmw0ban/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.020000000000000004,
+          "rss_kib": 9216,
+          "peak_rss_kib": 9216,
+          "content_exit": 0,
+          "content_sha256": "dd5b26761efd3ce6d12a060f0d6ba249fa2e4b4c88a3934a1522f93e10d4598c",
+          "filename_count": 22,
+          "filenames_sha256": "47aa8e6df9322ab1b1dfb3ad1965856d8b4b1222e8f14f5a6bccf0219f32f2ba",
+          "correct": true
+        },
+        {
+          "label": "0/subtree_create",
+          "latency_ms": 7.687998,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 23,
+            "root": "/tmp/zgrep-barrier-ykmw0ban/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.010000000000000009,
+          "rss_kib": 9216,
+          "peak_rss_kib": 9216,
+          "content_exit": 0,
+          "content_sha256": "412454ccdaf30d8aa6816e808954728471dd5d5d27d0df77afec43667d49381f",
+          "filename_count": 23,
+          "filenames_sha256": "ce650f05107945cb4f2df5e23e969b9a9d34cbe764376c53fc46fbb7b8f212d9",
+          "correct": true
+        },
+        {
+          "label": "0/subtree_recreate",
+          "latency_ms": 7.545972,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 23,
+            "root": "/tmp/zgrep-barrier-ykmw0ban/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.009999999999999981,
+          "rss_kib": 9472,
+          "peak_rss_kib": 9472,
+          "content_exit": 0,
+          "content_sha256": "2fb52f1ff24ca35a05f1f7c42351f4238a98e2c19d6f482474e383bfac48fecd",
+          "filename_count": 23,
+          "filenames_sha256": "92a085b274991bda6c791ef1d97ee1f0767a2c1d3ef0b8f62b054a5ad05e6275",
+          "correct": true
+        },
+        {
+          "label": "0/binary_filename",
+          "latency_ms": 7.277519,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 23,
+            "root": "/tmp/zgrep-barrier-ykmw0ban/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.020000000000000018,
+          "rss_kib": 9472,
+          "peak_rss_kib": 9472,
+          "content_exit": 0,
+          "content_sha256": "2fb52f1ff24ca35a05f1f7c42351f4238a98e2c19d6f482474e383bfac48fecd",
+          "filename_count": 24,
+          "filenames_sha256": "ac36eb2635143286c2dc93685718c73b16073d46e986d7b2948bf16ce61fe54c",
+          "correct": true
+        },
+        {
+          "label": "0/hidden",
+          "latency_ms": 7.359181,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 24,
+            "root": "/tmp/zgrep-barrier-ykmw0ban/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.009999999999999981,
+          "rss_kib": 9728,
+          "peak_rss_kib": 9728,
+          "content_exit": 0,
+          "content_sha256": "4732ac159a98e5f804d9b881dd7d1a96dc365a210ba2b7c3416e349b461aef5f",
+          "filename_count": 25,
+          "filenames_sha256": "86fde814b532225a1cec67ebfd071d43244fb82cce69cf63217b0f37c907308e",
+          "correct": true
+        },
+        {
+          "label": "offline-edit-and-restart",
+          "latency_ms": 7.831454,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 25,
+            "root": "/tmp/zgrep-barrier-ykmw0ban/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.01,
+          "rss_kib": 8448,
+          "peak_rss_kib": 8448,
+          "content_exit": 0,
+          "content_sha256": "281ee96f6f9548e2a769436d4318e99e34aecf52218510ff199f1378b34aa1ea",
+          "filename_count": 26,
+          "filenames_sha256": "1325bca6901c81fc17edb7c4fc959e1d4db56f6f2c126851efc87932da3cfc95",
+          "correct": true
+        }
+      ],
+      "status_samples": [
+        {
+          "latency_ms": 0.25885,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.298489,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.214523,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.224909,
+          "manual_refresh": {
+            "pending": false,
+            "running": true
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.249449,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.280537,
+          "manual_refresh": {
+            "pending": false,
+            "running": true
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.388589,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.339133,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        }
+      ],
+      "initial_status": {
+        "cache_bytes": 25,
+        "cache_capacity": 50000,
+        "cache_max_bytes": 1073741824,
+        "cache_size": 1,
+        "connection_admission": {
+          "active": 1,
+          "capacity": 64,
+          "queue_capacity": 0,
+          "queued": 0
+        },
+        "hidden_complete": true,
+        "index_progress": 21,
+        "index_total": 21,
+        "indexing": false,
+        "last_reconcile_at": null,
+        "last_reconcile_duration_ms": null,
+        "last_reconcile_error": null,
+        "manual_refresh": {
+          "pending": false,
+          "running": false
+        },
+        "max_request_bytes": 1048576,
+        "num_files": 21,
+        "num_trigrams": 126,
+        "poll_interval_secs": 120,
+        "reconcile_overdue": false,
+        "reconcile_pending": false,
+        "reconcile_running": false,
+        "search_admission": {
+          "active": 0,
+          "capacity": 4,
+          "queue_capacity": 32,
+          "queued": 0
+        },
+        "watch_budget": 8192,
+        "watch_fallback_reason": null,
+        "watch_mode_active": "native",
+        "watch_mode_requested": "auto",
+        "watcher_active": true
+      },
+      "concurrent_search_ms": [],
+      "resources": {
+        "cpu_seconds": 0.18,
+        "VmHWM": 9728,
+        "VmRSS": 9728
+      },
+      "summary": {
+        "refresh_median_ms": 7.765728,
+        "refresh_max_ms": 8.98497,
+        "status_max_ms": 0.388589,
+        "search_count": 0
+      }
+    },
+    {
+      "mode": "poll",
+      "clients": 0,
+      "checks": [
+        {
+          "label": "initial-build",
+          "latency_ms": 7.152144,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 21,
+            "root": "/tmp/zgrep-barrier-rolq0qdh/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.01,
+          "rss_kib": 7936,
+          "peak_rss_kib": 7936,
+          "content_exit": 0,
+          "content_sha256": "a698d19afd7be2e11760fc679a0d467633c41e77c5cbd9fe3d3f58fee1bc5588",
+          "filename_count": 21,
+          "filenames_sha256": "531957978e32ab071eb945ae7b1b24afef3828786e8afea52573df5619bdd29e",
+          "correct": true
+        },
+        {
+          "label": "0/edit",
+          "latency_ms": 6.839755,
+          "receipt": {
+            "elapsed_ms": 4,
+            "num_files": 21,
+            "root": "/tmp/zgrep-barrier-rolq0qdh/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.019999999999999997,
+          "rss_kib": 7936,
+          "peak_rss_kib": 7936,
+          "content_exit": 0,
+          "content_sha256": "1d3bb5af83bb46375f5025988cef8c4b614e33427fe768932f8ddc72b8d04064",
+          "filename_count": 21,
+          "filenames_sha256": "531957978e32ab071eb945ae7b1b24afef3828786e8afea52573df5619bdd29e",
+          "correct": true
+        },
+        {
+          "label": "0/create",
+          "latency_ms": 7.038335,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-rolq0qdh/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.020000000000000004,
+          "rss_kib": 7936,
+          "peak_rss_kib": 7936,
+          "content_exit": 0,
+          "content_sha256": "80c08fa057fff861b3bdeca951ff76016a53ade8236dd0933ce02ba3735a013e",
+          "filename_count": 22,
+          "filenames_sha256": "57504a55c828a1ea04846a9d687ead57b1606138909c15fe6989413e33ee0868",
+          "correct": true
+        },
+        {
+          "label": "0/rename",
+          "latency_ms": 6.782943,
+          "receipt": {
+            "elapsed_ms": 4,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-rolq0qdh/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.0,
+          "rss_kib": 7936,
+          "peak_rss_kib": 7936,
+          "content_exit": 0,
+          "content_sha256": "499b3221854345904ec952b314823302653471242d44d4c45e9cb5d093be3482",
+          "filename_count": 22,
+          "filenames_sha256": "6e24de43ee72e6bc7264dfa05476233766a85405e70e1310669b09d05fcfebcd",
+          "correct": true
+        },
+        {
+          "label": "0/atomic_replace",
+          "latency_ms": 7.159068,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-rolq0qdh/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.020000000000000004,
+          "rss_kib": 7936,
+          "peak_rss_kib": 7936,
+          "content_exit": 0,
+          "content_sha256": "9e911611968af6e09b7ed4a70722bcb8b78d42a0e8237105ea62e2756e30eb35",
+          "filename_count": 22,
+          "filenames_sha256": "6e24de43ee72e6bc7264dfa05476233766a85405e70e1310669b09d05fcfebcd",
+          "correct": true
+        },
+        {
+          "label": "0/delete",
+          "latency_ms": 6.989738,
+          "receipt": {
+            "elapsed_ms": 4,
+            "num_files": 21,
+            "root": "/tmp/zgrep-barrier-rolq0qdh/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.0,
+          "rss_kib": 7936,
+          "peak_rss_kib": 7936,
+          "content_exit": 0,
+          "content_sha256": "4c50fbc714fd5efc016e870871309e14898470039be077a52d0004d57f844e8e",
+          "filename_count": 21,
+          "filenames_sha256": "531957978e32ab071eb945ae7b1b24afef3828786e8afea52573df5619bdd29e",
+          "correct": true
+        },
+        {
+          "label": "0/ignore",
+          "latency_ms": 7.041348,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 21,
+            "root": "/tmp/zgrep-barrier-rolq0qdh/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.009999999999999995,
+          "rss_kib": 7936,
+          "peak_rss_kib": 7936,
+          "content_exit": 1,
+          "content_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "filename_count": 21,
+          "filenames_sha256": "acbd5e51d6fd4e1d64b242f0730b91926ba6ff4b417afbde2511a5f4c709650e",
+          "correct": true
+        },
+        {
+          "label": "0/unignore",
+          "latency_ms": 7.09506,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-rolq0qdh/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.020000000000000004,
+          "rss_kib": 7936,
+          "peak_rss_kib": 7936,
+          "content_exit": 0,
+          "content_sha256": "4c50fbc714fd5efc016e870871309e14898470039be077a52d0004d57f844e8e",
+          "filename_count": 22,
+          "filenames_sha256": "47aa8e6df9322ab1b1dfb3ad1965856d8b4b1222e8f14f5a6bccf0219f32f2ba",
+          "correct": true
+        },
+        {
+          "label": "0/preserved_mtime",
+          "latency_ms": 6.943966,
+          "receipt": {
+            "elapsed_ms": 4,
+            "num_files": 22,
+            "root": "/tmp/zgrep-barrier-rolq0qdh/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.009999999999999995,
+          "rss_kib": 7936,
+          "peak_rss_kib": 7936,
+          "content_exit": 0,
+          "content_sha256": "dd5b26761efd3ce6d12a060f0d6ba249fa2e4b4c88a3934a1522f93e10d4598c",
+          "filename_count": 22,
+          "filenames_sha256": "47aa8e6df9322ab1b1dfb3ad1965856d8b4b1222e8f14f5a6bccf0219f32f2ba",
+          "correct": true
+        },
+        {
+          "label": "0/subtree_create",
+          "latency_ms": 7.628397,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 23,
+            "root": "/tmp/zgrep-barrier-rolq0qdh/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.009999999999999995,
+          "rss_kib": 8192,
+          "peak_rss_kib": 8192,
+          "content_exit": 0,
+          "content_sha256": "412454ccdaf30d8aa6816e808954728471dd5d5d27d0df77afec43667d49381f",
+          "filename_count": 23,
+          "filenames_sha256": "ce650f05107945cb4f2df5e23e969b9a9d34cbe764376c53fc46fbb7b8f212d9",
+          "correct": true
+        },
+        {
+          "label": "0/subtree_recreate",
+          "latency_ms": 7.077482,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 23,
+            "root": "/tmp/zgrep-barrier-rolq0qdh/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.010000000000000009,
+          "rss_kib": 8192,
+          "peak_rss_kib": 8192,
+          "content_exit": 0,
+          "content_sha256": "2fb52f1ff24ca35a05f1f7c42351f4238a98e2c19d6f482474e383bfac48fecd",
+          "filename_count": 23,
+          "filenames_sha256": "92a085b274991bda6c791ef1d97ee1f0767a2c1d3ef0b8f62b054a5ad05e6275",
+          "correct": true
+        },
+        {
+          "label": "0/binary_filename",
+          "latency_ms": 8.143598,
+          "receipt": {
+            "elapsed_ms": 6,
+            "num_files": 23,
+            "root": "/tmp/zgrep-barrier-rolq0qdh/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.01999999999999999,
+          "rss_kib": 8192,
+          "peak_rss_kib": 8192,
+          "content_exit": 0,
+          "content_sha256": "2fb52f1ff24ca35a05f1f7c42351f4238a98e2c19d6f482474e383bfac48fecd",
+          "filename_count": 24,
+          "filenames_sha256": "ac36eb2635143286c2dc93685718c73b16073d46e986d7b2948bf16ce61fe54c",
+          "correct": true
+        },
+        {
+          "label": "0/hidden",
+          "latency_ms": 7.290691,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 24,
+            "root": "/tmp/zgrep-barrier-rolq0qdh/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.010000000000000009,
+          "rss_kib": 8192,
+          "peak_rss_kib": 8192,
+          "content_exit": 0,
+          "content_sha256": "4732ac159a98e5f804d9b881dd7d1a96dc365a210ba2b7c3416e349b461aef5f",
+          "filename_count": 25,
+          "filenames_sha256": "86fde814b532225a1cec67ebfd071d43244fb82cce69cf63217b0f37c907308e",
+          "correct": true
+        },
+        {
+          "label": "offline-edit-and-restart",
+          "latency_ms": 7.203999,
+          "receipt": {
+            "elapsed_ms": 5,
+            "num_files": 25,
+            "root": "/tmp/zgrep-barrier-rolq0qdh/root",
+            "status": "refreshed"
+          },
+          "cpu_seconds": 0.01,
+          "rss_kib": 7936,
+          "peak_rss_kib": 7936,
+          "content_exit": 0,
+          "content_sha256": "281ee96f6f9548e2a769436d4318e99e34aecf52218510ff199f1378b34aa1ea",
+          "filename_count": 26,
+          "filenames_sha256": "1325bca6901c81fc17edb7c4fc959e1d4db56f6f2c126851efc87932da3cfc95",
+          "correct": true
+        }
+      ],
+      "status_samples": [
+        {
+          "latency_ms": 0.232727,
+          "manual_refresh": {
+            "pending": false,
+            "running": true
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.399231,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.283035,
+          "manual_refresh": {
+            "pending": false,
+            "running": true
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.25601,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.26751,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.251159,
+          "manual_refresh": {
+            "pending": false,
+            "running": false
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        },
+        {
+          "latency_ms": 0.221672,
+          "manual_refresh": {
+            "pending": false,
+            "running": true
+          },
+          "search_admission": {
+            "active": 0,
+            "capacity": 4,
+            "queue_capacity": 32,
+            "queued": 0
+          }
+        }
+      ],
+      "initial_status": {
+        "cache_bytes": 25,
+        "cache_capacity": 50000,
+        "cache_max_bytes": 1073741824,
+        "cache_size": 1,
+        "connection_admission": {
+          "active": 1,
+          "capacity": 64,
+          "queue_capacity": 0,
+          "queued": 0
+        },
+        "hidden_complete": true,
+        "index_progress": 21,
+        "index_total": 21,
+        "indexing": false,
+        "last_reconcile_at": null,
+        "last_reconcile_duration_ms": null,
+        "last_reconcile_error": null,
+        "manual_refresh": {
+          "pending": false,
+          "running": false
+        },
+        "max_request_bytes": 1048576,
+        "num_files": 21,
+        "num_trigrams": 126,
+        "poll_interval_secs": 86400,
+        "reconcile_overdue": true,
+        "reconcile_pending": true,
+        "reconcile_running": false,
+        "search_admission": {
+          "active": 0,
+          "capacity": 4,
+          "queue_capacity": 32,
+          "queued": 0
+        },
+        "watch_budget": 8192,
+        "watch_fallback_reason": null,
+        "watch_mode_active": "poll",
+        "watch_mode_requested": "poll",
+        "watcher_active": false
+      },
+      "concurrent_search_ms": [],
+      "resources": {
+        "cpu_seconds": 0.16,
+        "VmHWM": 8192,
+        "VmRSS": 8192
+      },
+      "summary": {
+        "refresh_median_ms": 7.0594149999999996,
+        "refresh_max_ms": 8.143598,
+        "status_max_ms": 0.399231,
+        "search_count": 0
+      }
+    }
+  ],
+  "upstream_capability": {
+    "binary_sha256": "b1bb0f7d512a7824a82f33c745aa776cceb17332130d6c2e78f20576dada0754",
+    "version": "tgrep 1.0.10",
+    "reply": {
+      "error": {
+        "code": -32601,
+        "message": "Method not found: refresh"
+      },
+      "id": 1,
+      "jsonrpc": "2.0"
+    },
+    "interpretation": "This baseline does not expose the refresh method. This is a capability comparison, not a speed ratio."
+  }
+}
