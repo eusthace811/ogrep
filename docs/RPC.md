@@ -27,3 +27,17 @@ Queue overflow, queue timeout and connection exhaustion return JSON-RPC error `-
 Oversized frames receive `-32600` and the connection closes. `status` includes `search_admission` and `connection_admission`, each reporting active, queued, capacity and queue_capacity, plus `max_request_bytes`. These are instantaneous counters, not reservations or freshness indicators.
 
 Admission bounds concurrency and pending work, not the memory required by an individual unbounded-result query. Content-cache limits, file-size rules and query output choices continue to matter.
+
+## Explicit refresh completion
+
+`refresh` waits for a content reconciliation and searchable publication of the configured served root. It rereads eligible content even when metadata appears unchanged, and applies the server's ignore, exclusion and size settings. Completed edits whose contents and eligibility remain stable through completion are covered. Concurrent mutations may or may not appear; this is not an atomic filesystem snapshot.
+
+```json
+{"jsonrpc":"2.0","id":1,"method":"refresh","params":{"timeout_ms":30000,"root":"/canonical/repository"}}
+```
+
+Both parameters are optional. `timeout_ms` defaults to 30000 and accepts integers 1–300000. `root`, when supplied, must equal the server's canonical absolute root; mismatches return `-32602` before scheduling work. Unknown or invalid parameters also return `-32602`. Success returns `status: "refreshed"`, `root`, `elapsed_ms` and `num_files` (content-indexed files; filename-only assets are not included in this count). It is a receipt for this request, not a durable generation token.
+
+Incomplete traversal, read failure, publication failure, incomplete coverage or a detected concurrent tracked-membership change return `-32003`. The old index may remain searchable and partial progress may have been published; an error never acknowledges freshness. A wait deadline returns `-32004`; a queued or running pass may continue afterwards. The caller must retry before relying on indexed freshness. Disconnection likewise does not cancel the pass. Older servers reject the method; callers must not substitute an indexing-complete flag or `reload` success.
+
+A single refresh worker handles at most one active and one pending pass. New callers can share the pending pass, but cannot join one already started. The wait deadline includes initial-build and queue waits. `status.manual_refresh` exposes `running` and `pending`; neither establishes freshness. Refresh bypasses search admission and remains subject to the global connection limit. Rereading and merging the whole eligible tree can be expensive; use it at edit/search boundaries where the completion contract is needed.

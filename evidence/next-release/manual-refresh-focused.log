@@ -1,0 +1,256 @@
+   Compiling zgrep-cli v0.2.0 (/home/eusth/projects/Experiments/tgrep/zgrep/zgrep-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 2.44s
+     Running unittests src/main.rs (target/debug/deps/zgrep-4a2a1a65bdc26313)
+
+running 9 tests
+[trace] stale check: comparing index against filesystem...
+[trace] stale check: comparing index against filesystem...
+[trace] stale check: comparing index against filesystem...
+test serve::manual_refresh::tests::invalid_refresh_parameters_do_not_schedule_work ... [trace] stale check: comparing index against filesystem...
+ok
+[trace] stale check: comparing index against filesystem...
+[trace] stale check: comparing index against filesystem...
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.6ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 1 changed, 0 new, 0 deleted (walk: 7ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 0 new, 0 deleted)...
+[trace] gitignore matcher built from stale walk in 0.5ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 1 changed, 0 new, 0 deleted (walk: 8ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 0 new, 0 deleted)...
+[trace] gitignore matcher built from stale walk in 0.5ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 1 changed, 0 new, 0 deleted (walk: 8ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 0 new, 0 deleted)...
+[trace] gitignore matcher built from stale walk in 0.5ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 1 changed, 0 new, 0 deleted (walk: 8ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 0 new, 0 deleted)...
+[trace] gitignore matcher built from stale walk in 0.5ms (0 .gitignore + 0 .ignore files)
+[trace] gitignore matcher built from stale walk in 0.5ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 1 changed, 0 new, 0 deleted (walk: 8ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 0 new, 0 deleted)...
+[trace] stale check: 1 changed, 0 new, 0 deleted (walk: 8ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 0 new, 0 deleted)...
+[trace] gitignore matcher built from stale walk in 0.5ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 2 changed, 0 new, 0 deleted (walk: 9ms)
+[trace] flush: reader reopened (1 files, 14 trigrams), overlay pruned
+[trace] stale check: building a memory-bounded delta (2 changed, 0 new, 0 deleted)...
+[trace] stale check: streamed 1 changes into the index in 0.0s
+[trace] stale check: comparing index against filesystem...
+[trace] stale check: comparing index against filesystem...
+[trace] flush: reader reopened (1 files, 14 trigrams), overlay pruned
+[trace] stale check: streamed 1 changes into the index in 0.0s
+[trace] flush: reader reopened (1 files, 14 trigrams), overlay pruned
+[trace] stale check: streamed 1 changes into the index in 0.0s
+[trace] flush: reader reopened (1 files, 11 trigrams), overlay pruned
+[trace] flush: reader reopened (1 files, 14 trigrams), overlay pruned
+[trace] stale check: streamed 1 changes into the index in 0.0s
+[trace] stale check: comparing index against filesystem...
+[trace] stale check: streamed 1 changes into the index in 0.0s
+[trace] stale check: comparing index against filesystem...
+[trace] flush: reader reopened (1 files, 13 trigrams), overlay pruned
+[trace] stale check: streamed 1 changes into the index in 0.0s
+[trace] stale check: comparing index against filesystem...
+[trace] stale check: comparing index against filesystem...
+[trace] flush: reader reopened (2 files, 21 trigrams), overlay pruned
+[trace] stale check: streamed 2 changes into the index in 0.0s
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.5ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 0 changed, 0 new, 1 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (0 changed, 0 new, 1 deleted)...
+[trace] gitignore matcher built from stale walk in 0.6ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 1 changed, 0 new, 0 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 0 new, 0 deleted)...
+[trace] search: pattern="control_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=3.9ms (index=0.0ms resolve=0.1ms search=3.6ms)
+[trace] gitignore matcher built from stale walk in 0.6ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 2 changed, 0 new, 0 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (2 changed, 0 new, 0 deleted)...
+test serve::manual_refresh::tests::refresh_bypasses_occupied_search_slots ... ok
+[trace] gitignore matcher built from stale walk in 0.6ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 1 changed, 0 new, 0 deleted (walk: 4ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 0 new, 0 deleted)...
+[trace] flush: reader reopened (0 files, 0 trigrams), overlay pruned
+[trace] stale check: streamed 1 changes into the index in 0.0s
+[trace] search: pattern="original_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.3ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] gitignore matcher built from stale walk in 0.5ms (0 .gitignore + 1 .ignore files)
+[trace] stale check: 3 changed, 0 new, 2 deleted (walk: 4ms)
+[trace] stale check: building a memory-bounded delta (3 changed, 0 new, 2 deleted)...
+[trace] flush: reader reopened (1 files, 17 trigrams), overlay pruned
+[trace] gitignore matcher built from stale walk in 0.5ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: streamed 1 changes into the index in 0.0s
+[trace] stale check: comparing index against filesystem...
+[trace] stale check: 1 changed, 0 new, 0 deleted (walk: 5ms)
+[trace] stale check: comparing index against filesystem...
+[trace] stale check: building a memory-bounded delta (1 changed, 0 new, 0 deleted)...
+[trace] flush: reader reopened (1 files, 14 trigrams), overlay pruned
+[trace] stale check: streamed 1 changes into the index in 0.0s
+zgrep: skipping /tmp/.tmpr2l5lf/source.rs: No such file or directory (os error 2)
+[trace] flush: reader reopened (2 files, 16 trigrams), overlay pruned
+[trace] gitignore matcher built from stale walk in 0.4ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: streamed 2 changes into the index in 0.0s
+[trace] stale check: 1 changed, 0 new, 0 deleted (walk: 6ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 0 new, 0 deleted)...
+[trace] 1 file(s) were unreadable during the delta build; preserving their current index entries and retrying after they change
+[trace] search: pattern="replaced_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.4ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="later_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="original_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+test serve::manual_refresh::tests::calls_during_a_walk_join_one_later_pass_and_status_stays_available ... ok
+test serve::manual_refresh::tests::refresh_rereads_even_matching_evidence_and_memoized_failures ... ok
+[trace] flush: reader reopened (1 files, 14 trigrams), overlay pruned
+[trace] flush: reader reopened (3 files, 34 trigrams), overlay pruned
+[trace] stale check: streamed 0 changes into the index in 0.0s
+[trace] stale check: streamed 5 changes into the index in 0.0s
+[trace] warning: flush move failed: File exists (os error 17)
+[trace] stale check: comparing index against filesystem...
+[trace] warning: stale check delta could not be published; keeping the old index
+[trace] search: pattern="replacement_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="replacement_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="created_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] stale check: comparing index against filesystem...
+[trace] search: pattern="original_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="deleted_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="excluded_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] gitignore matcher built from stale walk in 0.6ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: no indexed files or filesystem files, skipping
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in test serve::manual_refresh::tests::refresh_can_publish_an_empty_tree_after_deletion ... 0.ok6
+ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 1 changed, 0 new, 0 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 0 new, 0 deleted)...
+[trace] gitignore matcher built from stale walk in 0.7ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 1 changed, 0 new, 0 deleted (walk: 2ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 0 new, 0 deleted)...
+[trace] gitignore matcher built from stale walk in 0.5ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 1 changed, 0 new, 0 deleted (walk: 2ms)
+[trace] stale check: building a memory-bounded delta (1 changed, 0 new, 0 deleted)...
+[trace] flush: reader reopened (1 files, 17 trigrams), overlay pruned
+[trace] stale check: streamed 1 changes into the index in 0.0s
+[trace] flush: reader reopened (1 files, 15 trigrams), overlay pruned
+[trace] search: pattern="after_build_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] stale check: streamed 1 changes into the index in 0.0s
+[trace] search: pattern="recovered_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] flush: reader reopened (test serve::manual_refresh::tests::timeout_covers_initial_build_wait_and_does_not_acknowledge_success ... 1ok files, 
+17 trigrams), overlay pruned
+[trace] stale check: streamed 1 changes into the index in 0.0s
+[trace] gitignore matcher built from stale walk in 0.5ms (0 .gitignore + 0 .ignore files)
+test serve::manual_refresh::tests::refresh_read_failure_is_an_error_and_retry_can_succeed ... ok
+[trace] stale check: 2 changed, 0 new, 0 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (2 changed, 0 new, 0 deleted)...
+[trace] search: pattern="replacement_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+test serve::manual_refresh::tests::failed_publication_cannot_return_a_refresh_receipt ... ok
+[trace] flush: reader reopened (2 files, 21 trigrams), overlay pruned
+[trace] stale check: streamed 2 changes into the index in 0.0s
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.4ms (0 .gitignore + 1 .ignore files)
+[trace] stale check: 3 changed, 0 new, 2 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (3 changed, 0 new, 2 deleted)...
+[trace] flush: reader reopened (3 files, 34 trigrams), overlay pruned
+[trace] stale check: streamed 5 changes into the index in 0.0s
+[trace] search: pattern="replacement_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="created_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="original_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="deleted_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="excluded_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.4ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 2 changed, 0 new, 0 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (2 changed, 0 new, 0 deleted)...
+[trace] flush: reader reopened (2 files, 21 trigrams), overlay pruned
+[trace] stale check: streamed 2 changes into the index in 0.0s
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.4ms (0 .gitignore + 1 .ignore files)
+[trace] stale check: 3 changed, 0 new, 2 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (3 changed, 0 new, 2 deleted)...
+[trace] flush: reader reopened (3 files, 34 trigrams), overlay pruned
+[trace] stale check: streamed 5 changes into the index in 0.0s
+[trace] search: pattern="replacement_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="created_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="original_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="deleted_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="excluded_marker" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+test serve::manual_refresh::tests::refresh_publishes_completed_edits_and_membership_in_every_mode ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 297 filtered out; finished in 0.05s
+
+     Running tests/concurrent_search.rs (target/debug/deps/concurrent_search-75dc6773a71c86af)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+     Running tests/default_max_filesize.rs (target/debug/deps/default_max_filesize-f365fcac56ce44cc)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running tests/indexed_files.rs (target/debug/deps/indexed_files-8ce7c827dcb938e7)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/indexed_hidden.rs (target/debug/deps/indexed_hidden-82b30afab80fba1e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
+     Running tests/large_file_search.rs (target/debug/deps/large_file_search-2c692b93087f78a5)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/memory_cap.rs (target/debug/deps/memory_cap-0b4d4ab364be60e3)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/planner_features.rs (target/debug/deps/planner_features-246eefa286ea7155)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/ripgrep_compat.rs (target/debug/deps/ripgrep_compat-0b883b3def8afce8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 235 filtered out; finished in 0.00s
+
+     Running tests/ripgrep_parity.rs (target/debug/deps/ripgrep_parity-0784a090a6c46cfb)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+     Running tests/serve_max_filesize.rs (target/debug/deps/serve_max_filesize-cf31ba63fc9580f1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/server_admission.rs (target/debug/deps/server_admission-9aa707101df54961)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/warm_start_gitignore.rs (target/debug/deps/warm_start_gitignore-6a2f44065445d24d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/watcher_dot_ignore.rs (target/debug/deps/watcher_dot_ignore-c831c82f0d8486bc)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests/watcher_watch_registration.rs (target/debug/deps/watcher_watch_registration-da4d01d0ed895698)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+

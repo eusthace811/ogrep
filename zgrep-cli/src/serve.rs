@@ -25,6 +25,8 @@ use zgrep_core::hybrid::HybridIndex;
 use zgrep_core::query;
 
 mod index_cleanup;
+#[path = "serve/manual_refresh.rs"]
+mod manual_refresh;
 
 const MAX_CONNECTIONS: usize = 64;
 const MAX_QUEUED_SEARCHES: usize = 32;
@@ -467,6 +469,7 @@ impl RecentReindexCache {
 struct ServerState {
     connections: Arc<crate::admission::Gate>,
     searches: Arc<crate::admission::Gate>,
+    manual_refresh: manual_refresh::Control,
     index: RwLock<HybridIndex>,
     /// Read under the index lock so visibility and content change together at
     /// publication. Native events update it using metadata they already read.
@@ -897,6 +900,7 @@ pub fn run(root: &Path, index_path: Option<&Path>, options: ServeOptions<'_>) ->
     let state = Arc::new(ServerState {
         connections: crate::admission::Gate::new(MAX_CONNECTIONS, 0),
         searches: crate::admission::Gate::new(search_concurrency, MAX_QUEUED_SEARCHES),
+        manual_refresh: manual_refresh::Control::default(),
         index: RwLock::new(hybrid),
         visibility: RwLock::new(discovery.visibility),
         hidden_complete: std::sync::atomic::AtomicBool::new(discovery.hidden_complete),
@@ -1496,6 +1500,7 @@ fn process_request(
         "files" => handle_files(id, &params, state),
         "status" => handle_status(id, state),
         "reload" => handle_reload(id, state),
+        "refresh" => manual_refresh::handle(id, &params, state),
         _ => json_rpc_error(id, -32601, &format!("Method not found: {method}")),
     };
     (response, permit)
@@ -2316,6 +2321,7 @@ fn handle_status(id: Option<serde_json::Value>, state: &ServerState) -> String {
         "search_admission": state.searches.status(),
         "connection_admission": state.connections.status(),
         "max_request_bytes": MAX_REQUEST_BYTES,
+        "manual_refresh": state.manual_refresh.status(),
         "num_trigrams": index.num_trigrams(),
         "cache_size": cache.len(),
         "cache_capacity": CACHE_CAPACITY,
@@ -6688,7 +6694,9 @@ fn background_refresh_stale_locked(
         state,
         root,
         index_dir,
-        compare_index_membership,
+        ReconcileScope::Metadata {
+            compare_membership: compare_index_membership,
+        },
         &mut newly_watched,
         ignorecase,
         true,
@@ -6775,7 +6783,9 @@ fn catch_up_unwatched_build(state: &Arc<ServerState>, root: &Path, index_dir: &P
         state,
         root,
         index_dir,
-        true,
+        ReconcileScope::Metadata {
+            compare_membership: true,
+        },
         &mut ignored_watches,
         ignorecase,
         false,
@@ -6795,11 +6805,17 @@ fn catch_up_unwatched_build(state: &Arc<ServerState>, root: &Path, index_dir: &P
     }
 }
 
+#[derive(Clone, Copy)]
+enum ReconcileScope {
+    Metadata { compare_membership: bool },
+    Content,
+}
+
 fn refresh_stale_locked(
     state: &Arc<ServerState>,
     root: &Path,
     index_dir: &Path,
-    compare_index_membership: bool,
+    scope: ReconcileScope,
     newly_watched: &mut Vec<PathBuf>,
     ignorecase: Option<std::sync::Arc<zgrep_core::gitignore::CaseInsensitiveIgnore>>,
     run_test_hooks: bool,
@@ -6922,15 +6938,28 @@ fn refresh_stale_locked(
         current_meta,
         &old_evidence,
         &indexed_paths,
-        compare_index_membership,
+        match scope {
+            ReconcileScope::Metadata { compare_membership } => compare_membership,
+            ReconcileScope::Content => true,
+        },
     );
+    if matches!(scope, ReconcileScope::Content) {
+        // A completion barrier cannot infer byte equality from metadata. Read
+        // every eligible path, even when all stored evidence appears current.
+        changed = current_meta
+            .iter()
+            .map(|file| file.relative_path.clone())
+            .collect();
+        added.clear();
+    }
 
     // Files that failed to read last time and have not changed since are not
     // worth another attempt; without this a single permanently locked file
     // makes every scheduled reconcile rebuild the index. `deleted` is exempt —
     // a file that is gone needs no read to evict.
     let skipped_unreadable = {
-        if state.refresh.polling.load(Ordering::SeqCst) {
+        if matches!(scope, ReconcileScope::Content) || state.refresh.polling.load(Ordering::SeqCst)
+        {
             std::collections::HashSet::new()
         } else {
             let memo = state.unreadable.read().unwrap();
@@ -9135,6 +9164,7 @@ mod tests {
         Arc::new(ServerState {
             connections: crate::admission::Gate::new(MAX_CONNECTIONS, 0),
             searches: crate::admission::Gate::new(4, MAX_QUEUED_SEARCHES),
+            manual_refresh: manual_refresh::Control::default(),
             index: RwLock::new(hybrid),
             visibility: RwLock::new(Default::default()),
             hidden_complete: std::sync::atomic::AtomicBool::new(true),
