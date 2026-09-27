@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Benchmark zgrep vs ripgrep on Linux/macOS.
+# Benchmark ogrep vs ripgrep on Linux/macOS.
 #
 # Usage:
 #   ./scripts/benchmark.sh                                    # full run
@@ -15,8 +15,8 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 QUERIES_FILE=""
 REPO_PATH=""
 REPO_URL=""
-BENCH_DIR="/tmp/zgrep-bench"
-ZGREP_BIN=""
+BENCH_DIR="/tmp/ogrep-bench"
+OGREP_BIN=""
 RESULTS_PATH=""
 SKIP_BUILD=false
 
@@ -27,7 +27,7 @@ while [[ $# -gt 0 ]]; do
     --repo-path)   REPO_PATH="$2"; shift 2 ;;
     --repo-url)    REPO_URL="$2"; shift 2 ;;
     --bench-dir)   BENCH_DIR="$2"; shift 2 ;;
-    --zgrep-bin)   ZGREP_BIN="$2"; shift 2 ;;
+    --ogrep-bin)   OGREP_BIN="$2"; shift 2 ;;
     --results)     RESULTS_PATH="$2"; shift 2 ;;
     --skip-build)  SKIP_BUILD=true; shift ;;
     -h|--help)
@@ -38,10 +38,10 @@ while [[ $# -gt 0 ]]; do
       echo "                     (default: scripts/benchmark-queries.json)"
       echo "  --repo-path PATH   Existing repo to benchmark (skips cloning)"
       echo "  --repo-url  URL    URL to clone (overrides value from queries JSON)"
-      echo "  --bench-dir DIR    Working directory for artifacts (default: /tmp/zgrep-bench)"
-      echo "  --zgrep-bin PATH   Path to zgrep binary (default: target/release/zgrep)"
+      echo "  --bench-dir DIR    Working directory for artifacts (default: /tmp/ogrep-bench)"
+      echo "  --ogrep-bin PATH   Path to ogrep binary (default: target/release/ogrep)"
       echo "  --results   PATH   Output path for results markdown"
-      echo "  --skip-build       Skip building zgrep from source"
+      echo "  --skip-build       Skip building ogrep from source"
       exit 0
       ;;
     *) echo "Unknown option: $1 (use --help for usage)" >&2; exit 1 ;;
@@ -87,14 +87,14 @@ if [ ${#QUERIES[@]} -eq 0 ]; then
   exit 1
 fi
 
-if [ -z "$ZGREP_BIN" ]; then
-  ZGREP_BIN="$REPO_ROOT/target/release/zgrep"
+if [ -z "$OGREP_BIN" ]; then
+  OGREP_BIN="$REPO_ROOT/target/release/ogrep"
 fi
 if [ -z "$RESULTS_PATH" ]; then
   RESULTS_PATH="$BENCH_DIR/benchmark-results.md"
 fi
 
-INDEX_PATH="$BENCH_DIR/zgrep-index"
+INDEX_PATH="$BENCH_DIR/ogrep-index"
 
 if [ -n "$REPO_PATH" ]; then
   BENCH_REPO_DIR="$REPO_PATH"
@@ -117,13 +117,13 @@ now_ns() {
 
 # ── Build ──
 if [ "$SKIP_BUILD" = false ]; then
-  echo "==> Building zgrep (release)..."
+  echo "==> Building ogrep (release)..."
   (cd "$REPO_ROOT" && cargo build --release)
 fi
 
-if [ ! -x "$ZGREP_BIN" ]; then
-  echo "error: zgrep binary not found at $ZGREP_BIN" >&2
-  echo "run 'make release' first or pass --zgrep-bin" >&2
+if [ ! -x "$OGREP_BIN" ]; then
+  echo "error: ogrep binary not found at $OGREP_BIN" >&2
+  echo "run 'make release' first or pass --ogrep-bin" >&2
   exit 1
 fi
 
@@ -147,9 +147,9 @@ fi
 FILE_COUNT=$(git -C "$BENCH_REPO_DIR" ls-files | wc -l | tr -d ' ')
 
 # ── Build index ──
-echo "==> Building zgrep index..."
+echo "==> Building ogrep index..."
 INDEX_START=$(now_ns)
-"$ZGREP_BIN" index "$BENCH_REPO_DIR" --index-path "$INDEX_PATH"
+"$OGREP_BIN" index "$BENCH_REPO_DIR" --index-path "$INDEX_PATH"
 INDEX_END=$(now_ns)
 INDEX_MS=$(( (INDEX_END - INDEX_START) / 1000000 ))
 echo "Index built in ${INDEX_MS}ms"
@@ -157,13 +157,13 @@ echo "Index built in ${INDEX_MS}ms"
 QUERY_COUNT=${#QUERIES[@]}
 echo "==> Running $QUERY_COUNT queries against $FILE_COUNT files"
 
-# ── Start zgrep serve ──
-echo "==> Starting zgrep serve..."
+# ── Start ogrep serve ──
+echo "==> Starting ogrep serve..."
 
 LOCKFILE="$INDEX_PATH/serve.json"
 rm -f "$LOCKFILE"
 
-"$ZGREP_BIN" serve "$BENCH_REPO_DIR" --index-path "$INDEX_PATH" --no-watch > /dev/null 2>&1 &
+"$OGREP_BIN" serve "$BENCH_REPO_DIR" --index-path "$INDEX_PATH" --no-watch > /dev/null 2>&1 &
 SERVE_PID=$!
 
 cleanup_serve() {
@@ -173,12 +173,12 @@ cleanup_serve() {
 }
 trap 'cleanup_serve' EXIT
 
-echo "Waiting for zgrep serve (pid $SERVE_PID)..."
+echo "Waiting for ogrep serve (pid $SERVE_PID)..."
 READY=false
 for i in $(seq 1 60); do
   if [ -f "$LOCKFILE" ]; then
     PORT=$(grep -o '"port":[0-9]*' "$LOCKFILE" | grep -o '[0-9]*')
-    echo "zgrep serve ready on port $PORT"
+    echo "ogrep serve ready on port $PORT"
     READY=true
     break
   fi
@@ -186,11 +186,11 @@ for i in $(seq 1 60); do
 done
 
 if [ "$READY" = false ]; then
-  echo "ERROR: zgrep serve failed to start within 60s" >&2
+  echo "ERROR: ogrep serve failed to start within 60s" >&2
   exit 1
 fi
 
-# ── Benchmark: zgrep (client → serve) ──
+# ── Benchmark: ogrep (client → serve) ──
 echo ""
 log_mem() {
   if [ -f /proc/meminfo ]; then
@@ -200,26 +200,26 @@ log_mem() {
   fi
 }
 
-echo "==> Memory before zgrep benchmark:"
+echo "==> Memory before ogrep benchmark:"
 log_mem
 
-echo "==> Benchmarking zgrep (client -> serve)..."
-ZGREP_START=$(now_ns)
+echo "==> Benchmarking ogrep (client -> serve)..."
+OGREP_START=$(now_ns)
 QIDX=0
 for pattern in "${QUERIES[@]}"; do
   QIDX=$((QIDX + 1))
   echo "  [$QIDX/$QUERY_COUNT] $pattern"
-  "$ZGREP_BIN" "$pattern" "$BENCH_REPO_DIR" --index-path "$INDEX_PATH" > /dev/null 2>&1 || true
+  "$OGREP_BIN" "$pattern" "$BENCH_REPO_DIR" --index-path "$INDEX_PATH" > /dev/null 2>&1 || true
 done
-ZGREP_END=$(now_ns)
-ZGREP_MS=$(( (ZGREP_END - ZGREP_START) / 1000000 ))
-echo "zgrep: ${ZGREP_MS}ms total"
+OGREP_END=$(now_ns)
+OGREP_MS=$(( (OGREP_END - OGREP_START) / 1000000 ))
+echo "ogrep: ${OGREP_MS}ms total"
 
-echo "==> Memory after zgrep benchmark:"
+echo "==> Memory after ogrep benchmark:"
 log_mem
 
 # ── Stop serve ──
-echo "==> Stopping zgrep serve..."
+echo "==> Stopping ogrep serve..."
 trap - EXIT
 cleanup_serve
 
@@ -265,7 +265,7 @@ else
 fi
 
 # ── Write results ──
-ZGREP_AVG=$(awk "BEGIN { printf \"%.1f\", $ZGREP_MS / $QUERY_COUNT }")
+OGREP_AVG=$(awk "BEGIN { printf \"%.1f\", $OGREP_MS / $QUERY_COUNT }")
 TIMESTAMP=$(date -u '+%Y-%m-%dT%H:%M:%SZ')
 REPO_NAME=$(basename "$BENCH_REPO_DIR")
 PLATFORM="$(uname -s) $(uname -m)"
@@ -301,7 +301,7 @@ cat > "$RESULTS_PATH" <<EOF
 - **Index build time**: ${INDEX_MS}ms
 - **Index size**: $INDEX_SIZE
 - **Scope**: search only (index built before timing)
-- **zgrep mode**: client/server — \`zgrep serve\` runs in background, \`zgrep\` client connects via TCP
+- **ogrep mode**: client/server — \`ogrep serve\` runs in background, \`ogrep\` client connects via TCP
 
 | Tool | Total (ms) | Avg per query (ms) | Timeouts (${RG_TIMEOUT_SEC}s) |
 | --- | ---: | ---: | ---: |
@@ -311,7 +311,7 @@ if [ "$RG_MS" -ge 0 ]; then
   RG_AVG=$(awk "BEGIN { printf \"%.1f\", $RG_MS / $QUERY_COUNT }")
   echo "| ripgrep | $RG_MS | $RG_AVG | $RG_TIMEOUTS |" >> "$RESULTS_PATH"
 fi
-echo "| zgrep (client → serve) | $ZGREP_MS | $ZGREP_AVG | - |" >> "$RESULTS_PATH"
+echo "| ogrep (client → serve) | $OGREP_MS | $OGREP_AVG | - |" >> "$RESULTS_PATH"
 
 echo ""
 cat "$RESULTS_PATH"

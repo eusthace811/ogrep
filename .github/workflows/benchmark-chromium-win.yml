@@ -23,7 +23,7 @@ jobs:
       - name: Run benchmark
         shell: pwsh
         run: |
-          .\scripts\benchmark.ps1 -QueriesFile scripts\benchmark-queries-chromium.json -SkipBuild -BenchDir $env:RUNNER_TEMP\zgrep-bench -ResultsPath benchmark-results.md
+          .\scripts\benchmark.ps1 -QueriesFile scripts\benchmark-queries-chromium.json -SkipBuild -BenchDir $env:RUNNER_TEMP\ogrep-bench -ResultsPath benchmark-results.md
 
       - name: Print results
         shell: pwsh

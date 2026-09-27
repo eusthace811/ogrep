@@ -1,7 +1,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use zgrep_core::trigram;
+use ogrep_core::trigram;
 
 fuzz_target!(|data: &[u8]| {
     // Fuzz trigram extraction — must not panic on any input.

@@ -26,7 +26,7 @@ jobs:
       - name: Run benchmark
         run: |
           chmod +x scripts/benchmark.sh
-          ./scripts/benchmark.sh --queries scripts/benchmark-queries-kubernetes.json --skip-build --bench-dir /tmp/zgrep-bench --results benchmark-results.md
+          ./scripts/benchmark.sh --queries scripts/benchmark-queries-kubernetes.json --skip-build --bench-dir /tmp/ogrep-bench --results benchmark-results.md
 
       - name: Print results
         run: cat benchmark-results.md

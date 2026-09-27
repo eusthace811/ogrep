@@ -18,9 +18,9 @@ fi
 verifier[0]="$(command -v "${verifier[0]}")"
 
 mkdir -p "$tmpdir/tools" "$tmpdir/fixture"
-archive="zgrep-v0.0.0-aarch64-apple-darwin.tar.gz"
-printf '#!%s\nprintf "zgrep 0.0.0\\n"\n' "$bash_bin" > "$tmpdir/fixture/zgrep"
-tar czf "$tmpdir/fixture/$archive" -C "$tmpdir/fixture" zgrep
+archive="ogrep-v0.0.0-aarch64-apple-darwin.tar.gz"
+printf '#!%s\nprintf "ogrep 0.0.0\\n"\n' "$bash_bin" > "$tmpdir/fixture/ogrep"
+tar czf "$tmpdir/fixture/$archive" -C "$tmpdir/fixture" ogrep
 (cd "$tmpdir/fixture" && "${verifier[@]}" "$archive") > "$tmpdir/fixture/checksums.txt"
 read -r digest _ < "$tmpdir/fixture/checksums.txt"
 printf '%064d  unrelated.tar.gz\n' 0 >> "$tmpdir/fixture/checksums.txt"
@@ -109,9 +109,9 @@ run_case() (
         SCENARIO="$scenario" \
         DOWNLOADS="$case_dir/downloads" \
         CHECKSUM_CALLS="$case_dir/checksum-calls" \
-        ZGREP_VERSION=v0.0.0 \
-        ZGREP_REPO=example/zgrep \
-        ZGREP_INSTALL_DIR="$case_dir/install" \
+        OGREP_VERSION=v0.0.0 \
+        OGREP_REPO=example/ogrep \
+        OGREP_INSTALL_DIR="$case_dir/install" \
         "$bash_bin" "$installer" > "$case_dir/output" 2>&1 || status=$?
 
     case "$scenario" in
@@ -125,14 +125,14 @@ run_case() (
     fi
 
     if "$expect_success"; then
-        if [ "$status" -ne 0 ] || [ ! -x "$case_dir/install/zgrep-code" ]; then
+        if [ "$status" -ne 0 ] || [ ! -x "$case_dir/install/ogrep" ]; then
             cat "$case_dir/output"
             fail "$tools/$scenario: installation did not succeed"
         fi
-        cmp "$tmpdir/fixture/zgrep" "$case_dir/install/zgrep-code"
+        cmp "$tmpdir/fixture/ogrep" "$case_dir/install/ogrep"
     else
         [ "$status" -ne 0 ] || fail "$tools/$scenario: installer should fail"
-        [ ! -e "$case_dir/install/zgrep-code" ] || fail "$tools/$scenario: installed an unverified binary"
+        [ ! -e "$case_dir/install/ogrep" ] || fail "$tools/$scenario: installed an unverified binary"
         if grep -q 'Extracting' "$case_dir/output"; then
             fail "$tools/$scenario: extracted an unverified archive"
         fi

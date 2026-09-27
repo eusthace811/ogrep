@@ -1,7 +1,7 @@
 # Agent integration installer
 
-Install zgrep's stdio MCP tools, startup prewarming and search guidance together.
-Supports Linux and macOS with Python 3.11+. Run from a zgrep checkout; no Python
+Install ogrep's stdio MCP tools, startup prewarming and search guidance together.
+Supports Linux and macOS with Python 3.11+. Run from a ogrep checkout; no Python
 packages or separate MCP bridge need to be installed. This is a local installer,
 not a `curl | sh` endpoint.
 
@@ -15,8 +15,8 @@ not a `curl | sh` endpoint.
 # Install for all your sessions, resolving each session's repository at runtime.
 ./install-agent.sh install --agent codex --scope user
 
-# Use a specific zgrep binary or index settings.
-./install-agent.sh install --agent pi --binary /path/to/zgrep --max-filesize 8M
+# Use a specific ogrep binary or index settings.
+./install-agent.sh install --agent pi --binary /path/to/ogrep --max-filesize 8M
 
 # Validate, restore missing managed files, or uninstall.
 ./install-agent.sh doctor --agent codex,pi --root /path/to/repository
@@ -35,7 +35,7 @@ older binaries must be rebuilt or replaced. The installer checks this capability
 
 The installer uses `--binary`, an executable on `PATH`, or a private copy of the
 checkout's release binary, in that order. If none is available it builds the
-checkout using `cargo build --release --locked -p zgrep-cli`; Cargo must be
+checkout using `cargo build --release --locked -p ogrep-cli`; Cargo must be
 installed. It does not install agent applications or modify your shell PATH.
 Installation paths are absolute: run `repair --root /new/project` after moving
 or copying a project, or reinstall/`repair` after changing the Python
@@ -48,7 +48,7 @@ replacements are supplied.
 
 ## What gets installed
 
-**Codex:** an `mcp_servers.zgrep` entry, a `SessionStart` command hook and a short
+**Codex:** an `mcp_servers.ogrep` entry, a `SessionStart` command hook and a short
 managed section in `AGENTS.md`. Existing JSON hooks are merged; if the config
 already uses inline TOML hooks, the installer uses that representation even if
 `hooks.json` also exists, leaving that JSON file unchanged. Other
@@ -68,9 +68,9 @@ or managed policy. Use a Codex version supporting MCP and `SessionStart` command
 hooks. See the [MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
 and [hook documentation](https://learn.chatgpt.com/docs/hooks).
 
-**pi:** `.pi/extensions/zgrep.ts`, or `~/.pi/agent/extensions/zgrep.ts` for user
-scope. This extension registers `zgrep_search_code`, `zgrep_find_files` and
-`zgrep_refresh_index`,
+**pi:** `.pi/extensions/ogrep.ts`, or `~/.pi/agent/extensions/ogrep.ts` for user
+scope. This extension registers `ogrep_search_code`, `ogrep_find_files` and
+`ogrep_refresh_index`,
 connects them to the same Python MCP server, prewarms on `session_start`, and
 adds concise search guidance. It uses pi's extension API, not a fictional
 `.pi/mcp.json` configuration. No built-in tools are overridden. Restart pi or
@@ -146,15 +146,15 @@ signal still cancels promptly.
 Services and indexes are keyed by canonical repository path and indexing flags:
 
 ```text
-<repo>/.zgrep-agent/                 Project installation, manifest and backups
-$XDG_DATA_HOME/zgrep-agent/          User installation (default ~/.local/share)
-$XDG_CACHE_HOME/zgrep-agent/<key>/   Shared service state (default ~/.cache)
-  index/                            Index, serve.json and zgrep's serve.lock
+<repo>/.ogrep-agent/                 Project installation, manifest and backups
+$XDG_DATA_HOME/ogrep-agent/          User installation (default ~/.local/share)
+$XDG_CACHE_HOME/ogrep-agent/<key>/   Shared service state (default ~/.cache)
+  index/                            Index, serve.json and ogrep's serve.lock
   start.lock                        Startup coordination
   serve.log                         Server diagnostics
 ```
 
-Project installation adds a managed `/.zgrep-agent/` entry to `.gitignore`.
+Project installation adds a managed `/.ogrep-agent/` entry to `.gitignore`.
 In non-Git session roots, both service and query commands automatically enable
 `--no-require-git` so this exclusion (and other `.gitignore` rules) takes effect.
 The managed cache directory and the per-repository state directory must not be
@@ -163,13 +163,13 @@ through them.
 `CODEX_HOME` and `PI_CODING_AGENT_DIR` are respected for user configuration.
 The same configuration across Codex/pi or project/user installs shares a
 service. Different worktrees and index options get separate services.
-Existing manually managed `.zgrep` indexes/services are not adopted, because
+Existing manually managed `.ogrep` indexes/services are not adopted, because
 the current discovery file cannot verify all their indexing settings.
 
 The hook and MCP use the same service launcher. `serve` automatically builds or
 resumes the index, and queries can scan during startup. There is no separate
 `index` invocation and startup does not wait for an initial full build. Startup
-locks and zgrep's own single-instance lock prevent competing servers. An explicit server-overload reply is reported as an error and never triggers
+locks and ogrep's own single-instance lock prevent competing servers. An explicit server-overload reply is reported as an error and never triggers
 a new service or local scan. If
 startup fails for other availability reasons, an indexed request uses a current filesystem scan rather than
 deliberately querying an abandoned disk index. If a server dies during a query,

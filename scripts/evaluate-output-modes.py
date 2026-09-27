@@ -74,7 +74,7 @@ def main():
               'normalization': 'Plain output exact bytes decoded as UTF-8; JSON omits performance counters only, preserving semantic events and match counts. Error wording not compared; exit status is.',
               'checks': []}
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix='zgrep-output-eval-') as directory:
+    with tempfile.TemporaryDirectory(prefix='ogrep-output-eval-') as directory:
         temporary = Path(directory)
         root, index = temporary / 'corpus', temporary / 'index'
         root.mkdir()

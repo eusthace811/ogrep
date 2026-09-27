@@ -1,8 +1,8 @@
 <#
 .SYNOPSIS
-    Benchmark zgrep vs ripgrep on Windows.
+    Benchmark ogrep vs ripgrep on Windows.
 .DESCRIPTION
-    Runs a search benchmark comparing zgrep (client/server) against ripgrep.
+    Runs a search benchmark comparing ogrep (client/server) against ripgrep.
     Queries and the default repo URL are loaded from a JSON file.
 .PARAMETER QueriesFile
     Path to a JSON file containing "repo_url" and "queries" array.
@@ -14,14 +14,14 @@
 .PARAMETER BenchDir
     Working directory for benchmark artifacts (index, results, cloned repo).
 .PARAMETER TgrepBin
-    Path to the zgrep binary. Auto-detected from target\release\zgrep.exe if not set.
+    Path to the ogrep binary. Auto-detected from target\release\ogrep.exe if not set.
 .PARAMETER ResultsPath
     Output path for the results markdown file.
 .PARAMETER SkipBuild
-    Skip building zgrep from source (assumes the binary already exists).
+    Skip building ogrep from source (assumes the binary already exists).
 .EXAMPLE
     .\scripts\benchmark.ps1
-    # Builds zgrep, clones Linux kernel, runs full benchmark.
+    # Builds ogrep, clones Linux kernel, runs full benchmark.
 .EXAMPLE
     .\scripts\benchmark.ps1 -QueriesFile my-queries.json -RepoPath C:\src\myrepo -SkipBuild
     # Benchmarks with custom queries against an existing repo.
@@ -30,7 +30,7 @@ param(
     [string]$QueriesFile = '',
     [string]$RepoPath = '',
     [string]$RepoUrl = '',
-    [string]$BenchDir = (Join-Path $env:TEMP 'zgrep-bench'),
+    [string]$BenchDir = (Join-Path $env:TEMP 'ogrep-bench'),
     [string]$TgrepBin = '',
     [string]$ResultsPath = '',
     [switch]$SkipBuild
@@ -63,13 +63,13 @@ if (-not $RepoUrl) {
 }
 
 if (-not $TgrepBin) {
-    $TgrepBin = Join-Path $RepoRoot 'target\release\zgrep.exe'
+    $TgrepBin = Join-Path $RepoRoot 'target\release\ogrep.exe'
 }
 if (-not $ResultsPath) {
     $ResultsPath = Join-Path $BenchDir 'benchmark-results.md'
 }
 
-$IndexPath = Join-Path $BenchDir 'zgrep-index'
+$IndexPath = Join-Path $BenchDir 'ogrep-index'
 
 if ($RepoPath) {
     $BenchRepoDir = $RepoPath
@@ -81,7 +81,7 @@ if ($RepoPath) {
 
 # ── Build ──
 if (-not $SkipBuild) {
-    Write-Host '==> Building zgrep (release)...' -ForegroundColor Cyan
+    Write-Host '==> Building ogrep (release)...' -ForegroundColor Cyan
     Push-Location $RepoRoot
     try {
         cargo build --release
@@ -92,7 +92,7 @@ if (-not $SkipBuild) {
 }
 
 if (-not (Test-Path $TgrepBin)) {
-    throw "zgrep binary not found at $TgrepBin — run 'make release' first or pass -TgrepBin"
+    throw "ogrep binary not found at $TgrepBin — run 'make release' first or pass -TgrepBin"
 }
 
 # ── Clone benchmark repo ──
@@ -115,10 +115,10 @@ if (-not (Test-Path $BenchRepoDir)) {
 $FileCount = (git -C $BenchRepoDir ls-files | Measure-Object -Line).Lines
 
 # ── Build index ──
-Write-Host '==> Building zgrep index...' -ForegroundColor Cyan
+Write-Host '==> Building ogrep index...' -ForegroundColor Cyan
 $indexSw = [System.Diagnostics.Stopwatch]::StartNew()
 & $TgrepBin index $BenchRepoDir --index-path $IndexPath
-if ($LASTEXITCODE -ne 0) { throw 'zgrep index failed' }
+if ($LASTEXITCODE -ne 0) { throw 'ogrep index failed' }
 $indexSw.Stop()
 $indexMs = $indexSw.ElapsedMilliseconds
 Write-Host "Index built in ${indexMs}ms" -ForegroundColor Green
@@ -126,8 +126,8 @@ Write-Host "Index built in ${indexMs}ms" -ForegroundColor Green
 $QueryCount = $Queries.Count
 Write-Host "==> Running $QueryCount queries against $FileCount files" -ForegroundColor Cyan
 
-# ── Start zgrep serve ──
-Write-Host '==> Starting zgrep serve...' -ForegroundColor Cyan
+# ── Start ogrep serve ──
+Write-Host '==> Starting ogrep serve...' -ForegroundColor Cyan
 
 $LockFile = Join-Path $IndexPath 'serve.json'
 if (Test-Path $LockFile) { Remove-Item $LockFile -Force }
@@ -140,12 +140,12 @@ $serveProc = Start-Process -FilePath $TgrepBin `
     -RedirectStandardOutput $serveOut -RedirectStandardError $serveErr `
     -PassThru -WindowStyle Hidden
 
-Write-Host "Waiting for zgrep serve (pid $($serveProc.Id))..."
+Write-Host "Waiting for ogrep serve (pid $($serveProc.Id))..."
 $ready = $false
 for ($i = 0; $i -lt 60; $i++) {
     if (Test-Path $LockFile) {
         $port = (Get-Content $LockFile | ConvertFrom-Json).port
-        Write-Host "zgrep serve ready on port $port" -ForegroundColor Green
+        Write-Host "ogrep serve ready on port $port" -ForegroundColor Green
         $ready = $true
         break
     }
@@ -153,27 +153,27 @@ for ($i = 0; $i -lt 60; $i++) {
 }
 
 if (-not $ready) {
-    Write-Host 'ERROR: zgrep serve failed to start within 60s' -ForegroundColor Red
+    Write-Host 'ERROR: ogrep serve failed to start within 60s' -ForegroundColor Red
     if (-not $serveProc.HasExited) { $serveProc.Kill() }
-    throw 'zgrep serve failed to start'
+    throw 'ogrep serve failed to start'
 }
 
-# ── Benchmark: zgrep (client → serve) ──
+# ── Benchmark: ogrep (client → serve) ──
 $savedEAP = $ErrorActionPreference
 $ErrorActionPreference = 'Continue'
 try {
-    Write-Host "`n==> Benchmarking zgrep (client -> serve)..." -ForegroundColor Cyan
-    $zgrepSw = [System.Diagnostics.Stopwatch]::StartNew()
+    Write-Host "`n==> Benchmarking ogrep (client -> serve)..." -ForegroundColor Cyan
+    $ogrepSw = [System.Diagnostics.Stopwatch]::StartNew()
     foreach ($q in $Queries) {
         & $TgrepBin $q $BenchRepoDir --index-path $IndexPath *>$null
     }
-    $zgrepSw.Stop()
-    $zgrepMs = $zgrepSw.ElapsedMilliseconds
-    Write-Host "zgrep: ${zgrepMs}ms total" -ForegroundColor Green
+    $ogrepSw.Stop()
+    $ogrepMs = $ogrepSw.ElapsedMilliseconds
+    Write-Host "ogrep: ${ogrepMs}ms total" -ForegroundColor Green
 } finally {
     $ErrorActionPreference = $savedEAP
     # ── Stop serve ──
-    Write-Host '==> Stopping zgrep serve...'
+    Write-Host '==> Stopping ogrep serve...'
     try {
         if (-not $serveProc.HasExited) { $serveProc.Kill() }
         $serveProc.WaitForExit(5000) | Out-Null
@@ -224,7 +224,7 @@ if ($rgCmd) {
 }
 
 # ── Write results ──
-$zgrepAvg = [math]::Round($zgrepMs / $QueryCount, 1)
+$ogrepAvg = [math]::Round($ogrepMs / $QueryCount, 1)
 $dateStr  = [DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ')
 $repoName = Split-Path $BenchRepoDir -Leaf
 $arch     = $env:PROCESSOR_ARCHITECTURE
@@ -256,7 +256,7 @@ $sb = [System.Text.StringBuilder]::new()
 [void]$sb.AppendLine("- **Index build time**: ${indexMs}ms")
 [void]$sb.AppendLine("- **Index size**: $indexSize")
 [void]$sb.AppendLine('- **Scope**: search only (index built before timing)')
-[void]$sb.AppendLine('- **zgrep mode**: client/server — `zgrep serve` runs in background, `zgrep` client connects via TCP')
+[void]$sb.AppendLine('- **ogrep mode**: client/server — `ogrep serve` runs in background, `ogrep` client connects via TCP')
 [void]$sb.AppendLine()
 [void]$sb.AppendLine("| Tool | Total (ms) | Avg per query (ms) | Timeouts (${rgTimeoutSec}s) |")
 [void]$sb.AppendLine('| --- | ---: | ---: | ---: |')
@@ -264,7 +264,7 @@ if ($rgMs -ge 0) {
     $rgAvg = [math]::Round($rgMs / $QueryCount, 1)
     [void]$sb.AppendLine(('| ripgrep | {0} | {1} | {2} |' -f $rgMs, $rgAvg, $rgTimeouts))
 }
-[void]$sb.AppendLine(('| zgrep (client -> serve) | {0} | {1} | - |' -f $zgrepMs, $zgrepAvg))
+[void]$sb.AppendLine(('| ogrep (client -> serve) | {0} | {1} | - |' -f $ogrepMs, $ogrepAvg))
 
 $results = $sb.ToString()
 

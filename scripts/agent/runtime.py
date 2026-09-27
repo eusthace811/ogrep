@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dependency-free local MCP adapter and shared zgrep service launcher (POSIX)."""
+"""Dependency-free local MCP adapter and shared ogrep service launcher (POSIX)."""
 from __future__ import annotations
 
 import argparse
@@ -183,7 +183,7 @@ class Runtime:
                 and error.get("code") == -32002):
             # Explicit overload is not an unavailable service. Let the tool
             # report it instead of launching a replacement or a full scan.
-            raise ValueError("zgrep server busy; retry later")
+            raise ValueError("ogrep server busy; retry later")
         if reply.get("id") != 1:
             return None
         result = reply.get("result")
@@ -418,7 +418,7 @@ class Runtime:
             if not truncated:
                 code = proc.wait(timeout=max(0.1, deadline - time.monotonic()))
                 if code not in (0, 1):
-                    raise ValueError(warnings.decode(errors="replace") or f"zgrep exited with {code}")
+                    raise ValueError(warnings.decode(errors="replace") or f"ogrep exited with {code}")
         finally:
             reap_process(proc)
         payload = {"root": str(self.root), "results": records, "truncated": truncated,
@@ -482,7 +482,7 @@ def mcp(runtime):
                         requested = request.get("params", {}).get("protocolVersion")
                         version = requested if requested in ("2024-11-05", "2025-03-26", "2025-06-18", "2025-11-25") else "2025-11-25"
                         result = {"protocolVersion": version, "capabilities": {"tools": {}},
-                                  "serverInfo": {"name": "zgrep", "version": VERSION}, "instructions": INSTRUCTIONS}
+                                  "serverInfo": {"name": "ogrep", "version": VERSION}, "instructions": INSTRUCTIONS}
                     elif method == "ping":
                         result = {}
                     elif method == "tools/list":
@@ -517,7 +517,7 @@ def main():
         mcp(runtime)
     elif args.action == "ensure":
         if not runtime.ensure_server():
-            print(f"zgrep warming up or unavailable; queries can scan. Log: {runtime.state / 'serve.log'}", file=sys.stderr)
+            print(f"ogrep warming up or unavailable; queries can scan. Log: {runtime.state / 'serve.log'}", file=sys.stderr)
     else:
         print(json.dumps({"root": str(runtime.root), "index": str(runtime.index), "status": runtime.status()}))
 
@@ -526,5 +526,5 @@ if __name__ == "__main__":
     try:
         main()
     except (OSError, ValueError) as exc:
-        print(f"zgrep-agent: {exc}", file=sys.stderr)
+        print(f"ogrep-agent: {exc}", file=sys.stderr)
         sys.exit(1)

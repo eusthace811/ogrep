@@ -1,7 +1,7 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
-use zgrep_core::PostingEntry;
+use ogrep_core::PostingEntry;
 
 fuzz_target!(|data: &[u8]| {
     // Fuzz files.bin decoding — must not panic on arbitrary bytes.
@@ -22,11 +22,11 @@ fuzz_target!(|data: &[u8]| {
 
     // Trigram extraction + roundtrip: extract trigrams from fuzzed data,
     // then verify each hash encodes/decodes consistently.
-    let hashes = zgrep_core::trigram::extract(data);
+    let hashes = ogrep_core::trigram::extract(data);
     for h in hashes {
         let a = ((h >> 16) & 0xFF) as u8;
         let b = ((h >> 8) & 0xFF) as u8;
         let c = (h & 0xFF) as u8;
-        assert_eq!(zgrep_core::trigram::hash(a, b, c), h);
+        assert_eq!(ogrep_core::trigram::hash(a, b, c), h);
     }
 });

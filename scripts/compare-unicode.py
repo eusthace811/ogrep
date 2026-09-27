@@ -28,7 +28,7 @@ def main():
         result['engines'][name] = {
             'path': str(binary), 'sha256': hashlib.sha256(binary.read_bytes()).hexdigest(),
             'version': subprocess.check_output([str(binary), '--version'], text=True).strip()}
-    with tempfile.TemporaryDirectory(prefix='zgrep-compare-unicode-') as directory:
+    with tempfile.TemporaryDirectory(prefix='ogrep-compare-unicode-') as directory:
         temporary = Path(directory)
         corpus = temporary / 'corpus'
         corpus.mkdir()

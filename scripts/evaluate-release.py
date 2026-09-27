@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Run the frozen Linux release evaluation sequentially and retain its manifest.
 
-Run from the fork root after building target/release/zgrep. Benchmark roots and
+Run from the fork root after building target/release/ogrep. Benchmark roots and
 baselines are separate worktrees/binaries under ../build, as documented in the
 release report. No benchmark overlaps this runner's tests or builds.
 """
@@ -22,12 +22,12 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     if any(out.iterdir()):
         ap.error('output directory must be empty; preserve prior evaluations')
-    engines = ['--engine', 'upstream=../build/baseline/release/tgrep', '--engine', 'release=../build/baseline/zgrep-0.2.0', '--engine', 'fork=target/release/zgrep']
+    engines = ['--engine', 'upstream=../build/baseline/release/tgrep', '--engine', 'release=../build/baseline/ogrep-0.2.0', '--engine', 'fork=target/release/ogrep']
     rust = '../build/corpora-pinned/rust'
     work_rust = args.work_root / 'rust'
-    binary = Path('target/release/zgrep')
+    binary = Path('target/release/ogrep')
     assert not subprocess.check_output(['git', 'status', '--porcelain']), 'commit source before final evaluation'
-    assert subprocess.check_output([str(binary), '--version'], text=True).strip() == 'zgrep 0.3.0'
+    assert subprocess.check_output([str(binary), '--version'], text=True).strip() == 'ogrep 0.3.0'
     report = {'version': '0.3.0', 'source_commit': subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
               'binary_sha256': hashlib.sha256(binary.read_bytes()).hexdigest(), 'commands': []}
     def run(name, command):
@@ -54,10 +54,10 @@ def main():
                       '--mode',mode,'--rounds','9','--seed','273337','--output',str(path)])
     run('cache',['python3','scripts/evaluate-index-cache.py',
                  '--engine',f'upstream=../build/baseline/release/tgrep={work_rust}/upstream/index',
-                 '--engine',f'release=../build/baseline/zgrep-0.2.0={work_rust}/release/index',
-                 '--engine',f'fork=target/release/zgrep={work_rust}/fork/index',
+                 '--engine',f'release=../build/baseline/ogrep-0.2.0={work_rust}/release/index',
+                 '--engine',f'fork=target/release/ogrep={work_rust}/fork/index',
                  '--corpus',rust,'--output',str(out/'cache.json')])
-    for name, executable in [('upstream', '../build/baseline/release/tgrep'), ('release', '../build/baseline/zgrep-0.2.0')]:
+    for name, executable in [('upstream', '../build/baseline/release/tgrep'), ('release', '../build/baseline/ogrep-0.2.0')]:
         run(f'load-{name}', ['python3', 'scripts/evaluate-load.py', '--binary', executable, '--corpus', rust,
                             '--index', str(work_rust/name/'index'), '--compact-files', '--observe-status', '--output', str(out/f'load-{name}.json')])
     run('load',['python3','scripts/evaluate-load.py','--binary',str(binary),'--corpus',rust,

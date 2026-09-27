@@ -29,14 +29,14 @@ def main():
                         ('fallback', ['--watch-budget', '1', '--poll-interval', '1'])]:
         row = {'mode': name, 'checks': []}
         report['modes'].append(row)
-        with tempfile.TemporaryDirectory(prefix='zgrep-recovery-') as directory:
+        with tempfile.TemporaryDirectory(prefix='ogrep-recovery-') as directory:
             root, index = Path(directory)/'corpus', Path(directory)/'index'
             root.mkdir()
             (root/'.git').mkdir()
             (root/'nested').mkdir()
             (root/'nested'/'deep').mkdir()
             for i in range(500):
-                (root/'nested'/f'f{i:04}.rs').write_text(f'ZGREP_STRESS_original_{i}\n')
+                (root/'nested'/f'f{i:04}.rs').write_text(f'OGREP_STRESS_original_{i}\n')
             subprocess.run([str(binary), 'index', str(root), '--index-path', str(index)], capture_output=True, check=True, timeout=60)
             logs = []
             def start():
@@ -53,11 +53,11 @@ def main():
             expected_mode = 'native' if name == 'native' else 'poll'
             assert row['initial_status']['watch_mode_active'] == expected_mode, row['initial_status']
             def converge(label):
-                expected = subprocess.run(['rg', '--no-config', '--sort', 'path', '-n', '--no-heading', '--color', 'never', 'ZGREP_STRESS_', '.'], cwd=root, capture_output=True, check=True).stdout
+                expected = subprocess.run(['rg', '--no-config', '--sort', 'path', '-n', '--no-heading', '--color', 'never', 'OGREP_STRESS_', '.'], cwd=root, capture_output=True, check=True).stdout
                 start_time = time.monotonic()
                 tries = 0
                 while True:
-                    p = subprocess.run([str(binary), '--no-config', '--sort', 'path', '-n', '--no-heading', '--color', 'never', '--stats', '--index-path', str(index), 'ZGREP_STRESS_', '.'], cwd=root, capture_output=True, timeout=20)
+                    p = subprocess.run([str(binary), '--no-config', '--sort', 'path', '-n', '--no-heading', '--color', 'never', '--stats', '--index-path', str(index), 'OGREP_STRESS_', '.'], cwd=root, capture_output=True, timeout=20)
                     tries += 1
                     assert p.returncode == 0 and b'(via server)' in p.stderr, p.stderr
                     if p.stdout == expected:
@@ -73,7 +73,7 @@ def main():
                 def read_during_churn():
                     count = 0
                     while not done.is_set():
-                        answer = load.rpc(port, 'search', {'pattern': 'ZGREP_STRESS_', 'files_only': True})
+                        answer = load.rpc(port, 'search', {'pattern': 'OGREP_STRESS_', 'files_only': True})
                         assert isinstance(answer['matches'], list)
                         count += 1
                     return count
@@ -83,13 +83,13 @@ def main():
                         for i in range(400):
                             old = root/'nested'/f'f{i:04}.rs'
                             if i < 100:
-                                old.write_text(f'ZGREP_STRESS_changed_{i}\n')
+                                old.write_text(f'OGREP_STRESS_changed_{i}\n')
                             elif i < 200:
                                 old.rename(root/'nested'/'deep'/f'moved{i:04}.rs')
                             elif i < 300:
                                 old.unlink()
                             else:
-                                (root/f'new{i:04}.rs').write_text(f'ZGREP_STRESS_created_{i}\n')
+                                (root/f'new{i:04}.rs').write_text(f'OGREP_STRESS_created_{i}\n')
                         converge('400-bulk-mutations')
                         (root/'.gitignore').write_text('new*.rs\nnested/deep/\n')
                         converge('ignore-excludes-200')
@@ -101,11 +101,11 @@ def main():
                 # A hard stop with outstanding new edits exercises restart's
                 # stale-index repair; no graceful save is requested.
                 for i in range(25):
-                    (root/'nested'/f'f{i:04}.rs').write_text(f'ZGREP_STRESS_before_crash_{i}\n')
+                    (root/'nested'/f'f{i:04}.rs').write_text(f'OGREP_STRESS_before_crash_{i}\n')
                 server.kill()
                 server.wait(timeout=10)
                 for i in range(25, 50):
-                    (root/'nested'/f'f{i:04}.rs').write_text(f'ZGREP_STRESS_offline_{i}\n')
+                    (root/'nested'/f'f{i:04}.rs').write_text(f'OGREP_STRESS_offline_{i}\n')
                 server, port, row['restart_status'] = start()
                 converge('crash-and-50-edits-restart')
                 row['final_resources'] = load.resources(server.pid)

@@ -760,6 +760,53 @@ dependencies = [
 ]
 
 [[package]]
+name = "ogrep-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "clap",
+ "fancy-regex",
+ "fs2",
+ "globset",
+ "libc",
+ "lru",
+ "memchr",
+ "memmap2",
+ "notify",
+ "ogrep-core",
+ "predicates",
+ "rayon",
+ "regex",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "windows-sys 0.61.2",
+ "winresource",
+]
+
+[[package]]
+name = "ogrep-core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "blake3",
+ "criterion",
+ "encoding_rs",
+ "globset",
+ "ignore",
+ "memchr",
+ "memmap2",
+ "rayon",
+ "regex",
+ "regex-syntax",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "windows-sys 0.61.2",
+]
+
+[[package]]
 name = "once_cell"
 version = "1.21.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1505,53 +1552,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "zgrep-cli"
-version = "0.3.0"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "clap",
- "fancy-regex",
- "fs2",
- "globset",
- "libc",
- "lru",
- "memchr",
- "memmap2",
- "notify",
- "predicates",
- "rayon",
- "regex",
- "serde",
- "serde_json",
- "tempfile",
- "windows-sys 0.61.2",
- "winresource",
- "zgrep-core",
-]
-
-[[package]]
-name = "zgrep-core"
-version = "0.3.0"
-dependencies = [
- "anyhow",
- "blake3",
- "criterion",
- "encoding_rs",
- "globset",
- "ignore",
- "memchr",
- "memmap2",
- "rayon",
- "regex",
- "regex-syntax",
- "serde",
- "serde_json",
- "tempfile",
- "windows-sys 0.61.2",
 ]
 
 [[package]]

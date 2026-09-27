@@ -50,24 +50,24 @@ jobs:
 
       - name: Build release binary
         if: ${{ !matrix.use_cross }}
-        run: cargo build --release --locked -p zgrep-cli --bin zgrep --target ${{ matrix.target }}
+        run: cargo build --release --locked -p ogrep-cli --bin ogrep --target ${{ matrix.target }}
 
       - name: Build release binary (cross)
         if: ${{ matrix.use_cross }}
-        run: cross build --release --locked -p zgrep-cli --bin zgrep --target ${{ matrix.target }}
+        run: cross build --release --locked -p ogrep-cli --bin ogrep --target ${{ matrix.target }}
 
       - name: Package (unix)
         run: |
           staging=$(mktemp -d)
-          cp target/${{ matrix.target }}/release/zgrep "$staging/"
+          cp target/${{ matrix.target }}/release/ogrep "$staging/"
           cp README.md LICENSE "$staging/"
-          tar czf zgrep-${{ github.ref_name }}-${{ matrix.target }}.tar.gz -C "$staging" .
+          tar czf ogrep-${{ github.ref_name }}-${{ matrix.target }}.tar.gz -C "$staging" .
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: zgrep-${{ matrix.target }}
-          path: zgrep-${{ github.ref_name }}-*
+          name: ogrep-${{ matrix.target }}
+          path: ogrep-${{ github.ref_name }}-*
 
   publish:
     name: Publish Release
@@ -80,12 +80,12 @@ jobs:
           merge-multiple: true
 
       - name: Generate checksums
-        run: sha256sum zgrep-* > checksums.txt
+        run: sha256sum ogrep-* > checksums.txt
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           generate_release_notes: true
           files: |
-            zgrep-*
+            ogrep-*
             checksums.txt

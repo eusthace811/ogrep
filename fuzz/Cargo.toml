@@ -1,5 +1,5 @@
 [package]
-name = "zgrep-fuzz"
+name = "ogrep-fuzz"
 version = "0.0.1"
 publish = false
 edition = "2021"
@@ -9,7 +9,7 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
-zgrep-core = { path = "../zgrep-core" }
+ogrep-core = { path = "../ogrep-core" }
 
 # Prevent this from interfering with workspaces
 [workspace]

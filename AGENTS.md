@@ -1,19 +1,19 @@
-# zgrep-code for coding agents
+# ogrep for coding agents
 
 A short guide for AI agents (and the humans who wire them up) that want to
-use `zgrep` as a fast search tool inside a repository. It complements the
+use `ogrep` as a fast search tool inside a repository. It complements the
 [command reference](docs/upstream/README.md), which documents inherited flags; this file covers the few
 things an agent has to get right.
 
 ## The mental model
 
-zgrep provides indexed text search with many ripgrep-compatible flags and an optional server.
-Examples use the safe installation name `zgrep-code`; Unix `zgrep` commonly means gzip search.
+ogrep provides indexed text search with many ripgrep-compatible flags and an optional server.
+Examples use the installed command name, `ogrep`.
 
 ```
-zgrep-code index .        # once: build the index into ./.zgrep
-zgrep-code serve .        # once per session: keep the index warm and watch for changes
-zgrep-code "pattern" .    # every search: finds the server, answers in milliseconds
+ogrep index .        # once: build the index into ./.ogrep
+ogrep serve .        # once per session: keep the index warm and watch for changes
+ogrep "pattern" .    # every search: finds the server, answers in milliseconds
 ```
 
 A search resolves in this order:
@@ -22,18 +22,18 @@ A search resolves in this order:
    watcher keeps the index close to the filesystem, though a silently missed
    notification is repaired only by periodic reconciliation (scheduled hourly
    and deferrable for up to four hours while queried); `--no-watch` disables it.
-2. **On-disk index** but no server: read `.zgrep/` directly. Fast, but only as
+2. **On-disk index** but no server: read `.ogrep/` directly. Fast, but only as
    fresh as the last successful index publication. Legacy indexes without
    hidden-file coverage metadata and incomplete builds fall back to scanning.
-   Rebuild with `zgrep-code index .` or resume `zgrep-code serve .` to enable indexed queries.
+   Rebuild with `ogrep index .` or resume `ogrep serve .` to enable indexed queries.
 3. **No index**: scan every file, like grep. Correct but slow on large trees.
-   zgrep-code prints a warning on stderr when this happens.
+   ogrep prints a warning on stderr when this happens.
 
 An agent never has to choose between these; the command is the same. Results
 can differ, though. An on-disk index omits changes since its last build. A
 server started with no index, a partial index, or legacy hidden-file coverage
 lets clients fall back to scanning until it establishes the full corpus.
-`zgrep-code status .` shows `Hidden coverage: complete` once indexed queries are
+`ogrep status .` shows `Hidden coverage: complete` once indexed queries are
 available, and `Indexing: complete` once the initial build is done. Do not read either as a
 freshness signal: a server that starts on an existing index reconciles it
 against the filesystem in the background while already reporting complete,
@@ -45,29 +45,29 @@ and size rules. It is slow on large trees, so use it deliberately.
 ## Setup
 
 ```bash
-make install                          # installs ~/.cargo/bin/zgrep-code
-zgrep-code --version                  # ensure ~/.cargo/bin is on PATH
+make install                          # installs ~/.cargo/bin/ogrep
+ogrep --version                  # ensure ~/.cargo/bin is on PATH
 ```
 
 Then, from the repository root, once:
 
 ```bash
-zgrep-code serve . &
+ogrep serve . &
 ```
 
 `serve` builds the index if none exists and answers queries while it builds.
-It writes `.zgrep/serve.json` (PID and port) so clients can find it. Do not
-commit `.zgrep/`; add it to `.gitignore`.
+It writes `.ogrep/serve.json` (PID and port) so clients can find it. Do not
+commit `.ogrep/`; add it to `.gitignore`.
 
 Check that a server is up:
 
 ```bash
-zgrep-code status .
+ogrep status .
 ```
 
 If your agent framework cannot keep a background process alive, skip `serve`
-and run `zgrep-code index .` instead. Searches then use the on-disk index. That
-index is not updated by searches or edits, so re-run `zgrep-code index .` after any
+and run `ogrep index .` instead. Searches then use the on-disk index. That
+index is not updated by searches or edits, so re-run `ogrep index .` after any
 change a later search has to see, including your own edits.
 
 ## Searching
@@ -80,13 +80,13 @@ only take effect on a full scan: `-L`/`--follow`, `--one-file-system` and
 `--no-index`.
 
 ```bash
-zgrep-code -- "fn parse_config" .                 # regex, default
-zgrep-code -F -- "Vec<Option<T>>" .               # literal string
-zgrep-code -w -t rust -- handle .                 # whole word, Rust files only
-zgrep-code -g "src/**" -C 2 -- "TODO|FIXME" .     # glob scope, 2 lines of context
-zgrep-code -l -- "impl .* for Server" .           # file names only
-zgrep-code -c -- deprecated .                     # count per file
-zgrep-code --files -t py .                        # list searchable Python files
+ogrep -- "fn parse_config" .                 # regex, default
+ogrep -F -- "Vec<Option<T>>" .               # literal string
+ogrep -w -t rust -- handle .                 # whole word, Rust files only
+ogrep -g "src/**" -C 2 -- "TODO|FIXME" .     # glob scope, 2 lines of context
+ogrep -l -- "impl .* for Server" .           # file names only
+ogrep -c -- deprecated .                     # count per file
+ogrep --files -t py .                        # list searchable Python files
 ```
 
 Rules of thumb for agents:
@@ -94,7 +94,7 @@ Rules of thumb for agents:
 - **Put `--` before the pattern** and pass the search root explicitly. Shell
   quotes do not stop the parser from reading a bare `index`, `serve`,
   `search`, `status`, `refresh`, `count-files` or `help` as a subcommand;
-  `zgrep-code -- serve .` searches for the word. Everything after `--` is read as
+  `ogrep -- serve .` searches for the word. Everything after `--` is read as
   the pattern and paths, so all flags must come before it.
 - **Prefer `-F`** when the query is a symbol or a string the user typed. It
   avoids regex-escaping mistakes.
@@ -114,18 +114,18 @@ are `begin`, `match`, `context`, `end`, and `summary`.
 Real output, run from a checkout of this repository:
 
 ```bash
-zgrep-code --json -F -- "fn main" zgrep-cli/build.rs
+ogrep --json -F -- "fn main" ogrep-cli/build.rs
 ```
 
 ```json
-{"data":{"path":{"text":"zgrep-cli/build.rs"}},"type":"begin"}
-{"data":{"absolute_offset":400,"line_number":11,"lines":{"text":"fn main() {\n"},"path":{"text":"zgrep-cli/build.rs"},"submatches":[{"end":7,"match":{"text":"fn main"},"start":0}]},"type":"match"}
-{"data":{"binary_offset":null,"path":{"text":"zgrep-cli/build.rs"},"stats":{"bytes_printed":260,"bytes_searched":1775,"elapsed":{"human":"0.000010s","nanos":9709,"secs":0},"matched_lines":1,"matches":1,"searches":1,"searches_with_match":1}},"type":"end"}
+{"data":{"path":{"text":"ogrep-cli/build.rs"}},"type":"begin"}
+{"data":{"absolute_offset":400,"line_number":11,"lines":{"text":"fn main() {\n"},"path":{"text":"ogrep-cli/build.rs"},"submatches":[{"end":7,"match":{"text":"fn main"},"start":0}]},"type":"match"}
+{"data":{"binary_offset":null,"path":{"text":"ogrep-cli/build.rs"},"stats":{"bytes_printed":260,"bytes_searched":1775,"elapsed":{"human":"0.000010s","nanos":9709,"secs":0},"matched_lines":1,"matches":1,"searches":1,"searches_with_match":1}},"type":"end"}
 {"data":{"elapsed_total":{"human":"0.000470s","nanos":469542,"secs":0},"stats":{"bytes_printed":515,"bytes_searched":1775,"elapsed":{"human":"0.000470s","nanos":469542,"secs":0},"matched_lines":1,"matches":1,"searches":1,"searches_with_match":1}},"type":"summary"}
 ```
 
 Any parser written for `rg --json` works as is, with one exception: on a line
-that is not valid UTF-8, ripgrep emits base64 `lines.bytes`, while zgrep
+that is not valid UTF-8, ripgrep emits base64 `lines.bytes`, while ogrep
 always emits `lines.text` with each bad byte replaced by U+FFFD. A consumer
 that depends on the raw bytes of such lines will see repaired text instead.
 
@@ -170,7 +170,7 @@ with a custom path.
 
 Legacy or incomplete indexes, and older servers that cannot confirm hidden-file
 coverage, fall back to scanning. A current server upgrades legacy coverage by
-reconciling the tree; `zgrep-code index .` can rebuild it explicitly.
+reconciling the tree; `ogrep index .` can rebuild it explicitly.
 
 New indexes have a format boundary that older local readers reject instead of
 exposing hidden paths without filtering. Downgrading requires rebuilding with
@@ -183,13 +183,13 @@ legacy-format support for migration.
   worker has processed. Events are queued and applied asynchronously, so a
   search issued right after an edit can run before the index has caught up.
   To make completed edits searchable before a sequence of indexed queries, run
-  `zgrep-code refresh . --timeout-secs 30` and wait for success. The command
+  `ogrep refresh . --timeout-secs 30` and wait for success. The command
   requires a running server for this root, rereads eligible content and can be
   expensive on large trees. `--no-index` performs a direct scan for one search.
-- With only an **on-disk index**, results reflect the last `zgrep-code index`.
-  Files created since then are not found. Run `zgrep-code index .` again, or
-  start `zgrep-code serve .`.
-- `zgrep-code --files` reads from the index too. Add `--no-index` to list what is
+- With only an **on-disk index**, results reflect the last `ogrep index`.
+  Files created since then are not found. Run `ogrep index .` again, or
+  start `ogrep serve .`.
+- `ogrep --files` reads from the index too. Add `--no-index` to list what is
   on disk right now.
 
 `refresh` covers edits completed before the request whose contents and
@@ -219,35 +219,35 @@ searches a different set of files.
   above 64 MiB.
 
 ```bash
-zgrep-code index . --index-path /tmp/idx --exclude vendor
-zgrep-code serve . --index-path /tmp/idx --exclude vendor
-zgrep-code "pattern" . --index-path /tmp/idx
+ogrep index . --index-path /tmp/idx --exclude vendor
+ogrep serve . --index-path /tmp/idx --exclude vendor
+ogrep "pattern" . --index-path /tmp/idx
 ```
 
 ## Repositories without `.git`
 
-zgrep-code indexes plain directories normally, but like ripgrep it ignores
+ogrep indexes plain directories normally, but like ripgrep it ignores
 `.gitignore` files outside a Git repository. The index is then larger than
-expected, and zgrep-code prints a warning saying so. Pass `--no-require-git` to
+expected, and ogrep prints a warning saying so. Pass `--no-require-git` to
 `index`, `serve` and search to apply the ignore rules anyway.
 
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| `warning: no index at ... - scanning every file` | No index at the path the search looked in | If a server or index uses `--index-path`, pass the same value to the search; otherwise run `zgrep-code index .` or `zgrep-code serve .` |
-| `Server unreachable, falling back to local index` | Server died or `serve.json` is stale | Restart `zgrep-code serve .` |
-| A new file is not found, no server | On-disk index predates the file | Run `zgrep-code index .` |
-| A new file is not found, server running | First build still in progress, or the watcher event is still queued | Run `refresh` and wait for success, or pass `--no-index` for this search; re-running `zgrep-code index .` does not update a running server |
+| `warning: no index at ... - scanning every file` | No index at the path the search looked in | If a server or index uses `--index-path`, pass the same value to the search; otherwise run `ogrep index .` or `ogrep serve .` |
+| `Server unreachable, falling back to local index` | Server died or `serve.json` is stale | Restart `ogrep serve .` |
+| A new file is not found, no server | On-disk index predates the file | Run `ogrep index .` |
+| A new file is not found, server running | First build still in progress, or the watcher event is still queued | Run `refresh` and wait for success, or pass `--no-index` for this search; re-running `ogrep index .` does not update a running server |
 | Search is slow despite a server | Flag bypasses the index (see above) | Drop the flag or scope with `-g`/`-t` |
 
 ## Tool definition sketch
 
-If you expose zgrep-code to a model as a tool, a minimal schema is:
+If you expose ogrep to a model as a tool, a minimal schema is:
 
 ```json
 {
-  "name": "zgrep",
+  "name": "ogrep",
   "description": "Fast regex search over the repository. ripgrep-compatible flags. Use -F for literal strings, -t/-g to scope, -l for file names only, -C N for context.",
   "parameters": {
     "type": "object",
@@ -261,9 +261,9 @@ If you expose zgrep-code to a model as a tool, a minimal schema is:
 }
 ```
 
-Before invoking zgrep, canonicalize `path` beneath the configured repository root
+Before invoking ogrep, canonicalize `path` beneath the configured repository root
 and reject paths that resolve outside it. Allowlist search-only flags rather than
-forwarding arbitrary tokens. Then run `zgrep-code <flags...> -- <pattern> <path>` and
+forwarding arbitrary tokens. Then run `ogrep <flags...> -- <pattern> <path>` and
 return stdout, stderr and the exit code together. Treat `1` as "no results", not
 as a failure. Treat `2` as an error; stderr carries the cause, such as a bad regex.
 Always return stderr: the "no index" warning can arrive with code `0` or `1`.

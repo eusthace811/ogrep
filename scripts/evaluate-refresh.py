@@ -35,7 +35,7 @@ def main():
                   'version': subprocess.check_output([str(binary), '--version'], text=True).strip(),
                   'samples': []}
         result['engines'][name] = record
-        with tempfile.TemporaryDirectory(prefix='zgrep-refresh-eval-') as directory:
+        with tempfile.TemporaryDirectory(prefix='ogrep-refresh-eval-') as directory:
             temporary = Path(directory)
             root = temporary / 'corpus'
             root.mkdir()
@@ -69,7 +69,7 @@ def main():
                         time.sleep(.05)
                     record['initial_status'] = current
                     search = [str(binary), '--no-config', '-F', '-n', '--no-heading', '--color', 'never',
-                              '--stats', '--index-path', str(index), '--', 'ZGREP_REFRESH_', '.']
+                              '--stats', '--index-path', str(index), '--', 'OGREP_REFRESH_', '.']
                     # Warm CLI/server search before applying mutations.
                     p = subprocess.run(search, cwd=root, capture_output=True, text=True, timeout=10)
                     assert p.returncode == 1 and not p.stdout and '(via server)' in p.stderr
@@ -77,7 +77,7 @@ def main():
                         moved = root / 'moved.rs'
                         content = ''
                         for operation in ('edit', 'rename', 'replace', 'delete', 'create'):
-                            next_content = f'const MARKER: &str = "ZGREP_REFRESH_{cycle}_{operation}";'
+                            next_content = f'const MARKER: &str = "OGREP_REFRESH_{cycle}_{operation}";'
                             staging = temporary / 'replacement.rs'
                             if operation == 'replace':
                                 staging.write_text(next_content + '\n')
@@ -111,7 +111,7 @@ def main():
                                     break
                                 time.sleep(.01)
                             scan = subprocess.run([shutil.which('rg'), '--no-config', '-F', '-n', '--no-heading',
-                                                   '--color', 'never', '--', 'ZGREP_REFRESH_', '.'],
+                                                   '--color', 'never', '--', 'OGREP_REFRESH_', '.'],
                                                   cwd=root, capture_output=True, text=True, timeout=10)
                             assert sorted(scan.stdout.splitlines()) == expected and scan.returncode == expected_exit
                             record['samples'].append({'cycle': cycle, 'operation': operation,

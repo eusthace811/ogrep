@@ -30,7 +30,7 @@ def main():
         return math.exp(statistics.mean(math.log(q[baseline]['median_ms'] / q['fork']['median_ms']) for q in data['summary'].values()))
     local = speed(evaluations['rust-broad-local.json'], 'upstream')
     server = speed(evaluations['rust-broad-server.json'], 'upstream')
-    lines = ['# zgrep-code 0.3.0 evaluation and release qualification', '',
+    lines = ['# ogrep 0.3.0 evaluation and release qualification', '',
              f'The 102-query Rust workload measured **{local:.3f}× local speedup** and **{server:.3f}× server-backed CLI speedup** versus tgrep. Source-handle reuse reduces local read work; compact file-list replies reduce response work. Bounded admission controls concurrent search/response allocations, and CLI/RPC/agent refresh receipts make completed edits searchable before success. These are workload-specific improvements, not a universal ranking.', '',
              'This report covers trusted local Linux/WSL use. It does not qualify a shared network service or native macOS/Windows operation. Previous [0.2.0 evidence](evidence/release-0.2.0/PRODUCTION_REPORT.md) and [development experiments](evidence/next-release/README.md) are preserved.', '',
              '## Search latency', '',
@@ -107,7 +107,7 @@ def main():
               link('qualification.json', 'Qualification commands')+'; '+link('output-modes.json', 'Output cases')+'; '+link('recovery.json', 'Recovery')+'; '+link('cache.json', 'Cache')+'; '+link('startup.json', 'Restarts')+'; '+link('unicode.json', 'Known-positive Unicode comparison')+'; '+link('audit.log', 'Dependency audit')+'.', '',
               '## Provenance, delivery and limits', '',
               f'- Measured source: `{run["source_commit"]}`; executable SHA-256: `{identity}`.',
-              '- Baselines: tgrep `56f8c62`, version 1.0.10; retained zgrep 0.2.0. Frozen Rust `1a8fa555801329bd0e803d7384b5a21191c61f30` and CPython `b54ae4cdfce4b84b22889b5c5b9ed0ab9bcb3702`; clean states, index provenance, binary identities and routes are verified.',
+              '- Baselines: tgrep `56f8c62`, version 1.0.10; retained ogrep 0.2.0. Frozen Rust `1a8fa555801329bd0e803d7384b5a21191c61f30` and CPython `b54ae4cdfce4b84b22889b5c5b9ed0ab9bcb3702`; clean states, index provenance, binary identities and routes are verified.',
               '- Workstation: Intel Core i9-14900KS, Linux/WSL2 x86-64. Full platform, affinity and toolchain records are in the raw evaluations and qualification manifest.',
               '- Reproduce from a clean, built checkout with `python3 scripts/evaluate-release.py --output-directory evidence/NEW-RUN --work-root ../build/NEW-RUN`. Output must be empty; the refresh-cost work directory must be new.', '']
     path = root / 'release-validation.json'

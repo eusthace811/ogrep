@@ -71,7 +71,7 @@ def main():
     if args.requests < 1 or any(n < 1 for n in args.clients):
         ap.error('requests and client counts must be positive')
     binary, root, index = args.binary.resolve(), args.corpus.resolve(), args.index.resolve()
-    patterns = ['fn main', 'NonNull', 'typeck', 'absent_ZGREP_897342938', r'impl.*Debug', r'(alloc|dealloc).*Layout']
+    patterns = ['fn main', 'NonNull', 'typeck', 'absent_OGREP_897342938', r'impl.*Debug', r'(alloc|dealloc).*Layout']
     expected = []
     for pattern in patterns:
         p = subprocess.run(['rg', '--no-config', '-l', '-t', 'rust', '--', pattern, '.'], cwd=root, capture_output=True, check=False, timeout=60)

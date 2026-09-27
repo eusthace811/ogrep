@@ -42,7 +42,7 @@ def atomic(path, content):
         path.unlink(missing_ok=True)
         return
     mode = path.stat().st_mode & 0o777 if path.exists() else 0o600
-    fd, temporary = tempfile.mkstemp(prefix=".zgrep-write-", dir=path.parent)
+    fd, temporary = tempfile.mkstemp(prefix=".ogrep-write-", dir=path.parent)
     try:
         with os.fdopen(fd, "wb") as out:
             out.write(content)
@@ -77,8 +77,8 @@ def reject_inline_tables(path, text, key, dotted=False):
 
 
 def marked(agent, label, content, markdown=False):
-    start = f"zgrep-agent:{agent}:{label}:begin"
-    end = f"zgrep-agent:{agent}:{label}:end"
+    start = f"ogrep-agent:{agent}:{label}:begin"
+    end = f"ogrep-agent:{agent}:{label}:end"
     if markdown:
         return f"\n<!-- {start} -->\n{content}\n<!-- {end} -->\n"
     return f"\n# {start}\n{content}\n# {end}\n"
@@ -190,10 +190,10 @@ def binary_path(args, base):
     if args.binary:
         binary = Path(args.binary).expanduser().resolve(strict=True)
     else:
-        # Unix normally has gzip's unrelated `zgrep`. Probe capabilities before
+        # Another program may be called `ogrep`. Probe capabilities before
         # adopting a PATH entry; an explicit --binary still fails loudly.
         binary = None
-        for name in ("zgrep-code", "zgrep"):
+        for name in ("ogrep",):
             candidate = shutil.which(name)
             if candidate:
                 try:
@@ -204,16 +204,16 @@ def binary_path(args, base):
                     continue
         if binary is not None:
             return str(binary)
-        binary = base / "bin/zgrep"
+        binary = base / "bin/ogrep"
         reject_symlinks(binary)
         if not binary.exists():
             checkout = SOURCE.parent.parent
-            built = checkout / "target/release/zgrep"
+            built = checkout / "target/release/ogrep"
             if not built.exists():
                 if not shutil.which("cargo"):
-                    raise ValueError("zgrep not found. Install it or provide --binary /path/to/zgrep (Cargo can build it from this checkout).")
-                print("Building zgrep from this checkout with Cargo…", flush=True)
-                subprocess.run(["cargo", "build", "--release", "--locked", "-p", "zgrep-cli"], cwd=checkout, check=True)
+                    raise ValueError("ogrep not found. Install it or provide --binary /path/to/ogrep (Cargo can build it from this checkout).")
+                print("Building ogrep from this checkout with Cargo…", flush=True)
+                subprocess.run(["cargo", "build", "--release", "--locked", "-p", "ogrep-cli"], cwd=checkout, check=True)
             binary.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(built, binary)
     binary_help(binary)
@@ -225,8 +225,8 @@ def install_agent(agent, args, root, base, binary, changes):
     directory = base / agent
     runtime = directory / "runtime.py"
     configuration = directory / "config.json"
-    # Resolve the user's cache root but refuse a symlinked zgrep-agent component.
-    cache = Path(os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache"))).expanduser().absolute() / "zgrep-agent"
+    # Resolve the user's cache root but refuse a symlinked ogrep-agent component.
+    cache = Path(os.environ.get("XDG_CACHE_HOME", str(Path.home() / ".cache"))).expanduser().absolute() / "ogrep-agent"
     reject_symlinks(cache)
     flags = []
     if args.no_require_git:
@@ -249,15 +249,15 @@ def install_agent(agent, args, root, base, binary, changes):
         servers = parsed.get("mcp_servers", {})
         if not isinstance(servers, dict):
             raise ValueError(f"{path} defines mcp_servers as {type(servers).__name__}; expected a table")
-        if "zgrep" in servers:
-            raise ValueError(f"An unmanaged MCP server named zgrep exists in {path}")
+        if "ogrep" in servers:
+            raise ValueError(f"An unmanaged MCP server named ogrep exists in {path}")
         if parsed.get("features", {}).get("hooks") is False:
             raise ValueError(f"Hooks are disabled in {path}; enable them before installing the full integration")
         reject_inline_tables(path, existing, "mcp_servers")
         if "hooks" in parsed:
             reject_inline_tables(path, existing, "hooks", dotted=True)
         block = "\n".join([
-            "[mcp_servers.zgrep]", f"command = {json.dumps(sys.executable)}",
+            "[mcp_servers.ogrep]", f"command = {json.dumps(sys.executable)}",
             "args = " + json.dumps([str(runtime), "mcp", "--config", str(configuration)]),
             "startup_timeout_sec = 10", "tool_timeout_sec = 40",
         ])
@@ -284,19 +284,19 @@ def install_agent(agent, args, root, base, binary, changes):
             tomllib.loads(changes.get(path).decode())
         except tomllib.TOMLDecodeError as error:
             raise ValueError(
-                f"Cannot merge the managed zgrep block into {path}: {error}. "
+                f"Cannot merge the managed ogrep block into {path}: {error}. "
                 "Convert inline or dotted mcp_servers/hooks tables to [table] headers, then retry") from error
         instruction_path = root / "AGENTS.md" if args.scope == "project" else agent_dir / "AGENTS.md"
-        changes.block(instruction_path, marked(agent, "instructions", "Use the zgrep MCP tools when available. " + INSTRUCTIONS, True), records)
+        changes.block(instruction_path, marked(agent, "instructions", "Use the ogrep MCP tools when available. " + INSTRUCTIONS, True), records)
     else:
         substitutions = {"__PYTHON__": sys.executable, "__RUNTIME__": str(runtime), "__CONFIG__": str(configuration),
                          "__TOOLS__": TOOLS, "__INSTRUCTIONS__": INSTRUCTIONS}
         template = (SOURCE / "pi-extension.ts").read_text()
         template = re.sub("|".join(map(re.escape, substitutions)),
                           lambda match: json.dumps(substitutions[match.group()]), template)
-        changes.file(agent_dir / "extensions/zgrep.ts", template.encode(), records)
+        changes.file(agent_dir / "extensions/ogrep.ts", template.encode(), records)
     if args.scope == "project":
-        changes.block(root / ".gitignore", marked(agent, "ignore", "/.zgrep-agent/"), records)
+        changes.block(root / ".gitignore", marked(agent, "ignore", "/.ogrep-agent/"), records)
     return {"version": VERSION, "records": records, "config": config}
 
 
@@ -320,7 +320,7 @@ def prepare_records(manifest, agents, scope, root, base, action):
             allowed.update({agent_dir / "config.toml", agent_dir / "hooks.json",
                             root / "AGENTS.md" if scope == "project" else agent_dir / "AGENTS.md"})
         else:
-            allowed.add(agent_dir / "extensions/zgrep.ts")
+            allowed.add(agent_dir / "extensions/ogrep.ts")
         if scope == "project":
             allowed.add(root / ".gitignore")
         for record in entry["records"]:
@@ -409,12 +409,12 @@ def doctor(manifest, agents, root):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Install/uninstall zgrep MCP, startup hooks and guidance for Codex/pi (Linux/macOS; Python 3.11+).")
+    parser = argparse.ArgumentParser(description="Install/uninstall ogrep MCP, startup hooks and guidance for Codex/pi (Linux/macOS; Python 3.11+).")
     parser.add_argument("action", nargs="?", choices=["install", "uninstall", "repair", "doctor"], default="install")
     parser.add_argument("--agent", help="codex, pi, or codex,pi")
     parser.add_argument("--scope", choices=["project", "user"], default=None)
     parser.add_argument("--root", type=Path, default=Path.cwd(), help="Project or current session directory")
-    parser.add_argument("--binary", help="Existing zgrep executable; otherwise use PATH or build from checkout")
+    parser.add_argument("--binary", help="Existing ogrep executable; otherwise use PATH or build from checkout")
     parser.add_argument("--max-filesize")
     parser.add_argument("--no-max-filesize", action="store_true")
     parser.add_argument("--no-require-git", action="store_true")
@@ -438,14 +438,14 @@ def main():
         parser.error("--agent must be codex, pi or codex,pi")
     root = repository(args.root)
     data_home = Path(os.environ.get("XDG_DATA_HOME", str(Path.home() / ".local/share")))
-    base = (root / ".zgrep-agent" if args.scope == "project" else data_home.resolve() / "zgrep-agent")
+    base = (root / ".ogrep-agent" if args.scope == "project" else data_home.resolve() / "ogrep-agent")
     reject_symlinks(base)
     manifest_path = base / "manifest.json"
     # Preflight all selected destinations before creating state, locks or binaries.
     for agent in agents:
         agent_dir = agent_paths(agent, args.scope, root)
         for path in (agent_dir / "config.toml", agent_dir / "hooks.json",
-                     agent_dir / "extensions/zgrep.ts", base / agent / "runtime.py",
+                     agent_dir / "extensions/ogrep.ts", base / agent / "runtime.py",
                      base / agent / "config.json"):
             reject_symlinks(path)
     owned = [manifest_path, base / "install.lock", base / "backups"]
@@ -456,7 +456,7 @@ def main():
     for path in owned:
         reject_symlinks(path)
     if args.action in ("doctor", "uninstall") and not manifest_path.exists():
-        print("No zgrep integration installed in this scope.")
+        print("No ogrep integration installed in this scope.")
         return 1 if args.action == "doctor" else 0
     base.mkdir(parents=True, exist_ok=True)
     with (base / "install.lock").open("a") as lock:
@@ -498,7 +498,7 @@ def main():
     if args.action == "uninstall":
         print(f"Removed only managed integrations. Indexes, shared services, binaries and recovery backups were retained in {base} and the configured cache.")
     else:
-        print(f"zgrep: {binary}\nManifest: {manifest_path}")
+        print(f"ogrep: {binary}\nManifest: {manifest_path}")
         for agent in agents:
             if not shutil.which(agent):
                 print(f"[WARN] {agent} not on PATH; configuration staged for when it is installed.")
@@ -511,5 +511,5 @@ if __name__ == "__main__":
     try:
         sys.exit(main())
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
-        print(f"zgrep-agent: {exc}", file=sys.stderr)
+        print(f"ogrep-agent: {exc}", file=sys.stderr)
         sys.exit(1)

@@ -11,7 +11,7 @@ package:
 
 install: release
 	mkdir -p ~/.cargo/bin
-	install -m 755 target/release/zgrep ~/.cargo/bin/zgrep-code
+	install -m 755 target/release/ogrep ~/.cargo/bin/ogrep
 
 test:
 	cargo test --workspace --locked
@@ -28,7 +28,7 @@ lint:
 
 clean:
 	cargo clean
-	rm -rf .zgrep/
+	rm -rf .ogrep/
 
 benchmark:
 	python3 scripts/evaluate.py $(BENCH_ARGS)

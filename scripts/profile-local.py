@@ -50,9 +50,9 @@ def main():
                '--index-path', str(index), *q.get('flags', []), '--', q['pattern'], '.']
         start = time.perf_counter_ns()
         env = dict(os.environ)
-        env.pop('ZGREP_PROFILE_LOCAL', None)
+        env.pop('OGREP_PROFILE_LOCAL', None)
         if engine == 'profile':
-            env['ZGREP_PROFILE_LOCAL'] = '1'
+            env['OGREP_PROFILE_LOCAL'] = '1'
         p = subprocess.run(cmd, cwd=root, capture_output=True, timeout=120, env=env)
         elapsed = (time.perf_counter_ns() - start) / 1e6
         assert (p.returncode, sorted(p.stdout.splitlines())) == expected[q['name']], (q, engine, p.stderr)

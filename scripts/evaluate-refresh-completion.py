@@ -19,8 +19,8 @@ import time
 spec = importlib.util.spec_from_file_location('load_eval', Path(__file__).with_name('evaluate-load.py'))
 load = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(load)
-PATTERN = 'ZGREP_BARRIER_'
-STABLE = 'ZGREP_STABLE_777'
+PATTERN = 'OGREP_BARRIER_'
+STABLE = 'OGREP_STABLE_777'
 
 
 def digest(data):
@@ -83,7 +83,7 @@ def main():
             print(f'{mode}/{clients}: starting', flush=True)
             row = {'mode': mode, 'clients': clients, 'checks': [], 'status_samples': []}
             report['cases'].append(row)
-            with tempfile.TemporaryDirectory(prefix='zgrep-barrier-') as directory:
+            with tempfile.TemporaryDirectory(prefix='ogrep-barrier-') as directory:
                 temporary = Path(directory)
                 root, index = temporary / 'root', temporary / 'index'
                 root.mkdir()

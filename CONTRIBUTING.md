@@ -1,4 +1,4 @@
-# Contributing to zgrep
+# Contributing to ogrep
 
 Thanks for your interest in contributing! Here's how to get started.
 
@@ -8,7 +8,7 @@ Thanks for your interest in contributing! Here's how to get started.
 2. Clone and build:
    ```bash
    git clone https://github.com/microsoft/tgrep.git
-   cd zgrep
+   cd ogrep
    cargo build
    ```
 
@@ -42,8 +42,8 @@ make hooks
 
 ## Project Structure
 
-- **zgrep-core** — Library: trigram index, on-disk format, walker, query planner
-- **zgrep-cli** — Binary: CLI parsing, search output, TCP server, file watcher
+- **ogrep-core** — Library: trigram index, on-disk format, walker, query planner
+- **ogrep-cli** — Binary: CLI parsing, search output, TCP server, file watcher
 
 ## Pull Requests
 
@@ -58,7 +58,7 @@ Please include:
 - OS and Rust version (`rustc --version`)
 - Steps to reproduce
 - Expected vs actual behavior
-- Relevant log output (run with `zgrep serve` to see `[trace]` logs)
+- Relevant log output (run with `ogrep serve` to see `[trace]` logs)
 
 ## License
 

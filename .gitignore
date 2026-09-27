@@ -1,9 +1,9 @@
 /target
 /dist
 __pycache__/
-.zgrep/
-.zgrep_staging/
-.zgrep_flush_staging/
-.zgrep_save_staging/
+.ogrep/
+.ogrep_staging/
+.ogrep_flush_staging/
+.ogrep_save_staging/
 /lab/work
 /lab/bin

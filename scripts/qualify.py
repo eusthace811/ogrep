@@ -21,14 +21,14 @@ def main():
         ('format', ['cargo', 'fmt', '--all', '--', '--check']),
         ('clippy', ['cargo', 'clippy', '--workspace', '--all-targets', '--all-features', '--locked', '--offline', '--', '-D', 'warnings']),
         ('workspace', ['cargo', 'test', '--workspace', '--all-features', '--locked', '--offline']),
-        ('polling', ['cargo', 'test', '-p', 'zgrep-cli', '--locked', '--offline', 'measure_polling_1000_files_and_20_file_change_batch', '--', '--ignored', '--nocapture']),
-        ('sparse-example', ['cargo', 'test', '-p', 'zgrep-core', '--example', 'sparse_probe', '--locked', '--offline']),
+        ('polling', ['cargo', 'test', '-p', 'ogrep-cli', '--locked', '--offline', 'measure_polling_1000_files_and_20_file_change_batch', '--', '--ignored', '--nocapture']),
+        ('sparse-example', ['cargo', 'test', '-p', 'ogrep-core', '--example', 'sparse_probe', '--locked', '--offline']),
         ('agent', ['python3', 'scripts/agent/test_agent.py']),
         ('installer', ['bash', 'scripts/test-install.sh']),
-        ('output', ['python3', 'scripts/evaluate-output-modes.py', '--binary', 'target/release/zgrep', '--output', str(directory/'output-modes.json')]),
-        ('unicode', ['python3', 'scripts/compare-unicode.py', '--upstream', str(args.upstream), '--fork', 'target/release/zgrep', '--output', str(directory/'unicode.json')]),
+        ('output', ['python3', 'scripts/evaluate-output-modes.py', '--binary', 'target/release/ogrep', '--output', str(directory/'output-modes.json')]),
+        ('unicode', ['python3', 'scripts/compare-unicode.py', '--upstream', str(args.upstream), '--fork', 'target/release/ogrep', '--output', str(directory/'unicode.json')]),
     ]
-    binary = Path('target/release/zgrep')
+    binary = Path('target/release/ogrep')
     record = {'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
               'binary_sha256': hashlib.sha256(binary.read_bytes()).hexdigest(),
               'version': subprocess.check_output([str(binary), '--version'], text=True).strip(),
@@ -38,7 +38,7 @@ def main():
         log = directory/f'qualification-{name}.log'
         with log.open('w') as stream:
             p = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT,
-                               env={**os.environ, 'ZGREP_AGENT_TEST_BINARY': str(binary.resolve())})
+                               env={**os.environ, 'OGREP_AGENT_TEST_BINARY': str(binary.resolve())})
         content = log.read_text()
         row = {'name': name, 'command': command, 'exit': p.returncode,
                'elapsed_seconds': time.monotonic()-started, 'log': str(log)}

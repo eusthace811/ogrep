@@ -1,27 +1,27 @@
-# Operating zgrep 0.3.0
+# Operating ogrep 0.3.0
 
 This release was built and exercised on Linux x86-64. The repository includes inherited Linux/macOS/Windows CI jobs, but this evaluation did not run remote CI or certify macOS/Windows packages. A local Linux release archive and checksum can be produced with `python3 scripts/package.py` from a clean checkout. It builds the locked dependencies, smoke-tests the packaged binary, and records source and binary identities in `BUILD.json`. No archive is published automatically by that command.
 
 ## Install and use
 
-Build with a Rust toolchain supporting edition 2024 and the locked dependencies. `make install` installs `~/.cargo/bin/zgrep-code`; put that directory on PATH. For a packaged build, verify the archive with its adjacent `.sha256` file, unpack, and copy `zgrep-code` to a directory on PATH. Do not overwrite the system `zgrep` gzip utility.
+Build with a Rust toolchain supporting edition 2024 and the locked dependencies. `make install` installs `~/.cargo/bin/ogrep`; put that directory on PATH. For a packaged build, verify the archive with its adjacent `.sha256` file, unpack, and copy `ogrep` to a directory on PATH.
 
 ```sh
-zgrep-code index /path/to/repository
-zgrep-code serve /path/to/repository
+ogrep index /path/to/repository
+ogrep serve /path/to/repository
 # In another terminal:
-zgrep-code -F --explain -- 'some_identifier' /path/to/repository
+ogrep -F --explain -- 'some_identifier' /path/to/repository
 ```
 
-`serve` runs in the foreground and watches for changes unless `--no-watch` is passed. Stop it with Ctrl-C. Searches discover it through the index's `serve.json`, or use an on-disk index when no server is available. `zgrep-code status /path/to/repository` reports service and indexing state.
+`serve` runs in the foreground and watches for changes unless `--no-watch` is passed. Stop it with Ctrl-C. Searches discover it through the index's `serve.json`, or use an on-disk index when no server is available. `ogrep status /path/to/repository` reports service and indexing state.
 
 ## Freshness and scope
 
-An on-disk index reflects its last publication. A watcher is asynchronous; an immediate post-edit query can precede its update. Completion or hidden-coverage status is not proof of current contents. Run `zgrep-code refresh /path/to/repository --timeout-secs 30` and wait for success before indexed searches that must see completed edits. It requires the running server for the exact root and index path, rereads eligible content and applies the server’s scope settings. `--json` prints the receipt; deadlines accept 1–300 seconds. Timeout, incomplete reads/publication, invalid receipts and unavailable/old servers return exit 2 without fallback. Server work may continue after timeout or cancellation. Concurrent mutations may or may not appear; covered edits must remain stable through completion. Use `--no-index` for a direct eligible-file scan, or rebuild a quiescent repository with `index`. No operation promises an atomic snapshot of a tree being changed concurrently.
+An on-disk index reflects its last publication. A watcher is asynchronous; an immediate post-edit query can precede its update. Completion or hidden-coverage status is not proof of current contents. Run `ogrep refresh /path/to/repository --timeout-secs 30` and wait for success before indexed searches that must see completed edits. It requires the running server for the exact root and index path, rereads eligible content and applies the server’s scope settings. `--json` prints the receipt; deadlines accept 1–300 seconds. Timeout, incomplete reads/publication, invalid receipts and unavailable/old servers return exit 2 without fallback. Server work may continue after timeout or cancellation. Concurrent mutations may or may not appear; covered edits must remain stable through completion. Use `--no-index` for a direct eligible-file scan, or rebuild a quiescent repository with `index`. No operation promises an atomic snapshot of a tree being changed concurrently.
 
 Default eligibility applies ignore rules, hidden/binary policies, supported extensions, and size limits. A query with no match is evidence about that scope, not every byte in the directory. `--files` shows eligible paths. `-L`, `--one-file-system`, and `--ignore-file` only affect scanning: combine them with `--no-index`. See [agent guidance](../AGENTS.md) for additional fallback flags and output differences from ripgrep.
 
-The index is disposable derived data. Stop the server before removing the exact repository's `.zgrep` directory, then rebuild it if repair is needed. Keep `.zgrep/` out of Git. The fork uses a separate directory from upstream `.tgrep/`; initial fork setup builds its own index. These planner changes do not require a new posting format.
+The index is disposable derived data. Stop the server before removing the exact repository's `.ogrep` directory, then rebuild it if repair is needed. Keep `.ogrep/` out of Git. The fork uses a separate directory from upstream `.tgrep/`; initial fork setup builds its own index. These planner changes do not require a new posting format.
 
 ## Explain output
 
@@ -41,7 +41,7 @@ These are work counts, not bytes read or allocations. Probes inspect mapped entr
 
 The local release gates cover the complete Rust workspace, the separate ignored polling measurement, example tests, formatting, Clippy, agent integrations, installer checks, real CLI/server smoke tests, and output parity on frozen corpora. Raw records and performance limits are in [BENCHMARKS.md](../BENCHMARKS.md). This does not establish universal performance, zero defects, or support for arbitrary dependency/toolchain updates. The combined release evaluation includes broad/targeted comparisons against tgrep and 0.2.0, cold-index pages, concurrency/RSS, indexing resources, restarts, immediate refresh parity and repeated refresh cost. See [the release report](../PRODUCTION_REPORT.md) for the current qualification status. Whole-machine cold caches and watcher behavior on other operating systems remain unmeasured.
 
-The old upstream signing workflow is archived under `docs/upstream/`; it depended on Microsoft's infrastructure. There is no new hosted download repository or signed release. Download installers require an explicit `ZGREP_REPO`. Local installation and packaging need neither an account nor a publishing step.
+The old upstream signing workflow is archived under `docs/upstream/`; it depended on Microsoft's infrastructure. There is no new hosted download repository or signed release. Download installers require an explicit `OGREP_REPO`. Local installation and packaging need neither an account nor a publishing step.
 
 ## Compatibility limits
 

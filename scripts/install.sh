@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="${ZGREP_REPO:-}"
-VERSION="${ZGREP_VERSION:-}"
-INSTALL_DIR="${ZGREP_INSTALL_DIR:-}"
+REPO="${OGREP_REPO:-}"
+VERSION="${OGREP_VERSION:-}"
+INSTALL_DIR="${OGREP_INSTALL_DIR:-}"
 
 info()  { printf '\033[1;34m%s\033[0m\n' "$*"; }
 error() { printf '\033[1;31merror:\033[0m %s\n' "$*" >&2; exit 1; }
@@ -63,7 +63,7 @@ pick_install_dir() {
 
 # Keep the temporary directory in scope for the EXIT trap.
 main() (
-    [ -n "$REPO" ] || error "Set ZGREP_REPO to your fork's owner/repository, or build locally with cargo build --release --locked"
+    [ -n "$REPO" ] || error "Set OGREP_REPO to your fork's owner/repository, or build locally with cargo build --release --locked"
     local -a checksum_cmd
     if command -v sha256sum >/dev/null 2>&1; then
         checksum_cmd=(sha256sum)
@@ -78,7 +78,7 @@ main() (
     version="$(resolve_version)"
     dir="$(pick_install_dir)"
 
-    info "Installing zgrep ${version} for ${target}"
+    info "Installing ogrep ${version} for ${target}"
     info "  install dir: ${dir}"
 
     local tmpdir
@@ -86,7 +86,7 @@ main() (
     trap 'rm -rf "$tmpdir"' EXIT
 
     local base_url="https://github.com/${REPO}/releases/download/${version}"
-    local archive="zgrep-${version}-${target}.tar.gz"
+    local archive="ogrep-${version}-${target}.tar.gz"
     local checksums="checksums.txt"
 
     info "Downloading ${archive}..."
@@ -118,12 +118,12 @@ main() (
     info "Extracting..."
     tar xzf "${tmpdir}/${archive}" -C "${tmpdir}"
 
-    install -m 755 "${tmpdir}/zgrep" "${dir}/zgrep-code"
+    install -m 755 "${tmpdir}/ogrep" "${dir}/ogrep"
 
-    if command -v "${dir}/zgrep-code" &>/dev/null; then
-        info "Installed zgrep $("${dir}/zgrep-code" --version) to ${dir}/zgrep-code"
+    if command -v "${dir}/ogrep" &>/dev/null; then
+        info "Installed ogrep $("${dir}/ogrep" --version) to ${dir}/ogrep"
     else
-        info "Installed zgrep to ${dir}/zgrep-code"
+        info "Installed ogrep to ${dir}/ogrep"
         info "Make sure ${dir} is in your PATH"
     fi
 )

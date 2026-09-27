@@ -39,7 +39,7 @@ def main():
     # evaluate.py records the corpus root and revision beside its index.
     assert provenance['corpus'] == str(root) and provenance['revision'] == revision, provenance
     assert Path(json.loads((index / 'meta.json').read_text())['root_path']).resolve() == root
-    patterns = ['fn main', 'NonNull', 'typeck', 'absent_ZGREP_897342938', r'impl.*Debug', r'(alloc|dealloc).*Layout']
+    patterns = ['fn main', 'NonNull', 'typeck', 'absent_OGREP_897342938', r'impl.*Debug', r'(alloc|dealloc).*Layout']
     expected = []
     for pattern in patterns:
         result = subprocess.run(['rg', '--no-config', '-l', '-t', 'rust', '--', pattern, '.'],

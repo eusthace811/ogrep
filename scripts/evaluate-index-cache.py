@@ -48,7 +48,7 @@ def main():
     ap.add_argument('--output', type=Path, required=True)
     args = ap.parse_args()
     root = args.corpus.resolve()
-    patterns = ['ZGREP_INDEX_CACHE_ABSENT_834789123', 'NonNull']
+    patterns = ['OGREP_INDEX_CACHE_ABSENT_834789123', 'NonNull']
     expected = {}
     for pattern in patterns:
         p = subprocess.run(['rg', '--no-config', '-l', '-F', '--', pattern, '.'], cwd=root, capture_output=True, timeout=60)
@@ -56,7 +56,7 @@ def main():
         expected[pattern] = (p.returncode, sorted(p.stdout.splitlines()))
     result = {'description': __doc__, 'corpus': str(root), 'rounds': args.rounds, 'engines': {}, 'samples': []}
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix='zgrep-cache-eval-') as directory:
+    with tempfile.TemporaryDirectory(prefix='ogrep-cache-eval-') as directory:
         engines = {}
         for entry in args.engine:
             name, binary, original = entry.split('=', 2)

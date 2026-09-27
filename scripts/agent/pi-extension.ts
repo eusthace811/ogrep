@@ -19,7 +19,7 @@ export default function (pi: any) {
     child?.kill();
     child = undefined;
     starting = undefined;
-    for (const waiter of pending.values()) waiter.reject(new Error("zgrep MCP disconnected"));
+    for (const waiter of pending.values()) waiter.reject(new Error("ogrep MCP disconnected"));
     pending.clear();
   }
 
@@ -39,12 +39,12 @@ export default function (pi: any) {
       if (!connection || connection.exitCode !== null || connection.signalCode !== null ||
           !connection.stdin || connection.stdin.destroyed || !connection.stdin.writable) {
         stop();
-        return reject(new Error("zgrep MCP disconnected; retry to reconnect"));
+        return reject(new Error("ogrep MCP disconnected; retry to reconnect"));
       }
       const refreshSeconds = params?.name === "refresh_index" ? (params.arguments?.timeout_secs ?? 30) : undefined;
       const timeoutMs = method === "tools/call" && Number.isInteger(refreshSeconds) && refreshSeconds >= 1 && refreshSeconds <= 300
         ? refreshSeconds * 1000 + 10000 : 40000;
-      const timer = setTimeout(() => cancel("zgrep MCP timed out"), timeoutMs);
+      const timer = setTimeout(() => cancel("ogrep MCP timed out"), timeoutMs);
       function cleanup() { clearTimeout(timer); signal?.removeEventListener("abort", abort); pending.delete(id); }
       function cancel(message: string) {
         cleanup();
@@ -93,9 +93,9 @@ export default function (pi: any) {
         } catch { stop(); }
       });
       const init = await request("initialize", {
-        protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "zgrep-pi", version: "1.0.0" },
+        protocolVersion: "2025-11-25", capabilities: {}, clientInfo: { name: "ogrep-pi", version: "1.0.0" },
       }, signal);
-      if (!init.capabilities?.tools) throw new Error("zgrep MCP has no tools capability");
+      if (!init.capabilities?.tools) throw new Error("ogrep MCP has no tools capability");
       process.stdin?.write(JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" }) + "\n");
     })();
     const attempt = starting;
@@ -107,8 +107,8 @@ export default function (pi: any) {
 
   for (const tool of tools) {
     pi.registerTool({
-      name: `zgrep_${tool.name}`,
-      label: `zgrep ${tool.name}`,
+      name: `ogrep_${tool.name}`,
+      label: `ogrep ${tool.name}`,
       description: tool.description,
       parameters: tool.inputSchema,
       async execute(_id: string, args: any, signal: AbortSignal, _update: any, ctx: any) {
@@ -126,7 +126,7 @@ export default function (pi: any) {
     warmup.unref();
   });
   pi.on("before_agent_start", async (event: any) => ({
-    systemPrompt: event.systemPrompt + "\n\n" + instructions.replace(/search_code/g, "zgrep_search_code").replace(/find_files/g, "zgrep_find_files").replace(/refresh_index/g, "zgrep_refresh_index"),
+    systemPrompt: event.systemPrompt + "\n\n" + instructions.replace(/search_code/g, "ogrep_search_code").replace(/find_files/g, "ogrep_find_files").replace(/refresh_index/g, "ogrep_refresh_index"),
   }));
   pi.on("session_shutdown", stop);
 }

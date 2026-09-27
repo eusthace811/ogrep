@@ -49,7 +49,7 @@ def smoke(binary, temporary):
                 if server.poll() is not None or time.monotonic() > deadline:
                     raise RuntimeError('Packaged server failed to become ready')
                 try:
-                    descriptor = json.loads((corpus / '.zgrep' / 'serve.json').read_text())
+                    descriptor = json.loads((corpus / '.ogrep' / 'serve.json').read_text())
                 except (FileNotFoundError, json.JSONDecodeError):
                     descriptor = {}
                 if descriptor.get('pid') == server.pid:
@@ -78,35 +78,35 @@ def main():
         raise SystemExit('Commit source and evidence before packaging; checkout must be clean.')
     revision = checked('git', 'rev-parse', 'HEAD')
     subprocess.run(['cargo', 'build', '--release', '--locked'], cwd=ROOT, check=True)
-    binary = ROOT / 'target/release/zgrep'
+    binary = ROOT / 'target/release/ogrep'
     version = checked(str(binary), '--version').split()[-1]
     rustc = checked('rustc', '-vV')
     host = next(line.removeprefix('host: ') for line in rustc.splitlines() if line.startswith('host: '))
-    name = f'zgrep-code-{version}-{host}'
+    name = f'ogrep-{version}-{host}'
     output = ROOT / 'dist'
     output.mkdir(exist_ok=True)
     archive = output / f'{name}.tar.gz'
     manifest = {'version': version, 'source_commit': revision, 'upstream_commit': '56f8c62',
                 'rustc': rustc, 'platform': platform.platform(),
                 'binary_sha256': hashlib.sha256(binary.read_bytes()).hexdigest()}
-    with tempfile.TemporaryDirectory(prefix='zgrep-package-') as directory:
+    with tempfile.TemporaryDirectory(prefix='ogrep-package-') as directory:
         temporary = Path(directory)
         package = temporary / name
         package.mkdir()
-        shutil.copy2(binary, package / 'zgrep-code')
+        shutil.copy2(binary, package / 'ogrep')
         for filename in ('LICENSE', 'CHANGELOG.md', 'AGENTS.md'):
             shutil.copy2(ROOT / filename, package / filename)
         (package / 'OPERATIONS.md').write_text((ROOT / 'docs/OPERATIONS.md').read_text().replace('../AGENTS.md', 'AGENTS.md'))
         (package / 'BUILD.json').write_text(json.dumps(manifest, indent=2) + '\n')
         (package / 'README.md').write_text(
-            '# zgrep-code\n\nCopy `zgrep-code` to a directory on PATH.\n\n'
-            '```sh\nzgrep-code index /path/to/repository\n'
-            'zgrep-code -F --explain -- some_identifier /path/to/repository\n```\n\n'
+            '# ogrep\n\nCopy `ogrep` to a directory on PATH.\n\n'
+            '```sh\nogrep index /path/to/repository\n'
+            'ogrep -F --explain -- some_identifier /path/to/repository\n```\n\n'
             'See [OPERATIONS.md](OPERATIONS.md) for supported behavior, resource controls and recovery.\n\n'
-            'For automatic updates, run `zgrep-code serve /path/to/repository`. '
-            'Watchers are asynchronous; `zgrep-code refresh /path/to/repository` waits for completed edits to become searchable. '
+            'For automatic updates, run `ogrep serve /path/to/repository`. '
+            'Watchers are asynchronous; `ogrep refresh /path/to/repository` waits for completed edits to become searchable. '
             'Use `--no-index` for a direct eligible-file scan. '
-            'Keep `.zgrep/` out of Git. Unix `zgrep` is an unrelated gzip utility.\n\n'
+            'Keep `.ogrep/` out of Git.\n\n'
             f'Source commit: `{revision}`. See source BENCHMARKS.md and docs/OPERATIONS.md '
             'for evidence, eligibility and freshness limits. This is a locally built, unsigned Linux release.\n')
         with tarfile.open(archive, 'w:gz') as tar:
@@ -114,7 +114,7 @@ def main():
         unpacked = temporary / 'unpacked'
         with tarfile.open(archive, 'r:gz') as tar:
             tar.extractall(unpacked, filter='data')
-        packaged_binary = unpacked / name / 'zgrep-code'
+        packaged_binary = unpacked / name / 'ogrep'
         assert hashlib.sha256(packaged_binary.read_bytes()).hexdigest() == manifest['binary_sha256']
         smoke(packaged_binary, temporary)
         subprocess.run(['python3', str(ROOT / 'scripts/evaluate-output-modes.py'),

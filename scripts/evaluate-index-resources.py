@@ -21,7 +21,7 @@ def main():
     result = {'corpus': str(root), 'revision': revision,
               'description': 'One fresh index build per engine, four threads, warm source cache; GNU time CPU and peak RSS. Descriptive resource measurements, not a statistical indexing-speed claim.', 'engines': {}}
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix='zgrep-index-resources-') as directory:
+    with tempfile.TemporaryDirectory(prefix='ogrep-index-resources-') as directory:
         for entry in args.engine:
             name, binary = entry.split('=', 1)
             binary = Path(binary).resolve()

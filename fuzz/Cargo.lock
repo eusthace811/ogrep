@@ -226,6 +226,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "ogrep-core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "blake3",
+ "encoding_rs",
+ "globset",
+ "ignore",
+ "memchr",
+ "memmap2",
+ "rayon",
+ "regex",
+ "regex-syntax",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "ogrep-fuzz"
+version = "0.0.1"
+dependencies = [
+ "libfuzzer-sys",
+ "ogrep-core",
+]
+
+[[package]]
 name = "proc-macro2"
 version = "1.0.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -365,32 +391,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
-]
-
-[[package]]
-name = "zgrep-core"
-version = "1.0.10"
-dependencies = [
- "anyhow",
- "blake3",
- "encoding_rs",
- "globset",
- "ignore",
- "memchr",
- "memmap2",
- "rayon",
- "regex",
- "regex-syntax",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "zgrep-fuzz"
-version = "0.0.1"
-dependencies = [
- "libfuzzer-sys",
- "zgrep-core",
 ]
 
 [[package]]

@@ -1,9 +1,9 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Install zgrep from GitHub releases.
+    Install ogrep from GitHub releases.
 .DESCRIPTION
-    Downloads the latest (or specified) zgrep release for Windows,
+    Downloads the latest (or specified) ogrep release for Windows,
     verifies the SHA256 checksum, and installs the binary.
 .PARAMETER Version
     Version tag to install (e.g. v0.1.0). Defaults to latest.
@@ -17,16 +17,16 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$Repo = $env:ZGREP_REPO
+$Repo = $env:OGREP_REPO
 $Target = 'x86_64-pc-windows-msvc'
 
 function Write-Info { param([string]$Msg) Write-Host $Msg -ForegroundColor Cyan }
 function Write-Err  { param([string]$Msg) Write-Host "error: $Msg" -ForegroundColor Red; exit 1 }
 
-if (-not $Repo) { Write-Err 'Set ZGREP_REPO to your fork owner/repository, or build locally with cargo build --release --locked' }
+if (-not $Repo) { Write-Err 'Set OGREP_REPO to your fork owner/repository, or build locally with cargo build --release --locked' }
 
 # Resolve version
-if (-not $Version -and $env:ZGREP_VERSION) { $Version = $env:ZGREP_VERSION }
+if (-not $Version -and $env:OGREP_VERSION) { $Version = $env:OGREP_VERSION }
 if (-not $Version) {
     Write-Info 'Resolving latest version...'
     $release = Invoke-RestMethod "https://api.github.com/repos/$Repo/releases/latest"
@@ -36,7 +36,7 @@ if (-not $Version) {
 Write-Info "Version: $Version"
 
 # Resolve install directory
-if (-not $InstallDir -and $env:ZGREP_INSTALL_DIR) { $InstallDir = $env:ZGREP_INSTALL_DIR }
+if (-not $InstallDir -and $env:OGREP_INSTALL_DIR) { $InstallDir = $env:OGREP_INSTALL_DIR }
 if (-not $InstallDir) {
     $InstallDir = Join-Path $HOME '.cargo\bin'
     if (-not (Test-Path $InstallDir)) { New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null }
@@ -45,8 +45,8 @@ Write-Info "Install dir: $InstallDir"
 
 # Download
 $baseUrl  = "https://github.com/$Repo/releases/download/$Version"
-$archive  = "zgrep-$Version-$Target.zip"
-$tmpDir   = Join-Path ([System.IO.Path]::GetTempPath()) "zgrep-install-$([guid]::NewGuid().ToString('N').Substring(0,8))"
+$archive  = "ogrep-$Version-$Target.zip"
+$tmpDir   = Join-Path ([System.IO.Path]::GetTempPath()) "ogrep-install-$([guid]::NewGuid().ToString('N').Substring(0,8))"
 New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
 
 try {
@@ -70,12 +70,12 @@ try {
     # Extract and install
     Write-Info 'Extracting...'
     Expand-Archive -Path (Join-Path $tmpDir $archive) -DestinationPath $tmpDir -Force
-    Copy-Item (Join-Path $tmpDir 'zgrep.exe') -Destination (Join-Path $InstallDir 'zgrep-code.exe') -Force
+    Copy-Item (Join-Path $tmpDir 'ogrep.exe') -Destination (Join-Path $InstallDir 'ogrep.exe') -Force
 
     # Verify
-    $installed = Join-Path $InstallDir 'zgrep-code.exe'
+    $installed = Join-Path $InstallDir 'ogrep.exe'
     if (Test-Path $installed) {
-        Write-Info "Installed zgrep to $installed"
+        Write-Info "Installed ogrep to $installed"
     }
 
     # PATH hint

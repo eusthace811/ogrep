@@ -1,6 +1,6 @@
 # Fuzz Testing
 
-zgrep uses [`cargo-fuzz`](https://github.com/rust-fuzz/cargo-fuzz) with
+ogrep uses [`cargo-fuzz`](https://github.com/rust-fuzz/cargo-fuzz) with
 [libFuzzer](https://llvm.org/docs/LibFuzzer.html) for fuzz testing.
 
 ## Setup

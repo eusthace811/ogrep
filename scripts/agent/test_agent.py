@@ -23,19 +23,19 @@ import install
 import runtime
 
 CHECKOUT = Path(__file__).resolve().parents[2]
-BINARY = (Path(os.environ["ZGREP_AGENT_TEST_BINARY"]).resolve() if os.environ.get("ZGREP_AGENT_TEST_BINARY")
-          else next((p for p in (CHECKOUT / "target/debug/zgrep", CHECKOUT / "target/release/zgrep") if p.exists()), None))
+BINARY = (Path(os.environ["OGREP_AGENT_TEST_BINARY"]).resolve() if os.environ.get("OGREP_AGENT_TEST_BINARY")
+          else next((p for p in (CHECKOUT / "target/debug/ogrep", CHECKOUT / "target/release/ogrep") if p.exists()), None))
 
 
 class InstallerTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="zgrep agent 'tests ")
+        self.temp = tempfile.TemporaryDirectory(prefix="ogrep agent 'tests ")
         self.root = Path(self.temp.name).resolve()
         self.project = self.root / "project"
         self.project.mkdir()
-        self.base = self.project / ".zgrep-agent"
-        self.fake = self.root / "fake-zgrep"
-        self.fake.write_text('#!/bin/sh\nprintf "%s\\n" "zgrep test --no-index --index-path --json --files --timeout-secs"\n')
+        self.base = self.project / ".ogrep-agent"
+        self.fake = self.root / "fake-ogrep"
+        self.fake.write_text('#!/bin/sh\nprintf "%s\\n" "ogrep test --no-index --index-path --json --files --timeout-secs"\n')
         self.fake.chmod(0o755)
         self.environment = patch.dict(os.environ, {"XDG_CACHE_HOME": str(self.root / "cache"), "XDG_DATA_HOME": str(self.root / "data")})
         self.environment.start()
@@ -52,24 +52,24 @@ class InstallerTests(unittest.TestCase):
         with patch.object(sys, "argv", argv), contextlib.redirect_stdout(io.StringIO()):
             return install.main()
 
-    def test_gzip_zgrep_on_path_is_not_adopted(self):
-        gzip = self.root / "gzip-zgrep"
-        gzip.write_text('#!/bin/sh\necho "zgrep (gzip) 1.12"\n')
-        gzip.chmod(0o755)
-        private = self.base / "bin/zgrep"
+    def test_unrelated_ogrep_on_path_is_not_adopted(self):
+        other = self.root / "other-ogrep"
+        other.write_text('#!/bin/sh\necho "ogrep (unrelated) 1.12"\n')
+        other.chmod(0o755)
+        private = self.base / "bin/ogrep"
         private.parent.mkdir(parents=True)
         shutil.copy2(self.fake, private)
-        with patch.object(install.shutil, "which", side_effect=lambda name: str(gzip) if name == "zgrep" else None):
+        with patch.object(install.shutil, "which", side_effect=lambda name: str(other) if name == "ogrep" else None):
             self.assertEqual(install.binary_path(SimpleNamespace(binary=None), self.base), str(private))
         with self.assertRaisesRegex(ValueError, "required flag"):
-            install.binary_path(SimpleNamespace(binary=str(gzip)), self.base)
+            install.binary_path(SimpleNamespace(binary=str(other)), self.base)
 
     def test_distinct_path_name_is_preferred(self):
-        with patch.object(install.shutil, "which", side_effect=lambda name: str(self.fake) if name == "zgrep-code" else None):
+        with patch.object(install.shutil, "which", side_effect=lambda name: str(self.fake) if name == "ogrep" else None):
             self.assertEqual(install.binary_path(SimpleNamespace(binary=None), self.base), str(self.fake))
 
     def test_old_binary_without_refresh_is_rejected(self):
-        self.fake.write_text('#!/bin/sh\necho "zgrep --no-index --index-path --json --files"\n')
+        self.fake.write_text('#!/bin/sh\necho "ogrep --no-index --index-path --json --files"\n')
         with self.assertRaisesRegex(ValueError, "refresh completion"):
             install.binary_help(self.fake)
 
@@ -84,18 +84,18 @@ class InstallerTests(unittest.TestCase):
         self.run_install()
         self.run_install()
         parsed = tomllib.loads((codex / "config.toml").read_text())
-        self.assertEqual(set(parsed["mcp_servers"]), {"other", "zgrep"})
+        self.assertEqual(set(parsed["mcp_servers"]), {"other", "ogrep"})
         self.assertEqual(len(json.loads((codex / "hooks.json").read_text())["hooks"]["SessionStart"]), 2)
         # Changes outside owned sections must survive uninstall.
         with (codex / "config.toml").open("a") as stream:
             stream.write('\n[user_extra]\nvalue = "keep"\n')
         self.run_install("uninstall", "codex")
-        self.assertTrue((self.project / ".pi/extensions/zgrep.ts").exists())
+        self.assertTrue((self.project / ".pi/extensions/ogrep.ts").exists())
         self.assertEqual((codex / "config.toml").read_bytes(), original + b'\n[user_extra]\nvalue = "keep"\n')
         self.assertEqual(json.loads((codex / "hooks.json").read_text())["hooks"]["SessionStart"], [old_hook])
         self.assertEqual((self.project / "AGENTS.md").read_bytes(), b"Existing instructions without trailing newline")
         self.run_install("uninstall", "pi")
-        self.assertFalse((self.project / ".pi/extensions/zgrep.ts").exists())
+        self.assertFalse((self.project / ".pi/extensions/ogrep.ts").exists())
         self.assertEqual(json.loads((self.base / "manifest.json").read_text())["agents"], {})
 
     def test_inline_hooks_are_preserved(self):
@@ -111,7 +111,7 @@ class InstallerTests(unittest.TestCase):
 
     def test_modified_file_prevents_partial_uninstall(self):
         self.run_install()
-        extension = self.project / ".pi/extensions/zgrep.ts"
+        extension = self.project / ".pi/extensions/ogrep.ts"
         extension.write_text(extension.read_text() + "\n// user change\n")
         before = (self.project / ".codex/config.toml").read_bytes()
         with self.assertRaisesRegex(ValueError, "modified"):
@@ -120,7 +120,7 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("user change", extension.read_text())
 
     def test_conflict_has_no_partial_configuration_writes(self):
-        path = self.project / ".pi/extensions/zgrep.ts"
+        path = self.project / ".pi/extensions/ogrep.ts"
         path.parent.mkdir(parents=True)
         path.write_text("user extension")
         with self.assertRaisesRegex(ValueError, "Unmanaged"):
@@ -141,8 +141,8 @@ class InstallerTests(unittest.TestCase):
         with patch.dict(os.environ, {"CODEX_HOME": str(self.root / "codex-config"), "PI_CODING_AGENT_DIR": str(self.root / "pi-config")}):
             self.run_install(extra=["--scope", "user"])
             self.assertTrue((self.root / "codex-config/config.toml").exists())
-            self.assertTrue((self.root / "pi-config/extensions/zgrep.ts").exists())
-            config = json.loads((self.root / "data/zgrep-agent/codex/config.json").read_text())
+            self.assertTrue((self.root / "pi-config/extensions/ogrep.ts").exists())
+            config = json.loads((self.root / "data/ogrep-agent/codex/config.json").read_text())
             self.assertIsNone(config["root"])
             self.assertEqual(runtime.Runtime(config, self.project).root, self.project)
             self.run_install("uninstall", extra=["--scope", "user"])
@@ -165,7 +165,7 @@ class InstallerTests(unittest.TestCase):
         self.assertFalse(second.exists())
 
     def test_symlinked_installation_components_do_not_write_outside_root(self):
-        for name in (".codex", ".pi", ".pi/extensions", ".zgrep-agent", ".zgrep-agent/codex", ".zgrep-agent/backups"):
+        for name in (".codex", ".pi", ".pi/extensions", ".ogrep-agent", ".ogrep-agent/codex", ".ogrep-agent/backups"):
             with self.subTest(name=name):
                 target = self.root / "external"
                 target.mkdir(exist_ok=True)
@@ -200,14 +200,14 @@ class InstallerTests(unittest.TestCase):
         snapshot = {p.relative_to(original): p.read_bytes() for p in original.rglob("*") if p.is_file()}
         moved = self.root / "moved"
         shutil.copytree(original, moved)
-        self.project, self.base = moved, moved / ".zgrep-agent"
+        self.project, self.base = moved, moved / ".ogrep-agent"
         with self.assertRaisesRegex(ValueError, "Project moved"):
             self.run_install("doctor")
         # Repair just one agent first, leaving the other migration for later.
         self.run_install("repair", "codex")
         self.assertEqual(json.loads((self.base / "codex/config.json").read_text())["root"], str(moved))
         self.run_install("uninstall", "pi")
-        self.assertFalse((moved / ".pi/extensions/zgrep.ts").exists())
+        self.assertFalse((moved / ".pi/extensions/ogrep.ts").exists())
         self.run_install("uninstall", "codex")
         for path, data in snapshot.items():
             self.assertEqual((original / path).read_bytes(), data)
@@ -228,9 +228,9 @@ class InstallerTests(unittest.TestCase):
         self.project = self.root / "__TOOLS____CONFIG____INSTRUCTIONS__"
         self.project.mkdir()
         self.run_install(agent="pi")
-        source = (self.project / ".pi/extensions/zgrep.ts").read_text()
+        source = (self.project / ".pi/extensions/ogrep.ts").read_text()
         config_line = next(line for line in source.splitlines() if line.startswith("const config ="))
-        self.assertEqual(json.loads(config_line.removeprefix("const config = ").removesuffix(";")), str(self.project / ".zgrep-agent/pi/config.json"))
+        self.assertEqual(json.loads(config_line.removeprefix("const config = ").removesuffix(";")), str(self.project / ".ogrep-agent/pi/config.json"))
 
     def test_inline_toml_tables_are_reported_instead_of_broken(self):
         codex = self.project / ".codex"
@@ -238,7 +238,7 @@ class InstallerTests(unittest.TestCase):
         cases = [
             ("mcp_servers = { other = { command = \"other\" } }\n", "mcp_servers as an inline"),
             ("hooks = { SessionStart = [] }\n", "hooks as an inline"),
-            ('[hooks]\nSessionStart = [{ matcher = "x", hooks = [] }]\n', "Cannot merge the managed zgrep block"),
+            ('[hooks]\nSessionStart = [{ matcher = "x", hooks = [] }]\n', "Cannot merge the managed ogrep block"),
         ]
         for original, message in cases:
             with self.subTest(message=message):
@@ -257,7 +257,7 @@ class InstallerTests(unittest.TestCase):
                                      "PI_CODING_AGENT_DIR": str(self.root / "pi-config")}):
             self.run_install(agent="codex,pi", extra=["--scope", "user"])
             self.assertTrue((self.root / "codex-config/config.toml").exists())
-            self.assertTrue((self.root / "pi-config/extensions/zgrep.ts").exists())
+            self.assertTrue((self.root / "pi-config/extensions/ogrep.ts").exists())
         self.assertEqual(list(target.iterdir()), [])
 
     def test_doctor_reports_missing_interpreter(self):
@@ -273,10 +273,10 @@ class InstallerTests(unittest.TestCase):
         self.assertIn("missing-python", output.getvalue())
 
 
-@unittest.skipUnless(BINARY, "Build zgrep before running runtime integration tests")
+@unittest.skipUnless(BINARY, "Build ogrep before running runtime integration tests")
 class RuntimeTests(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="zgrep runtime ")
+        self.temp = tempfile.TemporaryDirectory(prefix="ogrep runtime ")
         self.directory = Path(self.temp.name).resolve()
         self.root = self.directory / "repo"
         self.root.mkdir()
@@ -473,15 +473,15 @@ class RuntimeTests(unittest.TestCase):
     def test_plain_directory_excludes_managed_files_in_both_freshness_modes(self):
         plain = self.directory / "plain"
         plain.mkdir()
-        (plain / ".gitignore").write_text("/.zgrep-agent/\n")
-        (plain / ".zgrep-agent").mkdir()
-        (plain / ".zgrep-agent/secret.txt").write_text("managed_marker")
+        (plain / ".gitignore").write_text("/.ogrep-agent/\n")
+        (plain / ".ogrep-agent").mkdir()
+        (plain / ".ogrep-agent/secret.txt").write_text("managed_marker")
         (plain / "visible.txt").write_text("visible_marker")
         for root in (str(plain), None):
             adapter = runtime.Runtime({**self.config, "root": root}, plain)
             for freshness in ("current", "indexed"):
                 result = adapter.search("find_files", {"hidden": True, "freshness": freshness})["structuredContent"]
-                self.assertNotIn({"path": ".zgrep-agent/secret.txt"}, result["results"])
+                self.assertNotIn({"path": ".ogrep-agent/secret.txt"}, result["results"])
                 self.assertIn({"path": "visible.txt"}, result["results"])
 
     def test_malformed_status_responses_are_unavailable(self):
@@ -591,7 +591,7 @@ class RuntimeTests(unittest.TestCase):
     def test_doctor_exercises_installed_mcp(self):
         with patch.object(sys, "argv", ["install.py", "install", "--agent", "codex", "--root", str(self.root), "--binary", str(BINARY)]), contextlib.redirect_stdout(io.StringIO()):
             install.main()
-        manifest = json.loads((self.root / ".zgrep-agent/manifest.json").read_text())
+        manifest = json.loads((self.root / ".ogrep-agent/manifest.json").read_text())
         with contextlib.redirect_stdout(io.StringIO()) as output:
             self.assertEqual(install.doctor(manifest, ["codex"], self.root), 0, output.getvalue())
 
@@ -604,7 +604,7 @@ class RuntimeTests(unittest.TestCase):
         with patch.object(sys, "argv", ["install.py", "install", "--agent", "pi", "--root", str(self.root), "--binary", str(BINARY)]), contextlib.redirect_stdout(io.StringIO()):
             install.main()
         result = subprocess.run([node, "--experimental-strip-types", str(Path(__file__).with_name("test_pi.mjs")),
-                                 str(self.root / ".pi/extensions/zgrep.ts"), str(self.root)], capture_output=True, text=True, timeout=20)
+                                 str(self.root / ".pi/extensions/ogrep.ts"), str(self.root)], capture_output=True, text=True, timeout=20)
         self.assertEqual(result.returncode, 0, result.stderr)
 
     def test_service_restarts_after_exit(self):

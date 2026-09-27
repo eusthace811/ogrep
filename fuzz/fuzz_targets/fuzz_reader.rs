@@ -2,7 +2,7 @@
 
 use libfuzzer_sys::fuzz_target;
 use std::path::PathBuf;
-use zgrep_core::reader::IndexReader;
+use ogrep_core::reader::IndexReader;
 
 /// Fuzz the mmap-backed on-disk reader against arbitrary index bytes.
 ///
@@ -13,7 +13,7 @@ use zgrep_core::reader::IndexReader;
 /// there is what turns a bad file into a panic, an out-of-range slice, or a
 /// multi-gigabyte reservation.
 ///
-/// Byte layout the fuzzer is steering (see `zgrep-core/src/ondisk.rs`):
+/// Byte layout the fuzzer is steering (see `ogrep-core/src/ondisk.rs`):
 ///   lookup.bin  16-byte records: trigram(u32 LE) offset(u64 LE) length(u32 LE)
 ///   index.bin    6-byte records: file_id(u32 LE) loc_mask(u8) next_mask(u8)
 ///   files.bin   var records:     file_id(u32 LE) path_len(u16 LE) path bytes
@@ -31,7 +31,7 @@ const MAX_ENTRIES_DECODED: usize = 64;
 /// reader is dropped at the end of each run, releasing its mmaps before the
 /// next iteration overwrites the files.
 fn index_dir() -> PathBuf {
-    let dir = std::env::temp_dir().join(format!("zgrep_fuzz_reader_{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("ogrep_fuzz_reader_{}", std::process::id()));
     std::fs::create_dir_all(&dir).expect("create scratch index dir");
     dir
 }

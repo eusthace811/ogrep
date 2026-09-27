@@ -29,18 +29,18 @@ def main():
     run, receipt = read('run.json'), read('release-validation.json')
     binary_sha = run['binary_sha256']
     assert run['version'] == receipt['version'] == '0.3.0'
-    assert sha(Path('target/release/zgrep').read_bytes()) == receipt['binary_sha256'] == binary_sha
+    assert sha(Path('target/release/ogrep').read_bytes()) == receipt['binary_sha256'] == binary_sha
     assert len(run['commands']) == len(COMMANDS) and {c['name'] for c in run['commands']} == COMMANDS
     assert all(c['exit'] == 0 for c in run['commands'])
     assert all(a['ended_unix'] <= b['started_unix'] for a, b in zip(run['commands'], run['commands'][1:]))
     for source in [run['source_commit'], receipt['source_commit']]:
-        assert not subprocess.check_output(['git', 'diff', source, '--', 'Cargo.toml', 'Cargo.lock', 'zgrep-core', 'zgrep-cli', 'scripts/agent', 'scripts/evaluate*.py', 'scripts/qualify.py', 'scripts/verify-comparison.py', 'scripts/summarize-evaluation.py'])
+        assert not subprocess.check_output(['git', 'diff', source, '--', 'Cargo.toml', 'Cargo.lock', 'ogrep-core', 'ogrep-cli', 'scripts/agent', 'scripts/evaluate*.py', 'scripts/qualify.py', 'scripts/verify-comparison.py', 'scripts/summarize-evaluation.py'])
     archive = Path('dist') / receipt['archive']
     assert sha(archive.read_bytes()) == receipt['archive_sha256']
     assert archive.with_suffix('.gz.sha256').read_text().strip() == f'{receipt["archive_sha256"]}  {archive.name}'
     with tarfile.open(archive, 'r:gz') as tar:
         prefix = receipt['archive'].removesuffix('.tar.gz')
-        assert sha(tar.extractfile(prefix + '/zgrep-code').read()) == binary_sha
+        assert sha(tar.extractfile(prefix + '/ogrep').read()) == binary_sha
         assert json.load(tar.extractfile(prefix + '/BUILD.json'))['source_commit'] == receipt['source_commit']
         for filename, source in [('OPERATIONS.md', 'docs/OPERATIONS.md'), ('AGENTS.md', 'AGENTS.md'), ('CHANGELOG.md', 'CHANGELOG.md')]:
             expected = Path(source).read_text()
