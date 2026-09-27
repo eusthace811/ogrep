@@ -1,0 +1,13 @@
+test result: ok. 307 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 1.04s
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.15s
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.14s
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.31s
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+test indexed_and_scanned_crlf_output_preserves_source_bytes_and_json_offsets ... FAILED
+failures:
+thread 'indexed_and_scanned_crlf_output_preserves_source_bytes_and_json_offsets' (613732) panicked at zgrep-cli/tests/planner_features.rs:113:9:
+failures:
+    indexed_and_scanned_crlf_output_preserves_source_bytes_and_json_offsets
+test result: FAILED. 3 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.08s

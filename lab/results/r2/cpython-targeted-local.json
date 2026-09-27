@@ -1,0 +1,1772 @@
+{
+  "schema": 2,
+  "mode": "local",
+  "cache": "warm OS cache",
+  "rounds": 5,
+  "seed": 273337,
+  "corpus": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/cpython",
+  "queries_sha256": "5a727f642d1c61d2f161a261e32b9af85c0c7e387bc2d90c7953b72a8e4c868b",
+  "queries": [
+    {
+      "name": "literal-rare",
+      "pattern": "PyUnicode_DecodeUTF8Stateful",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    },
+    {
+      "name": "literal-common",
+      "pattern": "PyObject",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    },
+    {
+      "name": "literal-absent",
+      "pattern": "PyUnicode_ZgrepMissing999",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    },
+    {
+      "name": "literal-long",
+      "pattern": "PyObject_GetOptionalAttrString",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    },
+    {
+      "name": "short",
+      "pattern": "if",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    },
+    {
+      "name": "broad",
+      "pattern": "return",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F"
+      ]
+    },
+    {
+      "name": "alternation",
+      "pattern": "(PyLong|PyFloat).*FromString",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py"
+      ]
+    },
+    {
+      "name": "nested-alternation",
+      "pattern": "(PyObject|PyType).*(GetAttr|SetAttr)",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py"
+      ]
+    },
+    {
+      "name": "regex-selective",
+      "pattern": "PyUnicode_[A-Za-z]+UTF8",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py"
+      ]
+    },
+    {
+      "name": "regex-common",
+      "pattern": "def test_.*error",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py"
+      ]
+    },
+    {
+      "name": "case-insensitive",
+      "pattern": "memoryerror",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-i"
+      ]
+    },
+    {
+      "name": "scoped",
+      "pattern": "PyObject_Call",
+      "flags": [
+        "-t",
+        "c",
+        "-t",
+        "py",
+        "-F",
+        "-g",
+        "Python/**"
+      ]
+    }
+  ],
+  "platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+  "cpu_count": 32,
+  "affinity": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30,
+    31
+  ],
+  "engines": {
+    "tgrep": {
+      "path": "/home/eusth/projects/Experiments/tgrep/ogrep/lab/bin/tgrep-1.0.10",
+      "sha256": "b1bb0f7d512a7824a82f33c745aa776cceb17332130d6c2e78f20576dada0754",
+      "version": "tgrep 1.0.10",
+      "index_seconds": 0.6594938279959024,
+      "index_output": "Walking /home/eusth/projects/Experiments/tgrep/build/corpora-pinned/cpython...\nFound 6266 text files (102 binary skipped, 0 too large, 0 errors)\nExtracting trigrams...\nSkipped 48 additional binary files (detected by content)\nMerging 3 spill segment(s) into the index...\nWriting index (431618 trigrams, 6218 files, 3 spill segment(s))...\nIndex built successfully at /home/eusth/projects/Experiments/tgrep/ogrep/lab/work/eval-r2/cpython/tgrep/index\nIndexed in 0.6s using external strategy (peak memory 121.1 MiB)\n",
+      "index_bytes": 81217292
+    },
+    "zgrep": {
+      "path": "/home/eusth/projects/Experiments/tgrep/ogrep/lab/bin/zgrep-0.3.0",
+      "sha256": "2fc6f9d5350821848d08c96ee278445fed15f198f093dcde2edb8f381e2b013a",
+      "version": "zgrep 0.3.0",
+      "index_seconds": 0.70868320199952,
+      "index_output": "Walking /home/eusth/projects/Experiments/tgrep/build/corpora-pinned/cpython...\nFound 6266 text files (102 binary skipped, 0 too large, 0 errors)\nExtracting trigrams...\nSkipped 48 additional binary files (detected by content)\nMerging 3 spill segment(s) into the index...\nWriting index (431618 trigrams, 6218 files, 3 spill segment(s))...\nIndex built successfully at /home/eusth/projects/Experiments/tgrep/ogrep/lab/work/eval-r2/cpython/zgrep/index\nIndexed in 0.7s using external strategy (peak memory 123.8 MiB)\n",
+      "index_bytes": 81217312
+    },
+    "ogrep": {
+      "path": "/home/eusth/projects/Experiments/tgrep/ogrep/lab/bin/ogrep-r4",
+      "sha256": "dc79b3f79b1b69d1649a7933ac244ac2b1014f842cea08168d62b29c961669cc",
+      "version": "zgrep 0.3.0",
+      "index_seconds": 0.6570038290010416,
+      "index_output": "Walking /home/eusth/projects/Experiments/tgrep/build/corpora-pinned/cpython...\nFound 6266 text files (102 binary skipped, 0 too large, 0 errors)\nExtracting trigrams...\nSkipped 48 additional binary files (detected by content)\nMerging 3 spill segment(s) into the index...\nWriting index (431618 trigrams, 6218 files, 3 spill segment(s))...\nIndex built successfully at /home/eusth/projects/Experiments/tgrep/ogrep/lab/work/eval-r2/cpython/ogrep/index\nIndexed in 0.6s using external strategy (peak memory 126.3 MiB)\n",
+      "index_bytes": 81217312
+    }
+  },
+  "samples": [
+    {
+      "round": 0,
+      "engine": "zgrep",
+      "query": "short",
+      "ms": 69.684038
+    },
+    {
+      "round": 0,
+      "engine": "zgrep",
+      "query": "literal-long",
+      "ms": 4.096865
+    },
+    {
+      "round": 0,
+      "engine": "zgrep",
+      "query": "literal-common",
+      "ms": 26.25844
+    },
+    {
+      "round": 0,
+      "engine": "tgrep",
+      "query": "case-insensitive",
+      "ms": 8.203458
+    },
+    {
+      "round": 0,
+      "engine": "tgrep",
+      "query": "literal-long",
+      "ms": 4.648899
+    },
+    {
+      "round": 0,
+      "engine": "ogrep",
+      "query": "case-insensitive",
+      "ms": 4.496592
+    },
+    {
+      "round": 0,
+      "engine": "zgrep",
+      "query": "alternation",
+      "ms": 8.210564
+    },
+    {
+      "round": 0,
+      "engine": "ogrep",
+      "query": "broad",
+      "ms": 15.495281
+    },
+    {
+      "round": 0,
+      "engine": "ogrep",
+      "query": "regex-selective",
+      "ms": 4.872637
+    },
+    {
+      "round": 0,
+      "engine": "tgrep",
+      "query": "literal-rare",
+      "ms": 3.889846
+    },
+    {
+      "round": 0,
+      "engine": "tgrep",
+      "query": "nested-alternation",
+      "ms": 46.460219
+    },
+    {
+      "round": 0,
+      "engine": "zgrep",
+      "query": "case-insensitive",
+      "ms": 7.809469
+    },
+    {
+      "round": 0,
+      "engine": "ogrep",
+      "query": "short",
+      "ms": 17.747713
+    },
+    {
+      "round": 0,
+      "engine": "ogrep",
+      "query": "literal-rare",
+      "ms": 3.43451
+    },
+    {
+      "round": 0,
+      "engine": "ogrep",
+      "query": "literal-absent",
+      "ms": 2.368871
+    },
+    {
+      "round": 0,
+      "engine": "ogrep",
+      "query": "literal-common",
+      "ms": 7.97538
+    },
+    {
+      "round": 0,
+      "engine": "tgrep",
+      "query": "literal-absent",
+      "ms": 3.353146
+    },
+    {
+      "round": 0,
+      "engine": "ogrep",
+      "query": "alternation",
+      "ms": 4.910491
+    },
+    {
+      "round": 0,
+      "engine": "zgrep",
+      "query": "literal-absent",
+      "ms": 2.670806
+    },
+    {
+      "round": 0,
+      "engine": "zgrep",
+      "query": "regex-selective",
+      "ms": 8.183126
+    },
+    {
+      "round": 0,
+      "engine": "tgrep",
+      "query": "regex-selective",
+      "ms": 8.833065
+    },
+    {
+      "round": 0,
+      "engine": "zgrep",
+      "query": "broad",
+      "ms": 56.109435
+    },
+    {
+      "round": 0,
+      "engine": "zgrep",
+      "query": "regex-common",
+      "ms": 19.088807
+    },
+    {
+      "round": 0,
+      "engine": "ogrep",
+      "query": "scoped",
+      "ms": 5.213318
+    },
+    {
+      "round": 0,
+      "engine": "ogrep",
+      "query": "nested-alternation",
+      "ms": 6.541936
+    },
+    {
+      "round": 0,
+      "engine": "tgrep",
+      "query": "short",
+      "ms": 73.116663
+    },
+    {
+      "round": 0,
+      "engine": "ogrep",
+      "query": "literal-long",
+      "ms": 3.950208
+    },
+    {
+      "round": 0,
+      "engine": "ogrep",
+      "query": "regex-common",
+      "ms": 7.32325
+    },
+    {
+      "round": 0,
+      "engine": "tgrep",
+      "query": "regex-common",
+      "ms": 19.825223
+    },
+    {
+      "round": 0,
+      "engine": "tgrep",
+      "query": "broad",
+      "ms": 59.014618
+    },
+    {
+      "round": 0,
+      "engine": "tgrep",
+      "query": "alternation",
+      "ms": 10.344922
+    },
+    {
+      "round": 0,
+      "engine": "zgrep",
+      "query": "scoped",
+      "ms": 5.494418
+    },
+    {
+      "round": 0,
+      "engine": "zgrep",
+      "query": "literal-rare",
+      "ms": 3.529385
+    },
+    {
+      "round": 0,
+      "engine": "zgrep",
+      "query": "nested-alternation",
+      "ms": 14.640029
+    },
+    {
+      "round": 0,
+      "engine": "tgrep",
+      "query": "literal-common",
+      "ms": 27.240889
+    },
+    {
+      "round": 0,
+      "engine": "tgrep",
+      "query": "scoped",
+      "ms": 5.929347
+    },
+    {
+      "round": 1,
+      "engine": "ogrep",
+      "query": "case-insensitive",
+      "ms": 4.474288
+    },
+    {
+      "round": 1,
+      "engine": "zgrep",
+      "query": "regex-common",
+      "ms": 18.704193
+    },
+    {
+      "round": 1,
+      "engine": "tgrep",
+      "query": "literal-common",
+      "ms": 27.90544
+    },
+    {
+      "round": 1,
+      "engine": "zgrep",
+      "query": "short",
+      "ms": 70.368556
+    },
+    {
+      "round": 1,
+      "engine": "tgrep",
+      "query": "case-insensitive",
+      "ms": 8.169824
+    },
+    {
+      "round": 1,
+      "engine": "ogrep",
+      "query": "regex-selective",
+      "ms": 5.069547
+    },
+    {
+      "round": 1,
+      "engine": "tgrep",
+      "query": "broad",
+      "ms": 58.967079
+    },
+    {
+      "round": 1,
+      "engine": "zgrep",
+      "query": "scoped",
+      "ms": 5.274364
+    },
+    {
+      "round": 1,
+      "engine": "ogrep",
+      "query": "scoped",
+      "ms": 4.743032
+    },
+    {
+      "round": 1,
+      "engine": "tgrep",
+      "query": "literal-rare",
+      "ms": 3.887375
+    },
+    {
+      "round": 1,
+      "engine": "ogrep",
+      "query": "alternation",
+      "ms": 4.968267
+    },
+    {
+      "round": 1,
+      "engine": "zgrep",
+      "query": "nested-alternation",
+      "ms": 14.609732
+    },
+    {
+      "round": 1,
+      "engine": "ogrep",
+      "query": "literal-rare",
+      "ms": 3.023975
+    },
+    {
+      "round": 1,
+      "engine": "ogrep",
+      "query": "literal-common",
+      "ms": 7.420039
+    },
+    {
+      "round": 1,
+      "engine": "zgrep",
+      "query": "literal-common",
+      "ms": 25.878771
+    },
+    {
+      "round": 1,
+      "engine": "tgrep",
+      "query": "literal-long",
+      "ms": 4.584997
+    },
+    {
+      "round": 1,
+      "engine": "ogrep",
+      "query": "short",
+      "ms": 17.939151
+    },
+    {
+      "round": 1,
+      "engine": "tgrep",
+      "query": "scoped",
+      "ms": 5.735249
+    },
+    {
+      "round": 1,
+      "engine": "ogrep",
+      "query": "literal-long",
+      "ms": 3.633795
+    },
+    {
+      "round": 1,
+      "engine": "zgrep",
+      "query": "alternation",
+      "ms": 8.303044
+    },
+    {
+      "round": 1,
+      "engine": "zgrep",
+      "query": "literal-long",
+      "ms": 3.900307
+    },
+    {
+      "round": 1,
+      "engine": "tgrep",
+      "query": "alternation",
+      "ms": 9.912615
+    },
+    {
+      "round": 1,
+      "engine": "tgrep",
+      "query": "nested-alternation",
+      "ms": 46.419174
+    },
+    {
+      "round": 1,
+      "engine": "zgrep",
+      "query": "literal-absent",
+      "ms": 2.812167
+    },
+    {
+      "round": 1,
+      "engine": "zgrep",
+      "query": "regex-selective",
+      "ms": 8.041775
+    },
+    {
+      "round": 1,
+      "engine": "tgrep",
+      "query": "short",
+      "ms": 73.25068
+    },
+    {
+      "round": 1,
+      "engine": "ogrep",
+      "query": "nested-alternation",
+      "ms": 6.566494
+    },
+    {
+      "round": 1,
+      "engine": "tgrep",
+      "query": "regex-selective",
+      "ms": 8.8792
+    },
+    {
+      "round": 1,
+      "engine": "ogrep",
+      "query": "regex-common",
+      "ms": 7.186186
+    },
+    {
+      "round": 1,
+      "engine": "zgrep",
+      "query": "case-insensitive",
+      "ms": 7.273784
+    },
+    {
+      "round": 1,
+      "engine": "zgrep",
+      "query": "literal-rare",
+      "ms": 3.252789
+    },
+    {
+      "round": 1,
+      "engine": "tgrep",
+      "query": "literal-absent",
+      "ms": 3.436616
+    },
+    {
+      "round": 1,
+      "engine": "tgrep",
+      "query": "regex-common",
+      "ms": 19.867424
+    },
+    {
+      "round": 1,
+      "engine": "ogrep",
+      "query": "broad",
+      "ms": 15.164388
+    },
+    {
+      "round": 1,
+      "engine": "zgrep",
+      "query": "broad",
+      "ms": 55.630113
+    },
+    {
+      "round": 1,
+      "engine": "ogrep",
+      "query": "literal-absent",
+      "ms": 2.66707
+    },
+    {
+      "round": 2,
+      "engine": "zgrep",
+      "query": "alternation",
+      "ms": 8.658643
+    },
+    {
+      "round": 2,
+      "engine": "ogrep",
+      "query": "regex-selective",
+      "ms": 4.882038
+    },
+    {
+      "round": 2,
+      "engine": "tgrep",
+      "query": "literal-absent",
+      "ms": 3.277879
+    },
+    {
+      "round": 2,
+      "engine": "zgrep",
+      "query": "literal-rare",
+      "ms": 3.369192
+    },
+    {
+      "round": 2,
+      "engine": "tgrep",
+      "query": "literal-rare",
+      "ms": 3.818879
+    },
+    {
+      "round": 2,
+      "engine": "ogrep",
+      "query": "case-insensitive",
+      "ms": 4.374683
+    },
+    {
+      "round": 2,
+      "engine": "ogrep",
+      "query": "literal-long",
+      "ms": 3.30057
+    },
+    {
+      "round": 2,
+      "engine": "tgrep",
+      "query": "short",
+      "ms": 72.640841
+    },
+    {
+      "round": 2,
+      "engine": "ogrep",
+      "query": "alternation",
+      "ms": 6.187323
+    },
+    {
+      "round": 2,
+      "engine": "zgrep",
+      "query": "regex-selective",
+      "ms": 9.338602
+    },
+    {
+      "round": 2,
+      "engine": "tgrep",
+      "query": "broad",
+      "ms": 61.09655
+    },
+    {
+      "round": 2,
+      "engine": "zgrep",
+      "query": "short",
+      "ms": 76.087068
+    },
+    {
+      "round": 2,
+      "engine": "ogrep",
+      "query": "literal-rare",
+      "ms": 3.314512
+    },
+    {
+      "round": 2,
+      "engine": "ogrep",
+      "query": "nested-alternation",
+      "ms": 6.29569
+    },
+    {
+      "round": 2,
+      "engine": "zgrep",
+      "query": "case-insensitive",
+      "ms": 7.42769
+    },
+    {
+      "round": 2,
+      "engine": "tgrep",
+      "query": "nested-alternation",
+      "ms": 46.185382
+    },
+    {
+      "round": 2,
+      "engine": "tgrep",
+      "query": "case-insensitive",
+      "ms": 8.241645
+    },
+    {
+      "round": 2,
+      "engine": "ogrep",
+      "query": "literal-common",
+      "ms": 8.109597
+    },
+    {
+      "round": 2,
+      "engine": "ogrep",
+      "query": "scoped",
+      "ms": 4.754661
+    },
+    {
+      "round": 2,
+      "engine": "ogrep",
+      "query": "short",
+      "ms": 17.747273
+    },
+    {
+      "round": 2,
+      "engine": "tgrep",
+      "query": "regex-common",
+      "ms": 20.445013
+    },
+    {
+      "round": 2,
+      "engine": "zgrep",
+      "query": "broad",
+      "ms": 55.757069
+    },
+    {
+      "round": 2,
+      "engine": "tgrep",
+      "query": "regex-selective",
+      "ms": 9.025492
+    },
+    {
+      "round": 2,
+      "engine": "zgrep",
+      "query": "literal-long",
+      "ms": 3.965419
+    },
+    {
+      "round": 2,
+      "engine": "ogrep",
+      "query": "literal-absent",
+      "ms": 2.588233
+    },
+    {
+      "round": 2,
+      "engine": "zgrep",
+      "query": "literal-absent",
+      "ms": 2.623369
+    },
+    {
+      "round": 2,
+      "engine": "zgrep",
+      "query": "scoped",
+      "ms": 4.877433
+    },
+    {
+      "round": 2,
+      "engine": "zgrep",
+      "query": "nested-alternation",
+      "ms": 14.619622
+    },
+    {
+      "round": 2,
+      "engine": "tgrep",
+      "query": "literal-long",
+      "ms": 4.70647
+    },
+    {
+      "round": 2,
+      "engine": "tgrep",
+      "query": "scoped",
+      "ms": 5.527202
+    },
+    {
+      "round": 2,
+      "engine": "ogrep",
+      "query": "regex-common",
+      "ms": 7.461712
+    },
+    {
+      "round": 2,
+      "engine": "tgrep",
+      "query": "alternation",
+      "ms": 9.831796
+    },
+    {
+      "round": 2,
+      "engine": "zgrep",
+      "query": "literal-common",
+      "ms": 26.130086
+    },
+    {
+      "round": 2,
+      "engine": "ogrep",
+      "query": "broad",
+      "ms": 15.475402
+    },
+    {
+      "round": 2,
+      "engine": "zgrep",
+      "query": "regex-common",
+      "ms": 18.668196
+    },
+    {
+      "round": 2,
+      "engine": "tgrep",
+      "query": "literal-common",
+      "ms": 27.297838
+    },
+    {
+      "round": 3,
+      "engine": "ogrep",
+      "query": "regex-selective",
+      "ms": 4.774495
+    },
+    {
+      "round": 3,
+      "engine": "tgrep",
+      "query": "literal-rare",
+      "ms": 3.972655
+    },
+    {
+      "round": 3,
+      "engine": "tgrep",
+      "query": "case-insensitive",
+      "ms": 7.822097
+    },
+    {
+      "round": 3,
+      "engine": "tgrep",
+      "query": "literal-absent",
+      "ms": 3.240238
+    },
+    {
+      "round": 3,
+      "engine": "zgrep",
+      "query": "short",
+      "ms": 68.815853
+    },
+    {
+      "round": 3,
+      "engine": "zgrep",
+      "query": "literal-rare",
+      "ms": 3.511797
+    },
+    {
+      "round": 3,
+      "engine": "ogrep",
+      "query": "broad",
+      "ms": 15.268739
+    },
+    {
+      "round": 3,
+      "engine": "ogrep",
+      "query": "literal-common",
+      "ms": 7.784553
+    },
+    {
+      "round": 3,
+      "engine": "tgrep",
+      "query": "nested-alternation",
+      "ms": 47.0887
+    },
+    {
+      "round": 3,
+      "engine": "zgrep",
+      "query": "literal-absent",
+      "ms": 2.747954
+    },
+    {
+      "round": 3,
+      "engine": "ogrep",
+      "query": "literal-rare",
+      "ms": 3.145364
+    },
+    {
+      "round": 3,
+      "engine": "tgrep",
+      "query": "short",
+      "ms": 72.537744
+    },
+    {
+      "round": 3,
+      "engine": "zgrep",
+      "query": "literal-long",
+      "ms": 4.13229
+    },
+    {
+      "round": 3,
+      "engine": "tgrep",
+      "query": "scoped",
+      "ms": 5.747105
+    },
+    {
+      "round": 3,
+      "engine": "ogrep",
+      "query": "case-insensitive",
+      "ms": 4.715781
+    },
+    {
+      "round": 3,
+      "engine": "tgrep",
+      "query": "alternation",
+      "ms": 9.775882
+    },
+    {
+      "round": 3,
+      "engine": "zgrep",
+      "query": "broad",
+      "ms": 55.752991
+    },
+    {
+      "round": 3,
+      "engine": "zgrep",
+      "query": "alternation",
+      "ms": 8.680055
+    },
+    {
+      "round": 3,
+      "engine": "tgrep",
+      "query": "broad",
+      "ms": 59.419979
+    },
+    {
+      "round": 3,
+      "engine": "zgrep",
+      "query": "case-insensitive",
+      "ms": 7.77403
+    },
+    {
+      "round": 3,
+      "engine": "tgrep",
+      "query": "literal-common",
+      "ms": 27.757783
+    },
+    {
+      "round": 3,
+      "engine": "zgrep",
+      "query": "literal-common",
+      "ms": 26.764928
+    },
+    {
+      "round": 3,
+      "engine": "ogrep",
+      "query": "regex-common",
+      "ms": 8.190857
+    },
+    {
+      "round": 3,
+      "engine": "zgrep",
+      "query": "regex-selective",
+      "ms": 8.408442
+    },
+    {
+      "round": 3,
+      "engine": "ogrep",
+      "query": "literal-long",
+      "ms": 3.726323
+    },
+    {
+      "round": 3,
+      "engine": "tgrep",
+      "query": "regex-common",
+      "ms": 21.125109
+    },
+    {
+      "round": 3,
+      "engine": "ogrep",
+      "query": "short",
+      "ms": 17.485422
+    },
+    {
+      "round": 3,
+      "engine": "zgrep",
+      "query": "regex-common",
+      "ms": 18.44697
+    },
+    {
+      "round": 3,
+      "engine": "ogrep",
+      "query": "alternation",
+      "ms": 5.615199
+    },
+    {
+      "round": 3,
+      "engine": "zgrep",
+      "query": "nested-alternation",
+      "ms": 14.866844
+    },
+    {
+      "round": 3,
+      "engine": "ogrep",
+      "query": "literal-absent",
+      "ms": 2.457907
+    },
+    {
+      "round": 3,
+      "engine": "tgrep",
+      "query": "regex-selective",
+      "ms": 8.750729
+    },
+    {
+      "round": 3,
+      "engine": "ogrep",
+      "query": "scoped",
+      "ms": 4.61147
+    },
+    {
+      "round": 3,
+      "engine": "zgrep",
+      "query": "scoped",
+      "ms": 5.166419
+    },
+    {
+      "round": 3,
+      "engine": "ogrep",
+      "query": "nested-alternation",
+      "ms": 6.073658
+    },
+    {
+      "round": 3,
+      "engine": "tgrep",
+      "query": "literal-long",
+      "ms": 4.650618
+    },
+    {
+      "round": 4,
+      "engine": "ogrep",
+      "query": "nested-alternation",
+      "ms": 6.147139
+    },
+    {
+      "round": 4,
+      "engine": "ogrep",
+      "query": "literal-long",
+      "ms": 3.284997
+    },
+    {
+      "round": 4,
+      "engine": "tgrep",
+      "query": "literal-long",
+      "ms": 4.643604
+    },
+    {
+      "round": 4,
+      "engine": "ogrep",
+      "query": "broad",
+      "ms": 15.186353
+    },
+    {
+      "round": 4,
+      "engine": "ogrep",
+      "query": "case-insensitive",
+      "ms": 4.541556
+    },
+    {
+      "round": 4,
+      "engine": "zgrep",
+      "query": "scoped",
+      "ms": 5.172038
+    },
+    {
+      "round": 4,
+      "engine": "zgrep",
+      "query": "literal-rare",
+      "ms": 3.361413
+    },
+    {
+      "round": 4,
+      "engine": "ogrep",
+      "query": "scoped",
+      "ms": 4.550359
+    },
+    {
+      "round": 4,
+      "engine": "tgrep",
+      "query": "alternation",
+      "ms": 9.853442
+    },
+    {
+      "round": 4,
+      "engine": "zgrep",
+      "query": "broad",
+      "ms": 55.682948
+    },
+    {
+      "round": 4,
+      "engine": "zgrep",
+      "query": "literal-common",
+      "ms": 27.264485
+    },
+    {
+      "round": 4,
+      "engine": "zgrep",
+      "query": "literal-long",
+      "ms": 4.043053
+    },
+    {
+      "round": 4,
+      "engine": "zgrep",
+      "query": "regex-selective",
+      "ms": 8.000709
+    },
+    {
+      "round": 4,
+      "engine": "tgrep",
+      "query": "broad",
+      "ms": 59.057776
+    },
+    {
+      "round": 4,
+      "engine": "tgrep",
+      "query": "regex-common",
+      "ms": 20.098245
+    },
+    {
+      "round": 4,
+      "engine": "zgrep",
+      "query": "regex-common",
+      "ms": 18.745733
+    },
+    {
+      "round": 4,
+      "engine": "zgrep",
+      "query": "case-insensitive",
+      "ms": 8.109786
+    },
+    {
+      "round": 4,
+      "engine": "ogrep",
+      "query": "literal-absent",
+      "ms": 2.727403
+    },
+    {
+      "round": 4,
+      "engine": "tgrep",
+      "query": "case-insensitive",
+      "ms": 8.097439
+    },
+    {
+      "round": 4,
+      "engine": "ogrep",
+      "query": "literal-common",
+      "ms": 7.723513
+    },
+    {
+      "round": 4,
+      "engine": "ogrep",
+      "query": "regex-selective",
+      "ms": 4.482656
+    },
+    {
+      "round": 4,
+      "engine": "zgrep",
+      "query": "alternation",
+      "ms": 8.181411
+    },
+    {
+      "round": 4,
+      "engine": "zgrep",
+      "query": "nested-alternation",
+      "ms": 14.510547
+    },
+    {
+      "round": 4,
+      "engine": "zgrep",
+      "query": "literal-absent",
+      "ms": 2.702297
+    },
+    {
+      "round": 4,
+      "engine": "tgrep",
+      "query": "literal-common",
+      "ms": 27.198749
+    },
+    {
+      "round": 4,
+      "engine": "ogrep",
+      "query": "regex-common",
+      "ms": 7.707084
+    },
+    {
+      "round": 4,
+      "engine": "tgrep",
+      "query": "literal-rare",
+      "ms": 4.033662
+    },
+    {
+      "round": 4,
+      "engine": "tgrep",
+      "query": "scoped",
+      "ms": 5.711433
+    },
+    {
+      "round": 4,
+      "engine": "tgrep",
+      "query": "nested-alternation",
+      "ms": 53.706401
+    },
+    {
+      "round": 4,
+      "engine": "tgrep",
+      "query": "regex-selective",
+      "ms": 9.231568
+    },
+    {
+      "round": 4,
+      "engine": "ogrep",
+      "query": "literal-rare",
+      "ms": 3.500033
+    },
+    {
+      "round": 4,
+      "engine": "tgrep",
+      "query": "literal-absent",
+      "ms": 3.353888
+    },
+    {
+      "round": 4,
+      "engine": "zgrep",
+      "query": "short",
+      "ms": 69.30187
+    },
+    {
+      "round": 4,
+      "engine": "tgrep",
+      "query": "short",
+      "ms": 72.679458
+    },
+    {
+      "round": 4,
+      "engine": "ogrep",
+      "query": "short",
+      "ms": 17.088257
+    },
+    {
+      "round": 4,
+      "engine": "ogrep",
+      "query": "alternation",
+      "ms": 5.066454
+    }
+  ],
+  "validation": {
+    "literal-rare": {
+      "tgrep": {
+        "rows": 9,
+        "sha256": "707d90038f75141954084851df7b95306678d6a63a0e3d11140c2c145d886135",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(26 trigrams) (candidates: 10/6218; raw candidates: 14/6218)\nSearch completed in 2.1ms: 19 matches (19 matched lines)\n"
+      },
+      "zgrep": {
+        "rows": 9,
+        "sha256": "707d90038f75141954084851df7b95306678d6a63a0e3d11140c2c145d886135",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(26 trigrams) (candidates: 9/6218; raw candidates: 13/6218)\nIndex work: {\"lists_loaded\":6,\"lists_probed\":20,\"postings_copied\":932,\"candidate_probes\":260,\"position_rejections\":1}\nSearch completed in 1.6ms: 19 matches (19 matched lines)\n"
+      },
+      "ogrep": {
+        "rows": 9,
+        "sha256": "707d90038f75141954084851df7b95306678d6a63a0e3d11140c2c145d886135",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(26 trigrams) (candidates: 9/6218; raw candidates: 13/6218)\nIndex work: {\"lists_loaded\":6,\"lists_probed\":20,\"postings_copied\":932,\"candidate_probes\":260,\"position_rejections\":1}\nSearch completed in 1.2ms: 19 matches (19 matched lines)\n"
+      }
+    },
+    "literal-common": {
+      "tgrep": {
+        "rows": 850,
+        "sha256": "bf4cd5ba6c218818a47d13752be9194261321fe0e1844368f350e98f286ffda9",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(6 trigrams) (candidates: 851/6218; raw candidates: 1025/6218)\nSearch completed in 27.7ms: 74292 matches (61045 matched lines)\n"
+      },
+      "zgrep": {
+        "rows": 850,
+        "sha256": "bf4cd5ba6c218818a47d13752be9194261321fe0e1844368f350e98f286ffda9",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(6 trigrams) (candidates: 851/6218; raw candidates: 1023/6218)\nIndex work: {\"lists_loaded\":6,\"lists_probed\":0,\"postings_copied\":13294,\"candidate_probes\":0,\"position_rejections\":2}\nSearch completed in 26.1ms: 74292 matches (61045 matched lines)\n"
+      },
+      "ogrep": {
+        "rows": 850,
+        "sha256": "bf4cd5ba6c218818a47d13752be9194261321fe0e1844368f350e98f286ffda9",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(6 trigrams) (candidates: 851/6218; raw candidates: 1023/6218)\nIndex work: {\"lists_loaded\":6,\"lists_probed\":0,\"postings_copied\":13294,\"candidate_probes\":0,\"position_rejections\":2}\nSearch completed in 25.6ms: 74292 matches (61045 matched lines)\n"
+      }
+    },
+    "literal-absent": {
+      "tgrep": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit": 1,
+        "diagnostics": "Query plan: AND(23 trigrams) (candidates: 0/6218; raw candidates: 0/6218)\nSearch completed in 1.6ms: 0 matches (0 matched lines)\n"
+      },
+      "zgrep": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit": 1,
+        "diagnostics": "Query plan: AND(23 trigrams) (candidates: 0/6218; raw candidates: 0/6218)\nIndex work: {\"lists_loaded\":0,\"lists_probed\":0,\"postings_copied\":0,\"candidate_probes\":0,\"position_rejections\":0}\nSearch completed in 0.9ms: 0 matches (0 matched lines)\n"
+      },
+      "ogrep": {
+        "rows": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exit": 1,
+        "diagnostics": "Query plan: AND(23 trigrams) (candidates: 0/6218; raw candidates: 0/6218)\nIndex work: {\"lists_loaded\":0,\"lists_probed\":0,\"postings_copied\":0,\"candidate_probes\":0,\"position_rejections\":0}\nSearch completed in 0.7ms: 0 matches (0 matched lines)\n"
+      }
+    },
+    "literal-long": {
+      "tgrep": {
+        "rows": 12,
+        "sha256": "fad699880bfad9e9a4208895d7a74bd2751caf93cef52b83ab7451b08fbcbdd6",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(28 trigrams) (candidates: 40/6218; raw candidates: 46/6218)\nSearch completed in 3.0ms: 15 matches (15 matched lines)\n"
+      },
+      "zgrep": {
+        "rows": 12,
+        "sha256": "fad699880bfad9e9a4208895d7a74bd2751caf93cef52b83ab7451b08fbcbdd6",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(28 trigrams) (candidates: 31/6218; raw candidates: 36/6218)\nIndex work: {\"lists_loaded\":7,\"lists_probed\":21,\"postings_copied\":2392,\"candidate_probes\":756,\"position_rejections\":12}\nSearch completed in 2.2ms: 15 matches (15 matched lines)\n"
+      },
+      "ogrep": {
+        "rows": 12,
+        "sha256": "fad699880bfad9e9a4208895d7a74bd2751caf93cef52b83ab7451b08fbcbdd6",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(28 trigrams) (candidates: 31/6218; raw candidates: 36/6218)\nIndex work: {\"lists_loaded\":7,\"lists_probed\":21,\"postings_copied\":2392,\"candidate_probes\":756,\"position_rejections\":12}\nSearch completed in 2.0ms: 15 matches (15 matched lines)\n"
+      }
+    },
+    "short": {
+      "tgrep": {
+        "rows": 2970,
+        "sha256": "a68a922e99e90f7e89c6a342d6c7b02d01b1b20fe009073de786ec450fc33358",
+        "exit": 0,
+        "diagnostics": "Query plan: MatchAll (full scan) (candidates: 3485/6218; raw candidates: 6218/6218)\nSearch completed in 75.4ms: 184806 matches (181568 matched lines) (no index narrowing)\n"
+      },
+      "zgrep": {
+        "rows": 2970,
+        "sha256": "a68a922e99e90f7e89c6a342d6c7b02d01b1b20fe009073de786ec450fc33358",
+        "exit": 0,
+        "diagnostics": "Query plan: MatchAll (full scan) (candidates: 3485/6218; raw candidates: 6218/6218)\nIndex work: {\"lists_loaded\":0,\"lists_probed\":0,\"postings_copied\":0,\"candidate_probes\":0,\"position_rejections\":0}\nSearch completed in 70.9ms: 184806 matches (181568 matched lines) (no index narrowing)\n"
+      },
+      "ogrep": {
+        "rows": 2970,
+        "sha256": "a68a922e99e90f7e89c6a342d6c7b02d01b1b20fe009073de786ec450fc33358",
+        "exit": 0,
+        "diagnostics": "Query plan: MatchAll (full scan) (candidates: 3485/6218; raw candidates: 6218/6218)\nIndex work: {\"lists_loaded\":0,\"lists_probed\":0,\"postings_copied\":0,\"candidate_probes\":0,\"position_rejections\":0}\nSearch completed in 69.6ms: 184806 matches (181568 matched lines) (no index narrowing)\n"
+      }
+    },
+    "broad": {
+      "tgrep": {
+        "rows": 2565,
+        "sha256": "d47d415a373fbe1b978f8e7568fefc91831accfd3c3473f32d72dbf156a9afa1",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(4 trigrams) (candidates: 2598/6218; raw candidates: 3285/6218)\nSearch completed in 58.4ms: 99617 matches (96468 matched lines)\n"
+      },
+      "zgrep": {
+        "rows": 2565,
+        "sha256": "d47d415a373fbe1b978f8e7568fefc91831accfd3c3473f32d72dbf156a9afa1",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(4 trigrams) (candidates: 2598/6218; raw candidates: 3285/6218)\nIndex work: {\"lists_loaded\":4,\"lists_probed\":0,\"postings_copied\":13948,\"candidate_probes\":0,\"position_rejections\":0}\nSearch completed in 55.6ms: 99617 matches (96468 matched lines)\n"
+      },
+      "ogrep": {
+        "rows": 2565,
+        "sha256": "d47d415a373fbe1b978f8e7568fefc91831accfd3c3473f32d72dbf156a9afa1",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(4 trigrams) (candidates: 2598/6218; raw candidates: 3285/6218)\nIndex work: {\"lists_loaded\":4,\"lists_probed\":0,\"postings_copied\":13948,\"candidate_probes\":0,\"position_rejections\":0}\nSearch completed in 54.3ms: 99617 matches (96468 matched lines)\n"
+      }
+    },
+    "alternation": {
+      "tgrep": {
+        "rows": 18,
+        "sha256": "02e5347c8bc97fac4717e1ea9ed0845cc823cc227666177ed74b4b52dc28bf5b",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(8 trigrams) (candidates: 218/6218; raw candidates: 254/6218)\nSearch completed in 7.8ms: 43 matches (43 matched lines)\n"
+      },
+      "zgrep": {
+        "rows": 18,
+        "sha256": "02e5347c8bc97fac4717e1ea9ed0845cc823cc227666177ed74b4b52dc28bf5b",
+        "exit": 0,
+        "diagnostics": "Query plan: ALL(OR(AND(4 trigrams), AND(5 trigrams)), AND(8 trigrams)) (candidates: 157/6218; raw candidates: 173/6218)\nIndex work: {\"lists_loaded\":16,\"lists_probed\":1,\"postings_copied\":20521,\"candidate_probes\":254,\"position_rejections\":0}\nSearch completed in 6.2ms: 43 matches (43 matched lines)\n"
+      },
+      "ogrep": {
+        "rows": 18,
+        "sha256": "02e5347c8bc97fac4717e1ea9ed0845cc823cc227666177ed74b4b52dc28bf5b",
+        "exit": 0,
+        "diagnostics": "Query plan: ALL(OR(AND(4 trigrams), AND(5 trigrams)), AND(8 trigrams)) (candidates: 157/6218; raw candidates: 173/6218)\nIndex work: {\"lists_loaded\":16,\"lists_probed\":1,\"postings_copied\":20521,\"candidate_probes\":254,\"position_rejections\":0}\nSearch completed in 6.3ms: 43 matches (43 matched lines)\n"
+      }
+    },
+    "nested-alternation": {
+      "tgrep": {
+        "rows": 149,
+        "sha256": "3192a4c03c3b57b711afae6ad3a07886d57a11b420cccd617fb5f58d7bc2c518",
+        "exit": 0,
+        "diagnostics": "Query plan: MatchAll (full scan) (candidates: 3485/6218; raw candidates: 6218/6218)\nSearch completed in 44.4ms: 966 matches (966 matched lines) (no index narrowing)\n"
+      },
+      "zgrep": {
+        "rows": 149,
+        "sha256": "3192a4c03c3b57b711afae6ad3a07886d57a11b420cccd617fb5f58d7bc2c518",
+        "exit": 0,
+        "diagnostics": "Query plan: ALL(OR(AND(6 trigrams), AND(4 trigrams)), OR(AND(5 trigrams), AND(5 trigrams))) (candidates: 152/6218; raw candidates: 180/6218)\nIndex work: {\"lists_loaded\":19,\"lists_probed\":1,\"postings_copied\":27470,\"candidate_probes\":121,\"position_rejections\":13}\nSearch completed in 13.0ms: 966 matches (966 matched lines)\n"
+      },
+      "ogrep": {
+        "rows": 149,
+        "sha256": "3192a4c03c3b57b711afae6ad3a07886d57a11b420cccd617fb5f58d7bc2c518",
+        "exit": 0,
+        "diagnostics": "Query plan: ALL(OR(AND(6 trigrams), AND(4 trigrams)), OR(AND(5 trigrams), AND(5 trigrams))) (candidates: 152/6218; raw candidates: 180/6218)\nIndex work: {\"lists_loaded\":19,\"lists_probed\":1,\"postings_copied\":27470,\"candidate_probes\":121,\"position_rejections\":13}\nSearch completed in 12.4ms: 966 matches (966 matched lines)\n"
+      }
+    },
+    "regex-selective": {
+      "tgrep": {
+        "rows": 137,
+        "sha256": "9097495b06f84c413866a13d40a94194483f009b17b1c7247bc0b978609d40aa",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(10 trigrams) (candidates: 153/6218; raw candidates: 185/6218)\nSearch completed in 6.8ms: 498 matches (496 matched lines)\n"
+      },
+      "zgrep": {
+        "rows": 137,
+        "sha256": "9097495b06f84c413866a13d40a94194483f009b17b1c7247bc0b978609d40aa",
+        "exit": 0,
+        "diagnostics": "Query plan: ALL(AND(8 trigrams), AND(2 trigrams)) (candidates: 153/6218; raw candidates: 185/6218)\nIndex work: {\"lists_loaded\":10,\"lists_probed\":0,\"postings_copied\":13777,\"candidate_probes\":0,\"position_rejections\":3}\nSearch completed in 6.2ms: 498 matches (496 matched lines)\n"
+      },
+      "ogrep": {
+        "rows": 137,
+        "sha256": "9097495b06f84c413866a13d40a94194483f009b17b1c7247bc0b978609d40aa",
+        "exit": 0,
+        "diagnostics": "Query plan: ALL(AND(8 trigrams), AND(2 trigrams)) (candidates: 153/6218; raw candidates: 185/6218)\nIndex work: {\"lists_loaded\":10,\"lists_probed\":0,\"postings_copied\":13777,\"candidate_probes\":0,\"position_rejections\":3}\nSearch completed in 5.9ms: 498 matches (496 matched lines)\n"
+      }
+    },
+    "regex-common": {
+      "tgrep": {
+        "rows": 281,
+        "sha256": "dfc75c5c6462287d7e58772503d3d25cb5437a355258a44c6ce4c86d3ab05199",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(10 trigrams) (candidates: 855/6218; raw candidates: 883/6218)\nSearch completed in 18.4ms: 1100 matches (1100 matched lines)\n"
+      },
+      "zgrep": {
+        "rows": 281,
+        "sha256": "dfc75c5c6462287d7e58772503d3d25cb5437a355258a44c6ce4c86d3ab05199",
+        "exit": 0,
+        "diagnostics": "Query plan: ALL(AND(7 trigrams), AND(3 trigrams)) (candidates: 844/6218; raw candidates: 871/6218)\nIndex work: {\"lists_loaded\":10,\"lists_probed\":0,\"postings_copied\":33663,\"candidate_probes\":0,\"position_rejections\":131}\nSearch completed in 16.5ms: 1100 matches (1100 matched lines)\n"
+      },
+      "ogrep": {
+        "rows": 281,
+        "sha256": "dfc75c5c6462287d7e58772503d3d25cb5437a355258a44c6ce4c86d3ab05199",
+        "exit": 0,
+        "diagnostics": "Query plan: ALL(AND(7 trigrams), AND(3 trigrams)) (candidates: 844/6218; raw candidates: 871/6218)\nIndex work: {\"lists_loaded\":10,\"lists_probed\":0,\"postings_copied\":33663,\"candidate_probes\":0,\"position_rejections\":131}\nSearch completed in 16.4ms: 1100 matches (1100 matched lines)\n"
+      }
+    },
+    "case-insensitive": {
+      "tgrep": {
+        "rows": 102,
+        "sha256": "691cab1d7bc8ada755b39ac3b1e7be14a860f98e7601d26d62cf9bb69625acac",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(9 trigrams) (candidates: 112/6218; raw candidates: 175/6218)\nSearch completed in 6.1ms: 327 matches (320 matched lines)\n"
+      },
+      "zgrep": {
+        "rows": 102,
+        "sha256": "691cab1d7bc8ada755b39ac3b1e7be14a860f98e7601d26d62cf9bb69625acac",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(9 trigrams) (candidates: 109/6218; raw candidates: 172/6218)\nIndex work: {\"lists_loaded\":6,\"lists_probed\":3,\"postings_copied\":9213,\"candidate_probes\":516,\"position_rejections\":4}\nSearch completed in 5.3ms: 327 matches (320 matched lines)\n"
+      },
+      "ogrep": {
+        "rows": 102,
+        "sha256": "691cab1d7bc8ada755b39ac3b1e7be14a860f98e7601d26d62cf9bb69625acac",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(9 trigrams) (candidates: 109/6218; raw candidates: 172/6218)\nIndex work: {\"lists_loaded\":6,\"lists_probed\":3,\"postings_copied\":9213,\"candidate_probes\":516,\"position_rejections\":4}\nSearch completed in 5.1ms: 327 matches (320 matched lines)\n"
+      }
+    },
+    "scoped": {
+      "tgrep": {
+        "rows": 23,
+        "sha256": "5b0c8a61d40691587c8291711df271464673906e7dab52ac80def70cb0a1e850",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(11 trigrams) (candidates: 23/6218; raw candidates: 177/6218)\nSearch completed in 3.9ms: 104 matches (104 matched lines)\n"
+      },
+      "zgrep": {
+        "rows": 23,
+        "sha256": "5b0c8a61d40691587c8291711df271464673906e7dab52ac80def70cb0a1e850",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(11 trigrams) (candidates: 23/6218; raw candidates: 176/6218)\nIndex work: {\"lists_loaded\":8,\"lists_probed\":3,\"postings_copied\":9899,\"candidate_probes\":528,\"position_rejections\":2}\nSearch completed in 3.1ms: 104 matches (104 matched lines)\n"
+      },
+      "ogrep": {
+        "rows": 23,
+        "sha256": "5b0c8a61d40691587c8291711df271464673906e7dab52ac80def70cb0a1e850",
+        "exit": 0,
+        "diagnostics": "Query plan: AND(11 trigrams) (candidates: 23/6218; raw candidates: 176/6218)\nIndex work: {\"lists_loaded\":8,\"lists_probed\":3,\"postings_copied\":9899,\"candidate_probes\":528,\"position_rejections\":2}\nSearch completed in 2.9ms: 104 matches (104 matched lines)\n"
+      }
+    }
+  },
+  "summary": {
+    "literal-rare": {
+      "tgrep": {
+        "median_ms": 3.889846,
+        "p95_ms": 4.033662,
+        "min_ms": 3.818879,
+        "max_ms": 4.033662
+      },
+      "zgrep": {
+        "median_ms": 3.369192,
+        "p95_ms": 3.529385,
+        "min_ms": 3.252789,
+        "max_ms": 3.529385
+      },
+      "ogrep": {
+        "median_ms": 3.314512,
+        "p95_ms": 3.500033,
+        "min_ms": 3.023975,
+        "max_ms": 3.500033
+      }
+    },
+    "literal-common": {
+      "tgrep": {
+        "median_ms": 27.297838,
+        "p95_ms": 27.90544,
+        "min_ms": 27.198749,
+        "max_ms": 27.90544
+      },
+      "zgrep": {
+        "median_ms": 26.25844,
+        "p95_ms": 27.264485,
+        "min_ms": 25.878771,
+        "max_ms": 27.264485
+      },
+      "ogrep": {
+        "median_ms": 7.784553,
+        "p95_ms": 8.109597,
+        "min_ms": 7.420039,
+        "max_ms": 8.109597
+      }
+    },
+    "literal-absent": {
+      "tgrep": {
+        "median_ms": 3.353146,
+        "p95_ms": 3.436616,
+        "min_ms": 3.240238,
+        "max_ms": 3.436616
+      },
+      "zgrep": {
+        "median_ms": 2.702297,
+        "p95_ms": 2.812167,
+        "min_ms": 2.623369,
+        "max_ms": 2.812167
+      },
+      "ogrep": {
+        "median_ms": 2.588233,
+        "p95_ms": 2.727403,
+        "min_ms": 2.368871,
+        "max_ms": 2.727403
+      }
+    },
+    "literal-long": {
+      "tgrep": {
+        "median_ms": 4.648899,
+        "p95_ms": 4.70647,
+        "min_ms": 4.584997,
+        "max_ms": 4.70647
+      },
+      "zgrep": {
+        "median_ms": 4.043053,
+        "p95_ms": 4.13229,
+        "min_ms": 3.900307,
+        "max_ms": 4.13229
+      },
+      "ogrep": {
+        "median_ms": 3.633795,
+        "p95_ms": 3.950208,
+        "min_ms": 3.284997,
+        "max_ms": 3.950208
+      }
+    },
+    "short": {
+      "tgrep": {
+        "median_ms": 72.679458,
+        "p95_ms": 73.25068,
+        "min_ms": 72.537744,
+        "max_ms": 73.25068
+      },
+      "zgrep": {
+        "median_ms": 69.684038,
+        "p95_ms": 76.087068,
+        "min_ms": 68.815853,
+        "max_ms": 76.087068
+      },
+      "ogrep": {
+        "median_ms": 17.747273,
+        "p95_ms": 17.939151,
+        "min_ms": 17.088257,
+        "max_ms": 17.939151
+      }
+    },
+    "broad": {
+      "tgrep": {
+        "median_ms": 59.057776,
+        "p95_ms": 61.09655,
+        "min_ms": 58.967079,
+        "max_ms": 61.09655
+      },
+      "zgrep": {
+        "median_ms": 55.752991,
+        "p95_ms": 56.109435,
+        "min_ms": 55.630113,
+        "max_ms": 56.109435
+      },
+      "ogrep": {
+        "median_ms": 15.268739,
+        "p95_ms": 15.495281,
+        "min_ms": 15.164388,
+        "max_ms": 15.495281
+      }
+    },
+    "alternation": {
+      "tgrep": {
+        "median_ms": 9.853442,
+        "p95_ms": 10.344922,
+        "min_ms": 9.775882,
+        "max_ms": 10.344922
+      },
+      "zgrep": {
+        "median_ms": 8.303044,
+        "p95_ms": 8.680055,
+        "min_ms": 8.181411,
+        "max_ms": 8.680055
+      },
+      "ogrep": {
+        "median_ms": 5.066454,
+        "p95_ms": 6.187323,
+        "min_ms": 4.910491,
+        "max_ms": 6.187323
+      }
+    },
+    "nested-alternation": {
+      "tgrep": {
+        "median_ms": 46.460219,
+        "p95_ms": 53.706401,
+        "min_ms": 46.185382,
+        "max_ms": 53.706401
+      },
+      "zgrep": {
+        "median_ms": 14.619622,
+        "p95_ms": 14.866844,
+        "min_ms": 14.510547,
+        "max_ms": 14.866844
+      },
+      "ogrep": {
+        "median_ms": 6.29569,
+        "p95_ms": 6.566494,
+        "min_ms": 6.073658,
+        "max_ms": 6.566494
+      }
+    },
+    "regex-selective": {
+      "tgrep": {
+        "median_ms": 8.8792,
+        "p95_ms": 9.231568,
+        "min_ms": 8.750729,
+        "max_ms": 9.231568
+      },
+      "zgrep": {
+        "median_ms": 8.183126,
+        "p95_ms": 9.338602,
+        "min_ms": 8.000709,
+        "max_ms": 9.338602
+      },
+      "ogrep": {
+        "median_ms": 4.872637,
+        "p95_ms": 5.069547,
+        "min_ms": 4.482656,
+        "max_ms": 5.069547
+      }
+    },
+    "regex-common": {
+      "tgrep": {
+        "median_ms": 20.098245,
+        "p95_ms": 21.125109,
+        "min_ms": 19.825223,
+        "max_ms": 21.125109
+      },
+      "zgrep": {
+        "median_ms": 18.704193,
+        "p95_ms": 19.088807,
+        "min_ms": 18.44697,
+        "max_ms": 19.088807
+      },
+      "ogrep": {
+        "median_ms": 7.461712,
+        "p95_ms": 8.190857,
+        "min_ms": 7.186186,
+        "max_ms": 8.190857
+      }
+    },
+    "case-insensitive": {
+      "tgrep": {
+        "median_ms": 8.169824,
+        "p95_ms": 8.241645,
+        "min_ms": 7.822097,
+        "max_ms": 8.241645
+      },
+      "zgrep": {
+        "median_ms": 7.77403,
+        "p95_ms": 8.109786,
+        "min_ms": 7.273784,
+        "max_ms": 8.109786
+      },
+      "ogrep": {
+        "median_ms": 4.496592,
+        "p95_ms": 4.715781,
+        "min_ms": 4.374683,
+        "max_ms": 4.715781
+      }
+    },
+    "scoped": {
+      "tgrep": {
+        "median_ms": 5.735249,
+        "p95_ms": 5.929347,
+        "min_ms": 5.527202,
+        "max_ms": 5.929347
+      },
+      "zgrep": {
+        "median_ms": 5.172038,
+        "p95_ms": 5.494418,
+        "min_ms": 4.877433,
+        "max_ms": 5.494418
+      },
+      "ogrep": {
+        "median_ms": 4.743032,
+        "p95_ms": 5.213318,
+        "min_ms": 4.550359,
+        "max_ms": 5.213318
+      }
+    }
+  },
+  "corpus_revision": "b54ae4cdfce4b84b22889b5c5b9ed0ab9bcb3702",
+  "expected_revision": "b54ae4cdfce4b84b22889b5c5b9ed0ab9bcb3702",
+  "cpu": "Intel(R) Core(TM) i9-14900KS"
+}
