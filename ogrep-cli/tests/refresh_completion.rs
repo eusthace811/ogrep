@@ -185,6 +185,9 @@ fn fake_server(root: &Path, reply: Option<serde_json::Value>) -> std::thread::Jo
                 Err(error) => panic!("client did not connect: {error}"),
             }
         };
+        // Windows hands out accepted sockets non-blocking like their listener,
+        // which makes the read below fail with WouldBlock instead of waiting.
+        stream.set_nonblocking(false).unwrap();
         stream
             .set_read_timeout(Some(Duration::from_secs(5)))
             .unwrap();

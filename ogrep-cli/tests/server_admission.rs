@@ -44,6 +44,9 @@ fn explicit_overload_is_an_error_without_local_fallback() {
                     Err(e) => panic!("client did not connect: {e}"),
                 }
             };
+            // Windows hands out accepted sockets non-blocking like their listener,
+            // which makes the read below fail with WouldBlock instead of waiting.
+            stream.set_nonblocking(false).unwrap();
             stream
                 .set_read_timeout(Some(Duration::from_secs(5)))
                 .unwrap();
