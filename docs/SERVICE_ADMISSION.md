@@ -35,3 +35,5 @@ The all-feature workspace suite passes **962 tests**, with one existing polling 
 New tests cover FIFO queue order, queue exhaustion, timeout removal, permit release, status access while search admission is occupied, response ownership until disposal, bounded unterminated frames, a client that stops reading and then disconnects, the actual 64-connection cap and slot reuse, invalid CLI concurrency values, and explicit overload propagation through both content-search and file-list CLI paths. The CLI does not convert an explicit overload response into local fallback work. Logs are retained as `admission-tests.log`, `admission-clippy.log` and `admission-output.json`.
 
 This completes the admission experiment, not qualification of the next release. Refresh completion, agent integration and the final combined release checks remain outstanding.
+
+The 0.3.0 release review also checks the adapter’s preliminary status request: an explicit `-32002` there raises a retryable tool error before any service launch or local scan. The regression test covers null-id connection rejection and ordinary request ids across search, file lookup and refresh.

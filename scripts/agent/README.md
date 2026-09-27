@@ -169,8 +169,9 @@ the current discovery file cannot verify all their indexing settings.
 The hook and MCP use the same service launcher. `serve` automatically builds or
 resumes the index, and queries can scan during startup. There is no separate
 `index` invocation and startup does not wait for an initial full build. Startup
-locks and zgrep's own single-instance lock prevent competing servers. If
-startup fails, an indexed request uses a current filesystem scan rather than
+locks and zgrep's own single-instance lock prevent competing servers. An explicit server-overload reply is reported as an error and never triggers
+a new service or local scan. If
+startup fails for other availability reasons, an indexed request uses a current filesystem scan rather than
 deliberately querying an abandoned disk index. If a server dies during a query,
 the existing CLI search fallback behavior still applies. The explicit refresh
 tool always requires a valid server receipt; `current` remains a direct scan.

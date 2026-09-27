@@ -516,6 +516,20 @@ class RuntimeTests(unittest.TestCase):
         finally:
             listener.close()
 
+    def test_status_overload_does_not_launch_service_or_scan_fallback(self):
+        from unittest.mock import MagicMock
+        self.runtime.index.mkdir(parents=True)
+        (self.runtime.index / "serve.json").write_text(json.dumps({"pid": os.getpid(), "port": 12345}))
+        for request_id in (None, 1):
+            connection = MagicMock()
+            response = {"jsonrpc": "2.0", "id": request_id, "error": {"code": -32002, "message": "server connection limit"}}
+            connection.__enter__.return_value.makefile.return_value.__enter__.return_value.readline.return_value = json.dumps(response).encode()
+            with patch.object(runtime.socket, "create_connection", return_value=connection), patch.object(runtime.subprocess, "Popen") as spawn:
+                for tool, args in [("search_code", {"pattern": "needle"}), ("find_files", {}), ("refresh_index", {})]:
+                    with self.assertRaisesRegex(ValueError, "server busy"):
+                        self.runtime.search(tool, args)
+                spawn.assert_not_called()
+
     def test_symlinked_service_state_is_rejected(self):
         external = self.directory / "external-state"
         external.mkdir()

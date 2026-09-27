@@ -174,14 +174,22 @@ class Runtime:
                 sock.sendall(b'{"jsonrpc":"2.0","id":1,"method":"status"}\n')
                 with sock.makefile("rb") as stream:
                     reply = json.loads(stream.readline(65536))
-            if not isinstance(reply, dict) or reply.get("jsonrpc") != "2.0" or reply.get("id") != 1:
-                return None
-            result = reply.get("result")
-            if not isinstance(result, dict) or type(result.get("num_files")) is not int:
-                return None
-            return result
         except (OSError, ValueError, KeyError, TypeError):
             return None
+        if not isinstance(reply, dict) or reply.get("jsonrpc") != "2.0":
+            return None
+        error = reply.get("error")
+        if (reply.get("id") in (None, 1) and isinstance(error, dict)
+                and error.get("code") == -32002):
+            # Explicit overload is not an unavailable service. Let the tool
+            # report it instead of launching a replacement or a full scan.
+            raise ValueError("zgrep server busy; retry later")
+        if reply.get("id") != 1:
+            return None
+        result = reply.get("result")
+        if not isinstance(result, dict) or type(result.get("num_files")) is not int:
+            return None
+        return result
 
     def ensure_server(self, wait=1.5):
         if self.status() is not None:
