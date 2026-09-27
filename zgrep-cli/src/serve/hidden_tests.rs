@@ -261,7 +261,7 @@ fn hidden_filename_publication_is_coherent_even_when_metadata_publish_fails() {
     let mut visible: Vec<_> = reader
         .all_paths()
         .iter()
-        .cloned()
+        .map(str::to_string)
         .chain(restarted.filename_extra_paths)
         .filter(|path| restarted.visibility.is_visible(path, "", false))
         .collect();

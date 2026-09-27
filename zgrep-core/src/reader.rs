@@ -137,6 +137,31 @@ impl PathTable {
     }
 }
 
+impl PathTable {
+    /// Owned copies of every path, in file ID order.
+    pub fn to_vec(&self) -> Vec<String> {
+        self.iter().map(str::to_string).collect()
+    }
+}
+
+impl std::fmt::Debug for PathTable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_list().entries(self.iter()).finish()
+    }
+}
+
+impl<S: AsRef<str>, const N: usize> PartialEq<[S; N]> for PathTable {
+    fn eq(&self, other: &[S; N]) -> bool {
+        self.len() == N && self.iter().zip(other).all(|(a, b)| a == b.as_ref())
+    }
+}
+
+impl<S: AsRef<str>> PartialEq<[S]> for PathTable {
+    fn eq(&self, other: &[S]) -> bool {
+        self.len() == other.len() && self.iter().zip(other).all(|(a, b)| a == b.as_ref())
+    }
+}
+
 impl std::ops::Index<usize> for PathTable {
     type Output = str;
 
