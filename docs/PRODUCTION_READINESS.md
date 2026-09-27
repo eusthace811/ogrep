@@ -17,10 +17,12 @@ The measured executable is `2fc6f9d5350821848d08c96ee278445fed15f198f093dcde2edb
 | Output and compatibility | [Output matrix](../evidence/release-0.3.0/output-modes.json), [Unicode](../evidence/release-0.3.0/unicode.json) | Passed: 96 exact output/exit cases, within documented compatibility limits |
 | Mutation and recovery | [Recovery](../evidence/release-0.3.0/recovery.json), native/poll/fallback, churn, SIGKILL/offline edits/restart | Passed: 15 checkpoints and 4,301 concurrent queries |
 | Cache, startup and indexing | [Cache](../evidence/release-0.3.0/cache.json), [startup](../evidence/release-0.3.0/startup.json), [resources](../evidence/release-0.3.0/index-resources.json) | Passed: 180 checks, 10 restarts; CPU/RSS/storage retained |
-| Dependencies | [Recorded RustSec audit](../evidence/release-0.3.0/audit.log) | Passed: zero reported vulnerabilities/warnings; packaging repeat pending |
-| Delivery and exact provenance | Clean-source archive, checksums, extracted-binary tests and identity audit | Pending |
+| Dependencies | [Recorded RustSec audit](../evidence/release-0.3.0/audit.log) | Passed: zero reported vulnerabilities/warnings, including [packaging repeat](../evidence/release-0.3.0/dependency-audit-at-packaging.json) |
+| Delivery and exact provenance | [Packaging receipt](../evidence/release-0.3.0/release-validation.json), checksums, extracted-binary tests and [completion audit](../evidence/release-0.3.0/completion-audit.json) | Passed: identical executable, refresh smoke and 96 packaged output checks |
 
-The 20-command combined evaluation completed successfully. Packaging and the final source/artifact audit remain required before declaring release completion.
+The 20-command combined evaluation, extended refresh experiment, packaging and final source/artifact audit all passed. Version 0.3.0 is qualified for the documented trusted local Linux/WSL scope. The local archive is unsigned and has not been remotely published.
+
+The archive was built from clean source `3275f8ecff8be7a6a759f46cdf68c59043ec9481`; its executable exactly matches the measured binary. The audit checks current runtime, locked dependencies, agent and evaluator sources against both commits, archived operating documentation, retained baselines, frozen corpora, full evidence matrices and archive checksum. Subsequent changes contain only reports and delivery evidence.
 
 Only index-file pages were established cold with `mincore`; source/executable/metadata/device caches were not. The current server is loopback-only and unauthenticated. Admission bounds simultaneous work, not per-query output or total RSS. Refresh rereads content and covers completed edits stable through completion; it does not establish an atomic filesystem snapshot. Timeout and cancellation do not acknowledge freshness. Large-tree refresh cost is material and is reported rather than hidden.
 

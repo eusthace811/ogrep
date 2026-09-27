@@ -11,7 +11,7 @@ zgrep-code -F --explain -- 'some_identifier' /path/to/repository
 zgrep-code serve /path/to/repository     # optional foreground server + watcher
 ```
 
-Put `~/.cargo/bin` on PATH, or use `./target/release/zgrep` directly after `cargo build --release --locked`. `python3 scripts/package.py` creates a checksummed local Linux archive from a clean checkout and verifies the unpacked executable.
+Put `~/.cargo/bin` on PATH, or use `./target/release/zgrep` directly after `cargo build --release --locked`. `python3 scripts/package.py` creates a checksummed local Linux archive from a clean checkout and verifies the unpacked executable. The [0.3.0 archive](dist/zgrep-code-0.3.0-x86_64-unknown-linux-gnu.tar.gz) passed the [release audit](docs/PRODUCTION_READINESS.md).
 
 ## What changed
 

@@ -125,7 +125,7 @@ A separate **60-pass** follow-up (plus warmup) retained the same binary and 12 i
 - Workstation: Intel Core i9-14900KS, Linux/WSL2 x86-64. Full platform, affinity and toolchain records are in the raw evaluations and qualification manifest.
 - Reproduce from a clean, built checkout with `python3 scripts/evaluate-release.py --output-directory evidence/NEW-RUN --work-root ../build/NEW-RUN`. Output must be empty; the refresh-cost work directory must be new.
 
-Packaging and extracted-executable validation remain required. This report is not yet a completion claim.
+Local archive: [zgrep-code-0.3.0-x86_64-unknown-linux-gnu.tar.gz](dist/zgrep-code-0.3.0-x86_64-unknown-linux-gnu.tar.gz), SHA-256 `9e2c7164406409fa27db918d322f16cd0860f2055430ab9b3e5cfcf63cdd2feb`. Packaging source `3275f8ecff8be7a6a759f46cdf68c59043ec9481`. The extracted executable passes refresh, Unicode/position smoke checks and all 96 output cases. [Packaging receipt](evidence/release-0.3.0/release-validation.json).
 
 The loopback service has no multi-user authorization. Admission bounds active/pending work, not output size or total RSS. Large refreshes can be expensive. No remote publication/signing, native macOS/Windows qualification, whole-machine cold-cache test or universal performance proof is claimed. [Operations](docs/OPERATIONS.md) documents freshness, scope, compatibility and recovery.
 
