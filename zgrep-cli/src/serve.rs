@@ -9044,6 +9044,7 @@ mod tests {
         Arc::new(DecodedFile {
             text: String::from_utf8(bytes).unwrap(),
             fixups: Default::default(),
+            first_nul: None,
         })
     }
 

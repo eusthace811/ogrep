@@ -882,10 +882,10 @@ fn pattern_is_anchor_free(pattern: &str) -> bool {
 /// when it is anchored with `^`/`$` and so cannot use the plain prescan.
 ///
 /// Line-oriented matching runs the pattern on each line separately, where `^`
-/// and `$` mean the line's ends. Multi-line mode gives them exactly those
-/// positions inside a buffer, and CRLF mode adds positions around `\r`; a
-/// prescan may propose extra lines (the per-line matcher rejects them) but
-/// never miss one, so these extra positions are harmless. What cannot be made
+/// and `$` mean the line's ends. Lines split only at `\n` and keep any `\r`,
+/// so multi-line mode gives `^` and `$` exactly those positions inside a
+/// buffer. CRLF mode must stay off: it stops `$` matching between `\r` and
+/// `\n`, which would lose `\r$` on every CRLF line. What cannot be made
 /// line-relative is excluded: `\A`, `\z` and `\Z` stay bound to the buffer,
 /// and an inline flag group could switch multi-line mode back off.
 fn line_anchored_prescan(combined: &str, cfg: &MatcherConfig) -> Option<regex::Regex> {
@@ -895,7 +895,6 @@ fn line_anchored_prescan(combined: &str, cfg: &MatcherConfig) -> Option<regex::R
     RegexBuilder::new(combined)
         .case_insensitive(cfg.case_insensitive)
         .multi_line(true)
-        .crlf(true)
         .dot_matches_new_line(cfg.dotall)
         .unicode(!cfg.no_unicode)
         .size_limit(cfg.regex_size_limit.unwrap_or(100 * (1 << 20)))
@@ -1229,6 +1228,10 @@ mod tests {
             "^",
             "$",
             r"^\s*$",
+            r"\r$",
+            r"^\r",
+            r"a\r$",
+            r"\s$",
         ];
         // Every short haystack over a small alphabet, so each arrangement of
         // line breaks, carriage returns and spaces around the anchors is seen.
