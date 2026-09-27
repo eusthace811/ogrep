@@ -584,7 +584,7 @@ pub fn list_files(root: &Path, index_path: Option<&Path>, opts: &SearchOptions) 
         .unwrap_or_else(|| builder::default_index_dir(&root));
 
     if filename_index_compatible(opts) {
-        if let Ok(info) = ServerInfo::load(&index_dir)
+        if let Ok(info) = ServerInfo::load_live(&index_dir)
             && let Some((index_root, scope)) = resolve_scope(&index_dir, &root)
         {
             let paths = match list_files_via_server(&info, &scope, opts) {
@@ -898,7 +898,7 @@ pub fn run(
         && !opts.effective_passthru()
         && !opts.files_without_match
         && !opts.include_zero
-        && let Ok(info) = ServerInfo::load(&index_dir)
+        && let Ok(info) = ServerInfo::load_live(&index_dir)
         && let Some((index_root, scope)) = resolve_scope(&index_dir, &root)
     {
         match search_via_server(&info, &root, &index_root, &scope, opts, ci, writer) {

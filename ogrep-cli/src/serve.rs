@@ -215,9 +215,69 @@ impl ServerInfo {
         Ok(info)
     }
 
+    /// `load`, for a client about to connect: fails when the process that
+    /// wrote `serve.json` is certainly gone. A server that was killed leaves
+    /// the file behind, and on Windows connecting to its closed port takes
+    /// about two seconds to be refused, which every search would pay. When
+    /// liveness cannot be decided the client connects exactly as before.
+    pub fn load_live(index_dir: &Path) -> Result<Self> {
+        let info = Self::load(index_dir)?;
+        anyhow::ensure!(
+            !process_is_gone(info.pid),
+            "the server recorded in serve.json (pid {}) is no longer running",
+            info.pid
+        );
+        Ok(info)
+    }
+
     pub fn cleanup(index_dir: &Path) {
         let _ = std::fs::remove_file(index_dir.join("serve.json"));
     }
+}
+
+/// True only when `pid` certainly names no running process. Errors and
+/// ambiguous answers (another user's process, a reused PID) say "not gone",
+/// which keeps the connection attempt.
+#[cfg(unix)]
+fn process_is_gone(pid: u32) -> bool {
+    let Ok(pid) = libc::pid_t::try_from(pid) else {
+        return false;
+    };
+    if pid <= 0 {
+        return false;
+    }
+    // Signal 0 checks existence without delivering anything.
+    let result = unsafe { libc::kill(pid, 0) };
+    result == -1 && std::io::Error::last_os_error().raw_os_error() == Some(libc::ESRCH)
+}
+
+#[cfg(windows)]
+fn process_is_gone(pid: u32) -> bool {
+    use windows_sys::Win32::Foundation::{
+        CloseHandle, ERROR_INVALID_PARAMETER, GetLastError, STILL_ACTIVE,
+    };
+    use windows_sys::Win32::System::Threading::{
+        GetExitCodeProcess, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION,
+    };
+    if pid == 0 {
+        return false;
+    }
+    unsafe {
+        let handle = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, 0, pid);
+        if handle.is_null() {
+            // Access denied means it exists; only "no such process" is gone.
+            return GetLastError() == ERROR_INVALID_PARAMETER;
+        }
+        let mut code = 0u32;
+        let queried = GetExitCodeProcess(handle, &mut code) != 0;
+        CloseHandle(handle);
+        queried && code != STILL_ACTIVE as u32
+    }
+}
+
+#[cfg(not(any(unix, windows)))]
+fn process_is_gone(_pid: u32) -> bool {
+    false
 }
 
 /// Attempt to acquire an exclusive lock on `serve.lock` inside the index

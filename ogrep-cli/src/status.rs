@@ -18,7 +18,7 @@ pub fn run(root: &Path, index_path: Option<&Path>) -> Result<()> {
         .unwrap_or_else(|| builder::default_index_dir(&root));
 
     // Try connecting to a running server
-    if let Ok(info) = ServerInfo::load(&index_dir)
+    if let Ok(info) = ServerInfo::load_live(&index_dir)
         && let Ok(status) = query_server_status(&info)
     {
         println!("Server status for {}", root.display());

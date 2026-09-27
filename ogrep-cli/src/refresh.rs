@@ -16,7 +16,7 @@ pub fn run(root: &Path, index_path: Option<&Path>, timeout: Duration, json: bool
     let index = index_path
         .map(Path::to_path_buf)
         .unwrap_or_else(|| ogrep_core::builder::default_index_dir(&root));
-    let info = crate::serve::ServerInfo::load(&index)
+    let info = crate::serve::ServerInfo::load_live(&index)
         .context("refresh requires a running server; start ogrep serve for this root")?;
     let address = SocketAddr::from((Ipv4Addr::LOCALHOST, info.port));
     let mut stream =
