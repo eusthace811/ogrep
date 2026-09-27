@@ -1909,55 +1909,79 @@ fn handle_search(
         let raw_count = candidates.len();
         let total_files = opts.stats.then(|| index.num_files_using(&reader_snapshot));
 
-        // Diagnostic counters for filter stages
-        let mut no_path_count: usize = 0;
-        let mut type_filtered_count: usize = 0;
-        let mut glob_filtered_count: usize = 0;
-        let mut first_glob_rejected: Option<String> = None;
-        let mut filtered_count: usize = 0;
-
-        let filtered: Vec<(String, PathBuf)> = candidates
-            .iter()
-            .filter_map(|&fid| {
-                let rel_path = match index.resolve_path(fid, &reader_snapshot) {
-                    Some(p) => p,
-                    None => {
-                        no_path_count += 1;
-                        return None;
-                    }
+        // Filter candidates in parallel: resolving, visibility, type and glob
+        // checks cost a path allocation and several matcher probes each, which
+        // on a broad query dominated the whole search when done one by one.
+        enum Filtered {
+            Keep(String, PathBuf),
+            NoPath,
+            Hidden,
+            Type,
+            Glob(String),
+            TooLarge,
+        }
+        let root = &index.root;
+        let decisions: Vec<Filtered> = candidates
+            .par_iter()
+            .with_min_len(256)
+            .map(|&fid| {
+                let Some(rel_path) = index.resolve_path(fid, &reader_snapshot) else {
+                    return Filtered::NoPath;
                 };
-                let scoped = scope.relative(&rel_path)?;
+                let Some(scoped) = scope.relative(&rel_path) else {
+                    return Filtered::Hidden;
+                };
                 if !visibility.is_visible_with_file_whitelist(
                     &rel_path,
                     &scope.prefix,
                     scope.hidden,
                     type_filter.has_selection(),
                 ) {
-                    return None;
+                    return Filtered::Hidden;
                 }
                 if !type_filter.matches(scoped) {
-                    type_filtered_count += 1;
-                    return None;
+                    return Filtered::Type;
                 }
                 if !glob_filter.is_empty() && !glob_filter.matches(scoped) {
+                    return Filtered::Glob(rel_path);
+                }
+                let full_path = root.join(rel_path.replace('/', std::path::MAIN_SEPARATOR_STR));
+                if let Some(limit) = query_size_limit
+                    && std::fs::metadata(&full_path).is_ok_and(|md| md.len() > limit)
+                {
+                    return Filtered::TooLarge;
+                }
+                Filtered::Keep(rel_path, full_path)
+            })
+            .collect();
+
+        // Diagnostic counters for filter stages
+        let mut no_path_count: usize = 0;
+        let mut type_filtered_count: usize = 0;
+        let mut glob_filtered_count: usize = 0;
+        let mut first_glob_rejected: Option<String> = None;
+        // Match local-index stats: count after path filters, before size
+        // checks or reads can discard candidates.
+        let mut filtered_count: usize = 0;
+        let mut filtered: Vec<(String, PathBuf)> = Vec::with_capacity(decisions.len());
+        for decision in decisions {
+            match decision {
+                Filtered::Keep(rel_path, full_path) => {
+                    filtered_count += 1;
+                    filtered.push((rel_path, full_path));
+                }
+                Filtered::TooLarge => filtered_count += 1,
+                Filtered::NoPath => no_path_count += 1,
+                Filtered::Hidden => {}
+                Filtered::Type => type_filtered_count += 1,
+                Filtered::Glob(rel_path) => {
                     glob_filtered_count += 1;
                     if first_glob_rejected.is_none() {
                         first_glob_rejected = Some(rel_path);
                     }
-                    return None;
                 }
-                // Match local-index stats: count after path filters, before
-                // size checks or reads can discard candidates.
-                filtered_count += 1;
-                let full_path = index.resolve_full_path(fid, &reader_snapshot)?;
-                if let Some(limit) = query_size_limit
-                    && std::fs::metadata(&full_path).is_ok_and(|md| md.len() > limit)
-                {
-                    return None;
-                }
-                Some((rel_path, full_path))
-            })
-            .collect();
+            }
+        }
 
         // Log filter breakdown when raw candidates are dropped to zero
         let glob_active = !glob_filter.is_empty();
