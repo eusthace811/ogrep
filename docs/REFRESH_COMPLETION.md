@@ -50,4 +50,4 @@ Adapter 1.1.0 exposes `refresh_index` through MCP and `zgrep_refresh_index` thro
 
 ## Workload evaluation
 
-[Immediate parity under load and pinned-corpus cost](REFRESH_EVALUATION.md) records 225 receipts, 450 immediate comparisons, 10,840 checked concurrent searches and the roughly 3.07-second full Rust-tree refresh cost. Repeated-refresh memory stability and final release qualification remain open.
+[Immediate parity under load and pinned-corpus cost](REFRESH_EVALUATION.md) records 225 receipts, 450 immediate comparisons, 10,840 checked concurrent searches and the roughly 3.07-second full Rust-tree refresh cost. A 15-pass follow-up observed stable peak RSS over its final six passes, without claiming a hard bound. Final release qualification remains open.

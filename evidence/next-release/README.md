@@ -84,3 +84,5 @@ The [refresh CLI](../../docs/REFRESH_COMPLETION.md#cli-and-live-daemon-tests) ad
 [Agent refresh integration](../../docs/REFRESH_COMPLETION.md#agent-integration) is implemented with 42 passing tests. The no-watch test distinguishes a real publication barrier from ordinary watcher convergence; MCP/pi tests cover the tool route and cancellation.
 
 [Refresh workload evaluation](../../docs/REFRESH_EVALUATION.md) preserves immediate parity/load results and full Rust-tree cost, including increasing RSS that requires a longer stability experiment.
+
+The pinned Rust [15-pass memory follow-up](../../docs/REFRESH_EVALUATION.md#cost-on-the-pinned-rust-corpus) retained every sample and 192 independent query checks. Peak RSS plateaued over the last six passes, while the larger peak from the initial process remains reported. This is observed stability, not a hard memory limit.

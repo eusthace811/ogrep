@@ -1,0 +1,32 @@
+rust: refresh -1 (-1 is warmup)
+rust: 3058.2 ms, 5.87 CPU seconds, 1073.9 MiB peak
+rust: refresh 0 (-1 is warmup)
+rust: 2989.9 ms, 5.96 CPU seconds, 1400.3 MiB peak
+rust: refresh 1 (-1 is warmup)
+rust: 3077.9 ms, 6.01 CPU seconds, 1594.0 MiB peak
+rust: refresh 2 (-1 is warmup)
+rust: 3008.2 ms, 5.84 CPU seconds, 1594.0 MiB peak
+rust: refresh 3 (-1 is warmup)
+rust: 2951.7 ms, 5.82 CPU seconds, 1594.8 MiB peak
+rust: refresh 4 (-1 is warmup)
+rust: 3007.2 ms, 5.90 CPU seconds, 1624.9 MiB peak
+rust: refresh 5 (-1 is warmup)
+rust: 2997.0 ms, 6.01 CPU seconds, 1805.2 MiB peak
+rust: refresh 6 (-1 is warmup)
+rust: 3005.6 ms, 5.90 CPU seconds, 1869.5 MiB peak
+rust: refresh 7 (-1 is warmup)
+rust: 2993.6 ms, 5.84 CPU seconds, 1869.5 MiB peak
+rust: refresh 8 (-1 is warmup)
+rust: 2961.6 ms, 5.79 CPU seconds, 1869.5 MiB peak
+rust: refresh 9 (-1 is warmup)
+rust: 3141.8 ms, 5.92 CPU seconds, 1909.8 MiB peak
+rust: refresh 10 (-1 is warmup)
+rust: 2946.4 ms, 5.81 CPU seconds, 1909.8 MiB peak
+rust: refresh 11 (-1 is warmup)
+rust: 2918.4 ms, 5.76 CPU seconds, 1909.8 MiB peak
+rust: refresh 12 (-1 is warmup)
+rust: 2933.5 ms, 5.84 CPU seconds, 1909.8 MiB peak
+rust: refresh 13 (-1 is warmup)
+rust: 2925.6 ms, 5.77 CPU seconds, 1909.8 MiB peak
+rust: refresh 14 (-1 is warmup)
+rust: 2930.8 ms, 5.76 CPU seconds, 1909.8 MiB peak
