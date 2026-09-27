@@ -1,5 +1,15 @@
 # Changes
 
+## 0.3.0
+
+- Reuse the opened source handle when mmap verification falls back to an owned read. Ordinary local profiling and broad/targeted comparisons retain both gains and regressions.
+- Negotiate compact file-list RPC replies while preserving legacy clients and binary markers.
+- Bound service work: four simultaneous search/file requests by default, a 32-request queue and 64 connections; hold search slots through response writes. Explicit overload returns an error without local fallback.
+- Add `refresh` CLI/RPC completion: reread eligible content and acknowledge searchable publication. Bound refresh work to one active and one pending pass; preserve deadline, failure and concurrent-edit semantics.
+- Expose `refresh_index` to MCP and pi agents. Retain direct scans for `freshness: current`; reject incompatible binaries during agent installation.
+- Preserve recreated files and directory discovery when delayed removal notifications arrive.
+- Final 0.3.0 qualification is tracked separately from the retained 0.2.0 release evidence.
+
 ## 0.2.0
 
 - Defer the reader's sorted path membership table until it is needed. Dense file-ID lookup remains immediate; concurrent first use initializes once. The 102-query Rust local workload improves about 1.26× against both tgrep and 0.1.0.

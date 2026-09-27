@@ -23,7 +23,8 @@ import install
 import runtime
 
 CHECKOUT = Path(__file__).resolve().parents[2]
-BINARY = next((p for p in (CHECKOUT / "target/debug/zgrep", CHECKOUT / "target/release/zgrep") if p.exists()), None)
+BINARY = (Path(os.environ["ZGREP_AGENT_TEST_BINARY"]).resolve() if os.environ.get("ZGREP_AGENT_TEST_BINARY")
+          else next((p for p in (CHECKOUT / "target/debug/zgrep", CHECKOUT / "target/release/zgrep") if p.exists()), None))
 
 
 class InstallerTests(unittest.TestCase):

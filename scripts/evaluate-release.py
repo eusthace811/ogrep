@@ -16,13 +16,19 @@ import time
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--output-directory', type=Path, required=True)
+    ap.add_argument('--work-root', type=Path, default=Path('../build/release-0.3.0-eval'))
     args = ap.parse_args()
     out = args.output_directory
     out.mkdir(parents=True, exist_ok=True)
-    engines = ['--engine', 'upstream=../build/baseline/release/tgrep', '--engine', 'release=../build/baseline/zgrep-0.1.0', '--engine', 'fork=target/release/zgrep']
+    if any(out.iterdir()):
+        ap.error('output directory must be empty; preserve prior evaluations')
+    engines = ['--engine', 'upstream=../build/baseline/release/tgrep', '--engine', 'release=../build/baseline/zgrep-0.2.0', '--engine', 'fork=target/release/zgrep']
     rust = '../build/corpora-pinned/rust'
+    work_rust = args.work_root / 'rust'
     binary = Path('target/release/zgrep')
-    report = {'source_commit': subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+    assert not subprocess.check_output(['git', 'status', '--porcelain']), 'commit source before final evaluation'
+    assert subprocess.check_output([str(binary), '--version'], text=True).strip() == 'zgrep 0.3.0'
+    report = {'version': '0.3.0', 'source_commit': subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
               'binary_sha256': hashlib.sha256(binary.read_bytes()).hexdigest(), 'commands': []}
     def run(name, command):
         started = time.time()
@@ -44,22 +50,32 @@ def main():
             path=out/(name+'.json')
             evaluations.append(str(path))
             run(name,['python3','scripts/evaluate.py',*engines,'--corpus',f'../build/corpora-pinned/{corpus}',
-                      '--expected-revision',revision,'--queries',queries,'--work',f'../build/production-eval-{corpus}',
-                      '--mode',mode,'--rounds','9','--seed','261337','--output',str(path)])
+                      '--expected-revision',revision,'--queries',queries,'--work',str(args.work_root/corpus),
+                      '--mode',mode,'--rounds','9','--seed','273337','--output',str(path)])
     run('cache',['python3','scripts/evaluate-index-cache.py',
-                 '--engine','upstream=../build/baseline/release/tgrep=../build/production-eval-rust/upstream/index',
-                 '--engine','release=../build/baseline/zgrep-0.1.0=../build/production-eval-rust/release/index',
-                 '--engine','fork=target/release/zgrep=../build/production-eval-rust/fork/index',
+                 '--engine',f'upstream=../build/baseline/release/tgrep={work_rust}/upstream/index',
+                 '--engine',f'release=../build/baseline/zgrep-0.2.0={work_rust}/release/index',
+                 '--engine',f'fork=target/release/zgrep={work_rust}/fork/index',
                  '--corpus',rust,'--output',str(out/'cache.json')])
+    for name, executable in [('upstream', '../build/baseline/release/tgrep'), ('release', '../build/baseline/zgrep-0.2.0')]:
+        run(f'load-{name}', ['python3', 'scripts/evaluate-load.py', '--binary', executable, '--corpus', rust,
+                            '--index', str(work_rust/name/'index'), '--compact-files', '--observe-status', '--output', str(out/f'load-{name}.json')])
     run('load',['python3','scripts/evaluate-load.py','--binary',str(binary),'--corpus',rust,
-                '--index','../build/production-eval-rust/fork/index','--output',str(out/'load.json')])
+                '--index',str(work_rust/'fork/index'),'--compact-files','--observe-status','--output',str(out/'load.json')])
     run('index-resources',['python3','scripts/evaluate-index-resources.py',*engines,'--corpus',rust,'--output',str(out/'index-resources.json')])
     run('startup',['python3','scripts/evaluate-startup.py','--binary',str(binary),'--corpus',rust,
-                  '--index','../build/production-eval-rust/fork/index','--output',str(out/'startup.json')])
+                  '--index',str(work_rust/'fork/index'),'--output',str(out/'startup.json')])
     run('recovery',['python3','scripts/evaluate-recovery.py','--binary',str(binary),'--output',str(out/'recovery.json')])
+    run('refresh-completion', ['python3', 'scripts/evaluate-refresh-completion.py', '--binary', str(binary),
+                               '--upstream', '../build/baseline/release/tgrep', '--output', str(out/'refresh-completion.json')])
+    run('refresh-cost', ['python3', 'scripts/evaluate-refresh-cost.py', '--binary', str(binary), '--corpus', rust,
+                        '--expected-revision', '1a8fa555801329bd0e803d7384b5a21191c61f30',
+                        '--index-source', str(work_rust/'fork/index'), '--work', str(args.work_root/'refresh-cost-rust'),
+                        '--queries', 'evidence/queries-rust.json', '--rounds', '15', '--output', str(out/'refresh-cost.json')])
     run('qualification',['python3','scripts/qualify.py','--upstream','../build/baseline/release/tgrep','--output',str(out/'qualification.json')])
     run('scan-verification',['python3','scripts/verify-comparison.py',*evaluations,'--output',str(out/'scan-verification.json')])
     run('summary',['python3','scripts/summarize-evaluation.py',*evaluations,'--output',str(out/'summary.json')])
+    run('summary-release',['python3','scripts/summarize-evaluation.py',*evaluations,'--baseline','release','--output',str(out/'summary-release.json')])
     run('audit',['../build/tools/bin/cargo-audit','audit','--json'])
     assert report['binary_sha256']==hashlib.sha256(binary.read_bytes()).hexdigest(), 'binary changed'
 

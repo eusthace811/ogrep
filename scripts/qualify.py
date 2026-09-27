@@ -3,6 +3,7 @@
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
@@ -18,14 +19,14 @@ def main():
     directory.mkdir(parents=True, exist_ok=True)
     commands = [
         ('format', ['cargo', 'fmt', '--all', '--', '--check']),
-        ('clippy', ['cargo', 'clippy', '--workspace', '--all-targets', '--locked', '--offline', '--', '-D', 'warnings']),
-        ('workspace', ['cargo', 'test', '--workspace', '--locked', '--offline']),
+        ('clippy', ['cargo', 'clippy', '--workspace', '--all-targets', '--all-features', '--locked', '--offline', '--', '-D', 'warnings']),
+        ('workspace', ['cargo', 'test', '--workspace', '--all-features', '--locked', '--offline']),
         ('polling', ['cargo', 'test', '-p', 'zgrep-cli', '--locked', '--offline', 'measure_polling_1000_files_and_20_file_change_batch', '--', '--ignored', '--nocapture']),
         ('sparse-example', ['cargo', 'test', '-p', 'zgrep-core', '--example', 'sparse_probe', '--locked', '--offline']),
         ('agent', ['python3', 'scripts/agent/test_agent.py']),
         ('installer', ['bash', 'scripts/test-install.sh']),
-        ('output', ['python3', 'scripts/evaluate-output-modes.py', '--binary', 'target/release/zgrep', '--output', str(directory/'output-modes-020.json')]),
-        ('unicode', ['python3', 'scripts/compare-unicode.py', '--upstream', str(args.upstream), '--fork', 'target/release/zgrep', '--output', str(directory/'unicode-020.json')]),
+        ('output', ['python3', 'scripts/evaluate-output-modes.py', '--binary', 'target/release/zgrep', '--output', str(directory/'output-modes.json')]),
+        ('unicode', ['python3', 'scripts/compare-unicode.py', '--upstream', str(args.upstream), '--fork', 'target/release/zgrep', '--output', str(directory/'unicode.json')]),
     ]
     binary = Path('target/release/zgrep')
     record = {'source_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
@@ -36,7 +37,8 @@ def main():
         started = time.monotonic()
         log = directory/f'qualification-{name}.log'
         with log.open('w') as stream:
-            p = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT)
+            p = subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT,
+                               env={**os.environ, 'ZGREP_AGENT_TEST_BINARY': str(binary.resolve())})
         content = log.read_text()
         row = {'name': name, 'command': command, 'exit': p.returncode,
                'elapsed_seconds': time.monotonic()-started, 'log': str(log)}

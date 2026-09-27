@@ -56,6 +56,12 @@ def smoke(binary, temporary):
                     break
                 time.sleep(.05)
             search(True)
+            (corpus / 'fresh.txt').write_text('packaged_refresh_marker\n')
+            refresh = json.loads(checked(str(binary), 'refresh', str(corpus), '--json'))
+            assert refresh['status'] == 'refreshed' and refresh['root'] == str(corpus)
+            fresh = subprocess.run([str(binary), '-l', '--stats', '--', 'packaged_refresh_marker', '.'],
+                                   cwd=corpus, capture_output=True, text=True, check=True)
+            assert fresh.stdout.splitlines() == ['./fresh.txt'] and '(via server)' in fresh.stderr
         finally:
             server.terminate()
             try:
@@ -98,7 +104,8 @@ def main():
             'zgrep-code -F --explain -- some_identifier /path/to/repository\n```\n\n'
             'See [OPERATIONS.md](OPERATIONS.md) for supported behavior, resource controls and recovery.\n\n'
             'For automatic updates, run `zgrep-code serve /path/to/repository`. '
-            'Watchers are asynchronous; use `--no-index` to read current eligible files. '
+            'Watchers are asynchronous; `zgrep-code refresh /path/to/repository` waits for completed edits to become searchable. '
+            'Use `--no-index` for a direct eligible-file scan. '
             'Keep `.zgrep/` out of Git. Unix `zgrep` is an unrelated gzip utility.\n\n'
             f'Source commit: `{revision}`. See source BENCHMARKS.md and docs/OPERATIONS.md '
             'for evidence, eligibility and freshness limits. This is a locally built, unsigned Linux release.\n')
@@ -117,7 +124,7 @@ def main():
     checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
     archive.with_suffix(archive.suffix + '.sha256').write_text(f'{checksum}  {archive.name}\n')
     receipt = {**manifest, 'archive': archive.name, 'archive_sha256': checksum,
-               'smoke': 'PASS: extracted binary; local/server Unicode matching, positional filtering, diagnostics; 96 scan/local/server exact-output checks against ripgrep'}
+               'smoke': 'PASS: extracted binary; local/server Unicode matching, positional filtering, diagnostics; refresh receipt and immediate server-routed search; 96 scan/local/server exact-output checks against ripgrep'}
     (output / 'release-validation.json').write_text(json.dumps(receipt, indent=2) + '\n')
     print(json.dumps(receipt, indent=2))
 
