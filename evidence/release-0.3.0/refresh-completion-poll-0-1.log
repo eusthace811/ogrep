@@ -1,0 +1,16 @@
+[trace] opened index: 1004 files, 1234 trigrams in 0.1ms
+[trace] serve ready in 3.6ms. TCP on port 37859. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] refresh mode: poll (no native watcher), interval=86400s
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.1ms (0 .gitignore + 1 .ignore files)
+[trace] stale check: 0 changed, 1 new, 0 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (0 changed, 1 new, 0 deleted)...
+[trace] flush: reader reopened (1005 files, 1247 trigrams), overlay pruned
+[trace] stale check: streamed 1 changes into the index in 0.0s
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.1ms (0 .gitignore + 1 .ignore files)
+[trace] stale check: 1005 changed, 0 new, 0 deleted (walk: 3ms)
+[trace] stale check: building a memory-bounded delta (1005 changed, 0 new, 0 deleted)...
+[trace] flush: reader reopened (1005 files, 1247 trigrams), overlay pruned
+[trace] stale check: streamed 1005 changes into the index in 0.0s
+[trace] search: pattern="ZGREP_BARRIER_" case_insensitive=false raw_candidates=4 candidates=4 matches=4 elapsed=1.1ms (index=0.0ms resolve=0.0ms search=1.0ms)

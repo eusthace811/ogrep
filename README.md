@@ -18,7 +18,7 @@ Put `~/.cargo/bin` on PATH, or use `./target/release/zgrep` directly after `carg
 - **Less local read work:** reuse the opened file when mmap falls back to a buffered read. [Phase measurements and comparisons](docs/LOCAL_PROFILING.md) retain favorable and unfavorable results.
 - **Smaller replies and bounded work:** opt-in compact file listings preserve old callers; four active searches and a bounded queue control concurrent response memory. [Admission measurements](docs/SERVICE_ADMISSION.md) include throughput and latency tradeoffs.
 - **Refresh completion:** `zgrep-code refresh /path/to/repository` and the agent `refresh_index` tool wait for searchable publication of completed edits. [Contract and evaluation](docs/REFRESH_EVALUATION.md) include failure behavior and the cost of rereading a large tree.
-- **Retained local startup improvement:** lazy path ordering improved the previous release’s 102-query Rust workload by 1.27× versus tgrep. The [0.2.0 report](evidence/release-0.2.0/PRODUCTION_REPORT.md) is retained separately; combined 0.3.0 qualification is in progress.
+- **Retained local startup improvement:** lazy path ordering improved the previous release’s 102-query Rust workload by 1.27× versus tgrep. The combined [0.3.0 evaluation](PRODUCTION_REPORT.md) measures **1.334× local and 1.119× server-backed CLI speedup** against tgrep across the 102-query Rust workload, with 6,804 checked timings overall. The [0.2.0 report](evidence/release-0.2.0/PRODUCTION_REPORT.md) is retained separately.
 - **More accurate output:** preserve CRLF bytes and unterminated lines, correct server JSON offsets, and honor positive type selection for hidden files. Unsupported `--crlf` matching now fails explicitly.
 
 - **Better regex plans:** retain mandatory alternatives inside concatenations instead of discarding useful constraints. The tested nested-alternation queries ran **2.9× faster on CPython and 13.5× on Rust** with local indexes; the server gains were 1.9× and 10.0×.
@@ -28,7 +28,7 @@ Put `~/.cargo/bin` on PATH, or use `./target/release/zgrep` directly after `carg
 
 These are measured improvements on specific workloads, not a universal speedup. Ordinary queries are often similar to upstream; some regress. Broad local searches can be slower than ripgrep. See [the complete benchmark report](BENCHMARKS.md), including raw samples, output checks, independent upstream queries, and the sparse-gram prototype we rejected after evaluation.
 
-The [fresh tgrep comparison](TGREP_COMPARISON.md) adds 6,744 timed invocations and the 102-query workload in local mode: general local performance is effectively tied, while the targeted regex and Unicode improvements hold up.
+The historical [0.1.0 tgrep comparison](TGREP_COMPARISON.md) adds 6,744 timed invocations and the 102-query workload in local mode: general local performance is effectively tied, while the targeted regex and Unicode improvements hold up.
 
 [Next improvements and evaluation](docs/NEXT_EVALUATION.md) adds startup-stage measurements, a mutation-to-search visibility benchmark, and priorities for broader validation.
 

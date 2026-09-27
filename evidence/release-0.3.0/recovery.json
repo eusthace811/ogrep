@@ -1,0 +1,405 @@
+{
+  "binary_sha256": "2fc6f9d5350821848d08c96ee278445fed15f198f093dcde2edb8f381e2b013a",
+  "description": "500 source files; bulk edit/rename/delete/create, ignore changes, reads during churn, SIGKILL, offline edits and restart. Final exact line output compared to rg. Transient queries may see asynchronous mixed generations; eventual convergence deadline 30s.",
+  "modes": [
+    {
+      "mode": "native",
+      "checks": [
+        {
+          "label": "initial",
+          "seconds": 0.01278057300078217,
+          "attempts": 1,
+          "matched_lines": 500,
+          "stdout_sha256": "6438ce8f2d3e2595ac471212943ac2e38eeb30548b8c5e56c1b249481e39a255",
+          "correct": true
+        },
+        {
+          "label": "400-bulk-mutations",
+          "seconds": 0.06975412999599939,
+          "attempts": 2,
+          "matched_lines": 500,
+          "stdout_sha256": "86f9be0bbe5555649293acb7bd6b212e05209cbcecd5776dce3a9902c9143843",
+          "correct": true
+        },
+        {
+          "label": "ignore-excludes-200",
+          "seconds": 0.06948399300017627,
+          "attempts": 2,
+          "matched_lines": 300,
+          "stdout_sha256": "5ebac30dcd7fafe183d94496a475875d22eb6d0ae45dd697807247d210b86825",
+          "correct": true
+        },
+        {
+          "label": "ignore-restores-200",
+          "seconds": 0.07705421400169143,
+          "attempts": 2,
+          "matched_lines": 500,
+          "stdout_sha256": "86f9be0bbe5555649293acb7bd6b212e05209cbcecd5776dce3a9902c9143843",
+          "correct": true
+        },
+        {
+          "label": "crash-and-50-edits-restart",
+          "seconds": 0.013340350000362378,
+          "attempts": 1,
+          "matched_lines": 500,
+          "stdout_sha256": "49189a1cc1415286fcbc0a3de311c9ce48622ae35c2a82b8759f41528ea7face",
+          "correct": true
+        }
+      ],
+      "initial_status": {
+        "cache_bytes": 0,
+        "cache_capacity": 50000,
+        "cache_max_bytes": 1073741824,
+        "cache_size": 0,
+        "connection_admission": {
+          "active": 1,
+          "capacity": 64,
+          "queue_capacity": 0,
+          "queued": 0
+        },
+        "hidden_complete": true,
+        "index_progress": 0,
+        "index_total": 0,
+        "indexing": false,
+        "last_reconcile_at": 1790520718,
+        "last_reconcile_duration_ms": 10,
+        "last_reconcile_error": null,
+        "manual_refresh": {
+          "pending": false,
+          "running": false
+        },
+        "max_request_bytes": 1048576,
+        "num_files": 500,
+        "num_trigrams": 642,
+        "poll_interval_secs": 120,
+        "reconcile_overdue": false,
+        "reconcile_pending": false,
+        "reconcile_running": false,
+        "search_admission": {
+          "active": 0,
+          "capacity": 4,
+          "queue_capacity": 32,
+          "queued": 0
+        },
+        "watch_budget": 8192,
+        "watch_fallback_reason": null,
+        "watch_mode_active": "native",
+        "watch_mode_requested": "auto",
+        "watcher_active": true
+      },
+      "concurrent_queries": 186,
+      "restart_status": {
+        "cache_bytes": 0,
+        "cache_capacity": 50000,
+        "cache_max_bytes": 1073741824,
+        "cache_size": 0,
+        "connection_admission": {
+          "active": 1,
+          "capacity": 64,
+          "queue_capacity": 0,
+          "queued": 0
+        },
+        "hidden_complete": true,
+        "index_progress": 501,
+        "index_total": 501,
+        "indexing": false,
+        "last_reconcile_at": 1790520718,
+        "last_reconcile_duration_ms": 14,
+        "last_reconcile_error": null,
+        "manual_refresh": {
+          "pending": false,
+          "running": false
+        },
+        "max_request_bytes": 1048576,
+        "num_files": 501,
+        "num_trigrams": 589,
+        "poll_interval_secs": 120,
+        "reconcile_overdue": false,
+        "reconcile_pending": false,
+        "reconcile_running": false,
+        "search_admission": {
+          "active": 0,
+          "capacity": 4,
+          "queue_capacity": 32,
+          "queued": 0
+        },
+        "watch_budget": 8192,
+        "watch_fallback_reason": null,
+        "watch_mode_active": "native",
+        "watch_mode_requested": "auto",
+        "watcher_active": true
+      },
+      "final_resources": {
+        "cpu_seconds": 0.05,
+        "VmHWM": 13204,
+        "VmRSS": 13204
+      }
+    },
+    {
+      "mode": "poll",
+      "checks": [
+        {
+          "label": "initial",
+          "seconds": 0.011744875999283977,
+          "attempts": 1,
+          "matched_lines": 500,
+          "stdout_sha256": "6438ce8f2d3e2595ac471212943ac2e38eeb30548b8c5e56c1b249481e39a255",
+          "correct": true
+        },
+        {
+          "label": "400-bulk-mutations",
+          "seconds": 0.9366551639977843,
+          "attempts": 16,
+          "matched_lines": 500,
+          "stdout_sha256": "86f9be0bbe5555649293acb7bd6b212e05209cbcecd5776dce3a9902c9143843",
+          "correct": true
+        },
+        {
+          "label": "ignore-excludes-200",
+          "seconds": 1.0062752780067967,
+          "attempts": 17,
+          "matched_lines": 300,
+          "stdout_sha256": "5ebac30dcd7fafe183d94496a475875d22eb6d0ae45dd697807247d210b86825",
+          "correct": true
+        },
+        {
+          "label": "ignore-restores-200",
+          "seconds": 1.0253897110014805,
+          "attempts": 18,
+          "matched_lines": 500,
+          "stdout_sha256": "86f9be0bbe5555649293acb7bd6b212e05209cbcecd5776dce3a9902c9143843",
+          "correct": true
+        },
+        {
+          "label": "crash-and-50-edits-restart",
+          "seconds": 0.01081982299365336,
+          "attempts": 1,
+          "matched_lines": 500,
+          "stdout_sha256": "49189a1cc1415286fcbc0a3de311c9ce48622ae35c2a82b8759f41528ea7face",
+          "correct": true
+        }
+      ],
+      "initial_status": {
+        "cache_bytes": 0,
+        "cache_capacity": 50000,
+        "cache_max_bytes": 1073741824,
+        "cache_size": 0,
+        "connection_admission": {
+          "active": 1,
+          "capacity": 64,
+          "queue_capacity": 0,
+          "queued": 0
+        },
+        "hidden_complete": true,
+        "index_progress": 0,
+        "index_total": 0,
+        "indexing": false,
+        "last_reconcile_at": 1790520718,
+        "last_reconcile_duration_ms": 4,
+        "last_reconcile_error": null,
+        "manual_refresh": {
+          "pending": false,
+          "running": false
+        },
+        "max_request_bytes": 1048576,
+        "num_files": 500,
+        "num_trigrams": 642,
+        "poll_interval_secs": 1,
+        "reconcile_overdue": false,
+        "reconcile_pending": false,
+        "reconcile_running": false,
+        "search_admission": {
+          "active": 0,
+          "capacity": 4,
+          "queue_capacity": 32,
+          "queued": 0
+        },
+        "watch_budget": 8192,
+        "watch_fallback_reason": null,
+        "watch_mode_active": "poll",
+        "watch_mode_requested": "poll",
+        "watcher_active": false
+      },
+      "concurrent_queries": 2052,
+      "restart_status": {
+        "cache_bytes": 0,
+        "cache_capacity": 50000,
+        "cache_max_bytes": 1073741824,
+        "cache_size": 0,
+        "connection_admission": {
+          "active": 1,
+          "capacity": 64,
+          "queue_capacity": 0,
+          "queued": 0
+        },
+        "hidden_complete": true,
+        "index_progress": 501,
+        "index_total": 501,
+        "indexing": false,
+        "last_reconcile_at": 1790520721,
+        "last_reconcile_duration_ms": 9,
+        "last_reconcile_error": null,
+        "manual_refresh": {
+          "pending": false,
+          "running": false
+        },
+        "max_request_bytes": 1048576,
+        "num_files": 501,
+        "num_trigrams": 589,
+        "poll_interval_secs": 1,
+        "reconcile_overdue": false,
+        "reconcile_pending": false,
+        "reconcile_running": false,
+        "search_admission": {
+          "active": 0,
+          "capacity": 4,
+          "queue_capacity": 32,
+          "queued": 0
+        },
+        "watch_budget": 8192,
+        "watch_fallback_reason": null,
+        "watch_mode_active": "poll",
+        "watch_mode_requested": "poll",
+        "watcher_active": false
+      },
+      "final_resources": {
+        "cpu_seconds": 0.03,
+        "VmHWM": 12288,
+        "VmRSS": 12288
+      }
+    },
+    {
+      "mode": "fallback",
+      "checks": [
+        {
+          "label": "initial",
+          "seconds": 0.012708000002021436,
+          "attempts": 1,
+          "matched_lines": 500,
+          "stdout_sha256": "6438ce8f2d3e2595ac471212943ac2e38eeb30548b8c5e56c1b249481e39a255",
+          "correct": true
+        },
+        {
+          "label": "400-bulk-mutations",
+          "seconds": 0.93558039200434,
+          "attempts": 16,
+          "matched_lines": 500,
+          "stdout_sha256": "86f9be0bbe5555649293acb7bd6b212e05209cbcecd5776dce3a9902c9143843",
+          "correct": true
+        },
+        {
+          "label": "ignore-excludes-200",
+          "seconds": 1.0485368680019747,
+          "attempts": 18,
+          "matched_lines": 300,
+          "stdout_sha256": "5ebac30dcd7fafe183d94496a475875d22eb6d0ae45dd697807247d210b86825",
+          "correct": true
+        },
+        {
+          "label": "ignore-restores-200",
+          "seconds": 0.9631472190012573,
+          "attempts": 17,
+          "matched_lines": 500,
+          "stdout_sha256": "86f9be0bbe5555649293acb7bd6b212e05209cbcecd5776dce3a9902c9143843",
+          "correct": true
+        },
+        {
+          "label": "crash-and-50-edits-restart",
+          "seconds": 0.010675224002625328,
+          "attempts": 1,
+          "matched_lines": 500,
+          "stdout_sha256": "49189a1cc1415286fcbc0a3de311c9ce48622ae35c2a82b8759f41528ea7face",
+          "correct": true
+        }
+      ],
+      "initial_status": {
+        "cache_bytes": 0,
+        "cache_capacity": 50000,
+        "cache_max_bytes": 1073741824,
+        "cache_size": 0,
+        "connection_admission": {
+          "active": 1,
+          "capacity": 64,
+          "queue_capacity": 0,
+          "queued": 0
+        },
+        "hidden_complete": true,
+        "index_progress": 0,
+        "index_total": 0,
+        "indexing": false,
+        "last_reconcile_at": 1790520721,
+        "last_reconcile_duration_ms": 5,
+        "last_reconcile_error": null,
+        "manual_refresh": {
+          "pending": false,
+          "running": false
+        },
+        "max_request_bytes": 1048576,
+        "num_files": 500,
+        "num_trigrams": 642,
+        "poll_interval_secs": 1,
+        "reconcile_overdue": true,
+        "reconcile_pending": true,
+        "reconcile_running": false,
+        "search_admission": {
+          "active": 0,
+          "capacity": 4,
+          "queue_capacity": 32,
+          "queued": 0
+        },
+        "watch_budget": 1,
+        "watch_fallback_reason": "native watch budget 1 exceeded (4 desired subscriptions)",
+        "watch_mode_active": "poll",
+        "watch_mode_requested": "auto",
+        "watcher_active": false
+      },
+      "concurrent_queries": 2063,
+      "restart_status": {
+        "cache_bytes": 0,
+        "cache_capacity": 50000,
+        "cache_max_bytes": 1073741824,
+        "cache_size": 0,
+        "connection_admission": {
+          "active": 1,
+          "capacity": 64,
+          "queue_capacity": 0,
+          "queued": 0
+        },
+        "hidden_complete": true,
+        "index_progress": 501,
+        "index_total": 501,
+        "indexing": false,
+        "last_reconcile_at": 1790520725,
+        "last_reconcile_duration_ms": 8,
+        "last_reconcile_error": null,
+        "manual_refresh": {
+          "pending": false,
+          "running": false
+        },
+        "max_request_bytes": 1048576,
+        "num_files": 501,
+        "num_trigrams": 589,
+        "poll_interval_secs": 1,
+        "reconcile_overdue": true,
+        "reconcile_pending": true,
+        "reconcile_running": false,
+        "search_admission": {
+          "active": 0,
+          "capacity": 4,
+          "queue_capacity": 32,
+          "queued": 0
+        },
+        "watch_budget": 1,
+        "watch_fallback_reason": "native watch budget 1 exceeded (4 desired subscriptions)",
+        "watch_mode_active": "poll",
+        "watch_mode_requested": "auto",
+        "watcher_active": false
+      },
+      "final_resources": {
+        "cpu_seconds": 0.04,
+        "VmHWM": 14204,
+        "VmRSS": 12472
+      }
+    }
+  ]
+}

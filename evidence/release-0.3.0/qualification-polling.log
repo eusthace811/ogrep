@@ -1,0 +1,117 @@
+   Compiling zgrep-core v0.3.0 (/home/eusth/projects/Experiments/tgrep/zgrep/zgrep-core)
+   Compiling zgrep-cli v0.3.0 (/home/eusth/projects/Experiments/tgrep/zgrep/zgrep-cli)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.60s
+     Running unittests src/main.rs (target/debug/deps/zgrep-7f2b95ccfc94dd1c)
+
+running 1 test
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.5ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 0 changed, 1000 new, 0 deleted (walk: 7ms)
+[trace] stale check: building a memory-bounded delta (0 changed, 1000 new, 0 deleted)...
+[trace] flush: reader reopened (1000 files, 1141 trigrams), overlay pruned
+[trace] stale check: streamed 1000 changes into the index in 0.0s
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.5ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: index is up-to-date (1000 files checked in 6ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 0.5ms (0 .gitignore + 0 .ignore files)
+[trace] stale check: 20 changed, 0 new, 0 deleted (walk: 5ms)
+[trace] stale check: building a memory-bounded delta (20 changed, 0 new, 0 deleted)...
+[trace] flush: reader reopened (1000 files, 1166 trigrams), overlay pruned
+[trace] stale check: streamed 20 changes into the index in 0.0s
+[trace] search: pattern="changed_0019_batch_marker" case_insensitive=false raw_candidates=1 candidates=1 matches=1 elapsed=1.5ms (index=0.1ms resolve=0.0ms search=1.2ms)
+polling fixture: 1000 files; no-change 24.501461ms; 20-file batch 42.517415ms
+test serve::poll_tests::measure_polling_1000_files_and_20_file_change_batch ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 305 filtered out; finished in 0.15s
+
+     Running tests/concurrent_search.rs (target/debug/deps/concurrent_search-b69abec993c08e17)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 7 filtered out; finished in 0.00s
+
+     Running tests/default_max_filesize.rs (target/debug/deps/default_max_filesize-f0e738cc053a6bc8)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 6 filtered out; finished in 0.00s
+
+     Running tests/indexed_files.rs (target/debug/deps/indexed_files-27a4986a5e4d9374)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/indexed_hidden.rs (target/debug/deps/indexed_hidden-c96e06c3d338a7ad)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+
+     Running tests/large_file_search.rs (target/debug/deps/large_file_search-86fee6a81346b4bf)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/memory_cap.rs (target/debug/deps/memory_cap-cb1ce97560dd7d08)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/planner_features.rs (target/debug/deps/planner_features-8312e025b0f0a547)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/refresh_completion.rs (target/debug/deps/refresh_completion-dc4e3d9c5c6eb8ee)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 4 filtered out; finished in 0.00s
+
+     Running tests/ripgrep_compat.rs (target/debug/deps/ripgrep_compat-e03572ca415780a1)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 235 filtered out; finished in 0.00s
+
+     Running tests/ripgrep_parity.rs (target/debug/deps/ripgrep_parity-ad617f50ab292867)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 102 filtered out; finished in 0.00s
+
+     Running tests/serve_max_filesize.rs (target/debug/deps/serve_max_filesize-8877843a55f25805)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/server_admission.rs (target/debug/deps/server_admission-7ca37ccb43eb539f)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 3 filtered out; finished in 0.00s
+
+     Running tests/warm_start_gitignore.rs (target/debug/deps/warm_start_gitignore-99028ab938ecbe66)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 1 filtered out; finished in 0.00s
+
+     Running tests/watcher_dot_ignore.rs (target/debug/deps/watcher_dot_ignore-f0d23118c08f1818)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 2 filtered out; finished in 0.00s
+
+     Running tests/watcher_watch_registration.rs (target/debug/deps/watcher_watch_registration-ea2a8e45edd63f06)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 10 filtered out; finished in 0.00s
+

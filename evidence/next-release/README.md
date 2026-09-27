@@ -1,5 +1,7 @@
 # Experiments after 0.2.0
 
+Development history: later [0.3.0 release evidence](../../PRODUCTION_REPORT.md) records the combined executable. Pending statements below describe intermediate commits, not the current release status.
+
 These are development experiments, not qualification of a new release. The production baseline and its evidence remain in `../release-0.2.0/`.
 
 The [service admission report](../../docs/SERVICE_ADMISSION.md) covers the `admission-*` records, including 18,432 independently checked requests, status probes, resource tests and the measured queueing tradeoff. It uses a later runtime than the compact-response and handle-reuse experiments.

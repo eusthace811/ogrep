@@ -1,0 +1,1165 @@
+[trace] opened index: 63009 files, 289753 trigrams in 8.0ms
+[trace] serve ready in 355.3ms. TCP on port 37247. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] file watcher disabled (--no-watch)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.9ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: index is up-to-date (63026 files checked in 54ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 53ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=8.7ms (index=0.4ms resolve=4.3ms search=3.9ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=37.7ms (index=2.8ms resolve=29.8ms search=4.9ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.4ms (index=0.5ms resolve=0.6ms search=3.1ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=195.6ms (index=31.7ms resolve=142.8ms search=21.1ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=33.0ms (index=15.5ms resolve=7.1ms search=10.3ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.4ms (index=0.6ms resolve=0.3ms search=3.3ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.0ms (index=0.9ms resolve=0.1ms search=1.8ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=2.7ms (index=0.7ms resolve=0.1ms search=1.8ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.5ms (index=1.0ms resolve=0.1ms search=2.1ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.1ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=3.7ms (index=0.9ms resolve=0.3ms search=2.3ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.1ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 63ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.5s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=8.8ms (index=0.4ms resolve=2.4ms search=5.9ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=43.6ms (index=3.1ms resolve=33.2ms search=7.2ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=5.0ms (index=0.7ms resolve=0.7ms search=3.4ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=209.0ms (index=31.7ms resolve=154.6ms search=22.5ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=38.2ms (index=15.7ms resolve=7.3ms search=15.0ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.2ms (index=0.8ms resolve=0.3ms search=3.7ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.6ms (index=1.2ms resolve=0.1ms search=2.0ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.1ms (index=0.8ms resolve=0.2ms search=1.8ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.0ms (index=1.4ms resolve=0.2ms search=1.9ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.4ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.4ms (index=1.1ms resolve=0.4ms search=2.7ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.2ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 59ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=6.3ms (index=0.5ms resolve=3.2ms search=2.4ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=35.1ms (index=3.2ms resolve=22.7ms search=9.0ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.5ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.2ms (index=0.6ms resolve=0.7ms search=2.6ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=180.7ms (index=35.3ms resolve=124.4ms search=20.7ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=30.5ms (index=13.4ms resolve=6.3ms search=10.7ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=3.7ms (index=0.7ms resolve=0.4ms search=2.4ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=2.8ms (index=1.0ms resolve=0.1ms search=1.5ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.6ms (index=0.7ms resolve=0.2ms search=2.5ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.4ms (index=1.0ms resolve=0.2ms search=2.0ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.2ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.1ms (index=1.0ms resolve=0.3ms search=2.6ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.5ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 53ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.6s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=6.2ms (index=0.4ms resolve=2.5ms search=3.1ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=38.1ms (index=2.8ms resolve=30.0ms search=5.1ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=2.9ms (index=0.5ms resolve=0.6ms search=1.6ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=190.9ms (index=31.8ms resolve=140.9ms search=18.0ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=37.8ms (index=15.5ms resolve=9.7ms search=12.0ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.7ms (index=0.9ms resolve=0.4ms search=3.0ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=4.0ms (index=1.8ms resolve=0.1ms search=1.6ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.8ms (index=1.0ms resolve=0.2ms search=2.2ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.6ms (index=1.6ms resolve=0.2ms search=2.4ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.6ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=5.9ms (index=1.2ms resolve=0.5ms search=3.7ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.1ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 59ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.5ms (index=0.4ms resolve=2.1ms search=1.9ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=24.8ms (index=2.9ms resolve=16.7ms search=5.2ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.6ms (index=0.5ms resolve=0.5ms search=2.3ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=159.1ms (index=31.8ms resolve=110.9ms search=16.3ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.8ms (index=14.0ms resolve=5.8ms search=12.7ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=3.9ms (index=0.7ms resolve=0.2ms search=2.8ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.7ms (index=1.0ms resolve=0.1ms search=2.4ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.4ms (index=0.8ms resolve=0.1ms search=2.2ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.7ms (index=1.0ms resolve=0.1ms search=2.2ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.5ms (index=0.1ms resolve=0.0ms search=1.0ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.9ms (index=1.0ms resolve=0.2ms search=3.4ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.1ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 46ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.7ms (index=0.4ms resolve=2.1ms search=3.0ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=24.5ms (index=2.9ms resolve=16.7ms search=4.8ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.8ms (index=0.5ms resolve=0.7ms search=2.4ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=165.9ms (index=32.0ms resolve=115.9ms search=17.9ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.0ms (index=13.4ms resolve=5.2ms search=13.2ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.1ms (index=0.7ms resolve=0.3ms search=2.8ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.3ms (index=0.9ms resolve=0.1ms search=2.0ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.5ms (index=0.7ms resolve=0.1ms search=2.4ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.8ms (index=1.1ms resolve=0.1ms search=2.2ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.2ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=5.2ms (index=1.0ms resolve=0.3ms search=3.7ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.2ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 54ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.4ms (index=0.4ms resolve=2.0ms search=2.9ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=31.5ms (index=3.1ms resolve=22.4ms search=5.8ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.5ms (index=0.6ms resolve=0.8ms search=1.9ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=171.5ms (index=31.1ms resolve=118.9ms search=21.1ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=35.1ms (index=13.4ms resolve=7.2ms search=13.7ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=6.7ms (index=0.7ms resolve=0.3ms search=4.4ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.9ms (index=1.0ms resolve=0.1ms search=2.5ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.8ms (index=0.8ms resolve=0.2ms search=2.5ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.4ms (index=1.2ms resolve=0.1ms search=1.6ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.3ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.3ms (index=0.9ms resolve=0.3ms search=2.7ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 50ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.5ms (index=0.4ms resolve=2.0ms search=3.1ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=25.0ms (index=2.8ms resolve=16.4ms search=5.6ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.4ms (index=0.5ms resolve=0.5ms search=3.2ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=172.3ms (index=32.6ms resolve=119.1ms search=20.4ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=39.6ms (index=15.3ms resolve=8.0ms search=15.2ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.4ms (index=0.7ms resolve=0.3ms search=3.2ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.7ms (index=1.0ms resolve=0.1ms search=2.4ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=4.0ms (index=0.8ms resolve=0.1ms search=2.9ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.5ms (index=1.1ms resolve=0.1ms search=2.0ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.1ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.5ms (index=1.0ms resolve=0.2ms search=3.0ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.3ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 41ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.5ms (index=0.4ms resolve=2.0ms search=2.0ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=33.4ms (index=2.8ms resolve=25.0ms search=5.5ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.3ms (index=0.6ms resolve=0.6ms search=2.0ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=198.8ms (index=30.9ms resolve=146.2ms search=21.6ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=33.0ms (index=14.2ms resolve=6.2ms search=12.3ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.3ms (index=0.7ms resolve=0.3ms search=3.0ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.5ms (index=0.9ms resolve=0.1ms search=2.2ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.8ms (index=0.8ms resolve=0.1ms search=2.5ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.8ms (index=1.1ms resolve=0.2ms search=2.3ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.4ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.4ms (index=1.0ms resolve=0.3ms search=2.9ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.2ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 56ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.5s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.1ms (index=0.4ms resolve=1.9ms search=2.7ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=26.1ms (index=2.8ms resolve=16.8ms search=6.4ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.7ms (index=0.5ms resolve=0.6ms search=2.4ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=203.1ms (index=32.1ms resolve=149.7ms search=21.2ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=30.8ms (index=13.4ms resolve=5.1ms search=12.2ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.1ms (index=0.7ms resolve=0.2ms search=3.8ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.2ms (index=0.9ms resolve=0.1ms search=1.9ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.6ms (index=0.8ms resolve=0.1ms search=2.5ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.6ms (index=1.1ms resolve=0.2ms search=2.1ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.3ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=6.6ms (index=1.1ms resolve=0.3ms search=4.9ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.1ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 41ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=6.3ms (index=0.4ms resolve=3.4ms search=2.3ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=24.9ms (index=2.9ms resolve=17.1ms search=4.8ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.3ms (index=0.5ms resolve=0.6ms search=2.1ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=194.5ms (index=32.7ms resolve=142.8ms search=18.8ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=35.9ms (index=15.7ms resolve=6.1ms search=14.0ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.1ms (index=0.8ms resolve=0.3ms search=2.8ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.2ms (index=1.0ms resolve=0.1ms search=1.8ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.0ms (index=0.8ms resolve=0.2ms search=1.8ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.1ms (index=1.1ms resolve=0.2ms search=1.5ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.3ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.1ms (index=1.0ms resolve=0.3ms search=2.5ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.3ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 49ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.8ms (index=0.4ms resolve=2.0ms search=2.3ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=30.2ms (index=2.8ms resolve=21.5ms search=5.8ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.6ms (index=0.5ms resolve=0.6ms search=2.4ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=193.5ms (index=31.7ms resolve=143.4ms search=18.2ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.7ms (index=13.9ms resolve=5.3ms search=13.4ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.3ms (index=0.7ms resolve=0.3ms search=3.0ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.7ms (index=1.0ms resolve=0.1ms search=2.4ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=4.1ms (index=0.8ms resolve=0.1ms search=3.0ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.7ms (index=1.0ms resolve=0.1ms search=2.2ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.2ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=7.4ms (index=1.1ms resolve=0.3ms search=5.7ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.2ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 47ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=8.6ms (index=0.4ms resolve=3.4ms search=2.0ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=34.2ms (index=3.4ms resolve=24.2ms search=6.3ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.6ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=2.9ms (index=0.6ms resolve=0.8ms search=1.2ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=170.6ms (index=32.5ms resolve=118.4ms search=19.4ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=29.4ms (index=12.8ms resolve=6.1ms search=10.4ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.0ms (index=0.8ms resolve=0.3ms search=3.4ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=2.9ms (index=1.1ms resolve=0.1ms search=1.4ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.0ms (index=0.8ms resolve=0.2ms search=1.7ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=2.9ms (index=1.2ms resolve=0.2ms search=1.1ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.5ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.8ms (index=1.0ms resolve=0.3ms search=3.0ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 49ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=6.0ms (index=0.4ms resolve=2.7ms search=2.6ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=29.3ms (index=3.0ms resolve=20.1ms search=5.9ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.6ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.1ms (index=0.5ms resolve=0.7ms search=1.6ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=169.7ms (index=33.6ms resolve=117.1ms search=18.9ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.8ms (index=14.1ms resolve=6.6ms search=11.3ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.8ms (index=0.7ms resolve=0.3ms search=2.8ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.1ms (index=1.0ms resolve=0.1ms search=1.7ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=2.3ms (index=0.8ms resolve=0.2ms search=1.1ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.9ms (index=1.1ms resolve=0.2ms search=2.3ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.4ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.1ms (index=0.9ms resolve=0.3ms search=2.6ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 42ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.2ms (index=0.4ms resolve=1.9ms search=2.7ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=26.1ms (index=2.8ms resolve=16.1ms search=7.1ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.8ms (index=0.6ms resolve=0.5ms search=2.5ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=166.5ms (index=32.2ms resolve=116.6ms search=17.5ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.2ms (index=13.4ms resolve=5.6ms search=12.9ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.9ms (index=0.8ms resolve=0.3ms search=4.3ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.4ms (index=1.0ms resolve=0.1ms search=1.9ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=2.8ms (index=0.7ms resolve=0.1ms search=1.7ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.2ms (index=1.2ms resolve=0.1ms search=2.5ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.7ms (index=0.1ms resolve=0.0ms search=1.1ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.8ms (index=1.0ms resolve=0.3ms search=3.2ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.1ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 42ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.7ms (index=0.4ms resolve=1.9ms search=3.3ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=24.2ms (index=2.6ms resolve=15.7ms search=5.7ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.7ms (index=0.5ms resolve=0.6ms search=2.4ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=161.7ms (index=30.2ms resolve=113.1ms search=18.2ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.9ms (index=13.5ms resolve=5.6ms search=13.6ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.0ms (index=0.8ms resolve=0.4ms search=3.2ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=4.5ms (index=2.0ms resolve=0.1ms search=1.8ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=4.2ms (index=0.8ms resolve=0.1ms search=2.9ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.0ms (index=1.3ms resolve=0.2ms search=2.0ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.5ms (index=0.1ms resolve=0.0ms search=0.9ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.9ms (index=1.0ms resolve=0.3ms search=3.2ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.1ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 51ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.4ms (index=0.3ms resolve=1.9ms search=2.1ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=23.6ms (index=2.8ms resolve=16.0ms search=4.8ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.1ms (index=0.6ms resolve=0.5ms search=1.8ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=170.5ms (index=31.5ms resolve=116.9ms search=21.8ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=34.7ms (index=13.8ms resolve=7.5ms search=12.5ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.8ms (index=0.7ms resolve=0.3ms search=2.3ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.6ms (index=1.2ms resolve=0.1ms search=2.0ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.7ms (index=0.8ms resolve=0.2ms search=2.5ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.7ms (index=1.2ms resolve=0.1ms search=1.9ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.4ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.6ms (index=0.9ms resolve=0.3ms search=3.0ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 41ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.3s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.8ms (index=0.4ms resolve=1.9ms search=2.3ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=25.1ms (index=2.9ms resolve=16.1ms search=6.0ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.2ms (index=0.5ms resolve=0.6ms search=2.0ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=164.8ms (index=32.5ms resolve=114.2ms search=18.0ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.0ms (index=14.0ms resolve=5.6ms search=12.3ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.8ms (index=0.7ms resolve=0.3ms search=3.5ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=10.2ms (index=1.0ms resolve=0.1ms search=8.9ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.8ms (index=0.8ms resolve=0.1ms search=2.5ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.3ms (index=1.2ms resolve=0.2ms search=1.6ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.5ms (index=0.1ms resolve=0.0ms search=1.0ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.4ms (index=1.0ms resolve=0.3ms search=2.9ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.2ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 42ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.2ms (index=0.4ms resolve=1.9ms search=2.8ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=25.9ms (index=3.0ms resolve=16.6ms search=6.1ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.3ms (index=0.5ms resolve=0.6ms search=2.0ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=164.7ms (index=34.0ms resolve=112.9ms search=17.6ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.7ms (index=13.8ms resolve=6.1ms search=12.6ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.8ms (index=0.9ms resolve=0.4ms search=2.9ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.3ms (index=1.2ms resolve=0.1ms search=1.6ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.3ms (index=0.9ms resolve=0.2ms search=1.8ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.2ms (index=1.3ms resolve=0.2ms search=2.2ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.5ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.1ms (index=1.1ms resolve=0.3ms search=2.2ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.2ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 47ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=6.4ms (index=0.4ms resolve=1.9ms search=3.9ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=32.2ms (index=3.2ms resolve=22.2ms search=6.5ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.1ms (index=0.5ms resolve=0.7ms search=2.6ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=168.9ms (index=31.8ms resolve=118.4ms search=18.3ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=37.3ms (index=13.4ms resolve=7.2ms search=15.6ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.3ms (index=0.7ms resolve=0.3ms search=3.0ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.2ms (index=1.1ms resolve=0.1ms search=1.6ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.7ms (index=0.8ms resolve=0.2ms search=2.4ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.1ms (index=1.2ms resolve=0.2ms search=2.3ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.3ms (index=0.1ms resolve=0.0ms search=0.6ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.1ms (index=0.9ms resolve=0.3ms search=2.5ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.9ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 42ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.5s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.8ms (index=0.4ms resolve=2.0ms search=3.2ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=28.6ms (index=3.0ms resolve=17.7ms search=7.7ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.7ms (index=0.5ms resolve=0.6ms search=3.4ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=169.9ms (index=33.2ms resolve=115.9ms search=20.7ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=31.4ms (index=15.0ms resolve=5.6ms search=10.6ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=3.8ms (index=0.8ms resolve=0.3ms search=2.4ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=2.4ms (index=1.0ms resolve=0.1ms search=1.1ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.0ms (index=0.8ms resolve=0.1ms search=1.9ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.2ms (index=1.1ms resolve=0.1ms search=1.7ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.4ms (index=0.1ms resolve=0.0ms search=0.9ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=5.1ms (index=1.0ms resolve=0.3ms search=3.6ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.2ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 45ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=9.7ms (index=0.4ms resolve=3.5ms search=3.0ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=33.0ms (index=3.4ms resolve=23.8ms search=5.4ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.4ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.6ms (index=0.6ms resolve=0.8ms search=1.9ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=179.6ms (index=36.4ms resolve=121.9ms search=20.8ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=37.6ms (index=14.1ms resolve=7.5ms search=15.0ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=7.4ms (index=0.7ms resolve=0.3ms search=5.0ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.2ms (index=1.1ms resolve=0.1ms search=1.7ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.9ms (index=0.8ms resolve=0.2ms search=2.6ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.6ms (index=1.4ms resolve=0.2ms search=2.2ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.5ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.2ms (index=1.0ms resolve=0.4ms search=2.4ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 46ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.3s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.1ms (index=0.4ms resolve=1.9ms search=2.6ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=25.4ms (index=2.7ms resolve=16.6ms search=6.0ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.6ms (index=0.5ms resolve=0.6ms search=2.4ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=164.7ms (index=30.9ms resolve=115.0ms search=18.7ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=31.9ms (index=13.2ms resolve=5.8ms search=12.7ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.1ms (index=0.8ms resolve=0.4ms search=3.3ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=4.2ms (index=1.0ms resolve=0.1ms search=2.8ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.5ms (index=0.8ms resolve=0.1ms search=2.1ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.1ms (index=1.2ms resolve=0.2ms search=2.1ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.3ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.3ms (index=0.9ms resolve=0.3ms search=2.8ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 3.1ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 45ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.8ms (index=0.4ms resolve=1.9ms search=2.3ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=25.9ms (index=2.7ms resolve=16.4ms search=6.5ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.5ms (index=0.6ms resolve=0.6ms search=2.1ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=163.4ms (index=31.1ms resolve=115.3ms search=16.9ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=31.5ms (index=14.0ms resolve=5.4ms search=11.9ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.1ms (index=0.8ms resolve=0.3ms search=3.8ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=2.7ms (index=0.9ms resolve=0.1ms search=1.4ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=2.8ms (index=0.7ms resolve=0.1ms search=1.8ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=2.8ms (index=1.0ms resolve=0.1ms search=1.3ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.1ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.7ms (index=1.0ms resolve=0.2ms search=3.3ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.2ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 46ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.3s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.7ms (index=0.4ms resolve=2.1ms search=3.0ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=27.2ms (index=2.9ms resolve=17.8ms search=6.3ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.4ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.4ms (index=0.7ms resolve=1.0ms search=2.3ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=181.1ms (index=33.6ms resolve=126.9ms search=20.3ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=30.2ms (index=13.0ms resolve=5.9ms search=11.2ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.3ms (index=0.8ms resolve=0.3ms search=3.1ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.0ms (index=1.0ms resolve=0.0ms search=1.7ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.4ms (index=0.7ms resolve=0.1ms search=2.4ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.2ms (index=1.0ms resolve=0.1ms search=1.8ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.1ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=3.4ms (index=0.9ms resolve=0.2ms search=2.0ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.4ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 45ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.7ms (index=0.4ms resolve=2.1ms search=2.0ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=26.9ms (index=2.9ms resolve=16.7ms search=7.1ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.4ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.8ms (index=0.6ms resolve=0.9ms search=1.9ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=173.0ms (index=32.1ms resolve=119.6ms search=21.1ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=33.2ms (index=13.5ms resolve=7.2ms search=11.5ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.3ms (index=0.7ms resolve=0.3ms search=3.0ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.0ms (index=1.2ms resolve=0.1ms search=1.3ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=4.0ms (index=0.8ms resolve=0.2ms search=2.7ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.9ms (index=1.4ms resolve=0.2ms search=1.9ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.5ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.1ms (index=1.0ms resolve=0.3ms search=2.3ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 49ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=7.1ms (index=0.4ms resolve=3.3ms search=3.1ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=30.8ms (index=3.2ms resolve=21.8ms search=5.6ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.3ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.1ms (index=0.5ms resolve=0.7ms search=2.6ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=174.4ms (index=32.7ms resolve=122.5ms search=18.9ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=39.5ms (index=14.6ms resolve=9.7ms search=14.0ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.0ms (index=0.7ms resolve=0.3ms search=3.0ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.8ms (index=1.2ms resolve=0.1ms search=2.1ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.6ms (index=0.8ms resolve=0.2ms search=2.2ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.8ms (index=1.2ms resolve=0.2ms search=2.0ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.7ms (index=0.1ms resolve=0.0ms search=1.0ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=5.7ms (index=1.0ms resolve=0.5ms search=3.9ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 61ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.5s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.7ms (index=0.4ms resolve=2.1ms search=2.1ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=28.8ms (index=3.0ms resolve=17.6ms search=8.0ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.2ms (index=0.5ms resolve=0.7ms search=2.8ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=173.2ms (index=31.6ms resolve=117.5ms search=24.0ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=36.8ms (index=14.8ms resolve=7.9ms search=13.9ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.9ms (index=0.9ms resolve=0.4ms search=4.4ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.8ms (index=1.0ms resolve=0.1ms search=2.5ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=4.7ms (index=1.3ms resolve=0.2ms search=2.8ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.6ms (index=1.1ms resolve=0.1ms search=2.0ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.6ms (index=0.1ms resolve=0.0ms search=1.0ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.8ms (index=1.1ms resolve=0.3ms search=3.1ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.3ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 56ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=6.4ms (index=0.4ms resolve=2.0ms search=3.9ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=25.3ms (index=2.8ms resolve=16.3ms search=6.1ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.6ms (index=0.5ms resolve=0.6ms search=2.4ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=165.8ms (index=31.6ms resolve=114.0ms search=20.0ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=30.5ms (index=14.0ms resolve=5.4ms search=11.0ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=3.8ms (index=0.7ms resolve=0.2ms search=2.5ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.6ms (index=1.0ms resolve=0.0ms search=2.3ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=2.9ms (index=0.8ms resolve=0.1ms search=1.7ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=2.8ms (index=1.0ms resolve=0.1ms search=1.4ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.2ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.6ms (index=1.0ms resolve=0.2ms search=3.1ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.6ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 44ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.5s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=6.3ms (index=0.4ms resolve=2.0ms search=3.7ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=25.5ms (index=3.0ms resolve=17.0ms search=5.4ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.3ms (index=0.5ms resolve=0.6ms search=2.0ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=173.4ms (index=33.7ms resolve=120.8ms search=18.7ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.1ms (index=14.4ms resolve=5.4ms search=12.1ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.2ms (index=0.9ms resolve=0.5ms search=3.2ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.7ms (index=1.3ms resolve=0.1ms search=1.9ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.9ms (index=0.9ms resolve=0.2ms search=2.4ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.8ms (index=1.4ms resolve=0.2ms search=2.7ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.8ms (index=0.1ms resolve=0.0ms search=1.0ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.4ms (index=1.1ms resolve=0.4ms search=2.6ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.0ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 47ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.7ms (index=0.4ms resolve=1.9ms search=2.3ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=24.2ms (index=2.9ms resolve=16.4ms search=4.8ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.7ms (index=0.8ms resolve=0.6ms search=2.1ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=165.7ms (index=30.7ms resolve=114.5ms search=20.4ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=29.2ms (index=13.9ms resolve=5.3ms search=9.8ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=3.9ms (index=0.7ms resolve=0.2ms search=2.6ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.2ms (index=0.9ms resolve=0.1ms search=1.9ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=2.8ms (index=0.8ms resolve=0.1ms search=1.7ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.1ms (index=1.0ms resolve=0.1ms search=1.6ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.1ms (index=0.1ms resolve=0.0ms search=0.6ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=3.9ms (index=1.0ms resolve=0.2ms search=2.4ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.3ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 43ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=6.5ms (index=0.4ms resolve=3.3ms search=2.4ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=36.7ms (index=3.0ms resolve=21.8ms search=11.7ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.5ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.5ms (index=0.5ms resolve=0.7ms search=2.9ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=168.9ms (index=32.0ms resolve=118.8ms search=17.8ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=30.0ms (index=12.9ms resolve=6.4ms search=10.5ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=3.8ms (index=0.7ms resolve=0.4ms search=2.5ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.7ms (index=0.9ms resolve=0.1ms search=2.5ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=2.8ms (index=0.9ms resolve=0.2ms search=1.5ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=2.9ms (index=1.1ms resolve=0.2ms search=1.3ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.1ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.4ms (index=0.9ms resolve=0.3ms search=3.0ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.3ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 42ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.3s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.4ms (index=0.4ms resolve=1.8ms search=2.1ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=26.5ms (index=2.7ms resolve=18.1ms search=5.6ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.4ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.5ms (index=0.6ms resolve=0.8ms search=1.8ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=172.3ms (index=31.1ms resolve=122.4ms search=18.6ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=36.3ms (index=13.1ms resolve=7.3ms search=14.8ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=6.4ms (index=0.7ms resolve=0.3ms search=3.9ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.8ms (index=1.2ms resolve=0.1ms search=2.1ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=2.9ms (index=0.8ms resolve=0.2ms search=1.6ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.6ms (index=1.3ms resolve=0.1ms search=1.8ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.3ms (index=0.1ms resolve=0.0ms search=0.6ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.1ms (index=1.0ms resolve=0.3ms search=2.4ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.0ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 56ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.5s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=7.5ms (index=0.4ms resolve=2.8ms search=4.0ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=30.7ms (index=3.2ms resolve=20.7ms search=6.6ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.4ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=5.1ms (index=0.6ms resolve=0.7ms search=3.6ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=172.6ms (index=33.2ms resolve=118.8ms search=20.3ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=31.6ms (index=13.6ms resolve=7.6ms search=10.2ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.5ms (index=0.7ms resolve=0.4ms search=3.1ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=2.9ms (index=1.0ms resolve=0.1ms search=1.6ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.4ms (index=0.8ms resolve=0.2ms search=2.3ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.0ms (index=1.2ms resolve=0.2ms search=2.4ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.2ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.8ms (index=1.0ms resolve=0.4ms search=3.2ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.5ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 48ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.5s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=7.0ms (index=0.4ms resolve=2.4ms search=4.1ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=37.1ms (index=2.9ms resolve=28.6ms search=5.4ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.1ms (index=0.5ms resolve=0.6ms search=2.9ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=192.0ms (index=31.7ms resolve=137.7ms search=22.5ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=31.1ms (index=13.5ms resolve=5.3ms search=12.1ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=3.9ms (index=0.7ms resolve=0.3ms search=2.7ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.3ms (index=0.9ms resolve=0.1ms search=2.0ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.5ms (index=1.2ms resolve=0.1ms search=1.7ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.6ms (index=1.0ms resolve=0.1ms search=2.1ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.4ms (index=0.1ms resolve=0.0ms search=0.9ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.5ms (index=1.0ms resolve=0.3ms search=2.9ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.2ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 41ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.3s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.8ms (index=0.4ms resolve=1.9ms search=2.4ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=25.8ms (index=2.9ms resolve=16.0ms search=6.8ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.2ms (index=0.5ms resolve=0.6ms search=3.0ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=166.9ms (index=32.2ms resolve=114.5ms search=20.1ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=33.9ms (index=15.0ms resolve=5.5ms search=13.2ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.7ms (index=0.7ms resolve=0.2ms search=3.9ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.5ms (index=0.9ms resolve=0.0ms search=2.2ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.3ms (index=0.8ms resolve=0.1ms search=2.2ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.2ms (index=1.1ms resolve=0.1ms search=1.8ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.2ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=3.8ms (index=1.0ms resolve=0.2ms search=2.3ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.1ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 44ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.5s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=6.8ms (index=0.4ms resolve=3.9ms search=2.3ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=27.6ms (index=2.8ms resolve=16.9ms search=7.7ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.4ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.1ms (index=0.6ms resolve=0.6ms search=2.8ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=165.2ms (index=31.5ms resolve=115.9ms search=17.6ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.2ms (index=14.9ms resolve=5.7ms search=11.4ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=6.2ms (index=0.7ms resolve=0.2ms search=4.5ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=2.8ms (index=0.9ms resolve=0.0ms search=1.6ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.1ms (index=0.9ms resolve=0.1ms search=1.9ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.1ms (index=1.1ms resolve=0.1ms search=1.6ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.4ms (index=0.1ms resolve=0.0ms search=0.9ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.6ms (index=1.0ms resolve=0.2ms search=3.0ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.4ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 44ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.5s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.9ms (index=0.4ms resolve=2.0ms search=3.3ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=24.8ms (index=2.9ms resolve=16.2ms search=5.5ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=2.9ms (index=0.5ms resolve=0.5ms search=1.7ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=175.2ms (index=31.6ms resolve=122.2ms search=21.3ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=34.4ms (index=14.8ms resolve=6.3ms search=13.0ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.6ms (index=0.7ms resolve=0.3ms search=4.4ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=2.9ms (index=1.0ms resolve=0.1ms search=1.6ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=4.8ms (index=0.8ms resolve=0.1ms search=3.7ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.2ms (index=1.1ms resolve=0.1ms search=2.7ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.6ms (index=0.1ms resolve=0.0ms search=0.9ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=6.3ms (index=1.0ms resolve=0.3ms search=4.7ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.5ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 47ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.0ms (index=0.4ms resolve=1.9ms search=2.5ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=25.5ms (index=3.0ms resolve=16.2ms search=6.1ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.5ms (index=0.5ms resolve=0.6ms search=2.2ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=168.4ms (index=32.9ms resolve=116.2ms search=19.1ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=39.5ms (index=16.3ms resolve=7.5ms search=15.3ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.6ms (index=0.8ms resolve=0.4ms search=3.0ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.7ms (index=1.2ms resolve=0.1ms search=1.9ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.0ms (index=0.9ms resolve=0.2ms search=1.4ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.5ms (index=1.5ms resolve=0.2ms search=2.3ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.5ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=5.8ms (index=1.1ms resolve=0.3ms search=3.9ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.0ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 40ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.5s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=6.5ms (index=0.4ms resolve=2.9ms search=2.9ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=28.4ms (index=3.1ms resolve=20.0ms search=5.0ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.3ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.1ms (index=0.6ms resolve=0.7ms search=2.5ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=171.1ms (index=31.6ms resolve=121.1ms search=18.2ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=36.4ms (index=13.6ms resolve=8.8ms search=13.1ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.3ms (index=0.7ms resolve=0.4ms search=3.9ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=4.0ms (index=1.1ms resolve=0.1ms search=2.5ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.8ms (index=0.8ms resolve=0.2ms search=2.6ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.6ms (index=1.1ms resolve=0.1ms search=2.9ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.6ms (index=0.1ms resolve=0.0ms search=0.9ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=5.7ms (index=1.1ms resolve=0.3ms search=3.8ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.9ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 41ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.3ms (index=0.4ms resolve=1.8ms search=3.0ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=28.3ms (index=2.9ms resolve=16.3ms search=8.9ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.7ms (index=0.5ms resolve=0.6ms search=2.5ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=188.9ms (index=29.9ms resolve=139.2ms search=19.7ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.2ms (index=13.4ms resolve=5.2ms search=13.4ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.8ms (index=0.8ms resolve=0.3ms search=4.5ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.4ms (index=0.9ms resolve=0.1ms search=2.1ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.3ms (index=0.8ms resolve=0.2ms search=2.1ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.1ms (index=1.1ms resolve=0.2ms search=1.5ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.3ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.5ms (index=1.0ms resolve=0.3ms search=2.9ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.1ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 41ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=9.0ms (index=0.4ms resolve=3.0ms search=3.1ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=30.7ms (index=3.2ms resolve=21.7ms search=5.5ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.4ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.0ms (index=0.5ms resolve=0.7ms search=2.5ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=170.1ms (index=31.3ms resolve=121.0ms search=17.4ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=35.1ms (index=14.3ms resolve=7.8ms search=12.1ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=6.9ms (index=0.7ms resolve=0.3ms search=4.6ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=4.2ms (index=1.1ms resolve=0.1ms search=2.7ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=4.0ms (index=0.8ms resolve=0.2ms search=2.6ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.9ms (index=1.3ms resolve=0.2ms search=2.8ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.5ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=5.2ms (index=1.0ms resolve=0.4ms search=3.5ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 44ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.5s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.7ms (index=0.4ms resolve=1.9ms search=2.3ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=24.7ms (index=2.8ms resolve=16.8ms search=5.0ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.1ms (index=0.6ms resolve=0.5ms search=1.9ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=166.8ms (index=31.3ms resolve=117.1ms search=18.2ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=31.9ms (index=13.3ms resolve=6.2ms search=12.3ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=6.2ms (index=0.8ms resolve=0.3ms search=4.9ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=4.0ms (index=0.9ms resolve=0.1ms search=2.7ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.7ms (index=0.9ms resolve=0.2ms search=2.2ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.1ms (index=1.1ms resolve=0.1ms search=1.5ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.2ms (index=0.1ms resolve=0.0ms search=0.6ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=5.1ms (index=1.0ms resolve=0.3ms search=3.5ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.2ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 44ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=8.6ms (index=0.4ms resolve=3.6ms search=2.1ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=32.5ms (index=3.3ms resolve=23.3ms search=5.7ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.5ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.9ms (index=0.6ms resolve=0.7ms search=2.4ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=172.0ms (index=32.4ms resolve=121.5ms search=17.6ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.8ms (index=13.6ms resolve=7.8ms search=11.3ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=6.1ms (index=0.7ms resolve=0.5ms search=4.6ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.3ms (index=1.0ms resolve=0.1ms search=1.8ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.7ms (index=0.9ms resolve=0.2ms search=2.4ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.7ms (index=1.0ms resolve=0.2ms search=2.3ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.4ms (index=0.1ms resolve=0.0ms search=0.9ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.4ms (index=1.0ms resolve=0.3ms search=2.9ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.0ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 47ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.4ms (index=0.5ms resolve=2.1ms search=2.7ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=26.7ms (index=2.8ms resolve=16.5ms search=7.3ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.3ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.6ms (index=0.5ms resolve=0.5ms search=2.5ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=164.2ms (index=31.4ms resolve=115.5ms search=17.0ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.0ms (index=13.9ms resolve=5.6ms search=12.4ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=3.7ms (index=0.7ms resolve=0.4ms search=2.2ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.1ms (index=1.0ms resolve=0.1ms search=1.8ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.3ms (index=0.8ms resolve=0.2ms search=2.1ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.6ms (index=1.1ms resolve=0.2ms search=2.0ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.3ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.3ms (index=1.0ms resolve=0.3ms search=2.7ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.1ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 47ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=9.2ms (index=0.4ms resolve=3.5ms search=2.9ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=31.7ms (index=3.2ms resolve=22.7ms search=5.4ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.5ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.2ms (index=0.6ms resolve=0.8ms search=2.5ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=171.9ms (index=33.2ms resolve=118.4ms search=19.9ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=28.4ms (index=13.0ms resolve=6.4ms search=8.8ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.1ms (index=0.7ms resolve=0.4ms search=2.8ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.3ms (index=1.1ms resolve=0.1ms search=1.6ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.5ms (index=0.9ms resolve=0.2ms search=2.0ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=5.0ms (index=1.2ms resolve=0.1ms search=3.2ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.5ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=6.0ms (index=1.3ms resolve=0.3ms search=3.8ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.5ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 44ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.3ms (index=0.4ms resolve=2.6ms search=2.0ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=31.4ms (index=3.4ms resolve=20.3ms search=7.5ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.6ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.2ms (index=0.6ms resolve=0.7ms search=2.6ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=172.2ms (index=33.2ms resolve=120.4ms search=18.2ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=36.7ms (index=14.7ms resolve=8.5ms search=12.5ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.1ms (index=0.7ms resolve=0.4ms search=3.0ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.4ms (index=1.0ms resolve=0.1ms search=2.0ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=4.1ms (index=0.7ms resolve=0.2ms search=3.0ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.2ms (index=1.1ms resolve=0.2ms search=1.6ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.4ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=5.3ms (index=0.9ms resolve=0.4ms search=3.6ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 42ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.6ms (index=0.4ms resolve=1.9ms search=2.2ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=25.2ms (index=3.0ms resolve=16.7ms search=5.4ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.5ms (index=0.5ms resolve=0.6ms search=2.3ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=172.3ms (index=33.5ms resolve=120.4ms search=18.3ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=34.7ms (index=15.8ms resolve=7.5ms search=11.0ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=6.0ms (index=0.8ms resolve=0.4ms search=4.6ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.8ms (index=1.2ms resolve=0.1ms search=2.3ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.3ms (index=0.9ms resolve=0.2ms search=1.9ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.4ms (index=1.2ms resolve=0.2ms search=2.6ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.4ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=5.6ms (index=1.0ms resolve=0.4ms search=4.0ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.3ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 42ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.8ms (index=0.3ms resolve=1.9ms search=2.4ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=25.0ms (index=2.7ms resolve=16.3ms search=5.9ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=2.9ms (index=0.7ms resolve=0.6ms search=1.5ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=160.6ms (index=30.2ms resolve=113.8ms search=16.5ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.6ms (index=14.0ms resolve=6.3ms search=12.1ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.4ms (index=0.7ms resolve=0.3ms search=3.1ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.2ms (index=0.9ms resolve=0.1ms search=2.0ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=2.8ms (index=0.8ms resolve=0.1ms search=1.6ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.0ms (index=1.0ms resolve=0.1ms search=1.5ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.3ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.3ms (index=1.0ms resolve=0.2ms search=2.8ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.2ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 44ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.3s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.5ms (index=0.4ms resolve=1.9ms search=2.1ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=32.6ms (index=3.2ms resolve=22.4ms search=6.8ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.9ms (index=0.6ms resolve=0.7ms search=2.4ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=169.7ms (index=31.2ms resolve=120.3ms search=17.8ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=37.3ms (index=13.5ms resolve=7.6ms search=15.3ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=6.5ms (index=0.7ms resolve=0.3ms search=4.1ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.4ms (index=1.2ms resolve=0.1ms search=1.7ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=4.3ms (index=0.7ms resolve=0.2ms search=3.1ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.6ms (index=1.2ms resolve=0.1ms search=1.8ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.4ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=5.4ms (index=0.9ms resolve=0.3ms search=3.8ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 44ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.4ms (index=0.4ms resolve=1.9ms search=3.0ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=27.9ms (index=3.2ms resolve=19.4ms search=5.0ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.5ms (index=0.5ms resolve=0.6ms search=2.3ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=167.8ms (index=31.3ms resolve=117.9ms search=18.5ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.5ms (index=14.2ms resolve=6.4ms search=11.7ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.4ms (index=0.8ms resolve=0.3ms search=3.0ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=4.1ms (index=0.9ms resolve=0.1ms search=2.9ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.7ms (index=0.7ms resolve=0.1ms search=2.6ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.9ms (index=1.1ms resolve=0.1ms search=2.4ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.3ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.5ms (index=1.0ms resolve=0.3ms search=3.0ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.4ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 51ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.3s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=10.3ms (index=0.4ms resolve=3.3ms search=3.0ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=31.8ms (index=3.0ms resolve=22.2ms search=6.3ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.4ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.6ms (index=0.6ms resolve=0.8ms search=2.0ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=170.8ms (index=32.3ms resolve=121.0ms search=17.1ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=29.6ms (index=12.4ms resolve=6.3ms search=10.6ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=7.1ms (index=0.7ms resolve=0.4ms search=5.8ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.7ms (index=1.5ms resolve=0.1ms search=1.8ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=2.8ms (index=0.9ms resolve=0.2ms search=1.5ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=2.9ms (index=1.0ms resolve=0.2ms search=1.5ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.2ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=5.2ms (index=1.0ms resolve=0.4ms search=3.6ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.4ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 53ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.3s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.5ms (index=0.4ms resolve=1.9ms search=3.2ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=26.9ms (index=2.7ms resolve=16.0ms search=8.1ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.5ms (index=0.6ms resolve=0.5ms search=2.3ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=187.9ms (index=31.3ms resolve=136.8ms search=19.6ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=32.5ms (index=14.0ms resolve=5.7ms search=12.6ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.2ms (index=0.8ms resolve=0.3ms search=2.9ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=2.9ms (index=1.0ms resolve=0.1ms search=1.6ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.1ms (index=0.8ms resolve=0.1ms search=1.9ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.4ms (index=1.0ms resolve=0.1ms search=1.9ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.3ms (index=0.1ms resolve=0.0ms search=0.6ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.8ms (index=1.1ms resolve=0.3ms search=3.1ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.1ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 41ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.3s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=6.6ms (index=0.4ms resolve=3.1ms search=2.8ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=31.3ms (index=3.0ms resolve=21.8ms search=6.2ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.6ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.4ms (index=0.6ms resolve=0.8ms search=1.8ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=169.4ms (index=31.0ms resolve=119.7ms search=18.5ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=39.0ms (index=15.1ms resolve=8.7ms search=14.3ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.6ms (index=0.7ms resolve=0.3ms search=2.8ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.2ms (index=1.1ms resolve=0.1ms search=1.6ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.8ms (index=0.7ms resolve=0.2ms search=2.6ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.3ms (index=1.2ms resolve=0.2ms search=2.6ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.4ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=5.1ms (index=1.0ms resolve=0.3ms search=3.4ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 42ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.0ms (index=0.4ms resolve=1.9ms search=2.5ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=26.0ms (index=2.8ms resolve=16.1ms search=6.9ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.5ms (index=0.6ms resolve=0.5ms search=2.3ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=166.8ms (index=32.0ms resolve=116.1ms search=18.6ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=31.2ms (index=14.4ms resolve=5.6ms search=11.1ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.2ms (index=0.7ms resolve=0.2ms search=3.9ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.4ms (index=1.1ms resolve=0.1ms search=1.8ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=4.2ms (index=1.1ms resolve=0.2ms search=2.6ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.8ms (index=1.1ms resolve=0.1ms search=2.3ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.4ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.6ms (index=1.0ms resolve=0.2ms search=3.1ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.2ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 46ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.9ms (index=0.4ms resolve=2.5ms search=2.8ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=27.8ms (index=2.8ms resolve=17.1ms search=7.8ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.4ms (index=0.5ms resolve=0.6ms search=2.2ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=193.9ms (index=31.4ms resolve=140.8ms search=21.5ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=34.1ms (index=14.3ms resolve=6.0ms search=13.6ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.9ms (index=0.8ms resolve=0.3ms search=3.6ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.1ms (index=0.9ms resolve=0.1ms search=1.9ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.6ms (index=0.7ms resolve=0.1ms search=2.5ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.3ms (index=1.0ms resolve=0.2ms search=1.9ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.2ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.3ms (index=0.9ms resolve=0.3ms search=2.9ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.7ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 53ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.5s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=7.0ms (index=0.4ms resolve=4.1ms search=2.3ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=42.9ms (index=3.1ms resolve=31.5ms search=8.2ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.7ms (index=0.6ms resolve=0.7ms search=3.3ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=211.4ms (index=36.0ms resolve=153.5ms search=21.8ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=37.6ms (index=15.2ms resolve=7.3ms search=14.6ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=5.5ms (index=0.8ms resolve=0.4ms search=3.9ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=4.1ms (index=1.3ms resolve=0.1ms search=2.2ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=4.8ms (index=1.1ms resolve=0.2ms search=2.9ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=5.5ms (index=1.4ms resolve=0.2ms search=3.3ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.4ms (index=0.1ms resolve=0.0ms search=0.8ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=5.4ms (index=1.3ms resolve=0.4ms search=3.4ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.6ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 57ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.4s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=9.4ms (index=0.4ms resolve=3.2ms search=2.8ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=31.9ms (index=3.2ms resolve=22.2ms search=6.2ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.5ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.7ms (index=0.6ms resolve=0.7ms search=3.1ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=171.5ms (index=31.7ms resolve=119.9ms search=19.6ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=35.9ms (index=14.8ms resolve=10.2ms search=10.7ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.1ms (index=0.7ms resolve=0.4ms search=2.7ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.4ms (index=0.9ms resolve=0.1ms search=2.2ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=4.3ms (index=0.8ms resolve=0.2ms search=3.2ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.4ms (index=1.0ms resolve=0.2ms search=2.0ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.1ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.2ms (index=1.0ms resolve=0.4ms search=2.6ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.6ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 46ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.5s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=4.8ms (index=0.4ms resolve=2.5ms search=1.8ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=38.5ms (index=2.9ms resolve=30.3ms search=5.1ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=4.1ms (index=0.9ms resolve=0.6ms search=2.1ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=207.5ms (index=30.3ms resolve=153.0ms search=24.0ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=33.2ms (index=13.8ms resolve=6.9ms search=12.4ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=3.6ms (index=0.7ms resolve=0.3ms search=2.4ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=2.8ms (index=0.9ms resolve=0.1ms search=1.5ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.1ms (index=0.8ms resolve=0.2ms search=1.8ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=3.2ms (index=1.0ms resolve=0.2ms search=1.7ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.5ms (index=0.1ms resolve=0.0ms search=0.9ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=3.7ms (index=1.0ms resolve=0.3ms search=2.2ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.1ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 47ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.3s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=8.3ms (index=0.4ms resolve=3.2ms search=2.3ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=32.7ms (index=3.1ms resolve=22.7ms search=6.7ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.1ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.8ms (index=0.6ms resolve=0.8ms search=2.2ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=166.1ms (index=32.7ms resolve=116.7ms search=16.3ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=36.5ms (index=14.0ms resolve=8.7ms search=13.1ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=8.8ms (index=0.7ms resolve=0.4ms search=6.3ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=3.8ms (index=1.0ms resolve=0.1ms search=2.4ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.2ms (index=0.8ms resolve=0.2ms search=1.6ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=4.8ms (index=1.2ms resolve=0.2ms search=3.0ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.6ms (index=0.1ms resolve=0.0ms search=0.9ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.9ms (index=0.9ms resolve=0.4ms search=3.3ms)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.7ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: 63026 changed, 0 new, 0 deleted (walk: 39ms)
+[trace] stale check: building a memory-bounded delta (63026 changed, 0 new, 0 deleted)...
+Merging 7 spill segment(s) into the index...
+[trace] flush: reader reopened (63009 files, 289753 trigrams), overlay pruned
+[trace] stale check: streamed 63026 changes into the index in 2.3s
+[trace] search: pattern="TypeVisitableExt" case_insensitive=false raw_candidates=244 candidates=244 matches=244 elapsed=5.5ms (index=0.4ms resolve=2.0ms search=3.0ms)
+[trace] search: pattern="Result" case_insensitive=false raw_candidates=3947 candidates=3374 matches=3332 elapsed=33.5ms (index=2.8ms resolve=22.5ms search=8.1ms)
+[trace] search: pattern="TypeVisitableZgrepMissing999" case_insensitive=false raw_candidates=0 candidates=0 matches=0 elapsed=0.2ms (index=0.0ms resolve=0.0ms search=0.0ms)
+[trace] search: pattern="rustc_middle::ty::TyCtxt" case_insensitive=false raw_candidates=231 candidates=227 matches=162 elapsed=3.9ms (index=0.5ms resolve=0.6ms search=2.6ms)
+[trace] search: pattern="fn" case_insensitive=false raw_candidates=63009 candidates=38947 matches=35605 elapsed=163.9ms (index=31.0ms resolve=113.8ms search=18.9ms)
+[trace] search: pattern="impl" case_insensitive=false raw_candidates=23076 candidates=15531 matches=15473 elapsed=34.0ms (index=13.8ms resolve=6.2ms search=13.8ms)
+[trace] search: pattern="(TyCtxt|InferCtxt).*<'tcx>" case_insensitive=false raw_candidates=746 candidates=730 matches=625 elapsed=4.5ms (index=0.8ms resolve=0.3ms search=3.2ms)
+[trace] search: pattern="(struct|enum).*(TypeError|RegionError)" case_insensitive=false raw_candidates=104 candidates=100 matches=8 elapsed=2.8ms (index=0.9ms resolve=0.1ms search=1.5ms)
+[trace] search: pattern="impl.*TypeVisitable" case_insensitive=false raw_candidates=332 candidates=330 matches=37 elapsed=3.8ms (index=0.7ms resolve=0.1ms search=2.7ms)
+[trace] search: pattern="fn test_.*parse" case_insensitive=false raw_candidates=287 candidates=281 matches=23 elapsed=2.9ms (index=1.1ms resolve=0.2ms search=1.3ms)
+[trace] search: pattern="borrowchecker" case_insensitive=true raw_candidates=23 candidates=16 matches=1 elapsed=1.2ms (index=0.1ms resolve=0.0ms search=0.7ms)
+[trace] search: pattern="TyCtxt" case_insensitive=false raw_candidates=872 candidates=666 matches=666 elapsed=4.8ms (index=1.1ms resolve=0.3ms search=3.1ms)

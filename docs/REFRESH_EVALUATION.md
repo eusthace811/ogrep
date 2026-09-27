@@ -32,4 +32,4 @@ This follow-up is observed stability over 16 passes, not a formal RSS bound or e
 
 ## Remaining qualification
 
-The CLI, RPC and agent paths have focused, live-daemon and load evidence. Final combined release gates, broader post-change comparisons, packaging and the completion audit remain required. The source report and raw unfavorable observations are retained; none is treated as an achieved release-wide speedup.
+The CLI, RPC and agent paths have focused, live-daemon and load evidence. Final-binary comparisons, qualification and delivery status are now recorded separately in the [0.3.0 report](../PRODUCTION_REPORT.md). The source report and raw unfavorable observations are retained; none is treated as an achieved release-wide speedup.

@@ -1,0 +1,9217 @@
+{
+  "source_commit": "37731c433c8593caeede2f2308d1ef361bc83116",
+  "binary_sha256": "2fc6f9d5350821848d08c96ee278445fed15f198f093dcde2edb8f381e2b013a",
+  "binary": "/home/eusth/projects/Experiments/tgrep/zgrep/target/release/zgrep",
+  "corpus": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+  "revision": "1a8fa555801329bd0e803d7384b5a21191c61f30",
+  "queries": [
+    {
+      "name": "literal-rare",
+      "pattern": "TypeVisitableExt",
+      "flags": [
+        "-F",
+        "-t",
+        "rust"
+      ]
+    },
+    {
+      "name": "literal-common",
+      "pattern": "Result",
+      "flags": [
+        "-F",
+        "-t",
+        "rust"
+      ]
+    },
+    {
+      "name": "literal-absent",
+      "pattern": "TypeVisitableZgrepMissing999",
+      "flags": [
+        "-F",
+        "-t",
+        "rust"
+      ]
+    },
+    {
+      "name": "literal-long",
+      "pattern": "rustc_middle::ty::TyCtxt",
+      "flags": [
+        "-F",
+        "-t",
+        "rust"
+      ]
+    },
+    {
+      "name": "short",
+      "pattern": "fn",
+      "flags": [
+        "-F",
+        "-t",
+        "rust"
+      ]
+    },
+    {
+      "name": "broad",
+      "pattern": "impl",
+      "flags": [
+        "-F",
+        "-t",
+        "rust"
+      ]
+    },
+    {
+      "name": "alternation",
+      "pattern": "(TyCtxt|InferCtxt).*<'tcx>",
+      "flags": [
+        "-t",
+        "rust"
+      ]
+    },
+    {
+      "name": "nested-alternation",
+      "pattern": "(struct|enum).*(TypeError|RegionError)",
+      "flags": [
+        "-t",
+        "rust"
+      ]
+    },
+    {
+      "name": "regex-selective",
+      "pattern": "impl.*TypeVisitable",
+      "flags": [
+        "-t",
+        "rust"
+      ]
+    },
+    {
+      "name": "regex-common",
+      "pattern": "fn test_.*parse",
+      "flags": [
+        "-t",
+        "rust"
+      ]
+    },
+    {
+      "name": "case-insensitive",
+      "pattern": "borrowchecker",
+      "flags": [
+        "-i",
+        "-t",
+        "rust"
+      ]
+    },
+    {
+      "name": "scoped",
+      "pattern": "TyCtxt",
+      "flags": [
+        "-F",
+        "-t",
+        "rust",
+        "-g",
+        "compiler/**"
+      ]
+    }
+  ],
+  "query_file_sha256": "30672ec07ff6839c433f2bc09212b55de772967d65c6b813616691d59816b4fc",
+  "rounds": [
+    {
+      "round": 0,
+      "latency_ms": 3001.782158,
+      "receipt": {
+        "elapsed_ms": 2999,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 5.970000000000001,
+      "rss_kib": 932096,
+      "peak_rss_kib": 1361120,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    },
+    {
+      "round": 1,
+      "latency_ms": 2944.718004,
+      "receipt": {
+        "elapsed_ms": 2941,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 5.890000000000002,
+      "rss_kib": 1019664,
+      "peak_rss_kib": 1606036,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    },
+    {
+      "round": 2,
+      "latency_ms": 3085.921509,
+      "receipt": {
+        "elapsed_ms": 3082,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 6.310000000000002,
+      "rss_kib": 1376672,
+      "peak_rss_kib": 1835384,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    },
+    {
+      "round": 3,
+      "latency_ms": 3083.962927,
+      "receipt": {
+        "elapsed_ms": 3080,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 6.120000000000001,
+      "rss_kib": 1609728,
+      "peak_rss_kib": 2106344,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    },
+    {
+      "round": 4,
+      "latency_ms": 2962.477059,
+      "receipt": {
+        "elapsed_ms": 2959,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 5.900000000000006,
+      "rss_kib": 1613132,
+      "peak_rss_kib": 2127760,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    },
+    {
+      "round": 5,
+      "latency_ms": 2929.477997,
+      "receipt": {
+        "elapsed_ms": 2925,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 5.859999999999999,
+      "rss_kib": 1495296,
+      "peak_rss_kib": 2127760,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    },
+    {
+      "round": 6,
+      "latency_ms": 2980.643823,
+      "receipt": {
+        "elapsed_ms": 2977,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 5.979999999999997,
+      "rss_kib": 1619444,
+      "peak_rss_kib": 2127760,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    },
+    {
+      "round": 7,
+      "latency_ms": 3050.440523,
+      "receipt": {
+        "elapsed_ms": 3047,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 6.169999999999995,
+      "rss_kib": 1540180,
+      "peak_rss_kib": 2127760,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    },
+    {
+      "round": 8,
+      "latency_ms": 3001.749458,
+      "receipt": {
+        "elapsed_ms": 2998,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 5.959999999999994,
+      "rss_kib": 1668976,
+      "peak_rss_kib": 2127760,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    },
+    {
+      "round": 9,
+      "latency_ms": 2949.380334,
+      "receipt": {
+        "elapsed_ms": 2941,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 5.980000000000004,
+      "rss_kib": 1505000,
+      "peak_rss_kib": 2176420,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    },
+    {
+      "round": 10,
+      "latency_ms": 2865.208984,
+      "receipt": {
+        "elapsed_ms": 2862,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 5.75,
+      "rss_kib": 1546240,
+      "peak_rss_kib": 2176420,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    },
+    {
+      "round": 11,
+      "latency_ms": 2858.41069,
+      "receipt": {
+        "elapsed_ms": 2856,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 5.790000000000006,
+      "rss_kib": 1608328,
+      "peak_rss_kib": 2176420,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    },
+    {
+      "round": 12,
+      "latency_ms": 3019.826795,
+      "receipt": {
+        "elapsed_ms": 3017,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 5.989999999999995,
+      "rss_kib": 1831448,
+      "peak_rss_kib": 2369420,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    },
+    {
+      "round": 13,
+      "latency_ms": 2926.64339,
+      "receipt": {
+        "elapsed_ms": 2923,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 5.890000000000001,
+      "rss_kib": 1856616,
+      "peak_rss_kib": 2369420,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    },
+    {
+      "round": 14,
+      "latency_ms": 3032.795704,
+      "receipt": {
+        "elapsed_ms": 3029,
+        "num_files": 63009,
+        "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+        "status": "refreshed"
+      },
+      "cpu_seconds": 6.159999999999997,
+      "rss_kib": 2135148,
+      "peak_rss_kib": 2600824,
+      "checks": {
+        "literal-rare": {
+          "rows": 244,
+          "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+          "correct": true
+        },
+        "literal-common": {
+          "rows": 3332,
+          "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+          "correct": true
+        },
+        "literal-absent": {
+          "rows": 0,
+          "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "correct": true
+        },
+        "literal-long": {
+          "rows": 162,
+          "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+          "correct": true
+        },
+        "short": {
+          "rows": 35605,
+          "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+          "correct": true
+        },
+        "broad": {
+          "rows": 15473,
+          "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+          "correct": true
+        },
+        "alternation": {
+          "rows": 625,
+          "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+          "correct": true
+        },
+        "nested-alternation": {
+          "rows": 8,
+          "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+          "correct": true
+        },
+        "regex-selective": {
+          "rows": 37,
+          "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+          "correct": true
+        },
+        "regex-common": {
+          "rows": 23,
+          "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+          "correct": true
+        },
+        "case-insensitive": {
+          "rows": 1,
+          "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+          "correct": true
+        },
+        "scoped": {
+          "rows": 666,
+          "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+          "correct": true
+        }
+      }
+    }
+  ],
+  "description": "Private copied index, --no-watch -j4, one untimed full refresh warmup then repeated unchanged-tree refreshes; status sampled every 50ms. Each receipt is followed by independent rg file-set agreement and proof of the CLI server route. CPU delta covers only refresh including any server bookkeeping. Peak RSS is cumulative per daemon. No source edits, cache dropping, load clients or cross-host claim.",
+  "initial_status": {
+    "cache_bytes": 0,
+    "cache_capacity": 50000,
+    "cache_max_bytes": 1073741824,
+    "cache_size": 0,
+    "connection_admission": {
+      "active": 1,
+      "capacity": 64,
+      "queue_capacity": 0,
+      "queued": 0
+    },
+    "hidden_complete": true,
+    "index_progress": 0,
+    "index_total": 0,
+    "indexing": false,
+    "last_reconcile_at": 1790520745,
+    "last_reconcile_duration_ms": 560,
+    "last_reconcile_error": null,
+    "manual_refresh": {
+      "pending": false,
+      "running": false
+    },
+    "max_request_bytes": 1048576,
+    "num_files": 63009,
+    "num_trigrams": 289753,
+    "poll_interval_secs": 120,
+    "reconcile_overdue": false,
+    "reconcile_pending": false,
+    "reconcile_running": false,
+    "search_admission": {
+      "active": 0,
+      "capacity": 4,
+      "queue_capacity": 32,
+      "queued": 0
+    },
+    "watch_budget": 8192,
+    "watch_fallback_reason": null,
+    "watch_mode_active": "disabled",
+    "watch_mode_requested": "disabled",
+    "watcher_active": false
+  },
+  "warmup": {
+    "round": -1,
+    "latency_ms": 3060.304367,
+    "receipt": {
+      "elapsed_ms": 3058,
+      "num_files": 63009,
+      "root": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+      "status": "refreshed"
+    },
+    "cpu_seconds": 5.98,
+    "rss_kib": 638000,
+    "peak_rss_kib": 1089532,
+    "checks": {
+      "literal-rare": {
+        "rows": 244,
+        "stdout_sha256": "55bd388e90f3a46c5d95fd4c00c6833d4aa44154a07d22460ad4afeaddd904ff",
+        "correct": true
+      },
+      "literal-common": {
+        "rows": 3332,
+        "stdout_sha256": "38c17f240251e6021e5a39d9c093cd2206a8354c999da0fc6a2d8fe2a1b87bcd",
+        "correct": true
+      },
+      "literal-absent": {
+        "rows": 0,
+        "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "correct": true
+      },
+      "literal-long": {
+        "rows": 162,
+        "stdout_sha256": "eed0123e1023ab97d86a45a90eaa3c9119b12fa62494ea03d5852a07844ddb74",
+        "correct": true
+      },
+      "short": {
+        "rows": 35605,
+        "stdout_sha256": "d110557ed1bac0c6615de2f0d475a19482ef30be123e87468a2d90abf2595e5b",
+        "correct": true
+      },
+      "broad": {
+        "rows": 15473,
+        "stdout_sha256": "acc0bf23b849e40cd099b3c4accdd8b6b0189c4f5c19c7844887c46bf1d98fc2",
+        "correct": true
+      },
+      "alternation": {
+        "rows": 625,
+        "stdout_sha256": "a682da8c8dc425026131aa8cbb36c702c3890500982a4e897cf2e18908ad38f0",
+        "correct": true
+      },
+      "nested-alternation": {
+        "rows": 8,
+        "stdout_sha256": "c915d32b3df2369ce2136497cd5dd0ef2a4d296fc0d26d2e0cce19619c659116",
+        "correct": true
+      },
+      "regex-selective": {
+        "rows": 37,
+        "stdout_sha256": "c0cdb22753e36b2a3870d4ec3e0dc3974d6da3685fac5ee5e55e9811fceb2a39",
+        "correct": true
+      },
+      "regex-common": {
+        "rows": 23,
+        "stdout_sha256": "89e5d4706fbd2ccc8af7c3d8bfa3591b645e68c85dbc8da201a067aeecbeb535",
+        "correct": true
+      },
+      "case-insensitive": {
+        "rows": 1,
+        "stdout_sha256": "98d25ee0433e4011f3e70a11c88a8f2fba6ba46100e07972e1751006506181c8",
+        "correct": true
+      },
+      "scoped": {
+        "rows": 666,
+        "stdout_sha256": "9f68f800076f449604ad0c1fc7e6bec0a3592f3ade4262d60658839ea56dfb83",
+        "correct": true
+      }
+    }
+  },
+  "status_samples": [
+    {
+      "latency_ms": 0.36769,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.415862,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.452228,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.414831,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.456623,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.394234,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.493073,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.354589,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.530118,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.330848,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.498513,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.51377,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.375283,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.356644,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.434071,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.329444,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.386104,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.338394,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.382432,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.395656,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.393325,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.309175,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.543193,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.413874,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.408098,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.359369,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.387581,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.344014,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.426183,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.326308,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.335204,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.407298,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.398228,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.431223,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.336741,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.481414,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.574131,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.411137,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.388514,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.377896,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 2.865759,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.337876,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.328113,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.371732,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.404473,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.359238,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.35765,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.369286,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.410613,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350908,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.440792,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.367555,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.400516,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.356014,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.48764,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.371078,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.469496,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.498276,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.429207,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.37197,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.399113,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.270958,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.492551,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.35012,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.404281,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.387842,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.388881,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.376343,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.38527,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.344585,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 4.309375,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.522568,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.351184,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.437069,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.381368,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.428424,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.43675,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.377139,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.471982,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.420871,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.383461,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.353624,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.377592,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.409238,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.400437,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.342776,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.363564,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.598203,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.31645,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.407489,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.36612,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.468664,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.386658,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.409159,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.355517,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350358,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.420768,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350369,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.391748,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.349937,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.345184,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.361531,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.33727,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.491602,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.325739,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.437661,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.340839,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.341477,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.412962,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.33139,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.358529,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.349962,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.327094,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.54862,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.33432,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.325991,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350784,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.347571,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.423521,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.372156,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.371525,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.482757,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.428678,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.34017,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.453049,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.492125,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.394333,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.374783,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 9.853627,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.4373,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.422757,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 4.412665,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.401503,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.434962,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.443866,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.47973,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.46176,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.496608,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.488191,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 7.830279,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 2.399033,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 2.99869,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.539296,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.363428,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.483651,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.347307,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.427128,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.409878,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.461779,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.379365,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.398007,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.375264,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.416042,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.522505,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.330436,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.455647,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.393538,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.344983,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.33922,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.407051,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.438349,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.354262,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.468891,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.309346,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.38512,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.352428,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.341761,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.40633,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.400869,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.361521,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.363054,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.440023,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.346647,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.549627,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.330394,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.314288,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.3573,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.342727,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.375221,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.430785,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.354159,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.382106,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.377646,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.362338,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.373642,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.338242,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.376645,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.328478,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.417711,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.385401,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.358614,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.387333,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.364657,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.351385,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.387604,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.437529,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.401172,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.355956,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 3.330013,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 1.153533,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 6.157944,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.406731,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.417745,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.415314,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.425594,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.80759,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.465241,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.452231,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.451743,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 2.310643,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.43526,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 2.97,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.265198,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.850412,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.451968,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.999358,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.402218,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.417201,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.504924,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.444105,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.421342,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.469758,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.364992,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.485599,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.387304,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.341867,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.539696,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.422768,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.523926,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.34595,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.488722,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.532574,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.61966,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.378578,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.389923,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.582198,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.375661,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.378778,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.358255,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.353089,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.375649,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.554423,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.511577,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.347653,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.423285,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.47821,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.47977,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.444195,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.452616,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.363169,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.424554,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.333223,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.425386,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.368157,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.403132,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.376773,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.35154,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.379554,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.370942,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.347823,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.36027,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.524518,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.421684,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.408508,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.389751,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.390213,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.41412,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.408007,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.383196,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.388089,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.381412,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.719065,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.448468,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 2.240346,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.419227,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.42885,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.41344,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.382196,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.393662,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.433172,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.416366,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.4144,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.403568,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.431194,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.512288,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.859409,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.378346,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.459072,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.375146,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.348398,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.525406,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.477519,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.43863,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.381696,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.47682,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.391085,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.386688,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.56263,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.4019,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.407238,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.455402,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.379066,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.393809,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350624,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.522436,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.405303,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.504226,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.58661,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.365534,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.443546,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.381172,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.37311,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.521414,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.381778,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.393225,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.357119,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.387382,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.371738,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.40689,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.362881,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.335798,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.372385,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.416102,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.352325,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.3802,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.320366,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.364673,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.346217,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.337371,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.358134,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.355381,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.354477,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.347669,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.340994,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.408141,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.352539,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.362264,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.355506,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.362968,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.466916,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.434591,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.369943,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.405276,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 12.509575,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.358701,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.427769,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 2.181424,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.386538,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.47374,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.463077,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.437503,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.638321,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.468565,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 1.809127,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.460978,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 2.025362,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.483892,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.393151,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.454778,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.394208,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.385258,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.4319,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.462772,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.420116,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.448884,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.496613,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.379009,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.41556,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.338339,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.40087,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.384689,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.430508,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.366314,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.359941,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.300954,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.47538,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.401781,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.382469,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.34216,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.427071,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.429645,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.396049,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.4717,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.341851,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.351015,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.335773,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.354956,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.417833,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.351457,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.370641,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.583733,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.415743,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.327275,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.394817,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.331731,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.314104,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.337667,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.324062,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.35059,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.355483,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.347571,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.390341,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.35724,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350056,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.399653,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.388065,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.414851,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.3654,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.37489,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.404402,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.364813,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.37618,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 26.265998,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.392708,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.558211,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.419836,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.401498,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.373947,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.365994,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.351235,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.556789,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.361969,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.445524,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.528689,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.368782,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.251981,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.86363,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.379358,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.383113,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.36809,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.396872,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.40735,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.45425,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.360721,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.438772,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.377935,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.385371,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.429933,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.546587,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.355219,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.352959,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.432465,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.600656,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.385589,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.338401,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.32288,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.353446,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.373568,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.342085,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.362335,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.363884,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.379102,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.426256,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.458171,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.351339,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.971984,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.478047,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.378002,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.377516,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.522773,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.314162,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.347339,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.380685,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.38615,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.341266,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.344827,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.343064,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.341574,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.362612,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.373645,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.333782,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.342753,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.418281,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.386346,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.39069,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.363137,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.354238,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.37343,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.452614,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350245,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.369861,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 24.776216,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.389956,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.553812,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 1.792419,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.460682,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.469082,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 2.970434,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.384322,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.448659,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.403809,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.361807,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.396646,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 4.182672,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.364986,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.328161,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.396571,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.410902,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.406192,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.401485,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.509289,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.347589,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.395869,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.408288,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.400379,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.409585,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.549917,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.416953,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.357481,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.408821,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.360193,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.331738,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.343046,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.410151,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.359848,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.327162,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.382394,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.36159,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.378934,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.407547,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.400553,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.371346,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.369864,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.313598,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.408464,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.416778,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.402626,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.560779,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.444173,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.357229,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.359768,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.370713,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.403693,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.38174,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.369684,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.330133,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.433265,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.346596,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.351969,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.382194,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.399442,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.408663,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.450008,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.475287,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.400899,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.534422,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.376881,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.527401,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.435638,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.387047,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.438038,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.384207,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.573961,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.27085,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.291832,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 2.974389,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.452377,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.592978,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.574382,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.474168,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.449196,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.878668,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.421537,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.391773,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.972441,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.327464,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.408165,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.383671,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.407336,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.377948,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.464296,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.385896,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.396763,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.383448,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.429201,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.598127,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.450643,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.398558,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.386177,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.327011,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.440954,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.447354,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.630685,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.542898,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.668277,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.43447,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.42363,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.472172,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.59693,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.461723,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.664867,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.395922,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.582685,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.553259,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.477805,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.457645,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.396835,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.486992,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.466157,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.656065,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.375255,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.53693,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.462129,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.559062,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.420406,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.543255,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.396679,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.41528,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.349489,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.415926,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.368729,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.423293,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.48808,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.433194,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.383083,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.466006,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.395266,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.396309,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.412123,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.441708,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.329558,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.437724,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.395625,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 5.30612,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.314541,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.385814,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.360095,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.447073,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.395192,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.524674,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.360224,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.398959,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.379463,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.376756,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.389168,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.300702,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.964085,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.367696,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.357666,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.397289,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.385878,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.403558,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.395554,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.363261,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.352848,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.406834,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.55127,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.485529,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.454296,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.357309,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.483841,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.352849,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.386876,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.371267,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.35054,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.358827,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.396193,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.398433,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.375317,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.383784,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.359336,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.470024,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.333829,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.348348,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.352179,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.411659,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.495168,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.413614,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.356043,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.394534,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.352042,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.394373,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.371646,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.63468,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.405879,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.343689,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.381379,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.368296,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.431396,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.360551,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.372558,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.380708,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.409527,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.33326,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.316482,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350623,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.338719,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.468024,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.374051,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.368044,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.36335,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.427503,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.479517,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.609743,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.41904,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.493782,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.393474,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 1.957363,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.483423,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.441028,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.486832,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.438833,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.526895,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.656143,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.542625,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.377677,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.593398,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.390618,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.492567,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.36327,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.387069,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.405473,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.438603,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.443696,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.338572,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.454703,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.444436,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.341644,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.373327,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.358596,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.411578,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.324636,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.497359,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350537,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.377519,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.399449,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.340756,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.329789,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.626824,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.445963,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.393258,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.421448,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.578742,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.425196,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.353807,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.605303,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.404531,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.38035,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.400611,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.510533,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.385338,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.336805,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.366814,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.38611,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.342297,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.374595,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.375929,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.346901,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.332468,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.351332,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.380461,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.360916,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.411488,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.401576,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.376236,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.388638,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.40006,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.379604,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.463668,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.394934,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.520905,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 31.254769,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.38308,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.431754,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 3.597613,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.453575,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.433535,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.452074,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.435137,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.417833,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.471221,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.760171,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.50297,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.46035,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.456409,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.899081,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.393656,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.370509,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.359738,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.38637,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.542251,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.491309,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.400267,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.443483,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.381499,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.452161,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.335586,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.362776,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.356945,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.426135,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.346889,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.369525,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.38874,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.395072,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.343273,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.436004,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.390538,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.35654,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.330794,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.378447,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.363166,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.336181,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.385394,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.470681,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.332149,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.352725,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.63075,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.331571,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.551468,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.405485,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.30153,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.354725,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.369494,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.328143,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.333632,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.357668,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.362961,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.305996,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.356401,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.345458,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.374597,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.352851,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.389389,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.396698,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.375193,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.377797,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.41376,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.532722,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.466709,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 3.576908,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.380069,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.545805,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.3662,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 3.590645,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.569361,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.443816,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.439012,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.426718,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.504055,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.451298,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.431262,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.475074,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.452475,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.652714,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.408799,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.378308,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.455428,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.493251,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.471118,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.380596,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.384856,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.339655,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.406102,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.337725,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.322009,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.453438,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.34922,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.338483,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.506501,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.375399,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.544669,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.391085,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.365282,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.360519,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.377158,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.344577,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.727154,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.475093,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.455385,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.339617,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.410689,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.444066,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.33607,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.346613,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.384443,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.572971,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.458503,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.520237,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.381793,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.38572,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.347582,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.376771,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.353788,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.347761,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.383118,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.353674,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.336745,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.373326,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.372134,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.414528,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350111,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.345205,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.339043,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.355338,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350035,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.420075,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 2.650468,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.355728,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.390832,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.51165,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.372984,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.340199,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.459302,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.491434,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.39386,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.401671,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.368956,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.381738,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.337308,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.394222,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.268919,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.292562,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.329809,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.561152,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.400838,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.393854,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.366335,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.398331,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.396512,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.381206,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.402714,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.435502,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.39416,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.481256,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.34372,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.380071,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.404506,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.369361,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.337034,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.483935,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.343178,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.383151,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350687,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.42018,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.31634,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.386362,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.310625,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.358611,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.423023,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.413002,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.362046,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.316722,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.337993,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.380344,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.358038,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.41074,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.333264,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.362087,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.37507,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.327941,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.406676,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.393356,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.398765,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.355906,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.38486,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.514458,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.373131,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.395337,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.361793,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.396635,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.426358,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.369914,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.382247,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.398189,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.385727,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.42434,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.418855,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.388904,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.400121,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.461376,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.437819,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 1.835118,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.325484,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.499835,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.356842,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.373097,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.426575,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.387235,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.359418,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.36194,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.47906,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.341069,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.489874,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.373941,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.404201,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.425211,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.623046,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.376054,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.469674,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.48921,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.409763,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.641261,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.468291,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.611538,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.478891,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.343127,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.377,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.324099,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.358577,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.317139,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.413278,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.425876,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.415367,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.360236,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.371526,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350951,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.391996,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.380826,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.357151,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.379506,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.357439,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.314494,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.407316,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.328829,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.402762,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.506428,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350784,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.335715,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.348064,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.37082,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.330782,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.345113,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.388192,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.357952,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.316775,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.319512,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.335833,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.57542,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.408414,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.351062,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.33719,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.354989,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.360668,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.371343,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.476218,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.382895,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.354287,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 24.571762,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.348,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.818174,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 3.521364,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.438778,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.524268,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.425919,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.363601,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.345041,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.368564,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.425677,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.49268,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.39226,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.34426,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 1.001342,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.345987,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.466608,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.380686,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.365518,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.856278,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.449246,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.375656,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.392644,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.398205,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.450427,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.40649,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.623246,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.341649,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.404094,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.464297,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.374314,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.468119,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.408296,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.374422,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.387316,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.443635,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.371579,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.345221,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.450364,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.396018,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.466078,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.367931,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.424143,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.330759,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.359583,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.349904,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.411969,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.366246,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.373439,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.372112,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.389982,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.369721,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.379358,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.475818,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.350699,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.341356,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.337368,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.346355,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.412835,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.33829,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.323778,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.32771,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.385127,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.415353,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.409477,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.511476,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.427301,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.412396,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.413552,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.413875,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.489972,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.433191,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 0.44449,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 5.344009,
+      "manual_refresh": {
+        "pending": false,
+        "running": true
+      }
+    },
+    {
+      "latency_ms": 2.001158,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.394855,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.439327,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.48441,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.4789,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.491327,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.41938,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 7.759609,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 0.416907,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    },
+    {
+      "latency_ms": 4.410325,
+      "manual_refresh": {
+        "pending": false,
+        "running": false
+      }
+    }
+  ],
+  "summary": {
+    "refresh_median_ms": 2980.643823,
+    "refresh_min_ms": 2858.41069,
+    "refresh_max_ms": 3085.921509,
+    "cpu_median_seconds": 5.970000000000001,
+    "peak_rss_mib": 2539.8671875,
+    "status_max_ms": 31.254769
+  }
+}

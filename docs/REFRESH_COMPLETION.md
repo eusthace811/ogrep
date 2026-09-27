@@ -1,6 +1,6 @@
 # Refresh completion work
 
-Status: development, 2026-09-27. The refresh RPC and CLI are implemented, with focused and live-daemon tests. Agent integration is implemented and tested. Workload evaluation and final release qualification remain pending. This document records the contract and prerequisite evidence; it does not qualify a release.
+Development history and contract, 2026-09-27. RPC, CLI and agent refresh are implemented and tested. The [combined 0.3.0 report](../PRODUCTION_REPORT.md) records current release qualification; pending statements below describe the intermediate commits at which they were written.
 
 ## Contract
 
@@ -50,4 +50,4 @@ Adapter 1.1.0 exposes `refresh_index` through MCP and `zgrep_refresh_index` thro
 
 ## Workload evaluation
 
-[Immediate parity under load and pinned-corpus cost](REFRESH_EVALUATION.md) records 225 receipts, 450 immediate comparisons, 10,840 checked concurrent searches and the roughly 3.07-second full Rust-tree refresh cost. A 15-pass follow-up observed stable peak RSS over its final six passes, without claiming a hard bound. Final release qualification remains open.
+[Immediate parity under load and pinned-corpus cost](REFRESH_EVALUATION.md) records 225 receipts, 450 immediate comparisons, 10,840 checked concurrent searches and the roughly 3.07-second full Rust-tree refresh cost. A 15-pass follow-up observed stable peak RSS over its final six passes, without claiming a hard bound. The [combined 0.3.0 report](../PRODUCTION_REPORT.md) contains the final-binary results, including less favorable refresh memory measurements.

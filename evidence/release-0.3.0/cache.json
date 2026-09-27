@@ -1,0 +1,1824 @@
+{
+  "description": "Linux warm/cold index-file cache experiment with mincore-verified eviction.\n\nOnly disposable copies of benchmark indexes are evicted. Corpus pages, executable\npages, filesystem metadata and device caches are not claimed cold.\n",
+  "corpus": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+  "rounds": 15,
+  "engines": {
+    "upstream": {
+      "binary": "/home/eusth/projects/Experiments/tgrep/build/baseline/release/tgrep",
+      "binary_sha256": "b1bb0f7d512a7824a82f33c745aa776cceb17332130d6c2e78f20576dada0754",
+      "index_bytes": 238765621
+    },
+    "release": {
+      "binary": "/home/eusth/projects/Experiments/tgrep/build/baseline/zgrep-0.2.0",
+      "binary_sha256": "45777bbc84a9043cf3de690b781cf623fa1806368ae377ae5de4386f5450351d",
+      "index_bytes": 238765631
+    },
+    "fork": {
+      "binary": "/home/eusth/projects/Experiments/tgrep/zgrep/target/release/zgrep",
+      "binary_sha256": "2fc6f9d5350821848d08c96ee278445fed15f198f093dcde2edb8f381e2b013a",
+      "index_bytes": 238765615
+    }
+  },
+  "samples": [
+    {
+      "round": 0,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 21.123869,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 0,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 16.085052,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 0,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 16.514252,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 0,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.333265,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 21.351545,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 16.093999,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 16.943631,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 0,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.341028,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 32.520424,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 25.285667,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 31.294375,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 0,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 18.419202,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 22.0629,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 17.934202,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 1,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 22.186182,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 1,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 16.964618,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 31.890591,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 19.833217,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 34.498667,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 1,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 27.030358,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 1,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 18.571059,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 1,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.889827,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 18.872061,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 1,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.981257,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 33.485171,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 19.375152,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 30.544282,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 2,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 25.688198,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 2,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 22.032363,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 2,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 17.133472,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 2,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 17.861182,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 2,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.650862,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 18.328805,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.937718,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 23.167773,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 2,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 18.310397,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 22.953704,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 17.027923,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 17.525312,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 3,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 11.123345,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 3,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 17.721572,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 3,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 11.154885,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 3,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 23.404245,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 3,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 17.593603,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 29.954816,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 23.772161,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 28.748851,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 3,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 17.187749,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 4,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 16.652874,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 4,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.202149,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 16.153032,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 9.786423,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 30.446376,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 17.692201,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 21.246816,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 4,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 16.220224,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 29.028197,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 4,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 25.065057,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 4,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 21.72514,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 4,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 16.2944,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 5,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 21.313191,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 5,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 17.739327,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 17.112139,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.447732,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 5,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 16.874886,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 5,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.523036,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 30.989257,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 24.927556,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 20.649947,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 5,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 16.001513,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 28.597834,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 5,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 17.130263,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 16.744427,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.478264,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 6,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 17.627813,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 6,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.37269,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 6,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 22.408195,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 6,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 17.380165,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 31.868165,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 25.386962,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 30.717381,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 6,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 18.17178,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 22.30886,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 6,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 16.595757,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 7,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 21.922487,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 7,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 17.241732,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 29.447056,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 24.234561,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 30.47875,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 7,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 17.245904,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 7,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 16.407892,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 7,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.251945,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 16.883348,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.340229,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 21.029548,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 7,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 15.876882,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 8,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 16.817326,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 8,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.287472,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 29.996537,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 17.247533,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 16.719668,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.265842,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 30.77078,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 8,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 25.068327,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 21.342448,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 8,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 16.410792,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 8,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 22.667788,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 8,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 16.837637,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 29.320374,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 24.815097,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 31.467077,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 9,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 17.889332,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 9,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 17.655672,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 9,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 11.312055,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 9,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 23.958679,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 9,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 17.44271,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 22.990391,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 16.908702,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 17.657222,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 9,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.937019,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 22.060359,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 17.415158,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 10,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 22.942642,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 10,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 17.474844,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 10,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 17.003463,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 10,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.606259,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 29.155739,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 17.270913,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 16.155408,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 10,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 9.752696,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 28.790849,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 10,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 23.697798,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 11,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 21.869882,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 11,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 16.463142,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 11,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 17.738947,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 11,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.87916,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 21.95737,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 17.467494,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 31.216797,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 19.236655,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 31.175006,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 11,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 24.686977,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 18.716197,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 11,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 11.00509,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 22.489808,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 17.71594,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 19.84684,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 12,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.230566,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 34.361512,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 17.904129,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 12,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 17.6293,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 12,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.911929,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 12,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 22.459819,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 12,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 17.721989,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 31.637782,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 12,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 25.597414,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 32.451743,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 25.83221,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 18.687039,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.811428,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 13,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 21.787529,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 13,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 15.861503,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 21.124799,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 13,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 16.339927,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 29.328359,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 13,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 18.059918,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 13,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 16.984835,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 13,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.566508,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 31.662955,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 20.604976,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 30.289649,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 14,
+      "engine": "upstream",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 24.469175,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 17.631598,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.266155,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 22.157438,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 14,
+      "engine": "fork",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 16.984472,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 14,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "cold-index",
+      "latency_ms": 23.761458,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 14,
+      "engine": "release",
+      "pattern": "NonNull",
+      "cache": "warm-index",
+      "latency_ms": 18.266695,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 14,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "cold-index",
+      "latency_ms": 19.620868,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    },
+    {
+      "round": 14,
+      "engine": "release",
+      "pattern": "ZGREP_INDEX_CACHE_ABSENT_834789123",
+      "cache": "warm-index",
+      "latency_ms": 10.792729,
+      "correct": true,
+      "evicted_index_pages": 58297,
+      "resident_after_eviction": 0
+    }
+  ]
+}

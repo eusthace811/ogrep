@@ -1,0 +1,12 @@
+disabled/0: starting
+disabled/0: 38 immediate exact comparisons, {'refresh_median_ms': 16.294873000000003, 'refresh_max_ms': 18.243896, 'status_max_ms': 0.723092, 'search_count': 0}
+disabled/16: starting
+disabled/16: 37 immediate exact comparisons, {'refresh_median_ms': 26.6230915, 'refresh_max_ms': 36.496085, 'status_max_ms': 25.104205, 'search_count': 3437}
+native/0: starting
+native/0: 38 immediate exact comparisons, {'refresh_median_ms': 17.811991, 'refresh_max_ms': 20.00167, 'status_max_ms': 1.975766, 'search_count': 0}
+native/16: starting
+native/16: 37 immediate exact comparisons, {'refresh_median_ms': 27.024976, 'refresh_max_ms': 39.229538, 'status_max_ms': 20.995026, 'search_count': 3752}
+poll/0: starting
+poll/0: 38 immediate exact comparisons, {'refresh_median_ms': 16.506011, 'refresh_max_ms': 18.670336, 'status_max_ms': 0.524663, 'search_count': 0}
+poll/16: starting
+poll/16: 37 immediate exact comparisons, {'refresh_median_ms': 29.707142, 'refresh_max_ms': 39.100385, 'status_max_ms': 20.80986, 'search_count': 3839}
