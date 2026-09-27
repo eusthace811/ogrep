@@ -1,45 +1,77 @@
 # ogrep
 
-Indexed exact text and regex search, forked from [Microsoft tgrep](https://github.com/microsoft/tgrep) at `56f8c62`. Version 0.3.0 adds source-read reuse, compact file-list replies, bounded server admission and explicit refresh completion for CLI and agents. It retains the improved query planner, existing index format and exact match verification.
+Indexed exact text and regex search for large codebases. ogrep is based on zgrep 0.3.0, which forked [Microsoft tgrep](https://github.com/microsoft/tgrep) at `56f8c62`. It keeps zgrep's index format, command line, server protocol and exact match verification, and removes the costs that dominated zgrep's measured profile. It also adds file-level conditions (`--with`, `--without`) and naming-convention-insensitive identifier search (`--ident`).
 
-The installed command is **`ogrep`**. Unix systems commonly already have an unrelated gzip utility called `ogrep`; the Cargo build output remains `target/release/ogrep`.
+On zgrep's own evaluation harness (102-query Rust workload, targeted Rust and CPython sets, local and server-backed), ogrep 0.1.0 is faster than zgrep 0.3.0 on every workload, with identical output:
+
+| Workload | vs zgrep 0.3.0 | vs tgrep 1.0.10 |
+|---|---:|---:|
+| Rust broad, local | 2.78× | 3.69× |
+| Rust broad, server | 1.67× | 1.84× |
+| Rust targeted, local | 2.63× | 4.75× |
+| Rust targeted, server | 1.54× | 2.10× |
+| CPython targeted, local | 1.86× | 2.25× |
+| CPython targeted, server | 1.17× | 1.28× |
+
+Those numbers were measured on Linux. What changed and why is in [OGREP.md](OGREP.md).
+
+## Install
+
+### Linux
 
 ```sh
-make install                            # ~/.cargo/bin/ogrep
-ogrep index /path/to/repository
-ogrep -F --explain -- 'some_identifier' /path/to/repository
-ogrep serve /path/to/repository     # optional foreground server + watcher
+make release          # target/release/ogrep
+make install          # ~/.cargo/bin/ogrep (put ~/.cargo/bin on PATH)
+make test             # whole test suite
 ```
 
-Put `~/.cargo/bin` on PATH, or use `./target/release/ogrep` directly after `cargo build --release --locked`. `python3 scripts/package.py` creates a checksummed local Linux archive from a clean checkout and verifies the unpacked executable. The [0.3.0 archive](dist/ogrep-0.3.0-x86_64-unknown-linux-gnu.tar.gz) passed the [release audit](docs/PRODUCTION_READINESS.md).
+### Windows
 
-## What changed
+Use `./x` from Git Bash. It builds `ogrep.exe` with the Windows MSVC toolchain:
 
-- **Less local read work:** reuse the opened file when mmap falls back to a buffered read. [Phase measurements and comparisons](docs/LOCAL_PROFILING.md) retain favorable and unfavorable results.
-- **Smaller replies and bounded work:** opt-in compact file listings preserve old callers; four active searches and a bounded queue control concurrent response memory. [Admission measurements](docs/SERVICE_ADMISSION.md) include throughput and latency tradeoffs.
-- **Refresh completion:** `ogrep refresh /path/to/repository` and the agent `refresh_index` tool wait for searchable publication of completed edits. [Contract and evaluation](docs/REFRESH_EVALUATION.md) include failure behavior and the cost of rereading a large tree.
-- **Retained local startup improvement:** lazy path ordering improved the previous release’s 102-query Rust workload by 1.27× versus tgrep. The combined [0.3.0 evaluation](PRODUCTION_REPORT.md) measures **1.334× local and 1.119× server-backed CLI speedup** against tgrep across the 102-query Rust workload, with 6,804 checked timings overall. The [0.2.0 report](evidence/release-0.2.0/PRODUCTION_REPORT.md) is retained separately.
-- **More accurate output:** preserve CRLF bytes and unterminated lines, correct server JSON offsets, and honor positive type selection for hidden files. Unsupported `--crlf` matching now fails explicitly.
+```sh
+./x fetch             # download every locked crate (shows the registry serves them all)
+./x install           # release build, then ogrep.exe into ~/bin, already on Git Bash's PATH
+hash -r
+ogrep --version
+```
 
-- **Better regex plans:** retain mandatory alternatives inside concatenations instead of discarding useful constraints. The tested nested-alternation queries ran **2.9× faster on CPython and 13.5× on Rust** with local indexes; the server gains were 1.9× and 10.0×.
-- **Less posting work:** order lookups by cardinality, probe common lists for sparse candidates, and use existing position masks to reject impossible literal alignments. No index format migration is needed.
-- **Correct Unicode fixed searches:** indexed `-Fi` now retains matches such as `kelvin` against `KELVIN`, which the inherited planner could incorrectly exclude.
-- **Explain actual work:** `--explain` performs the search and reports posting loads, probes, copies, and positional rejections on stderr. Normal matching output is unchanged.
+`./x test` runs the test suite, and `./x help` lists the other commands. The same script runs from WSL, where it drives the Windows `cargo.exe` and keeps the build in `%USERPROFILE%\.ogrep-target`, because the WSL share cannot hold a Windows `target/`. Builds and installs from WSL work. Run the tests from a checkout on a Windows disk, though. Some tests create their fixtures inside the repository, and on the WSL share eight hidden-file tests fail: it has no file locks and no Windows hidden attribute. `./x install` refuses to run while `ogrep.exe` is running, since Windows will not replace a running executable. Stop `ogrep serve` first.
 
-These are measured improvements on specific workloads, not a universal speedup. Ordinary queries are often similar to upstream; some regress. Broad local searches can be slower than ripgrep. See [the complete benchmark report](BENCHMARKS.md), including raw samples, output checks, independent upstream queries, and the sparse-gram prototype we rejected after evaluation.
+**On a corporate network**, cargo takes crates from whatever the machine's `~/.cargo/config.toml` substitutes for crates.io, usually an Artifactory Cargo remote. Nothing registry-specific is committed here. `./x doctor` shows which registry cargo will use and checks that every locked crate resolves. If it fails, it prints the config lines to add. To use a registry for one run only, set `OGREP_CARGO_REGISTRY=sparse+https://<host>/artifactory/api/cargo/<repo>/index/`, plus `CARGO_REGISTRIES_OGREP_MIRROR_TOKEN` if it needs a token. `./x vendor` copies every crate into `./vendor` for fully offline builds.
 
-The historical [0.1.0 tgrep comparison](TGREP_COMPARISON.md) adds 6,744 timed invocations and the 102-query workload in local mode: general local performance is effectively tied, while the targeted regex and Unicode improvements hold up.
+The Windows build uses a static C runtime, so `ogrep.exe` does not need the Visual C++ redistributable.
 
-[Next improvements and evaluation](docs/NEXT_EVALUATION.md) adds startup-stage measurements, a mutation-to-search visibility benchmark, and priorities for broader validation.
+## Use
+
+```sh
+ogrep index /path/to/repository                   # build the index into ./.ogrep
+ogrep serve /path/to/repository                   # optional: keep it warm and watch for changes
+ogrep -F --explain -- 'some_identifier' /path/to/repository
+ogrep -l --with async --without '#\[cfg\(test' -- Mutex .   # files using Mutex that are async and not test modules
+ogrep -n --ident parseHeader .                    # parse_header, ParseHeader, PARSE_HEADER, parse-header, ...
+```
+
+Use `ogrep --help` for flags, [agent guidance](AGENTS.md) for integration semantics, and [operations](docs/OPERATIONS.md) for freshness, recovery and platform limits.
 
 ## Search contracts
 
-Indexes and service discovery use `.ogrep/`, separate from upstream's `.tgrep/`. Ignore rules, supported file types, size limits, and binary/hidden policies determine the searchable corpus. The index is a prefilter; exact matching still verifies candidates.
+Indexes and service discovery use `.ogrep/`. Ignore rules, supported file types, size limits, and binary/hidden policies determine the searchable corpus. The index is a prefilter; exact matching still verifies candidates.
 
 An on-disk index reflects its last publication. The server's watcher is asynchronous. Use `refresh` and wait for success before indexed queries that must see completed edits, or `--no-index` for a direct scan of current eligible files. Refresh requires the running server and does not provide an atomic filesystem snapshot. Indexing-complete status is not a freshness guarantee. Add `.ogrep/` to the searched repository's `.gitignore`.
 
-Use `ogrep --help` for flags, [agent guidance](AGENTS.md) for integration semantics, and [operations](docs/OPERATIONS.md) for installation, freshness, recovery, and platform limits. The local release gates were run on Linux x86-64; macOS/Windows CI definitions are retained but were not executed in this evaluation. No release has been remotely published or signed.
+## Inherited from zgrep 0.3.0
 
-[Changes](CHANGELOG.md) · [Development decisions](DEVELOPMENT.md) · [Research and future directions](docs/RESEARCH.md) · [Inherited command reference](docs/upstream/README.md)
+zgrep's own changes over tgrep, all kept in ogrep:
+
+- **Better regex plans:** retain mandatory alternatives inside concatenations instead of discarding useful constraints. zgrep measured the tested nested-alternation queries **2.9× faster on CPython and 13.5× on Rust** with local indexes.
+- **Less posting work:** order lookups by cardinality, probe common lists for sparse candidates, and use existing position masks to reject impossible literal alignments.
+- **Correct Unicode fixed searches:** indexed `-Fi` retains matches such as `kelvin` against `KELVIN`, which tgrep's planner could incorrectly exclude.
+- **Explain actual work:** `--explain` performs the search and reports posting loads, probes, copies and positional rejections on stderr.
+- **Refresh completion:** `ogrep refresh /path/to/repository` and the agent `refresh_index` tool wait for searchable publication of completed edits. See the [contract and evaluation](docs/REFRESH_EVALUATION.md).
+- **Smaller replies and bounded work:** compact file listings, and four active searches with a bounded queue. See the [admission measurements](docs/SERVICE_ADMISSION.md).
+- **More accurate output:** preserve CRLF bytes and unterminated lines, correct server JSON offsets, and honor positive type selection for hidden files.
+
+zgrep's measurements and history are kept as they were written, under the zgrep name: [benchmark report](BENCHMARKS.md), [0.3.0 evaluation](PRODUCTION_REPORT.md), [tgrep comparison](TGREP_COMPARISON.md), [changes](CHANGELOG.md), [development decisions](DEVELOPMENT.md), [research](docs/RESEARCH.md) and `evidence/`. The [inherited command reference](docs/upstream/README.md) is tgrep's.
 
 Original copyright and MIT license are retained in [LICENSE](LICENSE). Upstream performance and adoption claims in archived documents are not claims about this fork.

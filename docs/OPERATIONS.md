@@ -1,10 +1,10 @@
-# Operating ogrep 0.3.0
+# Operating ogrep 0.1.0
 
-This release was built and exercised on Linux x86-64. The repository includes inherited Linux/macOS/Windows CI jobs, but this evaluation did not run remote CI or certify macOS/Windows packages. A local Linux release archive and checksum can be produced with `python3 scripts/package.py` from a clean checkout. It builds the locked dependencies, smoke-tests the packaged binary, and records source and binary identities in `BUILD.json`. No archive is published automatically by that command.
+ogrep 0.1.0 is built and tested on Linux x86-64 and on Windows x86-64 (MSVC). Its performance was measured on Linux. The repository keeps zgrep's inherited Linux/macOS/Windows CI definitions, but they have not been run remotely for ogrep. `python3 scripts/package.py` produces a local Linux release archive and checksum from a clean checkout. It builds the locked dependencies, smoke-tests the packaged binary, and records source and binary identities in `BUILD.json`. That command does not publish anything.
 
 ## Install and use
 
-Build with a Rust toolchain supporting edition 2024 and the locked dependencies. `make install` installs `~/.cargo/bin/ogrep`; put that directory on PATH. For a packaged build, verify the archive with its adjacent `.sha256` file, unpack, and copy `ogrep` to a directory on PATH.
+Build with a Rust toolchain supporting edition 2024 and the locked dependencies. On Linux, `make install` installs `~/.cargo/bin/ogrep`; put that directory on PATH. On Windows, run `./x install` from Git Bash, which installs `ogrep.exe` into `~/bin`; see the README for WSL, corporate registries and offline builds. For a packaged build, verify the archive with its adjacent `.sha256` file, unpack, and copy `ogrep` to a directory on PATH.
 
 ```sh
 ogrep index /path/to/repository

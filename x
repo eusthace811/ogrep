@@ -63,7 +63,7 @@ if [ "$HOST" = wsl ]; then
   BIN_DEFAULT="$WINHOME_U/bin"
   TASKLIST=/mnt/c/Windows/System32/tasklist.exe
   winpath() { wslpath -w "$1"; }
-  KILL_HINT="taskkill.exe /IM ogrep.exe"
+  KILL_HINT="taskkill.exe /IM ogrep.exe /F"
 else
   CARGO=cargo
   CARGO_CONFIG_U="${CARGO_HOME:-$HOME/.cargo}/config.toml"
@@ -84,7 +84,7 @@ else
   BIN_DEFAULT="$HOME/bin"
   TASKLIST=tasklist
   winpath() { cygpath -w "$1"; }
-  KILL_HINT="taskkill //IM ogrep.exe"
+  KILL_HINT="taskkill //IM ogrep.exe //F"
 fi
 RELEASE_DIR="$TARGET_U/release"
 

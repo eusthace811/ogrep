@@ -1,6 +1,6 @@
-# ogrep: experimental fork of zgrep 0.3.0
+# ogrep: what changed from zgrep 0.3.0
 
-ogrep is a research fork of [zgrep](../zgrep) (itself a fork of Microsoft tgrep). It keeps zgrep's index format, CLI, RPC protocol and correctness contracts, and removes the costs that dominated zgrep's measured profile. The binary is still built as `target/release/zgrep`, so zgrep's scripts, tests and harness run unchanged. zgrep itself was not modified.
+ogrep started as a clone of [zgrep](../zgrep) 0.3.0, itself a fork of Microsoft tgrep. It keeps zgrep's index format, CLI, RPC protocol and correctness contracts, and removes the costs that dominated zgrep's measured profile. Since 0.1.0 everything is named ogrep: the binary (`target/release/ogrep`, `ogrep.exe`), the crates (`ogrep-core`, `ogrep-cli`) and the per-repository index folder (`.ogrep/`). zgrep's history and measurement records keep the name they were written under. zgrep itself was not modified.
 
 Measurement notes, raw results and helper scripts live in `lab/` (`lab/results/`, `lab/run-eval.sh`, `lab/summarize.py`). The research behind the changes is in `../research_notes/Beating zgrep search algorithms/`.
 
@@ -25,8 +25,8 @@ Measurement notes, raw results and helper scripts live in `lab/` (`lab/results/`
 - `--ident NAME`: one identifier in every naming convention. `--ident getUserId` matches `getUserId`, `get_user_id`, `GetUserID`, `get-user-id` and `GET_USER_ID`, and still narrows by the index.
 
 ```sh
-zgrep -l --with async --without '#\[cfg\(test' -- Mutex .   # async files using Mutex, excluding test modules
-zgrep -n --ident parseHeader .                              # parse_header, ParseHeader, PARSE_HEADER, ...
+ogrep -l --with async --without '#\[cfg\(test' -- Mutex .   # async files using Mutex, excluding test modules
+ogrep -n --ident parseHeader .                              # parse_header, ParseHeader, PARSE_HEADER, ...
 ```
 
 ## Results
@@ -35,15 +35,21 @@ On zgrep's own harness (102-query Rust workload plus targeted Rust and CPython s
 
 ## Verification
 
-- 983 workspace tests pass (zgrep's 979 plus 4 new), 1 ignored as in zgrep; clippy and fmt are clean.
+- 984 workspace tests pass on Linux (zgrep's tests plus the new ones), 1 ignored as in zgrep; clippy and fmt are clean.
+- 955 pass on Windows (MSVC, run from Git Bash with `./x test` in a checkout on a Windows disk), 1 ignored. The gap is platform-specific tests: symlinks, FIFOs and Unix change times run only on Linux, while the Windows-only tests cover mapped index files that must not be replaced or removed while mapped, and Windows hidden attributes.
+- One inherited test, `concurrent_high_volume_searches`, failed on Windows for zgrep 0.3.0 and ogrep alike. It sends 50 simultaneous searches to a server that admits 4 active plus 32 queued. It now retries the documented "queue is full" answer instead of treating it as a failure.
 - The anchored prescan is checked exhaustively against the per-line matcher.
 - New options are checked for agreement across scan, local and server modes.
 - Every timed benchmark invocation reproduced its validated output.
 
+## Build and install
+
+Linux: `make release` / `make install` (`~/.cargo/bin/ogrep`). Windows: `./x install` from Git Bash (`ogrep.exe` into `~/bin`). The README covers WSL, corporate registries (Artifactory) and offline builds.
+
 ## Reproduce
 
 ```sh
-cargo build --release -p zgrep-cli && cp target/release/zgrep lab/bin/ogrep-new
+cargo build --release -p ogrep-cli && cp target/release/ogrep lab/bin/ogrep-new
 lab/run-eval.sh NEWRUN 5 ogrep-new     # tgrep vs zgrep vs ogrep, 6 workloads
 python3 lab/summarize.py lab/results/NEWRUN
 ```
