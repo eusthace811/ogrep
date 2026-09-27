@@ -1,6 +1,6 @@
 # Refresh completion work
 
-Status: development, 2026-09-27. The refresh RPC is implemented with unit coverage; CLI, agent integration and live-daemon evaluation remain pending. This document records the contract and prerequisite evidence; it does not qualify a release.
+Status: development, 2026-09-27. The refresh RPC and CLI are implemented, with focused and live-daemon tests. Agent integration, workload evaluation and final release qualification remain pending. This document records the contract and prerequisite evidence; it does not qualify a release.
 
 ## Contract
 
@@ -31,3 +31,13 @@ Evidence: [before](../evidence/next-release/event-freshness-before.log), [after]
 Nine focused tests cover completed edit/create/delete/rename/ignore and binary-filename membership under disabled/native-configured/poll-configured state; rereading despite matching evidence and a memoized failure; a forced read failure and retry; failed publication and retry; an emptied tree; a later caller's separate pass and shared pending work; initial-build timeout; invalid parameters/root mismatch; and refresh with all search slots occupied. The native-configured test directly exercises state without a running OS watcher; real daemon mode, restart, disconnect, agent and timing evaluation remain required.
 
 [Focused log](../evidence/next-release/manual-refresh-focused.log), [workspace log](../evidence/next-release/manual-refresh-workspace.log), [Clippy](../evidence/next-release/manual-refresh-clippy.log). The full workspace log precedes the final root-binding/parameter and occupied-slot checks; the focused tests and Clippy include those additions. Further combined qualification is pending.
+
+## CLI and live-daemon tests
+
+`zgrep-code refresh . --timeout-secs 30 --json` requires the running server for that exact root, discovered at the normal index path or `--index-path`. Timeout accepts 1–300 seconds and includes connection/response waiting. The CLI verifies the response envelope, successful receipt, root, duration and count. It returns exit 2 for unavailable/old servers, errors, invalid receipts and timeout, with no local fallback or readiness substitution. It bounds receipt input to 64 KiB and recomputes the remaining read deadline, including when a peer trickles partial data. Cancellation of the CLI does not cancel queued server work.
+
+The root must be a UTF-8 path for this JSON client; the ordinary search behavior is unchanged. The server owns the scope settings. Use the same root and index path as `serve`; refresh does not accept a narrower subtree or change the server's ignore/exclusion/size configuration.
+
+Four integration tests cover real-daemon initial construction, completed edits, immediate server-routed search, root mismatch, unavailable stale discovery and restart in all three modes; invalid CLI deadlines and missing server; explicit old-server/overload/incomplete/timeout errors and invalid receipts; and a trickling response that cannot extend a one-second client deadline. These tests use deterministic expected markers and filenames. They are not the independent ripgrep workload evaluation or a cross-platform claim.
+
+[Focused tests](../evidence/next-release/refresh-cli-focused.log), [combined workspace tests](../evidence/next-release/refresh-cli-workspace.log), [Clippy](../evidence/next-release/refresh-cli-clippy.log).

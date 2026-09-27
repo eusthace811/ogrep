@@ -78,3 +78,5 @@ python3 scripts/profile-rpc.py --binary target/release/zgrep \
 [Delayed-event correctness and the planned contract](../../docs/REFRESH_COMPLETION.md): four new regression tests fail before the change and pass after it. Full workspace and Clippy logs are retained alongside the before/after logs. This fixes event handling; the refresh API and agent integration remain unfinished.
 
 The [content refresh RPC](../../docs/REFRESH_COMPLETION.md#rpc-implementation-evidence) now has nine focused contract tests, including delayed callers, timeouts, read/publication failure and retry. CLI, agent integration and live evaluations remain pending. See the report for exactly which source state each log covers.
+
+The [refresh CLI](../../docs/REFRESH_COMPLETION.md#cli-and-live-daemon-tests) adds real-daemon initial-build/edit/restart tests in all modes, strict receipt and root validation, and a total client deadline. Agent integration and independent workload evaluation remain pending.

@@ -13,6 +13,7 @@ mod matching;
 mod mem;
 mod output;
 mod profile;
+mod refresh;
 mod search;
 mod serve;
 mod status;
@@ -715,6 +716,17 @@ enum Command {
         path: PathBuf,
     },
 
+    /// Wait for a running server to publish completed edits as searchable.
+    Refresh {
+        /// Served root directory (not a subdirectory).
+        #[arg(default_value = ".")]
+        path: PathBuf,
+
+        /// Total client wait in seconds; timed-out server work may continue.
+        #[arg(long, default_value_t = 30, value_parser = clap::value_parser!(u64).range(1..=300))]
+        timeout_secs: u64,
+    },
+
     /// Count text files in a directory (fast walker, no indexing).
     CountFiles {
         /// Root directory to scan.
@@ -1196,6 +1208,12 @@ fn run_cli() {
             run_search(&cli, pattern, &paths, &resolved)
         }
         Some(Command::Status { path }) => status::run(&path, cli.index_path.as_deref()),
+        Some(Command::Refresh { path, timeout_secs }) => refresh::run(
+            &path,
+            cli.index_path.as_deref(),
+            Duration::from_secs(timeout_secs),
+            cli.json,
+        ),
         Some(Command::CountFiles { path }) => walkcount::run(&path, cli.hidden, no_ignore),
         None => {
             if cli.list_files {
