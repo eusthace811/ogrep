@@ -438,6 +438,58 @@ pub struct MatcherConfig {
     pub dfa_size_limit: Option<usize>,
 }
 
+/// File-level conditions from `--with` and `--without`: a file is searched only
+/// when some line matches every `with` pattern and no line matches any
+/// `without` pattern. Each pattern is compiled with the main pattern's flags.
+pub struct FileFilter {
+    with: Vec<SearchMatcher>,
+    without: Vec<SearchMatcher>,
+    multiline: bool,
+}
+
+impl FileFilter {
+    /// `None` when there are no conditions.
+    pub fn build(with: &[String], without: &[String], cfg: &MatcherConfig) -> Result<Option<Self>> {
+        if with.is_empty() && without.is_empty() {
+            return Ok(None);
+        }
+        let compile = |patterns: &[String]| -> Result<Vec<SearchMatcher>> {
+            patterns
+                .iter()
+                .map(|p| build_search_matcher(std::slice::from_ref(p), cfg))
+                .collect()
+        };
+        Ok(Some(Self {
+            with: compile(with)?,
+            without: compile(without)?,
+            multiline: cfg.multiline,
+        }))
+    }
+
+    /// Whether `content` satisfies every condition.
+    pub fn passes(&self, content: &str) -> Result<bool> {
+        let probe = MatchOptions {
+            multiline: self.multiline,
+            max_count: Some(1),
+            ..Default::default()
+        };
+        let has = |m: &SearchMatcher| -> Result<bool> {
+            Ok(!FileMatches::find(content, m, &probe)?.is_empty())
+        };
+        for m in &self.with {
+            if !has(m)? {
+                return Ok(false);
+            }
+        }
+        for m in &self.without {
+            if has(m)? {
+                return Ok(false);
+            }
+        }
+        Ok(true)
+    }
+}
+
 /// Compile `patterns` into a single matcher.
 ///
 /// `multiline` lets a match cross line boundaries; `dotall` is kept separate

@@ -530,7 +530,10 @@ pub fn current_content(path: &Path, max_size: Option<u64>) -> Option<CurrentCont
         &mapped
     } else {
         let mut buf = Vec::with_capacity(usize::try_from(size).ok()?);
-        Read::by_ref(&mut file).take(size + 1).read_to_end(&mut buf).ok()?;
+        Read::by_ref(&mut file)
+            .take(size + 1)
+            .read_to_end(&mut buf)
+            .ok()?;
         owned = buf;
         &owned
     };

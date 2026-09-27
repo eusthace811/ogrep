@@ -1621,6 +1621,7 @@ struct SearchRequest {
     pattern: String,
     case_insensitive: bool,
     matcher: crate::matching::SearchMatcher,
+    file_filter: Option<crate::matching::FileFilter>,
     plan: query::QueryPlan,
     glob_filter: crate::glob_filter::GlobFilter,
     type_filter: zgrep_core::filetypes::TypeFilter,
@@ -1785,22 +1786,24 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
     let mut all_patterns = vec![pattern.to_string()];
     all_patterns.extend(extra_patterns);
 
-    let matcher = crate::matching::build_search_matcher(
-        &all_patterns,
-        &crate::matching::MatcherConfig {
-            case_insensitive,
-            fixed_string,
-            word_boundary,
-            line_regexp,
-            multiline,
-            dotall: multiline_dotall,
-            no_unicode,
-            engine,
-            regex_size_limit,
-            dfa_size_limit,
-        },
-    )
-    .map_err(|e| format!("{e}"))?;
+    let matcher_config = crate::matching::MatcherConfig {
+        case_insensitive,
+        fixed_string,
+        word_boundary,
+        line_regexp,
+        multiline,
+        dotall: multiline_dotall,
+        no_unicode,
+        engine,
+        regex_size_limit,
+        dfa_size_limit,
+    };
+    let matcher = crate::matching::build_search_matcher(&all_patterns, &matcher_config)
+        .map_err(|e| format!("{e}"))?;
+    let with_patterns = str_array("with");
+    let file_filter =
+        crate::matching::FileFilter::build(&with_patterns, &str_array("without"), &matcher_config)
+            .map_err(|e| format!("{e}"))?;
 
     // Build query plan from every pattern for index filtering. `-v` inverts at
     // the line level, so a file matches when some line does *not* match; the
@@ -1820,6 +1823,22 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
     } else {
         query::build_relaxed_multi_pattern_plan(&all_patterns, case_insensitive)
     };
+    // Every `--with` pattern is also necessary, so its trigrams narrow too.
+    let plan = if plan.is_match_all() || with_patterns.is_empty() {
+        plan
+    } else {
+        let mut plans = vec![plan];
+        for pattern in &with_patterns {
+            let one = std::slice::from_ref(pattern);
+            plans.push(
+                query::build_multi_pattern_plan(one, fixed_string, case_insensitive)
+                    .unwrap_or_else(|_| {
+                        query::build_relaxed_multi_pattern_plan(one, case_insensitive)
+                    }),
+            );
+        }
+        query::require_all(plans)
+    };
 
     let file_list = files_only
         && !params
@@ -1834,6 +1853,7 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
         pattern: pattern.to_string(),
         case_insensitive,
         matcher,
+        file_filter,
         plan,
         glob_filter,
         type_filter,
@@ -1886,6 +1906,7 @@ fn handle_search(
     };
 
     let matcher = req.matcher;
+    let file_filter = req.file_filter;
     let plan = req.plan;
     let glob_filter = req.glob_filter;
     let type_filter = req.type_filter;
@@ -1937,37 +1958,41 @@ fn handle_search(
         }
         let root = &index.root;
         let decide = |&fid: &u32| {
-                let Some(rel_path) = index.resolve_path(fid, &reader_snapshot) else {
-                    return Filtered::NoPath;
-                };
-                let Some(scoped) = scope.relative(&rel_path) else {
-                    return Filtered::Hidden;
-                };
-                if !visibility.is_visible_with_file_whitelist(
-                    &rel_path,
-                    &scope.prefix,
-                    scope.hidden,
-                    type_filter.has_selection(),
-                ) {
-                    return Filtered::Hidden;
-                }
-                if !type_filter.matches(scoped) {
-                    return Filtered::Type;
-                }
-                if !glob_filter.is_empty() && !glob_filter.matches(scoped) {
-                    return Filtered::Glob(rel_path);
-                }
-                let full_path = root.join(rel_path.replace('/', std::path::MAIN_SEPARATOR_STR));
-                if let Some(limit) = query_size_limit
-                    && std::fs::metadata(&full_path).is_ok_and(|md| md.len() > limit)
-                {
-                    return Filtered::TooLarge;
-                }
-                Filtered::Keep(rel_path, full_path)
+            let Some(rel_path) = index.resolve_path(fid, &reader_snapshot) else {
+                return Filtered::NoPath;
+            };
+            let Some(scoped) = scope.relative(&rel_path) else {
+                return Filtered::Hidden;
+            };
+            if !visibility.is_visible_with_file_whitelist(
+                &rel_path,
+                &scope.prefix,
+                scope.hidden,
+                type_filter.has_selection(),
+            ) {
+                return Filtered::Hidden;
+            }
+            if !type_filter.matches(scoped) {
+                return Filtered::Type;
+            }
+            if !glob_filter.is_empty() && !glob_filter.matches(scoped) {
+                return Filtered::Glob(rel_path);
+            }
+            let full_path = root.join(rel_path.replace('/', std::path::MAIN_SEPARATOR_STR));
+            if let Some(limit) = query_size_limit
+                && std::fs::metadata(&full_path).is_ok_and(|md| md.len() > limit)
+            {
+                return Filtered::TooLarge;
+            }
+            Filtered::Keep(rel_path, full_path)
         };
         // Handing a few candidates to the pool costs more than filtering them.
         let decisions: Vec<Filtered> = if candidates.len() >= PARALLEL_SERVER_MIN {
-            candidates.par_iter().with_min_len(256).map(decide).collect()
+            candidates
+                .par_iter()
+                .with_min_len(256)
+                .map(decide)
+                .collect()
         } else {
             candidates.iter().map(decide).collect()
         };
@@ -2043,7 +2068,11 @@ fn handle_search(
             let cache = state.cache.read().unwrap();
             let peek = |(rel_path, _): &(String, PathBuf)| cache.peek(rel_path).cloned();
             let slots = if candidate_info.len() >= PARALLEL_SERVER_MIN {
-                candidate_info.par_iter().with_min_len(512).map(peek).collect()
+                candidate_info
+                    .par_iter()
+                    .with_min_len(512)
+                    .map(peek)
+                    .collect()
             } else {
                 candidate_info.iter().map(peek).collect()
             };
@@ -2098,7 +2127,8 @@ fn handle_search(
     // Parallel regex matching across candidate files
     let t_search = Instant::now();
     let verify = |(rel_path, content): &(String, Arc<DecodedFile>)| {
-        search_file_matches(rel_path, content, &matcher, &opts).map_err(|e| format!("{e}"))
+        search_file_matches(rel_path, content, &matcher, file_filter.as_ref(), &opts)
+            .map_err(|e| format!("{e}"))
     };
     let per_file: std::result::Result<Vec<FileSearchResult>, String> =
         if candidate_contents.len() >= PARALLEL_SERVER_MIN / 8 {
@@ -2149,6 +2179,8 @@ fn handle_search(
     rest.insert("num_matches".into(), (matches.len() + listed.len()).into());
     rest.insert("elapsed_ms".into(), elapsed_ms.into());
     rest.insert("hidden_complete".into(), true.into());
+    // Tells clients `with`/`without` were applied; older servers ignore them.
+    rest.insert("file_filters".into(), true.into());
     if let Some(total_files) = total_files {
         rest.insert("file_stats".into(), serde_json::json!(file_stats));
         rest.insert(
@@ -2249,6 +2281,7 @@ fn search_file_matches(
     rel_path: &str,
     file: &DecodedFile,
     matcher: &crate::matching::SearchMatcher,
+    file_filter: Option<&crate::matching::FileFilter>,
     opts: &SearchOpts,
 ) -> anyhow::Result<FileSearchResult> {
     use crate::matching::FileMatches;
@@ -2270,6 +2303,12 @@ fn search_file_matches(
         file.first_nul.map(|off| fixups.to_source_offset(off))
     };
 
+    // `--with`/`--without` decide which files are searched at all.
+    if let Some(filter) = file_filter
+        && !filter.passes(content)?
+    {
+        return Ok(FileSearchResult::default());
+    }
     let found = FileMatches::find(content, matcher, &match_opts)?;
     if found.is_empty() {
         return Ok(FileSearchResult::default());
@@ -9684,7 +9723,8 @@ mod tests {
         )
         .unwrap();
 
-        let result = search_file_matches("f.txt", &file, &matcher, &SearchOpts::default()).unwrap();
+        let result =
+            search_file_matches("f.txt", &file, &matcher, None, &SearchOpts::default()).unwrap();
 
         let marker = result
             .rows
@@ -9717,7 +9757,8 @@ mod tests {
                 let req = parse_search_params(&params).unwrap();
                 assert!(!req.opts.stats);
                 assert_eq!(req.opts.match_options().max_count, files_only.then_some(1));
-                let result = search_file_matches("a.txt", &file, &req.matcher, &req.opts).unwrap();
+                let result =
+                    search_file_matches("a.txt", &file, &req.matcher, None, &req.opts).unwrap();
                 assert!(result.stats.is_none());
                 if files_only && compact == Some(true) {
                     assert_eq!(
@@ -9747,7 +9788,8 @@ mod tests {
                     "binary_lines": binary_lines,
                 }))
                 .unwrap();
-                let result = search_file_matches("a.txt", &file, &req.matcher, &req.opts).unwrap();
+                let result =
+                    search_file_matches("a.txt", &file, &req.matcher, None, &req.opts).unwrap();
                 if content.contains(&0) {
                     assert_eq!(
                         result.rows,
@@ -9781,6 +9823,7 @@ mod tests {
                     "many.txt",
                     &file,
                     &matcher,
+                    None,
                     &SearchOpts {
                         files_only: true,
                         stats: true,
@@ -9828,6 +9871,7 @@ mod tests {
                         "binary.txt",
                         &file,
                         &matcher,
+                        None,
                         &SearchOpts {
                             stats: true,
                             binary_lines,

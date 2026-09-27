@@ -251,6 +251,18 @@ pub fn build_multi_pattern_plan(
 /// `MatchAll`. Relaxation failure is never an error: it only costs the index
 /// optimisation, and the caller still runs the real PCRE matcher over whatever
 /// candidates come back.
+/// Require every plan: the candidates of a search whose files must also
+/// satisfy further, independently planned conditions. `MatchAll` parts add
+/// nothing and are dropped.
+pub fn require_all(plans: Vec<QueryPlan>) -> QueryPlan {
+    let mut parts: Vec<QueryPlan> = plans.into_iter().filter(|p| !p.is_match_all()).collect();
+    match parts.len() {
+        0 => QueryPlan::MatchAll,
+        1 => parts.pop().unwrap(),
+        _ => QueryPlan::All(parts),
+    }
+}
+
 pub fn build_relaxed_multi_pattern_plan(patterns: &[String], case_insensitive: bool) -> QueryPlan {
     let mut plans = Vec::with_capacity(patterns.len());
     for pattern in patterns {

@@ -46,6 +46,10 @@ fn server_error(error: &serde_json::Value) -> anyhow::Error {
 pub struct SearchOptions {
     pub pattern: String,
     pub extra_patterns: Vec<String>,
+    /// `--with`: every file searched must also contain a line matching each.
+    pub with_patterns: Vec<String>,
+    /// `--without`: no file searched may contain a line matching any.
+    pub without_patterns: Vec<String>,
     pub pattern_file: Option<String>,
     pub case_insensitive: bool,
     pub case_sensitive: bool,
@@ -376,6 +380,30 @@ impl SearchOptions {
 
     fn matcher(&self, ci: bool) -> Result<SearchMatcher> {
         crate::matching::build_search_matcher(&self.all_patterns()?, &self.matcher_config(ci))
+    }
+
+    fn file_filter(&self, ci: bool) -> Result<Option<crate::matching::FileFilter>> {
+        crate::matching::FileFilter::build(
+            &self.with_patterns,
+            &self.without_patterns,
+            &self.matcher_config(ci),
+        )
+    }
+
+    /// Narrow `plan` by the trigrams every `--with` pattern requires.
+    fn plan_with_file_filters(&self, plan: QueryPlan, ci: bool) -> QueryPlan {
+        if self.with_patterns.is_empty() || plan.is_match_all() {
+            return plan;
+        }
+        let mut plans = vec![plan];
+        for pattern in &self.with_patterns {
+            let one = std::slice::from_ref(pattern);
+            plans.push(
+                query::build_multi_pattern_plan(one, self.fixed_string, ci)
+                    .unwrap_or_else(|_| query::build_relaxed_multi_pattern_plan(one, ci)),
+            );
+        }
+        query::require_all(plans)
     }
 
     /// Pattern-compilation settings, shared with the server path.
@@ -778,6 +806,7 @@ fn list_files_via_server(
         .get("result")
         .ok_or_else(|| anyhow::anyhow!("server response did not contain a result"))?;
     require_server_coverage(result)?;
+    require_file_filter_support(opts, result.get("file_filters").and_then(|v| v.as_bool()))?;
     result
         .get("files")
         .and_then(|files| files.as_array())
@@ -789,6 +818,17 @@ fn list_files_via_server(
                 .ok_or_else(|| anyhow::anyhow!("server returned a non-string file path"))
         })
         .collect()
+}
+
+/// An older server ignores `with`/`without` and would answer as if they were
+/// absent; refuse its reply so the caller falls back to the local index.
+fn require_file_filter_support(opts: &SearchOptions, supported: Option<bool>) -> Result<()> {
+    if (!opts.with_patterns.is_empty() || !opts.without_patterns.is_empty())
+        && supported != Some(true)
+    {
+        anyhow::bail!("server does not support --with/--without");
+    }
+    Ok(())
 }
 
 fn require_server_coverage(result: &serde_json::Value) -> Result<()> {
@@ -1016,6 +1056,8 @@ fn search_via_server(
         "id": 1,
     });
     request["params"]["hidden"] = serde_json::json!(opts.hidden);
+    request["params"]["with"] = serde_json::json!(opts.with_patterns);
+    request["params"]["without"] = serde_json::json!(opts.without_patterns);
     request["params"]["scope"] = serde_json::json!(scope.prefix());
     request["params"]["max_depth"] = serde_json::json!(opts.max_depth);
     writeln!(stream, "{}", request)?;
@@ -1025,7 +1067,8 @@ fn search_via_server(
     let mut line = String::new();
     reader.read_line(&mut line)?;
 
-    if file_list && let Some(had_matches) = write_file_list_reply(&line, root, scope, opts, writer)? {
+    if file_list && let Some(had_matches) = write_file_list_reply(&line, root, scope, opts, writer)?
+    {
         writer.flush()?;
         return Ok(had_matches);
     }
@@ -1334,6 +1377,8 @@ struct FileListResult<'a> {
     matches: Vec<serde_json::Value>,
     #[serde(default)]
     hidden_complete: Option<bool>,
+    #[serde(default)]
+    file_filters: Option<bool>,
 }
 
 /// Print a `file_list` reply, or `None` when the server predates it and sent
@@ -1362,6 +1407,7 @@ fn write_file_list_reply(
     if result.hidden_complete != Some(true) {
         anyhow::bail!("server does not support complete hidden-file coverage");
     }
+    require_file_filter_support(opts, result.file_filters)?;
     let hidden_binary: std::collections::HashSet<&str> =
         if opts.binary || matches!(scope, IndexScope::File(_)) {
             Default::default()
@@ -1461,6 +1507,7 @@ fn search_local_index(
     let type_filter = opts.type_filter()?;
 
     let matcher = opts.matcher(ci)?;
+    let filter = opts.file_filter(ci)?;
 
     // Narrow candidates using every pattern, not just the primary one.
     // `--passthru` must visit files without any pattern trigrams, while a
@@ -1478,6 +1525,7 @@ fn search_local_index(
     } else {
         query::build_relaxed_multi_pattern_plan(&opts.all_patterns()?, ci)
     };
+    let plan = opts.plan_with_file_filters(plan, ci);
     drop(compile_span);
 
     let is_match_all = plan.is_match_all();
@@ -1537,6 +1585,7 @@ fn search_local_index(
             &index_root,
             &scope,
             &matcher,
+            filter.as_ref(),
             opts,
             writer,
             explicit,
@@ -1554,7 +1603,15 @@ fn search_local_index(
                 Err(_) => continue,
             };
 
-            if search_file(&read, &matcher, rel_path, opts, writer, explicit)? {
+            if search_file(
+                &read,
+                &matcher,
+                filter.as_ref(),
+                rel_path,
+                opts,
+                writer,
+                explicit,
+            )? {
                 had_matches = true;
                 if opts.quiet {
                     break;
@@ -1636,6 +1693,7 @@ fn verify_candidates_parallel(
     index_root: &Path,
     scope: &IndexScope,
     matcher: &SearchMatcher,
+    filter: Option<&crate::matching::FileFilter>,
     opts: &SearchOptions,
     writer: &mut OutputWriter,
     explicit: bool,
@@ -1652,7 +1710,8 @@ fn verify_candidates_parallel(
     probe.all_spans = false;
     probe.before_context = 0;
     probe.after_context = 0;
-    let visible = |read: &FileRead| opts.text || read.first_nul.is_none() || explicit || opts.binary;
+    let visible =
+        |read: &FileRead| opts.text || read.first_nul.is_none() || explicit || opts.binary;
 
     let verify = |rel_path: &String| -> Result<Verified> {
         let full_path = scope.full_path(index_root, rel_path);
@@ -1663,6 +1722,11 @@ fn verify_candidates_parallel(
             return Ok(Verified::Nothing);
         };
         if !visible(&read) {
+            return Ok(Verified::Nothing);
+        }
+        if let Some(filter) = filter
+            && !filter.passes(read.text.as_str())?
+        {
             return Ok(Verified::Nothing);
         }
         let found = crate::matching::FileMatches::find(read.text.as_str(), matcher, &probe)?;
@@ -1691,7 +1755,7 @@ fn verify_candidates_parallel(
                     writer.write_file(rel_path)?;
                 }
                 Verified::Render(read) => {
-                    if search_file(&read, matcher, rel_path, opts, writer, explicit)? {
+                    if search_file(&read, matcher, filter, rel_path, opts, writer, explicit)? {
                         had_matches = true;
                         if opts.quiet {
                             return Ok(true);
@@ -1806,6 +1870,7 @@ fn brute_force_search(
     let type_filter = opts.type_filter()?;
 
     let matcher = opts.matcher(ci)?;
+    let filter = opts.file_filter(ci)?;
 
     let mut had_matches = false;
 
@@ -1815,7 +1880,15 @@ fn brute_force_search(
             && !exceeds_max_filesize(root, opts, true)
         {
             let read = read_text_lossy(root, opts.encoding)?;
-            had_matches = search_file(&read, &matcher, &rel_path, opts, writer, true)?;
+            had_matches = search_file(
+                &read,
+                &matcher,
+                filter.as_ref(),
+                &rel_path,
+                opts,
+                writer,
+                true,
+            )?;
         }
 
         if opts.stats {
@@ -1864,7 +1937,15 @@ fn brute_force_search(
             Err(_) => continue,
         };
 
-        if search_file(&read, &matcher, &rel_path, opts, writer, false)? {
+        if search_file(
+            &read,
+            &matcher,
+            filter.as_ref(),
+            &rel_path,
+            opts,
+            writer,
+            false,
+        )? {
             had_matches = true;
             if opts.quiet {
                 break;
@@ -2142,12 +2223,13 @@ enum FileOutcome {
 fn search_file(
     read: &FileRead,
     matcher: &SearchMatcher,
+    filter: Option<&crate::matching::FileFilter>,
     rel_path: &str,
     opts: &SearchOptions,
     writer: &mut OutputWriter,
     explicit: bool,
 ) -> Result<bool> {
-    match search_decoded_file(read, matcher, rel_path, opts, writer, explicit)? {
+    match search_decoded_file(read, matcher, filter, rel_path, opts, writer, explicit)? {
         FileOutcome::Matched => Ok(!opts.files_without_match),
         FileOutcome::NoMatch if opts.files_without_match => {
             if !opts.quiet {
@@ -2170,6 +2252,7 @@ fn search_file(
 fn search_decoded_file(
     read: &FileRead,
     matcher: &SearchMatcher,
+    filter: Option<&crate::matching::FileFilter>,
     rel_path: &str,
     opts: &SearchOptions,
     writer: &mut OutputWriter,
@@ -2197,6 +2280,14 @@ fn search_decoded_file(
         first_nul.map(|off| fixups.to_source_offset(off))
     };
     if binary_offset.is_some() && !explicit && !opts.binary {
+        return Ok(FileOutcome::Skipped);
+    }
+    // `--with`/`--without` decide which files are searched at all, so a file
+    // that fails them is absent from every listing, `--files-without-match`
+    // included.
+    if let Some(filter) = filter
+        && !filter.passes(content)?
+    {
         return Ok(FileOutcome::Skipped);
     }
 
@@ -2451,7 +2542,13 @@ pub(crate) fn plan_summary(plan: &QueryPlan) -> String {
 mod tests {
     #[test]
     fn identifier_pattern_matches_every_naming_convention() {
-        for name in ["getUserId", "get_user_id", "GetUserID", "get-user-id", "GET_USER_ID"] {
+        for name in [
+            "getUserId",
+            "get_user_id",
+            "GetUserID",
+            "get-user-id",
+            "GET_USER_ID",
+        ] {
             let pattern = super::identifier_pattern(name);
             assert_eq!(pattern, "(?i:get[_-]?user[_-]?id)", "{name}");
             let re = regex::Regex::new(&pattern).unwrap();
@@ -2466,8 +2563,14 @@ mod tests {
             }
             assert!(!re.is_match("get_user_name"));
         }
-        assert_eq!(super::identifier_pattern("HTTPServer"), "(?i:http[_-]?server)");
-        assert_eq!(super::identifier_pattern("parseV2Header"), "(?i:parse[_-]?v2[_-]?header)");
+        assert_eq!(
+            super::identifier_pattern("HTTPServer"),
+            "(?i:http[_-]?server)"
+        );
+        assert_eq!(
+            super::identifier_pattern("parseV2Header"),
+            "(?i:parse[_-]?v2[_-]?header)"
+        );
         assert_eq!(super::identifier_pattern("a.b"), r"(?i:a\.b)");
         assert_eq!(super::identifier_pattern("__"), "__");
     }
@@ -2567,8 +2670,16 @@ mod tests {
                     ..Default::default()
                 };
                 let mut writer = new_writer(&opts);
-                let selected =
-                    search_file(&read, &matcher, "file.txt", &opts, &mut writer, explicit).unwrap();
+                let selected = search_file(
+                    &read,
+                    &matcher,
+                    None,
+                    "file.txt",
+                    &opts,
+                    &mut writer,
+                    explicit,
+                )
+                .unwrap();
                 let expected = if files_without_match {
                     without_match
                 } else {

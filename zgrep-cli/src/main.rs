@@ -90,6 +90,15 @@ struct Cli {
     #[arg(long = "ident", value_name = "NAME", global = true)]
     ident: Vec<String>,
 
+    /// Only search files that also contain a line matching PATTERN (repeatable;
+    /// every one is required). Uses the index to narrow candidates.
+    #[arg(long = "with", value_name = "PATTERN", global = true)]
+    with: Vec<String>,
+
+    /// Skip files that contain any line matching PATTERN (repeatable).
+    #[arg(long = "without", value_name = "PATTERN", global = true)]
+    without: Vec<String>,
+
     /// Enable multiline matching (patterns may span line boundaries).
     #[arg(short = 'U', long = "multiline", global = true)]
     multiline: bool,
@@ -893,9 +902,15 @@ impl Cli {
                 .regexp
                 .iter()
                 .cloned()
-                .chain(self.ident.iter().map(|name| search::identifier_pattern(name)))
+                .chain(
+                    self.ident
+                        .iter()
+                        .map(|name| search::identifier_pattern(name)),
+                )
                 .collect(),
             pattern_file: self.pattern_file.clone(),
+            with_patterns: self.with.clone(),
+            without_patterns: self.without.clone(),
             case_insensitive: self.ignore_case,
             case_sensitive: self.case_sensitive,
             smart_case: self.smart_case,

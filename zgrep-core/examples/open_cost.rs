@@ -17,6 +17,16 @@ fn main() {
         let t = Instant::now();
         let m = zgrep_core::meta::IndexMeta::load(&dir).unwrap();
         let t_meta = t.elapsed();
-        println!("read {:?} hash {:?} open(total) {:?} fnindex {:?} meta {:?} ({} {} {})", t_read, t_hash, t_open, t_fn, t_meta, h.as_bytes()[0], r.num_files(), v.is_some() as u8 + m.complete as u8);
+        println!(
+            "read {:?} hash {:?} open(total) {:?} fnindex {:?} meta {:?} ({} {} {})",
+            t_read,
+            t_hash,
+            t_open,
+            t_fn,
+            t_meta,
+            h.as_bytes()[0],
+            r.num_files(),
+            v.is_some() as u8 + m.complete as u8
+        );
     }
 }

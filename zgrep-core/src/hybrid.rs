@@ -354,7 +354,11 @@ impl HybridIndex {
 
     /// Get all paths from the on-disk reader (for skip-set construction).
     pub fn reader_paths(&self) -> std::collections::HashSet<String> {
-        self.reader().all_paths().iter().map(str::to_string).collect()
+        self.reader()
+            .all_paths()
+            .iter()
+            .map(str::to_string)
+            .collect()
     }
 
     /// Whether the active on-disk reader contains `path`.

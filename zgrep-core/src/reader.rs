@@ -40,10 +40,10 @@ impl TableBytes {
         let len = file.metadata()?.len();
         if len >= MAP_MIN {
             // SAFETY: read-only map owned by the reader, like `lookup.bin`.
-            if let Ok(map) = unsafe { memmap2::MmapOptions::new().populate().map(&file) } {
-                if map.len() as u64 == len {
-                    return Ok(Self::Mapped(map));
-                }
+            if let Ok(map) = unsafe { memmap2::MmapOptions::new().populate().map(&file) }
+                && map.len() as u64 == len
+            {
+                return Ok(Self::Mapped(map));
             }
         }
         let mut bytes = Vec::with_capacity(len as usize);
@@ -82,14 +82,6 @@ pub struct PathTable {
 }
 
 impl PathTable {
-    /// Decode the records after `body_start` in `data`, requiring dense,
-    /// unique file IDs.
-    #[cfg(test)]
-    pub(crate) fn decode(data: TableBytes, body_start: usize) -> Result<Self> {
-        let spans = Self::decode_spans(&data, body_start)?;
-        Self::from_spans(data, spans)
-    }
-
     /// `(start, len)` of each record's path, indexed by file ID, requiring
     /// dense, unique IDs, and whether every path is already valid UTF-8.
     pub(crate) fn decode_spans(data: &[u8], body_start: usize) -> Result<(Vec<(u32, u32)>, bool)> {
