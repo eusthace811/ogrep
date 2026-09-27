@@ -1,16 +1,8 @@
-# DeepPrompt Cargo registry (devdiv org-scoped).
-# Feed: https://dev.azure.com/devdiv/_artifacts/feed/DeepPrompt
-#
-# CargoAuthenticate@0 requires a [registries] table to inject credentials
-# for the ADO pipeline. The source replacement is intentionally NOT done
-# here to avoid breaking local dev builds and GitHub Actions CI for
-# external contributors who don't have access to the devdiv ADO feed.
-# crates.io remains the default source for all non-ADO environments.
+# Crates come from crates.io, or from whatever the machine's own cargo
+# config substitutes for it (a corporate Artifactory remote, say). Nothing
+# registry-specific belongs here; see ./x doctor.
 
-[registries.devdiv-deepprompt]
-index = "sparse+https://pkgs.dev.azure.com/devdiv/_packaging/DeepPrompt/Cargo/index/"
-
-# BinSkim compliance flags (OneBranch BA2007)
-# Required for Windows builds in the ADO sign pipeline.
+# Windows hardening: control-flow guard, CET shadow-stack compatibility and
+# ASLR. The static CRT means ogrep.exe runs without the VC++ redistributable.
 [target.'cfg(target_os = "windows")']
 rustflags = ["-Ccontrol-flow-guard", "-Ctarget-feature=+crt-static", "-Clink-args=/DYNAMICBASE /CETCOMPAT"]
