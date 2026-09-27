@@ -84,6 +84,12 @@ struct Cli {
     #[arg(short = 'f', long = "file", global = true)]
     pattern_file: Option<String>,
 
+    /// Search for an identifier in any naming convention: `--ident getUserId`
+    /// also finds get_user_id, GetUserID, get-user-id and GET_USER_ID
+    /// (repeatable; combines with -e as alternatives).
+    #[arg(long = "ident", value_name = "NAME", global = true)]
+    ident: Vec<String>,
+
     /// Enable multiline matching (patterns may span line boundaries).
     #[arg(short = 'U', long = "multiline", global = true)]
     multiline: bool,
@@ -837,7 +843,7 @@ impl Cli {
         positional: Option<&String>,
         rest: &[String],
     ) -> (String, Vec<String>) {
-        if self.regexp.is_empty() && self.pattern_file.is_none() {
+        if self.regexp.is_empty() && self.pattern_file.is_none() && self.ident.is_empty() {
             return (positional.cloned().unwrap_or_default(), rest.to_vec());
         }
         let mut paths = Vec::with_capacity(rest.len() + 1);
@@ -883,7 +889,12 @@ impl Cli {
 
         search::SearchOptions {
             pattern,
-            extra_patterns: self.regexp.clone(),
+            extra_patterns: self
+                .regexp
+                .iter()
+                .cloned()
+                .chain(self.ident.iter().map(|name| search::identifier_pattern(name)))
+                .collect(),
             pattern_file: self.pattern_file.clone(),
             case_insensitive: self.ignore_case,
             case_sensitive: self.case_sensitive,
@@ -1099,6 +1110,13 @@ fn run_cli() {
     // look like a repo with none.
     if cli.crlf {
         eprintln!("zgrep: --crlf matching is not supported; use default LF mode or ripgrep --crlf");
+        process::exit(2);
+    }
+
+    // `--ident` generates a regex; escaping it as a literal would search for
+    // the generated pattern text itself.
+    if !cli.ident.is_empty() && cli.fixed_strings {
+        eprintln!("zgrep: --ident cannot be combined with -F/--fixed-strings");
         process::exit(2);
     }
 

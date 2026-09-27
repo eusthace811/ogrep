@@ -475,6 +475,53 @@ impl SearchOptions {
     }
 }
 
+/// A regex matching `name` in every common naming convention.
+///
+/// The name is split into words at `_`, `-`, spaces, lower-to-upper case
+/// changes and the end of an acronym (`HTTPServer` is `HTTP` + `Server`), and
+/// the words are rejoined allowing an optional `_` or `-` between each, case
+/// insensitively. `getUserId`, `get_user_id`, `GetUserID`, `get-user-id` and
+/// `GET_USER_ID` all produce, and all match, `(?i:get[_-]?user[_-]?id)`. The
+/// literal words stay in the pattern, so indexed searches still narrow by them.
+pub fn identifier_pattern(name: &str) -> String {
+    let words = identifier_words(name);
+    if words.is_empty() {
+        return regex::escape(name);
+    }
+    let body: Vec<String> = words.iter().map(|w| regex::escape(w)).collect();
+    format!("(?i:{})", body.join("[_-]?"))
+}
+
+fn identifier_words(name: &str) -> Vec<String> {
+    let chars: Vec<char> = name.chars().collect();
+    let mut words = Vec::new();
+    let mut current = String::new();
+    for (i, &c) in chars.iter().enumerate() {
+        if c == '_' || c == '-' || c.is_whitespace() {
+            if !current.is_empty() {
+                words.push(std::mem::take(&mut current));
+            }
+            continue;
+        }
+        let prev = i.checked_sub(1).map(|j| chars[j]);
+        let next = chars.get(i + 1).copied();
+        let boundary = c.is_uppercase()
+            && prev.is_some_and(|p| {
+                p.is_lowercase()
+                    || p.is_ascii_digit()
+                    || (p.is_uppercase() && next.is_some_and(char::is_lowercase))
+            });
+        if boundary && !current.is_empty() {
+            words.push(std::mem::take(&mut current));
+        }
+        current.extend(c.to_lowercase());
+    }
+    if !current.is_empty() {
+        words.push(current);
+    }
+    words
+}
+
 /// Build the [`OutputWriter`] that spans a whole invocation.
 ///
 /// Kept here so `make_output_config` stays private to this module.
@@ -2402,6 +2449,29 @@ pub(crate) fn plan_summary(plan: &QueryPlan) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn identifier_pattern_matches_every_naming_convention() {
+        for name in ["getUserId", "get_user_id", "GetUserID", "get-user-id", "GET_USER_ID"] {
+            let pattern = super::identifier_pattern(name);
+            assert_eq!(pattern, "(?i:get[_-]?user[_-]?id)", "{name}");
+            let re = regex::Regex::new(&pattern).unwrap();
+            for hay in [
+                "let x = getUserId();",
+                "fn get_user_id()",
+                "GetUserID",
+                "get-user-id",
+                "GET_USER_ID = 3",
+            ] {
+                assert!(re.is_match(hay), "{name} vs {hay}");
+            }
+            assert!(!re.is_match("get_user_name"));
+        }
+        assert_eq!(super::identifier_pattern("HTTPServer"), "(?i:http[_-]?server)");
+        assert_eq!(super::identifier_pattern("parseV2Header"), "(?i:parse[_-]?v2[_-]?header)");
+        assert_eq!(super::identifier_pattern("a.b"), r"(?i:a\.b)");
+        assert_eq!(super::identifier_pattern("__"), "__");
+    }
+
     use super::*;
 
     #[test]

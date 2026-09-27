@@ -1936,10 +1936,7 @@ fn handle_search(
             TooLarge,
         }
         let root = &index.root;
-        let decisions: Vec<Filtered> = candidates
-            .par_iter()
-            .with_min_len(256)
-            .map(|&fid| {
+        let decide = |&fid: &u32| {
                 let Some(rel_path) = index.resolve_path(fid, &reader_snapshot) else {
                     return Filtered::NoPath;
                 };
@@ -1967,8 +1964,13 @@ fn handle_search(
                     return Filtered::TooLarge;
                 }
                 Filtered::Keep(rel_path, full_path)
-            })
-            .collect();
+        };
+        // Handing a few candidates to the pool costs more than filtering them.
+        let decisions: Vec<Filtered> = if candidates.len() >= PARALLEL_SERVER_MIN {
+            candidates.par_iter().with_min_len(256).map(decide).collect()
+        } else {
+            candidates.iter().map(decide).collect()
+        };
 
         // Diagnostic counters for filter stages
         let mut no_path_count: usize = 0;
@@ -2039,11 +2041,12 @@ fn handle_search(
         // one slot per candidate so order needs no map to restore.
         let (mut slots, recency_matters): (Vec<Option<Arc<DecodedFile>>>, bool) = {
             let cache = state.cache.read().unwrap();
-            let slots = candidate_info
-                .par_iter()
-                .with_min_len(512)
-                .map(|(rel_path, _)| cache.peek(rel_path).cloned())
-                .collect();
+            let peek = |(rel_path, _): &(String, PathBuf)| cache.peek(rel_path).cloned();
+            let slots = if candidate_info.len() >= PARALLEL_SERVER_MIN {
+                candidate_info.par_iter().with_min_len(512).map(peek).collect()
+            } else {
+                candidate_info.iter().map(peek).collect()
+            };
             (slots, cache.recency_matters())
         }; // read lock released
         let hit_keys: Vec<String> = if recency_matters {
@@ -2062,14 +2065,16 @@ fn handle_search(
         // sources silently invisible over the server while the same query
         // works with --no-index.
         let missing: Vec<usize> = (0..slots.len()).filter(|&i| slots[i].is_none()).collect();
-        let disk_results: Vec<(usize, Arc<DecodedFile>)> = missing
-            .par_iter()
-            .filter_map(|&i| {
-                let bytes = std::fs::read(&candidate_info[i].1).ok()?;
-                let decoded = DecodedFile::new(bytes, zgrep_core::encoding::EncodingMode::Auto);
-                Some((i, Arc::new(decoded)))
-            })
-            .collect();
+        let read = |&i: &usize| {
+            let bytes = std::fs::read(&candidate_info[i].1).ok()?;
+            let decoded = DecodedFile::new(bytes, zgrep_core::encoding::EncodingMode::Auto);
+            Some((i, Arc::new(decoded)))
+        };
+        let disk_results: Vec<(usize, Arc<DecodedFile>)> = if missing.len() > 1 {
+            missing.par_iter().filter_map(read).collect()
+        } else {
+            missing.iter().filter_map(read).collect()
+        };
 
         // Phase 3: single write-lock to promote hits and insert misses
         if !hit_keys.is_empty() || !disk_results.is_empty() {
@@ -2092,12 +2097,15 @@ fn handle_search(
 
     // Parallel regex matching across candidate files
     let t_search = Instant::now();
-    let per_file: std::result::Result<Vec<FileSearchResult>, String> = candidate_contents
-        .par_iter()
-        .map(|(rel_path, content)| {
-            search_file_matches(rel_path, content, &matcher, &opts).map_err(|e| format!("{e}"))
-        })
-        .collect();
+    let verify = |(rel_path, content): &(String, Arc<DecodedFile>)| {
+        search_file_matches(rel_path, content, &matcher, &opts).map_err(|e| format!("{e}"))
+    };
+    let per_file: std::result::Result<Vec<FileSearchResult>, String> =
+        if candidate_contents.len() >= PARALLEL_SERVER_MIN / 8 {
+            candidate_contents.par_iter().map(verify).collect()
+        } else {
+            candidate_contents.iter().map(verify).collect()
+        };
     let per_file = match per_file {
         Ok(per_file) => per_file,
         Err(e) => return json_rpc_error(id, -32603, &e),
@@ -2181,6 +2189,10 @@ fn handle_search(
     // SAFETY: serde_json emits UTF-8, as do the ASCII literals around it.
     unsafe { String::from_utf8_unchecked(out) }
 }
+
+/// Candidate sets smaller than this are filtered and resolved on the request
+/// thread; verification, which costs far more per file, goes parallel sooner.
+const PARALLEL_SERVER_MIN: usize = 512;
 
 fn update_content_cache(
     state: &ServerState,
@@ -6901,6 +6913,52 @@ enum ReconcileScope {
     Content,
 }
 
+/// Paths in `changed` whose current content differs from what the index holds,
+/// or cannot be shown identical.
+///
+/// Each file is still read in full; only its postings rebuild is skipped, and
+/// only when the stored identity was recorded for indexed postings, the file
+/// is not a memoized read failure, and a fresh read under unchanged precise
+/// metadata hashes to the same identity.
+fn drop_identical_content(
+    state: &ServerState,
+    root: &Path,
+    changed: Vec<String>,
+    indexed_paths: &std::collections::HashSet<String>,
+) -> Vec<String> {
+    let prior: std::collections::HashMap<String, zgrep_core::meta::ContentId> = {
+        let evidence = state.file_evidence.read().unwrap();
+        let unreadable = state.unreadable.read().unwrap();
+        changed
+            .iter()
+            .filter(|path| indexed_paths.contains(*path) && !unreadable.contains_key(*path))
+            .filter_map(|path| Some((path.clone(), evidence.content_id(path)?)))
+            .collect()
+    };
+    if prior.is_empty() {
+        return changed;
+    }
+    let max_size = state.max_file_size;
+    let before = changed.len();
+    let kept: Vec<String> = changed
+        .into_par_iter()
+        .filter(|path| {
+            let Some(expected) = prior.get(path) else {
+                return true;
+            };
+            let full = root.join(path.replace('/', std::path::MAIN_SEPARATOR_STR));
+            zgrep_core::builder::current_content_id(&full, max_size) != Some(*expected)
+        })
+        .collect();
+    eprintln!(
+        "[trace] refresh: {} of {} file(s) have unchanged content; rebuilding {}",
+        before - kept.len(),
+        before,
+        kept.len()
+    );
+    kept
+}
+
 fn refresh_stale_locked(
     state: &Arc<ServerState>,
     root: &Path,
@@ -7041,6 +7099,11 @@ fn refresh_stale_locked(
             .map(|file| file.relative_path.clone())
             .collect();
         added.clear();
+        // Reading is required; rebuilding is not. A file whose content
+        // identity equals the one recorded for its indexed postings needs no
+        // new postings, and a refresh where every file is such a file needs no
+        // publication at all.
+        changed = drop_identical_content(state, root, changed, &indexed_paths);
     }
 
     // Files that failed to read last time and have not changed since are not
