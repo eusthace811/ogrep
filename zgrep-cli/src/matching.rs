@@ -245,7 +245,11 @@ pub fn expand_context_window(
 /// The compiled pattern. `regex` handles almost everything and is linear-time;
 /// `fancy_regex` is the fallback for backreferences and lookaround.
 pub enum SearchMatcher {
-    Standard(regex::Regex),
+    /// A linear-time match, plus the same pattern compiled with `^`/`$`
+    /// anchored at every line, for scanning a whole buffer at once. The second
+    /// regex exists only for anchored line-oriented patterns; see
+    /// [`line_anchored_prescan`].
+    Standard(regex::Regex, Option<regex::Regex>),
     /// A backtracking match, optionally gated by a linear-time prefilter.
     ///
     /// `fancy_regex` already delegates to `regex` when a pattern needs nothing
@@ -267,7 +271,7 @@ pub enum SearchMatcher {
 
 impl SearchMatcher {
     pub fn is_standard(&self) -> bool {
-        matches!(self, Self::Standard(_))
+        matches!(self, Self::Standard(..))
     }
 
     /// Whether the prefilter has already ruled this haystack out.
@@ -280,7 +284,7 @@ impl SearchMatcher {
 
     pub fn is_match(&self, hay: &str) -> Result<bool> {
         match self {
-            Self::Standard(re) => Ok(re.is_match(hay)),
+            Self::Standard(re, _) => Ok(re.is_match(hay)),
             Self::Fancy { re, prefilter } => {
                 if Self::ruled_out(prefilter, hay) {
                     return Ok(false);
@@ -295,7 +299,7 @@ impl SearchMatcher {
     pub fn find_spans(&self, hay: &str) -> Result<Vec<(usize, usize)>> {
         let mut spans: Vec<(usize, usize)> = Vec::new();
         match self {
-            Self::Standard(re) => {
+            Self::Standard(re, _) => {
                 for m in re.find_iter(hay) {
                     spans.push((m.start(), m.end()));
                 }
@@ -319,7 +323,7 @@ impl SearchMatcher {
     /// that only need to know whether the line matched and where it starts.
     pub fn find_first_span(&self, hay: &str) -> Result<Option<(usize, usize)>> {
         match self {
-            Self::Standard(re) => Ok(re.find(hay).map(|m| (m.start(), m.end()))),
+            Self::Standard(re, _) => Ok(re.find(hay).map(|m| (m.start(), m.end()))),
             Self::Fancy { re, prefilter } => {
                 if Self::ruled_out(prefilter, hay) {
                     return Ok(None);
@@ -359,7 +363,7 @@ impl SearchMatcher {
     fn expansions(&self, hay: &str, replacement: &str) -> Result<Vec<(usize, usize, String)>> {
         let mut out = Vec::new();
         match self {
-            Self::Standard(re) => {
+            Self::Standard(re, _) => {
                 for caps in re.captures_iter(hay) {
                     let m = caps.get(0).expect("group 0 always participates");
                     let mut dst = String::new();
@@ -454,7 +458,10 @@ pub fn build_search_matcher(patterns: &[String], cfg: &MatcherConfig) -> Result<
     }
 
     match build_regex(&combined, cfg) {
-        Ok(re) => Ok(SearchMatcher::Standard(re)),
+        Ok(re) => {
+            let prescan = line_anchored_prescan(&combined, cfg);
+            Ok(SearchMatcher::Standard(re, prescan))
+        }
         // Exceeding `--regex-size-limit`/`--dfa-size-limit` is a resource error,
         // not an unsupported construct. Retrying on the backtracking engine
         // would silently ignore the limit the user asked for.
@@ -871,6 +878,67 @@ fn pattern_is_anchor_free(pattern: &str) -> bool {
     true
 }
 
+/// The pattern recompiled so a whole buffer can stand in for each of its lines,
+/// when it is anchored with `^`/`$` and so cannot use the plain prescan.
+///
+/// Line-oriented matching runs the pattern on each line separately, where `^`
+/// and `$` mean the line's ends. Multi-line mode gives them exactly those
+/// positions inside a buffer, and CRLF mode adds positions around `\r`; a
+/// prescan may propose extra lines (the per-line matcher rejects them) but
+/// never miss one, so these extra positions are harmless. What cannot be made
+/// line-relative is excluded: `\A`, `\z` and `\Z` stay bound to the buffer,
+/// and an inline flag group could switch multi-line mode back off.
+fn line_anchored_prescan(combined: &str, cfg: &MatcherConfig) -> Option<regex::Regex> {
+    if cfg.multiline || pattern_is_anchor_free(combined) || !anchors_are_line_relative(combined) {
+        return None;
+    }
+    RegexBuilder::new(combined)
+        .case_insensitive(cfg.case_insensitive)
+        .multi_line(true)
+        .crlf(true)
+        .dot_matches_new_line(cfg.dotall)
+        .unicode(!cfg.no_unicode)
+        .size_limit(cfg.regex_size_limit.unwrap_or(100 * (1 << 20)))
+        .dfa_size_limit(cfg.dfa_size_limit.unwrap_or(1000 * (1 << 20)))
+        .nest_limit(250)
+        .build()
+        .ok()
+}
+
+/// Whether every anchor in `pattern` is `^` or `$` under the builder's own
+/// multi-line setting: no haystack anchors, and no `(?...)` group other than
+/// non-capturing, named, or flags that leave multi-line and CRLF mode alone.
+fn anchors_are_line_relative(pattern: &str) -> bool {
+    let bytes = pattern.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'\\' => match bytes.get(i + 1) {
+                Some(b'A') | Some(b'z') | Some(b'Z') | None => return false,
+                Some(_) => i += 2,
+            },
+            b'(' if bytes.get(i + 1) == Some(&b'?') => {
+                let rest = &bytes[i + 2..];
+                if rest.starts_with(b":") || rest.starts_with(b"P<") || rest.starts_with(b"<") {
+                    i += 2;
+                    continue;
+                }
+                let flags = rest
+                    .iter()
+                    .take_while(|&&b| b != b':' && b != b')')
+                    .copied()
+                    .collect::<Vec<u8>>();
+                if flags.is_empty() || !flags.iter().all(|b| b"isxuU-".contains(b)) {
+                    return false;
+                }
+                i += 2;
+            }
+            _ => i += 1,
+        }
+    }
+    true
+}
+
 /// The lines that could possibly contain a match, or `None` for "check them
 /// all".
 ///
@@ -900,12 +968,14 @@ fn candidate_lines<'a>(
     if opts.stop_on_nonmatch {
         return None;
     }
-    let SearchMatcher::Standard(re) = matcher else {
+    let SearchMatcher::Standard(re, line_anchored) = matcher else {
         return None;
     };
-    if !pattern_is_anchor_free(re.as_str()) {
-        return None;
-    }
+    let re = if pattern_is_anchor_free(re.as_str()) {
+        re
+    } else {
+        line_anchored.as_ref()?
+    };
     // A pattern that matches the empty string matches at every offset, so the
     // prescan would yield every line and the real loop is cheaper.
     if re.is_match("") {
@@ -1007,7 +1077,7 @@ mod tests {
 
     #[test]
     fn stats_keep_original_multiline_matches_and_physical_lines() {
-        let matcher = SearchMatcher::Standard(regex::Regex::new(r"hello\nworld").unwrap());
+        let matcher = SearchMatcher::Standard(regex::Regex::new(r"hello\nworld").unwrap(), None);
         for vimgrep in [false, true] {
             let found = FileMatches::find(
                 "hello\nworld\n",
@@ -1092,7 +1162,7 @@ mod tests {
 
         for pat in patterns {
             let re = regex::Regex::new(pat).expect("test pattern compiles");
-            let matcher = SearchMatcher::Standard(re);
+            let matcher = SearchMatcher::Standard(re, None);
             for hay in haystacks {
                 let index = LineIndex::new(hay);
                 let opts = MatchOptions::default();
@@ -1136,9 +1206,121 @@ mod tests {
     }
 
     #[test]
+    fn anchored_prescan_never_drops_a_matching_line() {
+        let patterns = [
+            "^a",
+            "a$",
+            "^a$",
+            r"^\s*a",
+            r"^\s*a\s+b",
+            r"b\s*$",
+            "^(a|b)",
+            "^(?:ab)$",
+            "(?i)^A",
+            "(?i:^b)",
+            "a$|^b",
+            "^[^a]",
+            r"^\w+",
+            r"\bb$",
+            "(?m)^a",
+            "(?-m)^a",
+            r"\Aa",
+            r"a\z",
+            "^",
+            "$",
+            r"^\s*$",
+        ];
+        // Every short haystack over a small alphabet, so each arrangement of
+        // line breaks, carriage returns and spaces around the anchors is seen.
+        let alphabet = ['a', 'b', ' ', '\n', '\r'];
+        let mut haystacks = vec![String::new()];
+        let mut frontier = vec![String::new()];
+        for _ in 0..6 {
+            let mut next = Vec::new();
+            for h in &frontier {
+                for c in alphabet {
+                    let mut g = h.clone();
+                    g.push(c);
+                    next.push(g);
+                }
+            }
+            haystacks.extend(next.iter().cloned());
+            frontier = next;
+        }
+
+        let mut prescanned = 0;
+        for pat in patterns {
+            let matcher = build_search_matcher(&[pat.to_string()], &MatcherConfig::default())
+                .expect("test pattern compiles");
+            for hay in &haystacks {
+                let index = LineIndex::new(hay);
+                let opts = MatchOptions::default();
+                let mut expected = Vec::new();
+                for i in 0..index.line_count() {
+                    if matcher.is_match(index.line_text(i)).unwrap() {
+                        expected.push(i);
+                    }
+                }
+                if let Some(iter) = candidate_lines(hay, &index, &matcher, &opts) {
+                    prescanned += 1;
+                    let proposed: Vec<usize> = iter.collect();
+                    assert!(
+                        proposed.windows(2).all(|w| w[0] < w[1]),
+                        "pattern {pat:?} on {hay:?}: candidates {proposed:?} not ascending"
+                    );
+                    for want in &expected {
+                        assert!(
+                            proposed.contains(want),
+                            "pattern {pat:?} on {hay:?}: line {want} matches but was not proposed \
+                             (candidates {proposed:?})"
+                        );
+                    }
+                }
+                let hits = collect_hits(hay, &index, &matcher, &opts).unwrap();
+                let got: Vec<usize> = hits.iter().map(|h| h.idx).collect();
+                assert_eq!(got, expected, "pattern {pat:?} on {hay:?}");
+            }
+        }
+        assert!(prescanned > 0, "no anchored pattern used the prescan");
+    }
+
+    #[test]
+    fn anchored_prescan_declines_what_it_cannot_make_line_relative() {
+        let cfg = MatcherConfig::default();
+        let prescan = |p: &str| {
+            let SearchMatcher::Standard(_, scan) =
+                build_search_matcher(&[p.to_string()], &cfg).unwrap()
+            else {
+                panic!("expected the linear-time engine");
+            };
+            scan.is_some()
+        };
+        assert!(prescan("^use std::"));
+        assert!(prescan(r"^\s*fn\s+\w+"));
+        assert!(prescan("x$"));
+        assert!(prescan("(?i)^x"));
+        assert!(!prescan("needle"));
+        assert!(!prescan(r"\Aneedle"));
+        assert!(!prescan(r"needle\z"));
+        assert!(!prescan("(?m)^x"));
+        assert!(!prescan("(?-m)^x"));
+        assert!(!prescan("(?R)^x"));
+        let multiline = MatcherConfig {
+            multiline: true,
+            ..Default::default()
+        };
+        let SearchMatcher::Standard(_, scan) =
+            build_search_matcher(&["^x".to_string()], &multiline).unwrap()
+        else {
+            panic!("expected the linear-time engine");
+        };
+        assert!(scan.is_none());
+    }
+
+    #[test]
     fn prescan_respects_max_count_and_stop_on_nonmatch() {
         let hay = "hit\nhit\nmiss\nhit\n";
-        let matcher = SearchMatcher::Standard(regex::Regex::new("hit").unwrap());
+        let matcher = SearchMatcher::Standard(regex::Regex::new("hit").unwrap(), None);
         let index = LineIndex::new(hay);
 
         let opts = MatchOptions {
@@ -1165,7 +1347,7 @@ mod tests {
         // propose every line at the cost of an extra pass.
         let hay = "a\nb\n";
         let index = LineIndex::new(hay);
-        let matcher = SearchMatcher::Standard(regex::Regex::new("x*").unwrap());
+        let matcher = SearchMatcher::Standard(regex::Regex::new("x*").unwrap(), None);
         let opts = MatchOptions::default();
         assert!(candidate_lines(hay, &index, &matcher, &opts).is_none());
     }
@@ -1176,7 +1358,7 @@ mod tests {
         // both have to be offered.
         let hay = "a \n b\nzzz\n";
         let index = LineIndex::new(hay);
-        let matcher = SearchMatcher::Standard(regex::Regex::new(r"\s+").unwrap());
+        let matcher = SearchMatcher::Standard(regex::Regex::new(r"\s+").unwrap(), None);
         let opts = MatchOptions::default();
         let proposed: Vec<usize> = candidate_lines(hay, &index, &matcher, &opts)
             .expect("anchor-free and non-empty")

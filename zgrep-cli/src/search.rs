@@ -2385,7 +2385,7 @@ mod tests {
 
     #[test]
     fn quiet_file_selection_distinguishes_nonmatching_and_skipped_files() {
-        let matcher = SearchMatcher::Standard(regex::Regex::new("needle").unwrap());
+        let matcher = SearchMatcher::Standard(regex::Regex::new("needle").unwrap(), None);
         for (content, explicit, binary, matched, without_match) in [
             ("needle\n", false, false, true, false),
             ("other\n", false, false, false, true),
