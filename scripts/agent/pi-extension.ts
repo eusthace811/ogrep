@@ -41,7 +41,10 @@ export default function (pi: any) {
         stop();
         return reject(new Error("zgrep MCP disconnected; retry to reconnect"));
       }
-      const timer = setTimeout(() => cancel("zgrep MCP timed out"), 40000);
+      const refreshSeconds = params?.name === "refresh_index" ? (params.arguments?.timeout_secs ?? 30) : undefined;
+      const timeoutMs = method === "tools/call" && Number.isInteger(refreshSeconds) && refreshSeconds >= 1 && refreshSeconds <= 300
+        ? refreshSeconds * 1000 + 10000 : 40000;
+      const timer = setTimeout(() => cancel("zgrep MCP timed out"), timeoutMs);
       function cleanup() { clearTimeout(timer); signal?.removeEventListener("abort", abort); pending.delete(id); }
       function cancel(message: string) {
         cleanup();
@@ -123,7 +126,7 @@ export default function (pi: any) {
     warmup.unref();
   });
   pi.on("before_agent_start", async (event: any) => ({
-    systemPrompt: event.systemPrompt + "\n\n" + instructions.replace(/search_code/g, "zgrep_search_code").replace(/find_files/g, "zgrep_find_files"),
+    systemPrompt: event.systemPrompt + "\n\n" + instructions.replace(/search_code/g, "zgrep_search_code").replace(/find_files/g, "zgrep_find_files").replace(/refresh_index/g, "zgrep_refresh_index"),
   }));
   pi.on("session_shutdown", stop);
 }

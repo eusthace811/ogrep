@@ -180,6 +180,10 @@ def binary_help(binary):
     for flag in ("--no-index", "--index-path", "--json", "--files"):
         if flag not in help_text:
             raise ValueError(f"{binary} does not support required flag {flag}; provide this fork's binary")
+    refresh_help = subprocess.run([str(binary), "refresh", "--help"], check=True,
+                                  capture_output=True, text=True, timeout=5).stdout
+    if "--timeout-secs" not in refresh_help:
+        raise ValueError(f"{binary} does not support refresh completion; rebuild or provide the updated fork's binary")
 
 
 def binary_path(args, base):
@@ -379,7 +383,7 @@ def doctor(manifest, agents, root):
                 process.stdin.write('{"jsonrpc":"2.0","method":"notifications/initialized"}\n')
                 process.stdin.flush()
                 result = exchange({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
-                if {t["name"] for t in result["tools"]} != {"search_code", "find_files"}:
+                if {t["name"] for t in result["tools"]} != {"search_code", "find_files", "refresh_index"}:
                     raise ValueError("Unexpected MCP tools")
                 exchange({"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "find_files", "arguments": {"freshness": "current", "max_results": 1}}})
             finally:

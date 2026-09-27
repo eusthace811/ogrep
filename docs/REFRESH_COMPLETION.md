@@ -1,6 +1,6 @@
 # Refresh completion work
 
-Status: development, 2026-09-27. The refresh RPC and CLI are implemented, with focused and live-daemon tests. Agent integration, workload evaluation and final release qualification remain pending. This document records the contract and prerequisite evidence; it does not qualify a release.
+Status: development, 2026-09-27. The refresh RPC and CLI are implemented, with focused and live-daemon tests. Agent integration is implemented and tested. Workload evaluation and final release qualification remain pending. This document records the contract and prerequisite evidence; it does not qualify a release.
 
 ## Contract
 
@@ -41,3 +41,9 @@ The root must be a UTF-8 path for this JSON client; the ordinary search behavior
 Four integration tests cover real-daemon initial construction, completed edits, immediate server-routed search, root mismatch, unavailable stale discovery and restart in all three modes; invalid CLI deadlines and missing server; explicit old-server/overload/incomplete/timeout errors and invalid receipts; and a trickling response that cannot extend a one-second client deadline. These tests use deterministic expected markers and filenames. They are not the independent ripgrep workload evaluation or a cross-platform claim.
 
 [Focused tests](../evidence/next-release/refresh-cli-focused.log), [combined workspace tests](../evidence/next-release/refresh-cli-workspace.log), [Clippy](../evidence/next-release/refresh-cli-clippy.log).
+
+## Agent integration
+
+Adapter 1.1.0 exposes `refresh_index` through MCP and `zgrep_refresh_index` through pi. The tool waits for startup within its own budget, then calls the strict CLI and validates the receipt. It accepts 1–300 seconds (default 30); no path override is accepted. Service readiness, local fallback and an old server cannot produce a success receipt. The shared service may keep working after client cancellation. `freshness: current` retains its direct-scan semantics. Installations now probe the binary's refresh capability and reject an incompatible binary.
+
+[42 agent/installer tests](../evidence/next-release/agent-refresh-tests.log) passed, including the real pi→MCP→CLI→server route. A no-watch daemon test proves the new marker is absent from indexed search before refresh, present afterwards, and that a follow-up CLI query actually uses the server. Tests also cover service startup, deadlines, cancellation during startup and CLI work, strict validation, invalid replies, and MCP cancellation/shutdown reaping search and refresh children. This is local adapter evidence, not a hosted agent/model behavior claim.

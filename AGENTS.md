@@ -93,7 +93,7 @@ Rules of thumb for agents:
 
 - **Put `--` before the pattern** and pass the search root explicitly. Shell
   quotes do not stop the parser from reading a bare `index`, `serve`,
-  `search`, `status`, `count-files` or `help` as a subcommand;
+  `search`, `status`, `refresh`, `count-files` or `help` as a subcommand;
   `zgrep-code -- serve .` searches for the word. Everything after `--` is read as
   the pattern and paths, so all flags must come before it.
 - **Prefer `-F`** when the query is a symbol or a string the user typed. It
@@ -182,12 +182,26 @@ legacy-format support for migration.
 - With a **server**, results reflect the last watcher event the indexing
   worker has processed. Events are queued and applied asynchronously, so a
   search issued right after an edit can run before the index has caught up.
-  Use `--no-index` when the very latest edit must be visible.
+  To make completed edits searchable before a sequence of indexed queries, run
+  `zgrep-code refresh . --timeout-secs 30` and wait for success. The command
+  requires a running server for this root, rereads eligible content and can be
+  expensive on large trees. `--no-index` performs a direct scan for one search.
 - With only an **on-disk index**, results reflect the last `zgrep-code index`.
   Files created since then are not found. Run `zgrep-code index .` again, or
   start `zgrep-code serve .`.
 - `zgrep-code --files` reads from the index too. Add `--no-index` to list what is
   on disk right now.
+
+`refresh` covers edits completed before the request whose contents and
+eligibility remain stable through completion. Concurrent mutations may or may
+not appear; it is not an atomic filesystem snapshot. It applies the server's
+ignore, exclusion and size settings to the entire served root, including
+filename-only assets. Use the same root and `--index-path` as `serve`.
+`--timeout-secs` accepts 1–300; `--json` prints a receipt after success. Errors,
+including timeout and an unavailable/older server, exit 2 without a fallback.
+Timed-out server work may still complete; retry before relying on indexed
+freshness. The installed agent adapters expose this as `refresh_index` while
+retaining `freshness: "current"` for direct scans.
 
 ## Keep `index`, `serve` and search flags aligned
 
@@ -224,7 +238,7 @@ expected, and zgrep-code prints a warning saying so. Pass `--no-require-git` to
 | `warning: no index at ... - scanning every file` | No index at the path the search looked in | If a server or index uses `--index-path`, pass the same value to the search; otherwise run `zgrep-code index .` or `zgrep-code serve .` |
 | `Server unreachable, falling back to local index` | Server died or `serve.json` is stale | Restart `zgrep-code serve .` |
 | A new file is not found, no server | On-disk index predates the file | Run `zgrep-code index .` |
-| A new file is not found, server running | First build still in progress, or the watcher event is still queued | Wait, or pass `--no-index` for this search; re-running `zgrep-code index .` does not update a running server |
+| A new file is not found, server running | First build still in progress, or the watcher event is still queued | Run `refresh` and wait for success, or pass `--no-index` for this search; re-running `zgrep-code index .` does not update a running server |
 | Search is slow despite a server | Flag bypasses the index (see above) | Drop the flag or scope with `-g`/`-t` |
 
 ## Tool definition sketch

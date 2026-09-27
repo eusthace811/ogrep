@@ -80,3 +80,5 @@ python3 scripts/profile-rpc.py --binary target/release/zgrep \
 The [content refresh RPC](../../docs/REFRESH_COMPLETION.md#rpc-implementation-evidence) now has nine focused contract tests, including delayed callers, timeouts, read/publication failure and retry. CLI, agent integration and live evaluations remain pending. See the report for exactly which source state each log covers.
 
 The [refresh CLI](../../docs/REFRESH_COMPLETION.md#cli-and-live-daemon-tests) adds real-daemon initial-build/edit/restart tests in all modes, strict receipt and root validation, and a total client deadline. Agent integration and independent workload evaluation remain pending.
+
+[Agent refresh integration](../../docs/REFRESH_COMPLETION.md#agent-integration) is implemented with 42 passing tests. The no-watch test distinguishes a real publication barrier from ordinary watcher convergence; MCP/pi tests cover the tool route and cancellation.

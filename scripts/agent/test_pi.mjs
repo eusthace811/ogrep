@@ -10,12 +10,16 @@ extension({
   registerTool(tool) { tools.set(tool.name, tool); },
   on(name, handler) { hooks.set(name, handler); },
 });
-assert.deepEqual([...tools.keys()], ["zgrep_search_code", "zgrep_find_files"]);
+assert.deepEqual([...tools.keys()], ["zgrep_search_code", "zgrep_find_files", "zgrep_refresh_index"]);
 assert.ok(hooks.has("session_start"));
 const prompt = await hooks.get("before_agent_start")({ systemPrompt: "original" });
 assert.ok(prompt.systemPrompt.includes("zgrep_search_code"));
+assert.ok(prompt.systemPrompt.includes("zgrep_refresh_index"));
 const ctx = { cwd: process.argv[3] };
 try {
+  const receipt = await tools.get("zgrep_refresh_index").execute("refresh", { timeout_secs: 10 }, undefined, undefined, ctx);
+  assert.equal(receipt.details.status, "refreshed");
+  assert.equal(receipt.details.refresh_mode, "content_reconcile");
   const [matches, files] = await Promise.all([
     tools.get("zgrep_search_code").execute("1", { pattern: "needle", freshness: "current" }, undefined, undefined, ctx),
     tools.get("zgrep_find_files").execute("2", { pattern: "*.rs", freshness: "current" }, undefined, undefined, ctx),

@@ -13,6 +13,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import threading
 import tomllib
 import unittest
 from types import SimpleNamespace
@@ -33,7 +34,7 @@ class InstallerTests(unittest.TestCase):
         self.project.mkdir()
         self.base = self.project / ".zgrep-agent"
         self.fake = self.root / "fake-zgrep"
-        self.fake.write_text('#!/bin/sh\nprintf "%s\\n" "zgrep test --no-index --index-path --json --files"\n')
+        self.fake.write_text('#!/bin/sh\nprintf "%s\\n" "zgrep test --no-index --index-path --json --files --timeout-secs"\n')
         self.fake.chmod(0o755)
         self.environment = patch.dict(os.environ, {"XDG_CACHE_HOME": str(self.root / "cache"), "XDG_DATA_HOME": str(self.root / "data")})
         self.environment.start()
@@ -65,6 +66,11 @@ class InstallerTests(unittest.TestCase):
     def test_distinct_path_name_is_preferred(self):
         with patch.object(install.shutil, "which", side_effect=lambda name: str(self.fake) if name == "zgrep-code" else None):
             self.assertEqual(install.binary_path(SimpleNamespace(binary=None), self.base), str(self.fake))
+
+    def test_old_binary_without_refresh_is_rejected(self):
+        self.fake.write_text('#!/bin/sh\necho "zgrep --no-index --index-path --json --files"\n')
+        with self.assertRaisesRegex(ValueError, "refresh completion"):
+            install.binary_help(self.fake)
 
     def test_install_reinstall_partial_uninstall_preserves_user_configuration(self):
         codex = self.project / ".codex"
@@ -356,6 +362,105 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(result["search_mode"], "current_scan")
         self.assertTrue(result["results"])
 
+    def test_refresh_receipt_makes_edit_searchable_without_watcher_assistance(self):
+        self.runtime.index.mkdir(parents=True)
+        server = subprocess.Popen([str(BINARY), "serve", str(self.root), "--index-path", str(self.runtime.index), "--no-watch"],
+                                  stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            deadline = time.monotonic() + 5
+            while self.runtime.status() is None:
+                self.assertIsNone(server.poll())
+                self.assertLess(time.monotonic(), deadline)
+                time.sleep(0.02)
+            self.runtime.search("refresh_index", {"timeout_secs": 10})
+            (self.root / "new.rs").write_text("after_refresh_marker\n")
+            before = self.runtime.search("search_code", {"pattern": "after_refresh_marker", "output_mode": "files"})
+            self.assertEqual(before["structuredContent"]["results"], [])
+            receipt = self.runtime.search("refresh_index", {"timeout_secs": 10})["structuredContent"]
+            self.assertEqual(receipt["status"], "refreshed")
+            self.assertEqual(receipt["root"], str(self.root))
+            self.assertEqual(receipt["refresh_mode"], "content_reconcile")
+            after = self.runtime.search("search_code", {"pattern": "after_refresh_marker", "output_mode": "files"})
+            self.assertEqual(after["structuredContent"]["results"], [{"path": "new.rs"}])
+            # The mode label permits fallback. Verify the actual CLI route too.
+            routed = subprocess.run([str(BINARY), "-l", "--stats", "--index-path", str(self.runtime.index),
+                                     "--", "after_refresh_marker", str(self.root)], capture_output=True, text=True, check=True)
+            self.assertIn("(via server)", routed.stderr)
+            current = self.search(pattern="after_refresh_marker")
+            self.assertEqual(current["search_mode"], "current_scan")
+        finally:
+            server.terminate()
+            server.wait(timeout=5)
+
+    def test_refresh_starts_service_and_waits_through_initial_build(self):
+        receipt = self.runtime.search("refresh_index", {"timeout_secs": 10})
+        self.assertEqual(receipt["structuredContent"]["status"], "refreshed")
+        self.assertIsNotNone(self.runtime.status())
+        result = self.runtime.search("search_code", {"pattern": "needle"})
+        self.assertTrue(result["structuredContent"]["results"])
+
+    def test_refresh_does_not_turn_startup_timeout_into_fallback_or_success(self):
+        with patch.object(self.runtime, "ensure_server", return_value=False) as start, patch.object(self.runtime, "status", return_value=None), patch.object(runtime.subprocess, "Popen") as spawn:
+            with self.assertRaisesRegex(ValueError, "Refresh timed out"):
+                self.runtime.search("refresh_index", {"timeout_secs": 1})
+            start.assert_called_once_with(wait=0)
+            spawn.assert_not_called()
+
+    def test_refresh_cancellation_during_startup_avoids_cli_work(self):
+        cancel = threading.Event()
+        def unavailable():
+            cancel.set()
+            return None
+        with patch.object(self.runtime, "ensure_server", return_value=False), patch.object(self.runtime, "status", side_effect=unavailable), patch.object(runtime.subprocess, "Popen") as spawn:
+            with self.assertRaisesRegex(ValueError, "Refresh cancelled"):
+                self.runtime.search("refresh_index", {}, cancel)
+            spawn.assert_not_called()
+        with patch.object(self.runtime, "ensure_server") as start:
+            with self.assertRaisesRegex(ValueError, "Refresh cancelled"):
+                self.runtime.search("refresh_index", {}, cancel)
+            start.assert_not_called()
+
+    def test_refresh_validates_scope_and_timeout_before_launch(self):
+        with patch.object(self.runtime, "ensure_server") as start:
+            for args in ({"path": "../outside"}, {"freshness": "current"}, {"timeout_secs": 0},
+                         {"timeout_secs": 301}, {"timeout_secs": True}, {"timeout_secs": "30"}):
+                with self.assertRaises(ValueError):
+                    self.runtime.search("refresh_index", args)
+            start.assert_not_called()
+
+    def test_refresh_rejects_cli_errors_and_invalid_receipts(self):
+        fake = self.directory / "refresh-reply"
+        valid = {"status": "refreshed", "root": str(self.root), "elapsed_ms": 1, "num_files": 4}
+        for code, reply in [(2, valid), (0, {"status": "reloaded"}), (0, {**valid, "root": "/wrong"}),
+                            (0, {**valid, "num_files": True}), (0, {**valid, "elapsed_ms": -1}), (0, "malformed")]:
+            text = json.dumps(reply) if isinstance(reply, dict) else reply
+            fake.write_text(f"#!{sys.executable}\nimport sys\nassert sys.argv[1] == 'refresh'\nprint({text!r})\nsys.exit({code})\n")
+            fake.chmod(0o755)
+            with patch.object(self.runtime, "binary", str(fake)), patch.object(self.runtime, "ensure_server", return_value=True):
+                with self.assertRaisesRegex(ValueError, "[Rr]efresh"):
+                    self.runtime.search("refresh_index", {})
+
+    def test_refresh_timeout_and_cancellation_reap_cli_children(self):
+        fake = self.directory / "slow-refresh"
+        pid_file = self.directory / "refresh.pid"
+        fake.write_text(f"#!{sys.executable}\nimport os, time\nfrom pathlib import Path\nPath({str(pid_file)!r}).write_text(str(os.getpid()))\ntime.sleep(60)\n")
+        fake.chmod(0o755)
+        for cancelled in (True, False):
+            pid_file.unlink(missing_ok=True)
+            cancel = threading.Event()
+            with patch.object(self.runtime, "binary", str(fake)), patch.object(self.runtime, "ensure_server", return_value=True), concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(self.runtime.search, "refresh_index", {"timeout_secs": 1}, cancel)
+                deadline = time.monotonic() + 3
+                while not pid_file.exists():
+                    self.assertLess(time.monotonic(), deadline)
+                    time.sleep(0.01)
+                if cancelled:
+                    cancel.set()
+                with self.assertRaisesRegex(ValueError, "cancelled" if cancelled else "timed out"):
+                    future.result(timeout=3)
+            with self.assertRaises(ProcessLookupError):
+                os.kill(int(pid_file.read_text()), 0)
+
     def test_count_normalizes_paths_with_colons_and_newlines(self):
         (self.root / "odd:name\nfile.txt").write_text("needle needle\nneedle\n")
         result = self.search(pattern="needle", output_mode="count")
@@ -506,7 +611,9 @@ class RuntimeTests(unittest.TestCase):
         fake.chmod(0o755)
         config = self.directory / "slow-config.json"
         config.write_text(json.dumps({**self.config, "binary": str(fake)}))
-        for shutdown in (False, True):
+        self.assertTrue(self.runtime.ensure_server(wait=3))
+        for tool, shutdown in [("search_code", False), ("search_code", True),
+                               ("refresh_index", False), ("refresh_index", True)]:
             pid_file.unlink(missing_ok=True)
             proc = subprocess.Popen([sys.executable, str(Path(runtime.__file__)), "mcp", "--config", str(config)],
                                     stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -522,7 +629,7 @@ class RuntimeTests(unittest.TestCase):
                 send({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-11-25"}})
                 self.assertIn("result", receive())
                 send({"jsonrpc": "2.0", "method": "notifications/initialized"})
-                send({"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "search_code", "arguments": {"pattern": "needle", "freshness": "current"}}})
+                send({"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": tool, "arguments": {"pattern": "needle", "freshness": "current"} if tool == "search_code" else {"timeout_secs": 30}}})
                 deadline = time.monotonic() + 5
                 while not pid_file.exists() and time.monotonic() < deadline:
                     time.sleep(0.02)

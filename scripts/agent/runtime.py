@@ -8,6 +8,7 @@ import fcntl
 import fnmatch
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import selectors
@@ -18,10 +19,11 @@ import sys
 import threading
 import time
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 INSTRUCTIONS = (
     "Prefer search_code for repository content searches and find_files for file lookup. "
-    "Use freshness=current to verify recent edits. Empty results are not errors. "
+    "After edits, refresh_index waits for searchable publication before later indexed queries. "
+    "Use freshness=current for a direct filesystem scan. Empty results are not errors. "
     "Use shell search only if these tools are unavailable or cannot express the query. "
     "Indexed queries may lag filesystem changes. Narrow truncated queries by path or file type."
 )
@@ -54,6 +56,14 @@ TOOLS = [
             **COMMON, "pattern": {"type": "string", "default": "*"},
         }},
         "annotations": {"readOnlyHint": True, "openWorldHint": False},
+    },
+    {
+        "name": "refresh_index",
+        "description": "Wait for completed edits to become searchable in the entire configured repository. Rereads eligible content and publishes the derived index. Concurrent edits may or may not appear; timeout or cancellation does not acknowledge freshness and server work may continue.",
+        "inputSchema": {"type": "object", "additionalProperties": False, "properties": {
+            "timeout_secs": {"type": "integer", "minimum": 1, "maximum": 300, "default": 30},
+        }},
+        "annotations": {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": True, "openWorldHint": False},
     },
 ]
 
@@ -111,6 +121,24 @@ def validate(name: str, args: dict) -> dict:
             raise ValueError(f"Out of range: {key}")
         result[key] = value
     return result
+
+
+def reap_process(proc):
+    try:
+        if proc.poll() is None:
+            try:
+                os.killpg(proc.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            except PermissionError:
+                # macOS can return EPERM for an exited process group.
+                # Ignore it only if our child really finished in the race.
+                if proc.poll() is None:
+                    raise
+        proc.wait()
+    finally:
+        proc.stdout.close()
+        proc.stderr.close()
 
 
 class Runtime:
@@ -186,6 +214,72 @@ class Runtime:
                 time.sleep(0.05)
         return False
 
+    def refresh(self, args, cancel):
+        deadline = time.monotonic() + args["timeout_secs"]
+
+        def check_wait():
+            if cancel.is_set():
+                raise ValueError("Refresh cancelled; server work may continue; freshness was not acknowledged")
+            if time.monotonic() >= deadline:
+                raise ValueError("Refresh timed out; server work may continue; freshness was not acknowledged")
+
+        # The launcher may still hold start.lock before discovery is published.
+        # Keep waiting within this call's budget; readiness alone is no receipt.
+        check_wait()
+        ready = self.ensure_server(wait=0)
+        while not ready:
+            check_wait()
+            cancel.wait(min(0.05, max(0, deadline - time.monotonic())))
+            check_wait()
+            ready = self.status() is not None
+        check_wait()
+        cmd = [self.binary, "refresh", str(self.root), "--index-path", str(self.index),
+               "--json", "--timeout-secs", str(max(1, math.ceil(deadline - time.monotonic())))]
+        # CLI seconds round up; this adapter enforces the original total budget,
+        # including startup and cancellation, while draining bounded output.
+        check_wait()
+        proc = subprocess.Popen(cmd, cwd=self.root, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                start_new_session=True)
+        output, warnings = bytearray(), bytearray()
+        try:
+            with selectors.DefaultSelector() as selector:
+                selector.register(proc.stdout, selectors.EVENT_READ, "out")
+                selector.register(proc.stderr, selectors.EVENT_READ, "err")
+                while selector.get_map():
+                    check_wait()
+                    for key, _ in selector.select(min(0.1, max(0, deadline - time.monotonic()))):
+                        chunk = os.read(key.fileobj.fileno(), 8192)
+                        if not chunk:
+                            selector.unregister(key.fileobj)
+                        elif key.data == "err":
+                            warnings.extend(chunk[:max(0, 4000 - len(warnings))])
+                        else:
+                            output.extend(chunk)
+                            if len(output) > 65536:
+                                raise ValueError("Refresh receipt exceeded 64 KiB")
+            # A child can close its pipes without exiting. Keep cancellation
+            # responsive until it actually terminates as well.
+            while proc.poll() is None:
+                check_wait()
+                cancel.wait(min(0.05, max(0, deadline - time.monotonic())))
+            check_wait()
+            if proc.returncode != 0:
+                raise ValueError(warnings.decode(errors="replace") or f"Refresh failed with exit {proc.returncode}")
+            try:
+                receipt = json.loads(output)
+            except (ValueError, UnicodeError) as exc:
+                raise ValueError("Invalid refresh receipt") from exc
+            if (not isinstance(receipt, dict) or receipt.get("status") != "refreshed"
+                    or receipt.get("root") != str(self.root)
+                    or type(receipt.get("elapsed_ms")) is not int or receipt["elapsed_ms"] < 0
+                    or type(receipt.get("num_files")) is not int or receipt["num_files"] < 0):
+                raise ValueError("Invalid refresh receipt for this repository")
+        finally:
+            reap_process(proc)
+        payload = {**receipt, "refresh_mode": "content_reconcile", "warnings": warnings.decode(errors="replace")}
+        return {"content": [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}],
+                "structuredContent": payload, "isError": False}
+
     def command(self, name, args):
         path = (self.root / args["path"]).resolve(strict=True)
         if not path.is_relative_to(self.root):
@@ -231,6 +325,8 @@ class Runtime:
     def search(self, name, supplied, cancel=None):
         args = validate(name, supplied)
         cancel = cancel or threading.Event()
+        if name == "refresh_index":
+            return self.refresh(args, cancel)
         if cancel.is_set():
             raise ValueError("Search cancelled")
         cmd, mode = self.command(name, args)
@@ -316,21 +412,7 @@ class Runtime:
                 if code not in (0, 1):
                     raise ValueError(warnings.decode(errors="replace") or f"zgrep exited with {code}")
         finally:
-            try:
-                if proc.poll() is None:
-                    try:
-                        os.killpg(proc.pid, signal.SIGKILL)
-                    except ProcessLookupError:
-                        pass
-                    except PermissionError:
-                        # macOS can return EPERM for an exited process group.
-                        # Ignore it only if our child really finished in the race.
-                        if proc.poll() is None:
-                            raise
-                proc.wait()
-            finally:
-                proc.stdout.close()
-                proc.stderr.close()
+            reap_process(proc)
         payload = {"root": str(self.root), "results": records, "truncated": truncated,
                    "search_mode": mode, "warnings": warnings.decode(errors="replace")}
         if truncated:

@@ -30,6 +30,9 @@ subdirectories resolve to the worktree root; outside Git the supplied/current
 directory is the root. User installations rely on the MCP host launching tools
 in the session's working directory. A project installation has a fixed root.
 
+The updated adapter requires a binary with `refresh --timeout-secs` support;
+older binaries must be rebuilt or replaced. The installer checks this capability.
+
 The installer uses `--binary`, an executable on `PATH`, or a private copy of the
 checkout's release binary, in that order. If none is available it builds the
 checkout using `cargo build --release --locked -p zgrep-cli`; Cargo must be
@@ -66,7 +69,8 @@ hooks. See the [MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?sur
 and [hook documentation](https://learn.chatgpt.com/docs/hooks).
 
 **pi:** `.pi/extensions/zgrep.ts`, or `~/.pi/agent/extensions/zgrep.ts` for user
-scope. This extension registers `zgrep_search_code` and `zgrep_find_files`,
+scope. This extension registers `zgrep_search_code`, `zgrep_find_files` and
+`zgrep_refresh_index`,
 connects them to the same Python MCP server, prewarms on `session_start`, and
 adds concise search guidance. It uses pi's extension API, not a fictional
 `.pi/mcp.json` configuration. No built-in tools are overridden. Restart pi or
@@ -111,6 +115,32 @@ The response identifies truncation and the mode `current_scan` or
 used: CLI flags and incomplete coverage may trigger scanning. Stdout carries
 only MCP JSON-RPC messages.
 
+## Refresh after edits
+
+`refresh_index` waits for the entire configured repository's eligible content to
+be reread and published as searchable. Call it after a batch of completed edits,
+wait for success, then issue indexed searches. It accepts `timeout_secs` from
+1 to 300 (default 30), including service startup and waiting for the CLI receipt.
+It uses the server's configured ignore, exclusion and size rules; it does not
+accept an arbitrary root or a subtree override. A receipt contains `status:
+"refreshed"`, the repository root, duration, content-file count and
+`refresh_mode: "content_reconcile"`. Filename-only assets are also refreshed but
+are not included in that count.
+
+This is a full content reconciliation and can be expensive on large trees.
+`freshness: "current"` still performs a direct scan for a single search. A
+refresh covers completed edits whose contents and eligibility remain stable
+through completion; concurrent mutations may or may not appear. It is not an
+atomic filesystem snapshot or a promise about later edits.
+
+Startup failure, an old server, an invalid receipt, timeout and cancellation
+are errors. Refresh never falls back to a search or treats service readiness as
+success. Cancellation and timeout terminate and reap the waiting CLI; queued or
+running work in the shared service may still finish. Retry before relying on
+indexed freshness. The pi bridge gives this tool its requested wait plus ten
+seconds for adapter overhead; MCP queueing can consume that margin. Its abort
+signal still cancels promptly.
+
 ## Shared service and files
 
 Services and indexes are keyed by canonical repository path and indexing flags:
@@ -142,8 +172,8 @@ resumes the index, and queries can scan during startup. There is no separate
 locks and zgrep's own single-instance lock prevent competing servers. If
 startup fails, an indexed request uses a current filesystem scan rather than
 deliberately querying an abandoned disk index. If a server dies during a query,
-the existing CLI fallback behavior still applies; use `current` when freshness
-is required.
+the existing CLI search fallback behavior still applies. The explicit refresh
+tool always requires a valid server receipt; `current` remains a direct scan.
 
 Servers intentionally survive agent sessions. There is no idle eviction in
 this version; logs are retained without automatic rotation. Session shutdown
