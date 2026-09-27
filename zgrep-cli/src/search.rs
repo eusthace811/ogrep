@@ -914,6 +914,10 @@ fn search_via_server(
     // and parsing 21k arrays that are then dropped.
     let detail = opts.wants_match_detail();
     let positions = opts.wants_position_detail();
+    // A plain `-l` listing needs only paths: ask for them as one string array,
+    // which is far cheaper to build, send and parse than an object per file.
+    let file_list =
+        opts.files_only && !opts.quiet && !opts.stats && !opts.json && opts.sort.is_none();
 
     let mut request = serde_json::json!({
         "jsonrpc": "2.0",
@@ -925,6 +929,7 @@ fn search_via_server(
             "fixed_string": opts.fixed_string,
             "files_only": opts.files_only,
             "compact_files": opts.files_only,
+            "file_list": file_list,
             "word_boundary": opts.word_boundary,
             "max_count": opts.match_options().max_count,
             "glob": opts.glob,  // sent as JSON array
@@ -972,6 +977,11 @@ fn search_via_server(
     let mut reader = BufReader::new(&stream);
     let mut line = String::new();
     reader.read_line(&mut line)?;
+
+    if file_list && let Some(had_matches) = write_file_list_reply(&line, root, scope, opts, writer)? {
+        writer.flush()?;
+        return Ok(had_matches);
+    }
 
     let response: serde_json::Value = serde_json::from_str(&line)?;
 
@@ -1259,6 +1269,83 @@ fn search_via_server(
 
     writer.flush()?;
     Ok(had_matches)
+}
+
+#[derive(serde::Deserialize)]
+struct FileListEnvelope<'a> {
+    #[serde(borrow, default)]
+    result: Option<FileListResult<'a>>,
+    #[serde(default)]
+    error: Option<serde_json::Value>,
+}
+
+#[derive(serde::Deserialize)]
+struct FileListResult<'a> {
+    #[serde(borrow, default)]
+    files: Option<Vec<std::borrow::Cow<'a, str>>>,
+    #[serde(default)]
+    matches: Vec<serde_json::Value>,
+    #[serde(default)]
+    hidden_complete: Option<bool>,
+}
+
+/// Print a `file_list` reply, or `None` when the server predates it and sent
+/// ordinary rows instead.
+///
+/// The reply lists every matching file in candidate order, binary ones
+/// included, with `matches` carrying only the binary markers, so the same
+/// visibility rule as the row path applies: traversal hides binary files.
+fn write_file_list_reply(
+    line: &str,
+    root: &Path,
+    scope: &IndexScope,
+    opts: &SearchOptions,
+    writer: &mut OutputWriter,
+) -> Result<Option<bool>> {
+    let envelope: FileListEnvelope<'_> = serde_json::from_str(line)?;
+    if let Some(error) = envelope.error {
+        return Err(server_error(&error));
+    }
+    let result = envelope
+        .result
+        .ok_or_else(|| anyhow::anyhow!("no result in response"))?;
+    let Some(files) = result.files else {
+        return Ok(None);
+    };
+    if result.hidden_complete != Some(true) {
+        anyhow::bail!("server does not support complete hidden-file coverage");
+    }
+    let hidden_binary: std::collections::HashSet<&str> =
+        if opts.binary || matches!(scope, IndexScope::File(_)) {
+            Default::default()
+        } else {
+            result
+                .matches
+                .iter()
+                .filter(|m| m.get("type").and_then(|t| t.as_str()) == Some("binary"))
+                .filter_map(|m| m.get("file").and_then(|f| f.as_str()))
+                .collect()
+        };
+    let whole = matches!(scope, IndexScope::Whole) && opts.max_depth.is_none();
+    let mut had_matches = false;
+    for file in &files {
+        if hidden_binary.contains(file.as_ref()) {
+            continue;
+        }
+        if whole {
+            writer.write_file(file)?;
+        } else {
+            let Some(rel) = scope.relativize(file, root) else {
+                continue;
+            };
+            if !within_max_depth(&rel, opts) {
+                continue;
+            }
+            writer.write_file(&rel)?;
+        }
+        had_matches = true;
+    }
+    Ok(Some(had_matches))
 }
 
 fn search_local_index(

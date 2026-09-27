@@ -738,6 +738,9 @@ struct SearchOpts {
     files_only: bool,
     /// Opt-in path-only match rows for file listings. Absent for legacy clients.
     compact_files: bool,
+    /// Opt-in `files` string array for `-l` listings, in candidate order, with
+    /// `matches` carrying only binary markers. Implies `compact_files`.
+    file_list: bool,
     invert_match: bool,
     only_matching: bool,
     max_count: Option<usize>,
@@ -1803,6 +1806,15 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
         query::build_relaxed_multi_pattern_plan(&all_patterns, case_insensitive)
     };
 
+    let file_list = files_only
+        && !params
+            .get("stats")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false)
+        && params
+            .get("file_list")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
     Ok(SearchRequest {
         pattern: pattern.to_string(),
         case_insensitive,
@@ -1817,7 +1829,9 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
             compact_files: params
                 .get("compact_files")
                 .and_then(|v| v.as_bool())
-                .unwrap_or(false),
+                .unwrap_or(false)
+                || file_list,
+            file_list,
             invert_match,
             only_matching,
             max_count,
@@ -2050,7 +2064,11 @@ fn handle_search(
     };
     let mut matches = Vec::new();
     let mut file_stats = Vec::new();
-    for file in per_file {
+    let mut listed: Vec<&str> = Vec::new();
+    for (file, (rel_path, _)) in per_file.into_iter().zip(&candidate_contents) {
+        if file.listed {
+            listed.push(rel_path);
+        }
         matches.extend(file.rows);
         file_stats.extend(file.stats);
     }
@@ -2072,28 +2090,56 @@ fn handle_search(
         search_ms,
     );
 
-    let mut result = serde_json::json!({
-        "matches": matches,
-        // The number of rows in `matches`, which is not a ripgrep-style match
-        // count: it spans the whole indexed tree (the client applies any
-        // subdirectory argument to the reply) and includes context rows.
-        // `file_stats`, when requested, carries the original match totals.
-        "num_matches": matches.len(),
-        "elapsed_ms": elapsed_ms,
-        "hidden_complete": true,
-    });
+    // Serialize the rows straight into the reply. Wrapping them in `json!`
+    // first deep-copies every row into a new tree, twice with the JSON-RPC
+    // envelope, which cost more than the search itself on broad listings.
+    let mut rest = serde_json::Map::new();
+    // The number of rows in `matches` (plus `files`), which is not a
+    // ripgrep-style match count: it spans the whole indexed tree (the client
+    // applies any subdirectory argument to the reply) and includes context
+    // rows. `file_stats`, when requested, carries the original match totals.
+    rest.insert("num_matches".into(), (matches.len() + listed.len()).into());
+    rest.insert("elapsed_ms".into(), elapsed_ms.into());
+    rest.insert("hidden_complete".into(), true.into());
     if let Some(total_files) = total_files {
-        result["file_stats"] = serde_json::json!(file_stats);
-        result["index_stats"] = serde_json::json!({
-            "query_plan": crate::search::plan_summary(&plan),
-            "raw_candidates": raw_candidate_count,
-            "candidates": filtered_candidate_count,
-            "total_files": total_files,
-            "work": query_work,
-        });
+        rest.insert("file_stats".into(), serde_json::json!(file_stats));
+        rest.insert(
+            "index_stats".into(),
+            serde_json::json!({
+                "query_plan": crate::search::plan_summary(&plan),
+                "raw_candidates": raw_candidate_count,
+                "candidates": filtered_candidate_count,
+                "total_files": total_files,
+                "work": query_work,
+            }),
+        );
     }
-
-    json_rpc_result(id, result)
+    let mut out = Vec::with_capacity(
+        256 + listed.iter().map(|p| p.len() + 3).sum::<usize>() + matches.len() * 64,
+    );
+    out.extend_from_slice(b"{\"jsonrpc\":\"2.0\",\"id\":");
+    let written = serde_json::to_writer(&mut out, &id.unwrap_or(serde_json::Value::Null))
+        .and_then(|()| {
+            out.extend_from_slice(b",\"result\":{\"matches\":");
+            serde_json::to_writer(&mut out, &matches)
+        })
+        .and_then(|()| {
+            if opts.file_list {
+                out.extend_from_slice(b",\"files\":");
+                serde_json::to_writer(&mut out, &listed)?;
+            }
+            out.push(b',');
+            // `rest` always has fields: splice them in without its own braces.
+            let tail = serde_json::to_vec(&rest)?;
+            out.extend_from_slice(&tail[1..]);
+            out.push(b'}');
+            Ok(())
+        });
+    if let Err(e) = written {
+        return json_rpc_error(None, -32603, &format!("failed to encode reply: {e}"));
+    }
+    // SAFETY: serde_json emits UTF-8, as do the ASCII literals around it.
+    unsafe { String::from_utf8_unchecked(out) }
 }
 
 fn update_content_cache(
@@ -2141,6 +2187,8 @@ fn invalidate_cached_paths_locked<'a>(
 
 #[derive(Default)]
 struct FileSearchResult {
+    /// `file_list` replies: this file belongs in the `files` array.
+    listed: bool,
     rows: Vec<serde_json::Value>,
     stats: Option<crate::search::FileMatchStats>,
 }
@@ -2179,6 +2227,7 @@ fn search_file_matches(
         return Ok(FileSearchResult::default());
     }
     let mut result = FileSearchResult {
+        listed: false,
         rows: Vec::new(),
         stats: opts.stats.then(|| {
             let (matches, matched_lines) = found.match_totals();
@@ -2205,9 +2254,15 @@ fn search_file_matches(
         // `--json` reports binary matches as ordinary match events carrying a
         // `binary_offset`, so those clients ask for the lines as well.
         result.rows.push(marker);
+        result.listed = opts.file_list;
         if !opts.binary_lines || (opts.files_only && (opts.stats || opts.compact_files)) {
             return Ok(result);
         }
+    }
+
+    if opts.file_list {
+        result.listed = true;
+        return Ok(result);
     }
 
     if opts.files_only && (opts.stats || opts.compact_files) {
