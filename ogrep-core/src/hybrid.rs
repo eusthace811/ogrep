@@ -53,7 +53,11 @@ pub struct HybridIndex {
 
 /// The on-disk path of `rel`, an index-relative path (always `/`-separated).
 pub fn join_indexed_path(root: &Path, rel: &str) -> PathBuf {
-    root.join(rel.replace('/', std::path::MAIN_SEPARATOR_STR))
+    if std::path::MAIN_SEPARATOR == '/' {
+        root.join(rel)
+    } else {
+        root.join(rel.replace('/', std::path::MAIN_SEPARATOR_STR))
+    }
 }
 
 impl HybridIndex {
@@ -345,10 +349,8 @@ impl HybridIndex {
 
     /// Full path on disk for a file ID.
     pub fn full_path(&self, file_id: u32) -> Option<PathBuf> {
-        self.file_path(file_id).map(|rel| {
-            self.root
-                .join(rel.replace('/', std::path::MAIN_SEPARATOR_STR))
-        })
+        self.file_path(file_id)
+            .map(|rel| join_indexed_path(&self.root, &rel))
     }
 
     fn live_has_path(&self, path: &str) -> bool {

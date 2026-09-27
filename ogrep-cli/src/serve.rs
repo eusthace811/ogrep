@@ -2118,12 +2118,6 @@ fn handle_search(
                 candidate_info.iter().map(peek).collect()
             }
         }; // read lock released
-        let hit_keys: Vec<String> = slots
-            .iter()
-            .zip(&candidate_info)
-            .filter(|(slot, _)| slot.is_some())
-            .map(|(_, (rel_path, _))| rel_path.clone())
-            .collect();
 
         // Phase 2: read cache misses from disk (no lock held). Lossy, like the
         // local path: refusing invalid UTF-8 would make UTF-16 and Latin-1
@@ -2142,10 +2136,16 @@ fn handle_search(
         };
 
         // Phase 3: single write-lock to promote hits and insert misses
+        let hit_keys: Vec<&str> = slots
+            .iter()
+            .zip(&candidate_info)
+            .filter(|(slot, _)| slot.is_some())
+            .map(|(_, (rel_path, _))| rel_path.as_str())
+            .collect();
         if !hit_keys.is_empty() || !disk_results.is_empty() {
-            let inserted: Vec<(String, Arc<DecodedFile>)> = disk_results
+            let inserted: Vec<(&str, &Arc<DecodedFile>)> = disk_results
                 .iter()
-                .map(|(i, content)| (candidate_info[*i].0.clone(), Arc::clone(content)))
+                .map(|(i, content)| (candidate_info[*i].0.as_str(), content))
                 .collect();
             update_content_cache(state, cache_generation, &hit_keys, &inserted);
         }
@@ -2269,8 +2269,8 @@ const PARALLEL_SERVER_MIN: usize = 512;
 fn update_content_cache(
     state: &ServerState,
     expected_generation: u64,
-    hit_keys: &[String],
-    disk_results: &[(String, Arc<DecodedFile>)],
+    hit_keys: &[&str],
+    disk_results: &[(&str, &Arc<DecodedFile>)],
 ) {
     let mut cache = state.cache.write().unwrap();
     // Index mutations invalidate cached paths and advance this generation under
@@ -2282,9 +2282,9 @@ fn update_content_cache(
     for key in hit_keys {
         cache.touch(key);
     }
-    for (rel_path, content) in disk_results {
+    for &(rel_path, content) in disk_results {
         if cache.peek(rel_path).is_none() {
-            cache.put(rel_path.clone(), Arc::clone(content));
+            cache.put(rel_path.to_owned(), Arc::clone(content));
         }
     }
 }
@@ -2344,12 +2344,13 @@ fn search_file_matches(
     };
 
     // `--with`/`--without` decide which files are searched at all.
+    let index = crate::matching::LineIndex::new(content);
     if let Some(filter) = file_filter
-        && !filter.passes(content)?
+        && !filter.passes(&index)?
     {
         return Ok(FileSearchResult::default());
     }
-    let found = FileMatches::find(content, matcher, &match_opts)?;
+    let found = FileMatches::find(index, matcher, &match_opts)?;
     if found.is_empty() {
         return Ok(FileSearchResult::default());
     }
@@ -12105,13 +12106,11 @@ mod tests {
         let root = std::fs::canonicalize(tmp.path()).unwrap();
         let state = test_server_state(&root, &root.join(".ogrep"));
         let before_reload = state.cache_generation.load(Ordering::SeqCst);
-        let stale = vec![(
-            "stale.rs".to_string(),
-            Arc::new(DecodedFile::new(
-                b"old content".to_vec(),
-                ogrep_core::encoding::EncodingMode::Auto,
-            )),
-        )];
+        let old = Arc::new(DecodedFile::new(
+            b"old content".to_vec(),
+            ogrep_core::encoding::EncodingMode::Auto,
+        ));
+        let stale = [("stale.rs", &old)];
 
         let _index = state.index.read().unwrap();
         invalidate_cached_paths_locked(&state, std::iter::once("stale.rs"));

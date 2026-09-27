@@ -258,10 +258,10 @@ pub fn require_patterns(
     if required.is_empty() {
         return plan;
     }
-    let mut parts: Vec<QueryPlan> = Some(plan)
-        .filter(|p| !p.is_match_all())
-        .into_iter()
-        .collect();
+    let mut parts = Vec::with_capacity(required.len() + 1);
+    if !plan.is_match_all() {
+        parts.push(plan);
+    }
     for pattern in required {
         let one = std::slice::from_ref(pattern);
         let part = build_multi_pattern_plan(one, fixed_string, case_insensitive)

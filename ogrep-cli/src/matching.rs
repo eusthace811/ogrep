@@ -61,6 +61,11 @@ impl<'a> LineIndex<'a> {
         })
     }
 
+    /// The text this index describes.
+    pub fn content(&self) -> &'a str {
+        self.content
+    }
+
     pub fn line_count(&self) -> usize {
         self.starts().len()
     }
@@ -515,10 +520,11 @@ impl FileFilter {
         }))
     }
 
-    /// Whether `content` satisfies every condition.
-    pub fn passes(&self, content: &str) -> Result<bool> {
-        // One line table, built only if a condition needs it, for them all.
-        let index = LineIndex::new(content);
+    /// Whether the text `index` describes satisfies every condition. The
+    /// caller hands the same index to the main search afterwards, so the line
+    /// table is built at most once per file, and only if something needs it.
+    pub fn passes(&self, index: &LineIndex<'_>) -> Result<bool> {
+        let content = index.content();
         let probe = MatchOptions {
             max_count: Some(1),
             ..Default::default()
@@ -527,7 +533,7 @@ impl FileFilter {
             if self.multiline {
                 Ok(m.find_first_span(content)?.is_some())
             } else {
-                Ok(!collect_hits(content, &index, m, &probe)?.is_empty())
+                Ok(!collect_hits(content, index, m, &probe)?.is_empty())
             }
         };
         for m in &self.with {
@@ -743,9 +749,15 @@ pub struct FileMatches<'a> {
 }
 
 impl<'a> FileMatches<'a> {
-    pub fn find(content: &'a str, matcher: &SearchMatcher, opts: &MatchOptions) -> Result<Self> {
+    /// Match the text `index` describes. The caller builds the index, so a
+    /// file condition checked first can share it.
+    pub fn find(
+        index: LineIndex<'a>,
+        matcher: &SearchMatcher,
+        opts: &MatchOptions,
+    ) -> Result<Self> {
         let _match_span = crate::profile::span(crate::profile::Phase::Match);
-        let index = LineIndex::new(content);
+        let content = index.content();
         let (hits, match_totals) = if opts.max_count == Some(0) {
             (Vec::new(), (0, 0))
         } else if opts.multiline && !opts.invert_match {
@@ -1162,7 +1174,7 @@ mod tests {
             SearchMatcher::Standard(regex::Regex::new(r"hello\nworld").unwrap(), Prescan::Direct);
         for vimgrep in [false, true] {
             let found = FileMatches::find(
-                "hello\nworld\n",
+                LineIndex::new("hello\nworld\n"),
                 &matcher,
                 &MatchOptions {
                     multiline: true,

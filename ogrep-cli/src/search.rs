@@ -387,16 +387,6 @@ impl SearchOptions {
         )
     }
 
-    /// Narrow `plan` by the trigrams every `--with` pattern requires. Sound in
-    /// every mode, because a file failing `--with` produces no output at all,
-    /// except under a non-default `--encoding`, whose text the index never saw.
-    fn plan_with_file_filters(&self, plan: QueryPlan, ci: bool) -> QueryPlan {
-        if self.encoding.may_differ_from_index() {
-            return QueryPlan::MatchAll;
-        }
-        query::require_patterns(plan, &self.with_patterns, self.fixed_string, ci)
-    }
-
     /// Pattern-compilation settings, shared with the server path.
     pub fn matcher_config(&self, ci: bool) -> crate::matching::MatcherConfig {
         crate::matching::MatcherConfig {
@@ -796,7 +786,8 @@ fn list_files_via_server(
     let result = response
         .get("result")
         .ok_or_else(|| anyhow::anyhow!("server response did not contain a result"))?;
-    require_server_support_in(opts, result)?;
+    // `--files` never carries content conditions (they are rejected up front).
+    require_hidden_coverage(result.get("hidden_complete").and_then(|v| v.as_bool()))?;
     result
         .get("files")
         .and_then(|files| files.as_array())
@@ -810,19 +801,24 @@ fn list_files_via_server(
         .collect()
 }
 
-/// An older server ignores `with`/`without` and would answer as if they were
-/// absent; refuse its reply so the caller falls back to the local index.
-/// Refuse a reply the server could not answer completely. Older servers
-/// ignore request fields they do not know, so without these explicit flags
-/// they would silently skip hidden files or `--with`/`--without`.
+/// Refuse a reply that does not cover hidden files. Older servers ignore
+/// request fields they do not know, so without this explicit flag they would
+/// silently skip what `--hidden` asked for.
+fn require_hidden_coverage(hidden_complete: Option<bool>) -> Result<()> {
+    if hidden_complete != Some(true) {
+        anyhow::bail!("server does not support complete hidden-file coverage");
+    }
+    Ok(())
+}
+
+/// Refuse a search reply the server could not answer completely: hidden-file
+/// coverage, and `--with`/`--without`, which an older server would ignore.
 fn require_server_support(
     opts: &SearchOptions,
     hidden_complete: Option<bool>,
     file_filters: Option<bool>,
 ) -> Result<()> {
-    if hidden_complete != Some(true) {
-        anyhow::bail!("server does not support complete hidden-file coverage");
-    }
+    require_hidden_coverage(hidden_complete)?;
     if (!opts.with_patterns.is_empty() || !opts.without_patterns.is_empty())
         && file_filters != Some(true)
     {
@@ -1496,10 +1492,13 @@ fn search_local_index(
     let matcher = opts.matcher(ci)?;
     let filter = opts.file_filter(ci)?;
 
+    // A non-default `--encoding` re-decodes files into text the index never
+    // saw, so no trigram may narrow it; the caller scans those directly.
+    debug_assert!(!opts.encoding.may_differ_from_index());
+
     // Narrow candidates using every pattern, not just the primary one.
-    // `--passthru` must visit files without any pattern trigrams, while a
-    // non-default `--encoding` re-decodes files into text the index never saw,
-    // so neither can use the trigram plan.
+    // `--passthru` must visit files without any pattern trigrams, so it cannot
+    // use the trigram plan.
     //
     // A PCRE-style pattern is not parseable by `regex-syntax`, but relaxing it
     // (dropping lookarounds and the like) yields one that is, and that matches a
@@ -1510,7 +1509,6 @@ fn search_local_index(
     // wrong filter. Same for `--files-without-match` and `--include-zero`, which
     // both have to report files the pattern excluded. `--with` still narrows.
     let plan = if opts.effective_passthru()
-        || opts.encoding.may_differ_from_index()
         || opts.files_without_match
         || opts.invert_match
         || opts.include_zero
@@ -1522,7 +1520,9 @@ fn search_local_index(
     } else {
         query::build_relaxed_multi_pattern_plan(&opts.all_patterns()?, ci)
     };
-    let plan = opts.plan_with_file_filters(plan, ci);
+    // A file failing `--with` produces no output in any mode, so every `--with`
+    // pattern's trigrams narrow the candidates too.
+    let plan = query::require_patterns(plan, &opts.with_patterns, opts.fixed_string, ci);
     drop(compile_span);
 
     let mut query_work = query::QueryWork::default();
@@ -1714,12 +1714,13 @@ fn verify_candidates_parallel(
         if !visible(&read) {
             return Ok(Verified::Nothing);
         }
+        let index = crate::matching::LineIndex::new(read.text.as_str());
         if let Some(filter) = filter
-            && !filter.passes(read.text.as_str())?
+            && !filter.passes(&index)?
         {
             return Ok(Verified::Nothing);
         }
-        let found = crate::matching::FileMatches::find(read.text.as_str(), matcher, &probe)?;
+        let found = crate::matching::FileMatches::find(index, matcher, &probe)?;
         Ok(if found.is_empty() {
             Verified::Nothing
         } else if decides {
@@ -1802,14 +1803,14 @@ impl IndexScope {
     }
 
     fn full_path(&self, index_root: &Path, rel: &str) -> PathBuf {
-        let indexed = match self {
-            Self::Whole => rel.to_string(),
-            Self::Subtree(prefix) => format!("{prefix}{rel}"),
+        use ogrep_core::hybrid::join_indexed_path;
+        match self {
+            Self::Whole => join_indexed_path(index_root, rel),
+            Self::Subtree(prefix) => join_indexed_path(index_root, &format!("{prefix}{rel}")),
             // `rel` is the path as the user typed it, so go back to the one the
             // index stores.
-            Self::File(f) => f.clone(),
-        };
-        index_root.join(indexed.replace('/', std::path::MAIN_SEPARATOR_STR))
+            Self::File(f) => join_indexed_path(index_root, f),
+        }
     }
 }
 
@@ -2273,8 +2274,9 @@ fn search_decoded_file(
     // `--with`/`--without` decide which files are searched at all, so a file
     // that fails them is absent from every listing, `--files-without-match`
     // included.
+    let index = crate::matching::LineIndex::new(content);
     if let Some(filter) = filter
-        && !filter.passes(content)?
+        && !filter.passes(&index)?
     {
         return Ok(FileOutcome::Skipped);
     }
@@ -2287,7 +2289,7 @@ fn search_decoded_file(
     );
 
     let match_opts = opts.match_options();
-    let found = crate::matching::FileMatches::find(content, matcher, &match_opts)?;
+    let found = crate::matching::FileMatches::find(index, matcher, &match_opts)?;
     if opts.stats {
         let (matches, matched_lines) = found.match_totals();
         writer.note_matches(matches, matched_lines);
