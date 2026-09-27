@@ -497,14 +497,23 @@ impl std::ops::Deref for FileBytes {
 /// Falls back to an owned read whenever mapping is unavailable. Ordinary reads
 /// share the batch budget; an unlimited oversized fallback claims it
 /// exclusively so at most one such allocation is in flight.
-/// The identity an index read of `path` would record right now, or `None`
-/// when the file is binary, unreadable, above `max_size`, lacks precise
-/// metadata, or changed while it was being read.
+/// What an index read of a file would find right now.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CurrentContent {
+    /// Indexable text with this identity.
+    Text(meta::ContentId),
+    /// Content the index classifies as binary and holds no postings for.
+    Binary,
+}
+
+/// What an index read of `path` would record right now, or `None` when the
+/// file is unreadable, above `max_size`, lacks precise metadata, or changed
+/// while it was being read.
 ///
 /// A refresh compares this against the stored identity to skip rebuilding
 /// postings for content that is byte-for-byte what the index already holds.
 /// `None` never skips anything: the caller must then reindex the file.
-pub fn current_content_id(path: &Path, max_size: Option<u64>) -> Option<meta::ContentId> {
+pub fn current_content(path: &Path, max_size: Option<u64>) -> Option<CurrentContent> {
     use std::io::Read;
 
     let mut file = std::fs::File::open(path).ok()?;
@@ -529,12 +538,13 @@ pub fn current_content_id(path: &Path, max_size: Option<u64>) -> Option<meta::Co
         return None;
     }
     let text = crate::encoding::decode_for_index(bytes);
-    if trigram::is_binary(&text) {
-        return None;
-    }
-    let id = meta::ContentId::from_indexed_bytes(&text);
+    let content = if trigram::is_binary(&text) {
+        CurrentContent::Binary
+    } else {
+        CurrentContent::Text(meta::ContentId::from_indexed_bytes(&text))
+    };
     let after = file_version(&file.metadata().ok()?);
-    (after == before).then_some(id)
+    (after == before).then_some(content)
 }
 
 fn read_for_index(

@@ -6917,25 +6917,35 @@ enum ReconcileScope {
 /// or cannot be shown identical.
 ///
 /// Each file is still read in full; only its postings rebuild is skipped, and
-/// only when the stored identity was recorded for indexed postings, the file
-/// is not a memoized read failure, and a fresh read under unchanged precise
-/// metadata hashes to the same identity.
+/// only when a fresh read under unchanged precise metadata shows the content
+/// index would not change: text hashing to the identity recorded for its
+/// indexed postings, or binary content for a path that holds no postings.
+/// Memoized read failures are always retried.
 fn drop_identical_content(
     state: &ServerState,
     root: &Path,
     changed: Vec<String>,
     indexed_paths: &std::collections::HashSet<String>,
 ) -> Vec<String> {
-    let prior: std::collections::HashMap<String, zgrep_core::meta::ContentId> = {
+    use zgrep_core::builder::CurrentContent;
+
+    // `None`: not indexed, so only still-binary content can be skipped.
+    let expected: std::collections::HashMap<String, Option<zgrep_core::meta::ContentId>> = {
         let evidence = state.file_evidence.read().unwrap();
         let unreadable = state.unreadable.read().unwrap();
         changed
             .iter()
-            .filter(|path| indexed_paths.contains(*path) && !unreadable.contains_key(*path))
-            .filter_map(|path| Some((path.clone(), evidence.content_id(path)?)))
+            .filter(|path| !unreadable.contains_key(*path))
+            .filter_map(|path| {
+                if indexed_paths.contains(path) {
+                    Some((path.clone(), Some(evidence.content_id(path)?)))
+                } else {
+                    Some((path.clone(), None))
+                }
+            })
             .collect()
     };
-    if prior.is_empty() {
+    if expected.is_empty() {
         return changed;
     }
     let max_size = state.max_file_size;
@@ -6943,11 +6953,16 @@ fn drop_identical_content(
     let kept: Vec<String> = changed
         .into_par_iter()
         .filter(|path| {
-            let Some(expected) = prior.get(path) else {
+            let Some(expected) = expected.get(path) else {
                 return true;
             };
             let full = root.join(path.replace('/', std::path::MAIN_SEPARATOR_STR));
-            zgrep_core::builder::current_content_id(&full, max_size) != Some(*expected)
+            let current = zgrep_core::builder::current_content(&full, max_size);
+            let unchanged = match expected {
+                Some(id) => current == Some(CurrentContent::Text(*id)),
+                None => current == Some(CurrentContent::Binary),
+            };
+            !unchanged
         })
         .collect();
     eprintln!(
