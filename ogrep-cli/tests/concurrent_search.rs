@@ -403,8 +403,23 @@ fn concurrent_high_volume_searches() {
                     _ => "let",
                 };
                 let req = search_request(i, pattern);
-                let resp = send_request(port, &req).expect("request failed");
-                let v: serde_json::Value = serde_json::from_str(&resp).expect("invalid JSON");
+                // 50 requests exceed the server's admission limit (4 active
+                // plus 32 queued) whenever searches are slower than arrivals,
+                // as on Windows. A full queue is the documented backpressure
+                // answer, so back off and retry; any other error still fails.
+                let started = Instant::now();
+                let mut attempt = 0u64;
+                let v: serde_json::Value = loop {
+                    let resp = send_request(port, &req).expect("request failed");
+                    let v: serde_json::Value = serde_json::from_str(&resp).expect("invalid JSON");
+                    let overloaded =
+                        v.pointer("/error/code").and_then(|c| c.as_i64()) == Some(-32002);
+                    if !overloaded || started.elapsed() > Duration::from_secs(30) {
+                        break v;
+                    }
+                    attempt += 1;
+                    thread::sleep(Duration::from_millis(10 * attempt.min(20)));
+                };
                 assert!(
                     v.get("error").is_none(),
                     "request {i} (pattern={pattern}) got error: {v}"
