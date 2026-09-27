@@ -514,8 +514,12 @@ pub enum CurrentContent {
 /// `None` never skips anything: the caller must then reindex the file. It
 /// reads and classifies exactly as indexing does, so the two cannot disagree.
 pub fn current_content(path: &Path, max_size: Option<u64>) -> Option<CurrentContent> {
+    // Refresh calls this for many files at once; they share no batch budget.
+    static UNLIMITED: std::sync::OnceLock<std::sync::Arc<OwnedReadBudget>> =
+        std::sync::OnceLock::new();
+    let budget = UNLIMITED.get_or_init(|| OwnedReadBudget::new(u64::MAX));
     let size = std::fs::metadata(path).ok()?.len();
-    let data = read_for_index(path, size, &OwnedReadBudget::new(u64::MAX), max_size).ok()?;
+    let data = read_for_index(path, size, budget, max_size).ok()?;
     let content = match indexable_text(&data) {
         Some(text) => CurrentContent::Text(meta::ContentId::from_indexed_bytes(&text)),
         None => CurrentContent::Binary,

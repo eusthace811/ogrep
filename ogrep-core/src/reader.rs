@@ -191,9 +191,11 @@ impl PathTable {
         } else {
             &self.data[start..start + len]
         };
-        // SAFETY: every span was validated as UTF-8, or points at text that
-        // `from_utf8_lossy` produced, when the table was decoded.
-        Some(unsafe { std::str::from_utf8_unchecked(bytes) })
+        // Validated again rather than trusted from decoding: on Unix the table
+        // is mapped, and an in-place rebuild by another process can rewrite
+        // the bytes underneath it. A torn path names no file, so it is dropped
+        // like any unreadable candidate.
+        Some(std::str::from_utf8(bytes).unwrap_or("\u{FFFD}"))
     }
 
     pub fn iter(&self) -> impl ExactSizeIterator<Item = &str> + Clone + '_ {

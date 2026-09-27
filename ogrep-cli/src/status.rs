@@ -1,6 +1,5 @@
 /// `ogrep status` — show index and server status.
 use std::io::{BufRead, BufReader, Write};
-use std::net::TcpStream;
 use std::path::Path;
 
 use anyhow::Result;
@@ -18,7 +17,7 @@ pub fn run(root: &Path, index_path: Option<&Path>) -> Result<()> {
         .unwrap_or_else(|| builder::default_index_dir(&root));
 
     // Try connecting to a running server
-    if let Ok(info) = ServerInfo::load_live(&index_dir)
+    if let Ok(info) = ServerInfo::load(&index_dir)
         && let Ok(status) = query_server_status(&info)
     {
         println!("Server status for {}", root.display());
@@ -195,7 +194,7 @@ fn write_refresh_status(writer: &mut impl Write, status: &StatusResult) -> std::
 }
 
 fn query_server_status(info: &ServerInfo) -> Result<StatusResult> {
-    let mut stream = TcpStream::connect(format!("127.0.0.1:{}", info.port))?;
+    let mut stream = info.connect(None)?;
     let request = serde_json::json!({
         "jsonrpc": "2.0",
         "method": "status",

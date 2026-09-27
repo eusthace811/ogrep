@@ -215,19 +215,26 @@ impl ServerInfo {
         Ok(info)
     }
 
-    /// `load`, for a client about to connect: fails when the process that
-    /// wrote `serve.json` is certainly gone. A server that was killed leaves
-    /// the file behind, and on Windows connecting to its closed port takes
-    /// about two seconds to be refused, which every search would pay. When
-    /// liveness cannot be decided the client connects exactly as before.
-    pub fn load_live(index_dir: &Path) -> Result<Self> {
-        let info = Self::load(index_dir)?;
-        anyhow::ensure!(
-            !process_is_gone(info.pid),
-            "the server recorded in serve.json (pid {}) is no longer running",
-            info.pid
-        );
-        Ok(info)
+    /// Connect to the recorded server, waiting at most `timeout` if given.
+    ///
+    /// A killed server leaves `serve.json` behind, and on Windows a refused
+    /// localhost connection takes about two seconds, which every search would
+    /// pay. So when the recorded PID names no running process here the wait
+    /// is capped at [`STALE_CONNECT_TIMEOUT`]. It is still tried, because a
+    /// PID from another namespace (a Windows server seen from WSL, one in a
+    /// container sharing the volume) looks the same, and loopback answers a
+    /// live server well within the cap.
+    pub fn connect(&self, timeout: Option<Duration>) -> std::io::Result<std::net::TcpStream> {
+        let address = std::net::SocketAddr::from((std::net::Ipv4Addr::LOCALHOST, self.port));
+        let timeout = if process_is_gone(self.pid) {
+            Some(timeout.map_or(STALE_CONNECT_TIMEOUT, |t| t.min(STALE_CONNECT_TIMEOUT)))
+        } else {
+            timeout
+        };
+        match timeout {
+            Some(timeout) => std::net::TcpStream::connect_timeout(&address, timeout),
+            None => std::net::TcpStream::connect(address),
+        }
     }
 
     pub fn cleanup(index_dir: &Path) {
@@ -235,9 +242,12 @@ impl ServerInfo {
     }
 }
 
-/// True only when `pid` certainly names no running process. Errors and
-/// ambiguous answers (another user's process, a reused PID) say "not gone",
-/// which keeps the connection attempt.
+/// How long to try a server whose recorded process seems gone.
+const STALE_CONNECT_TIMEOUT: Duration = Duration::from_millis(50);
+
+/// True only when `pid` certainly names no running process in this namespace.
+/// Errors and ambiguous answers (another user's process, a reused PID) say
+/// "not gone".
 #[cfg(unix)]
 fn process_is_gone(pid: u32) -> bool {
     let Ok(pid) = libc::pid_t::try_from(pid) else {

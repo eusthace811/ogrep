@@ -847,12 +847,18 @@ impl Cli {
     /// was supplied another way. Once `-e` or `-f` is present every positional
     /// is a path, so `rg -e foo src` searches `src` rather than also searching
     /// for the literal string `src`.
+    /// Whether a flag (`-e`, `-f`, `--ident`) supplies the pattern, so every
+    /// positional argument is a path.
+    fn pattern_from_flags(&self) -> bool {
+        !self.regexp.is_empty() || self.pattern_file.is_some() || !self.ident.is_empty()
+    }
+
     fn split_pattern_and_paths(
         &self,
         positional: Option<&String>,
         rest: &[String],
     ) -> (String, Vec<String>) {
-        if self.regexp.is_empty() && self.pattern_file.is_none() && self.ident.is_empty() {
+        if !self.pattern_from_flags() {
             return (positional.cloned().unwrap_or_default(), rest.to_vec());
         }
         let mut paths = Vec::with_capacity(rest.len() + 1);
@@ -1261,8 +1267,7 @@ fn run_cli() {
                 let opts = cli.build_search_opts(String::new(), &resolved);
                 let paths = list_files_paths(&cli);
                 list_files(&paths, cli.index_path.as_deref(), &opts)
-            } else if cli.pattern.is_some() || !cli.regexp.is_empty() || cli.pattern_file.is_some()
-            {
+            } else if cli.pattern.is_some() || cli.pattern_from_flags() {
                 let (pattern, paths) =
                     cli.split_pattern_and_paths(cli.pattern.as_ref(), &cli.paths);
                 run_search(&cli, pattern, &paths, &resolved)

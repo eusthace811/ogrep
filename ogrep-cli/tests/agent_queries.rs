@@ -253,6 +253,14 @@ fn file_listing_refuses_content_conditions() {
 }
 
 #[test]
+fn ident_alone_searches_the_current_directory() {
+    let (_temp, root, index) = fixture();
+    let mut rows = lines(&root, &index, "local", &["-l", "--ident", "getUserId"]);
+    rows.sort();
+    assert_eq!(rows, ["src/e.rs", "src/f.py", "src/g.ts"]);
+}
+
+#[test]
 fn ident_refuses_fixed_strings() {
     ogrep()
         .args(["--ident", "getUserId", "-F", "."])

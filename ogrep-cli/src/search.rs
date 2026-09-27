@@ -3,7 +3,6 @@
 /// If a running server is detected (via serve.json), the search is delegated
 /// over TCP. Otherwise, the on-disk index is loaded directly.
 use std::io::{BufRead, BufReader, ErrorKind, Read, Write};
-use std::net::TcpStream;
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
@@ -565,7 +564,7 @@ pub fn list_files(root: &Path, index_path: Option<&Path>, opts: &SearchOptions) 
         .unwrap_or_else(|| builder::default_index_dir(&root));
 
     if filename_index_compatible(opts) {
-        if let Ok(info) = ServerInfo::load_live(&index_dir)
+        if let Ok(info) = ServerInfo::load(&index_dir)
             && let Some((index_root, scope)) = resolve_scope(&index_dir, &root)
         {
             let paths = match list_files_via_server(&info, &scope, opts) {
@@ -761,7 +760,7 @@ fn list_files_via_server(
     scope: &IndexScope,
     opts: &SearchOptions,
 ) -> Result<Vec<String>> {
-    let mut stream = TcpStream::connect(format!("127.0.0.1:{}", info.port))?;
+    let mut stream = info.connect(None)?;
     stream.set_read_timeout(Some(std::time::Duration::from_secs(300)))?;
     writeln!(
         stream,
@@ -889,7 +888,7 @@ pub fn run(
         && !opts.effective_passthru()
         && !opts.files_without_match
         && !opts.include_zero
-        && let Ok(info) = ServerInfo::load_live(&index_dir)
+        && let Ok(info) = ServerInfo::load(&index_dir)
         && let Some((index_root, scope)) = resolve_scope(&index_dir, &root)
     {
         match search_via_server(&info, &root, &index_root, &scope, opts, ci, writer) {
@@ -969,7 +968,7 @@ fn search_via_server(
     ci: bool,
     writer: &mut OutputWriter,
 ) -> Result<bool> {
-    let mut stream = TcpStream::connect(format!("127.0.0.1:{}", info.port))?;
+    let mut stream = info.connect(None)?;
     stream.set_read_timeout(Some(std::time::Duration::from_secs(300)))?;
 
     // Resolve `-f/--file` here rather than sending the path: the server has a
@@ -1666,10 +1665,14 @@ fn parallel_prefilter_is_exact(opts: &SearchOptions) -> bool {
 
 /// What a worker learned about one candidate.
 enum Verified {
-    /// No selected line, or a binary file traversal hides: nothing to print.
-    Nothing,
-    /// `-l`/`-q`: a line matched, which is all the output needs.
-    Matched,
+    /// Never searched: unreadable, over the size cap, a binary file traversal
+    /// hides, or failing `--with`/`--without`.
+    Skipped,
+    /// Searched these many bytes without a selected line.
+    NoMatch(u64),
+    /// `-l`/`-q`: a line matched in these many searched bytes, which is all
+    /// the output needs.
+    Matched(u64),
     /// Some line matched; render the file in order on the calling thread.
     Render(FileRead),
 }
@@ -1700,31 +1703,30 @@ fn verify_candidates_parallel(
     probe.all_spans = false;
     probe.before_context = 0;
     probe.after_context = 0;
-    let visible =
-        |read: &FileRead| opts.text || read.first_nul.is_none() || explicit || opts.binary;
-
     let verify = |rel_path: &String| -> Result<Verified> {
         let full_path = scope.full_path(index_root, rel_path);
         if exceeds_max_filesize(&full_path, opts, explicit) {
-            return Ok(Verified::Nothing);
+            return Ok(Verified::Skipped);
         }
         let Ok(read) = read_text_lossy(&full_path, opts.encoding) else {
-            return Ok(Verified::Nothing);
+            return Ok(Verified::Skipped);
         };
-        if !visible(&read) {
-            return Ok(Verified::Nothing);
+        let binary_offset = read.binary_offset(opts);
+        if hides_binary(binary_offset, explicit, opts) {
+            return Ok(Verified::Skipped);
         }
         let index = crate::matching::LineIndex::new(read.text.as_str());
         if let Some(filter) = filter
             && !filter.passes(&index)?
         {
-            return Ok(Verified::Nothing);
+            return Ok(Verified::Skipped);
         }
         let found = crate::matching::FileMatches::find(index, matcher, &probe)?;
+        let searched = read.bytes_searched(binary_offset);
         Ok(if found.is_empty() {
-            Verified::Nothing
+            Verified::NoMatch(searched)
         } else if decides {
-            Verified::Matched
+            Verified::Matched(searched)
         } else {
             drop(found);
             Verified::Render(read)
@@ -1736,9 +1738,13 @@ fn verify_candidates_parallel(
         let results: Vec<Result<Verified>> =
             pool.install(|| batch.par_iter().map(|(_, rel)| verify(rel)).collect());
         for ((_, rel_path), result) in batch.iter().zip(results) {
+            // Record searched bytes in candidate order, as the sequential loop
+            // does, for the JSON summary.
             match result? {
-                Verified::Nothing => {}
-                Verified::Matched => {
+                Verified::Skipped => {}
+                Verified::NoMatch(searched) => writer.note_bytes_searched(searched),
+                Verified::Matched(searched) => {
+                    writer.note_bytes_searched(searched);
                     had_matches = true;
                     if opts.quiet {
                         return Ok(true);
@@ -2011,6 +2017,38 @@ struct FileRead {
     first_nul: Option<usize>,
 }
 
+impl FileRead {
+    /// Where the file turned binary, as an offset in the file on disk, unless
+    /// `--text` asked to treat it as text.
+    ///
+    /// The NUL is located in the repaired text but reported in terms of the
+    /// file on disk, so it goes back through `fixups`: repairing invalid UTF-8
+    /// ahead of the NUL widens every bad byte to three, which would otherwise
+    /// push the reported offset past where the byte actually is.
+    fn binary_offset(&self, opts: &SearchOptions) -> Option<usize> {
+        if opts.text {
+            None
+        } else {
+            self.first_nul.map(|off| self.fixups.to_source_offset(off))
+        }
+    }
+
+    /// Bytes the summary counts as searched. A binary file reports the
+    /// detection offset, not a regex cutoff: ripgrep with memory-mapped input
+    /// can count matches beyond the NUL while reporting that offset. Both
+    /// counts refer to the source on disk.
+    fn bytes_searched(&self, binary_offset: Option<usize>) -> u64 {
+        binary_offset.unwrap_or_else(|| self.fixups.to_source_offset(self.text.as_str().len()))
+            as u64
+    }
+}
+
+/// ripgrep only surfaces a binary file when the user named it explicitly (or
+/// passed `--binary`).
+fn hides_binary(binary_offset: Option<usize>, explicit: bool, opts: &SearchOptions) -> bool {
+    binary_offset.is_some() && !explicit && !opts.binary
+}
+
 /// Validate `bytes` as UTF-8 and locate the first NUL byte in one traversal.
 ///
 /// Returns `None` if the bytes are not valid UTF-8, which is the caller's
@@ -2248,27 +2286,13 @@ fn search_decoded_file(
     explicit: bool,
 ) -> Result<FileOutcome> {
     let _verify_span = crate::profile::span(crate::profile::Phase::VerifyRender);
-    let FileRead {
-        text,
-        fixups,
-        first_nul,
-    } = read;
-    let content = text.as_str();
+    let content = read.text.as_str();
+    let fixups = &read.fixups;
 
-    // ripgrep only surfaces a binary file when the user named it explicitly (or
-    // passed `--binary`).
-    //
     // `first_nul` was found by the pass that read the file, so this costs
-    // nothing here. The NUL is located in the repaired text but reported in
-    // terms of the file on disk, so it goes back through `fixups`: repairing
-    // invalid UTF-8 ahead of the NUL widens every bad byte to three, which
-    // would otherwise push the reported offset past where the byte actually is.
-    let binary_offset = if opts.text {
-        None
-    } else {
-        first_nul.map(|off| fixups.to_source_offset(off))
-    };
-    if binary_offset.is_some() && !explicit && !opts.binary {
+    // nothing here.
+    let binary_offset = read.binary_offset(opts);
+    if hides_binary(binary_offset, explicit, opts) {
         return Ok(FileOutcome::Skipped);
     }
     // `--with`/`--without` decide which files are searched at all, so a file
@@ -2281,12 +2305,7 @@ fn search_decoded_file(
         return Ok(FileOutcome::Skipped);
     }
 
-    // Binary bytes_searched reports the detection offset, not a regex cutoff:
-    // ripgrep with memory-mapped input can count matches beyond the NUL while
-    // reporting that offset. Both byte counts refer to the source on disk.
-    writer.note_bytes_searched(
-        binary_offset.unwrap_or_else(|| fixups.to_source_offset(content.len())) as u64,
-    );
+    writer.note_bytes_searched(read.bytes_searched(binary_offset));
 
     let match_opts = opts.match_options();
     let found = crate::matching::FileMatches::find(index, matcher, &match_opts)?;

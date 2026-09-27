@@ -1,6 +1,6 @@
 //! A refresh receipt is never replaced with a local scan or a readiness flag.
 use std::io::{Read, Write};
-use std::net::{Ipv4Addr, SocketAddr, TcpStream};
+use std::net::TcpStream;
 use std::path::Path;
 use std::time::{Duration, Instant};
 
@@ -16,12 +16,11 @@ pub fn run(root: &Path, index_path: Option<&Path>, timeout: Duration, json: bool
     let index = index_path
         .map(Path::to_path_buf)
         .unwrap_or_else(|| ogrep_core::builder::default_index_dir(&root));
-    let info = crate::serve::ServerInfo::load_live(&index)
+    let info = crate::serve::ServerInfo::load(&index)
         .context("refresh requires a running server; start ogrep serve for this root")?;
-    let address = SocketAddr::from((Ipv4Addr::LOCALHOST, info.port));
-    let mut stream =
-        TcpStream::connect_timeout(&address, remaining(deadline)?.min(Duration::from_secs(2)))
-            .context("refresh server is unavailable; no freshness receipt was obtained")?;
+    let mut stream = info
+        .connect(Some(remaining(deadline)?.min(Duration::from_secs(2))))
+        .context("refresh server is unavailable; no freshness receipt was obtained")?;
     stream.set_write_timeout(Some(remaining(deadline)?))?;
     let request = serde_json::json!({
         "jsonrpc": "2.0", "id": 1, "method": "refresh",
