@@ -180,7 +180,7 @@ impl HybridIndex {
             .iter()
             .enumerate()
             .filter(|(file_id, _)| self.reader_entry_active(&reader, *file_id as u32))
-            .map(|(_, path)| path.clone())
+            .map(|(_, path)| path.to_string())
             .collect();
         paths.extend(
             self.live
@@ -354,7 +354,7 @@ impl HybridIndex {
 
     /// Get all paths from the on-disk reader (for skip-set construction).
     pub fn reader_paths(&self) -> std::collections::HashSet<String> {
-        self.reader().all_paths().iter().cloned().collect()
+        self.reader().all_paths().iter().map(str::to_string).collect()
     }
 
     /// Whether the active on-disk reader contains `path`.
@@ -378,7 +378,7 @@ impl HybridIndex {
             .all_paths()
             .iter()
             .filter(|path| keep(path))
-            .cloned()
+            .map(str::to_string)
             .collect()
     }
 
@@ -410,7 +410,6 @@ impl HybridIndex {
         let reader_paths: std::collections::HashSet<&str> = reader
             .all_paths()
             .iter()
-            .map(|s| s.as_str())
             .filter(|path| !preserved.contains(*path))
             .collect();
 
@@ -471,7 +470,7 @@ impl HybridIndex {
                 continue;
             }
             reader_id_map.push(paths.len() as u32);
-            paths.push(path.clone());
+            paths.push(path.to_string());
         }
 
         // Add overlay files

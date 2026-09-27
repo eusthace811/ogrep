@@ -6357,10 +6357,10 @@ fn stream_merge_stale_changes(
             reader
                 .all_paths()
                 .iter()
-                .filter(|path| !preserved.contains(path.as_str()))
-                .filter(|path| !stamps.contains_key(path.as_str()))
-                .filter(|path| seen.insert((*path).clone()))
-                .cloned(),
+                .filter(|path| !preserved.contains(*path))
+                .filter(|path| !stamps.contains_key(*path))
+                .filter(|path| seen.insert((*path).to_string()))
+                .map(str::to_string),
         );
     }
     let desired_paths: Vec<String> = candidates
@@ -6476,7 +6476,7 @@ fn stream_merge_stale_changes(
         let removed_reader_files = reader
             .all_paths()
             .iter()
-            .filter(|path| removed.contains(path.as_str()))
+            .filter(|path| removed.contains(*path))
             .count();
         let expected_files = reader.num_files() - removed_reader_files + delta.num_files();
         let filename_extra_paths = authoritative_listed_files.map(|listed_files| {
@@ -6485,10 +6485,9 @@ fn stream_merge_stale_changes(
                 reader
                     .all_paths()
                     .iter()
-                    .filter(|path| !removed.contains(path.as_str()))
-                    .map(String::as_str),
+                    .filter(|path| !removed.contains(*path)),
             );
-            content_paths.extend(delta.all_paths().iter().map(String::as_str));
+            content_paths.extend(delta.all_paths().iter());
             content_paths.extend(
                 overlay_paths
                     .iter()

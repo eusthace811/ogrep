@@ -652,7 +652,7 @@ fn load_indexed_file_paths(
         return Ok(None);
     }
     let mut paths = Vec::with_capacity(reader.num_files() + extra_paths.len());
-    paths.extend(reader.all_paths().iter().cloned());
+    paths.extend(reader.all_paths().iter().map(str::to_string));
     paths.append(&mut extra_paths);
     Ok(Some((paths, visibility.paths)))
 }

@@ -14,13 +14,144 @@ use crate::ondisk::{self, LOOKUP_ENTRY_SIZE, LookupEntry, POSTING_ENTRY_SIZE, Po
 pub struct IndexReader {
     lookup: Option<Mmap>,
     postings: Option<Mmap>,
-    file_paths: Vec<String>,
+    file_paths: PathTable,
     file_table_id: crate::meta::FileTableId,
     /// File IDs sorted by path, for exact membership checks without duplicating
     /// every path string in a second collection. Content-only queries use IDs
     /// directly and need not pay for constructing this membership index.
     path_order: OnceLock<Vec<usize>>,
     num_entries: usize,
+}
+
+/// Every indexed path, ordered by file ID, borrowed from one `files.bin` buffer.
+///
+/// Decoding each record into its own `String` was most of what opening an index
+/// cost: tens of thousands of allocations on every local search, and as many
+/// frees on exit, when a query typically resolves a few hundred paths at most.
+/// Paths that are valid UTF-8 (all of them, in practice) stay where they were
+/// read; the rare invalid one is repaired into a side buffer, exactly as the
+/// previous lossy decoding did.
+#[derive(Default)]
+pub struct PathTable {
+    data: Vec<u8>,
+    /// `(start, len)` of each path, indexed by file ID. Starts at or beyond
+    /// `data.len()` address `repaired`.
+    spans: Vec<(u32, u32)>,
+    repaired: Vec<u8>,
+}
+
+impl PathTable {
+    /// Decode the records after `body_start` in `data`, requiring dense,
+    /// unique file IDs.
+    pub(crate) fn decode(data: Vec<u8>, body_start: usize) -> Result<Self> {
+        const UNSET: (u32, u32) = (u32::MAX, u32::MAX);
+        if data.len() > u32::MAX as usize / 2 {
+            return Err(crate::Error::IndexCorrupted(format!(
+                "files.bin size {} is too large",
+                data.len()
+            )));
+        }
+        let mut records: Vec<(u32, u32, u32)> = Vec::new();
+        let mut pos = body_start;
+        while pos < data.len() {
+            if pos + 6 > data.len() {
+                return Err(crate::Error::IndexCorrupted(format!(
+                    "files.bin truncated: {} trailing bytes < 6-byte header",
+                    data.len() - pos
+                )));
+            }
+            let file_id = u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap());
+            let path_len = u16::from_le_bytes(data[pos + 4..pos + 6].try_into().unwrap()) as usize;
+            pos += 6;
+            if pos + path_len > data.len() {
+                return Err(crate::Error::IndexCorrupted(format!(
+                    "files.bin truncated: declared path_len {} exceeds remaining {} bytes",
+                    path_len,
+                    data.len() - pos
+                )));
+            }
+            records.push((file_id, pos as u32, path_len as u32));
+            pos += path_len;
+        }
+
+        // Validate that file IDs are dense (0..N) with no duplicates. Without
+        // this, a corrupted files.bin declaring an id like u32::MAX would size
+        // the table by it and likely OOM/crash.
+        let n = records.len();
+        let mut spans = vec![UNSET; n];
+        let mut repaired = Vec::new();
+        for (id, start, len) in records {
+            let idx = id as usize;
+            if idx >= n {
+                return Err(crate::Error::IndexCorrupted(format!(
+                    "files.bin contains out-of-range file_id {id} (entry count = {n}); \
+                     IDs must be dense in 0..{n}"
+                )));
+            }
+            if spans[idx] != UNSET {
+                return Err(crate::Error::IndexCorrupted(format!(
+                    "files.bin contains duplicate file_id {id}"
+                )));
+            }
+            let bytes = &data[start as usize..(start + len) as usize];
+            spans[idx] = if std::str::from_utf8(bytes).is_ok() {
+                (start, len)
+            } else {
+                let fixed = String::from_utf8_lossy(bytes);
+                let at = data.len() + repaired.len();
+                repaired.extend_from_slice(fixed.as_bytes());
+                (at as u32, fixed.len() as u32)
+            };
+        }
+        Ok(Self {
+            data,
+            spans,
+            repaired,
+        })
+    }
+
+    pub fn len(&self) -> usize {
+        self.spans.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.spans.is_empty()
+    }
+
+    pub fn get(&self, id: usize) -> Option<&str> {
+        let &(start, len) = self.spans.get(id)?;
+        let (start, len) = (start as usize, len as usize);
+        let bytes = if start >= self.data.len() {
+            let start = start - self.data.len();
+            &self.repaired[start..start + len]
+        } else {
+            &self.data[start..start + len]
+        };
+        // SAFETY: every span was validated as UTF-8, or points at text that
+        // `from_utf8_lossy` produced, when the table was decoded.
+        Some(unsafe { std::str::from_utf8_unchecked(bytes) })
+    }
+
+    pub fn iter(&self) -> impl ExactSizeIterator<Item = &str> + Clone + '_ {
+        (0..self.len()).map(|id| &self[id])
+    }
+}
+
+impl std::ops::Index<usize> for PathTable {
+    type Output = str;
+
+    fn index(&self, id: usize) -> &str {
+        self.get(id).expect("file ID out of range")
+    }
+}
+
+impl<'a> IntoIterator for &'a PathTable {
+    type Item = &'a str;
+    type IntoIter = Box<dyn Iterator<Item = &'a str> + 'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        Box::new(self.iter())
+    }
 }
 
 impl IndexReader {
@@ -117,35 +248,8 @@ impl IndexReader {
         // resulting in queries that returned empty file paths for high IDs.
         let files_data = std::fs::read(&files_path)?;
         let file_table_id = crate::meta::file_table_id(&files_data);
-        let file_entries = ondisk::decode_file_entries(ondisk::file_table_body(&files_data)?)?;
-
-        // Validate that file IDs are dense (0..N) with no duplicates.
-        // Without this, a corrupted files.bin declaring an id like
-        // u32::MAX would cause `vec![String::new(); max_id + 1]` to attempt
-        // a multi-GiB allocation and likely OOM/crash. Current writers
-        // always assign dense IDs starting at 0, so this is a strict
-        // tightening of the format invariant rather than a behavior change.
-        let n = file_entries.len();
-        let mut seen = vec![false; n];
-        for (id, _) in &file_entries {
-            let idx = *id as usize;
-            if idx >= n {
-                return Err(crate::Error::IndexCorrupted(format!(
-                    "files.bin contains out-of-range file_id {id} (entry count = {n}); \
-                     IDs must be dense in 0..{n}"
-                )));
-            }
-            if seen[idx] {
-                return Err(crate::Error::IndexCorrupted(format!(
-                    "files.bin contains duplicate file_id {id}"
-                )));
-            }
-            seen[idx] = true;
-        }
-        let mut file_paths = vec![String::new(); n];
-        for (id, path) in file_entries {
-            file_paths[id as usize] = path;
-        }
+        let body_start = files_data.len() - ondisk::file_table_body(&files_data)?.len();
+        let file_paths = PathTable::decode(files_data, body_start)?;
         Ok(Self {
             lookup,
             postings,
@@ -163,7 +267,7 @@ impl IndexReader {
         Self {
             lookup: None,
             postings: None,
-            file_paths: Vec::new(),
+            file_paths: PathTable::default(),
             file_table_id: crate::meta::file_table_id(&[]),
             path_order: OnceLock::new(),
             num_entries: 0,
@@ -174,7 +278,7 @@ impl IndexReader {
     pub fn close(&mut self) {
         self.lookup = None;
         self.postings = None;
-        self.file_paths.clear();
+        self.file_paths = PathTable::default();
         self.path_order.take();
         self.num_entries = 0;
     }
@@ -206,12 +310,12 @@ impl IndexReader {
 
     /// Get file path by ID.
     pub fn file_path(&self, file_id: u32) -> Option<&str> {
-        self.file_paths.get(file_id as usize).map(|s| s.as_str())
+        self.file_paths.get(file_id as usize)
     }
 
     pub fn contains_path(&self, path: &str) -> bool {
         self.path_order()
-            .binary_search_by(|&id| self.file_paths[id].as_str().cmp(path))
+            .binary_search_by(|&id| self.file_paths[id].cmp(path))
             .is_ok()
     }
 
@@ -341,7 +445,7 @@ impl IndexReader {
     }
 
     /// Get all file paths in this reader (for skip-set construction).
-    pub fn all_paths(&self) -> &[String] {
+    pub fn all_paths(&self) -> &PathTable {
         &self.file_paths
     }
 
@@ -633,9 +737,9 @@ mod tests {
         write_index(tmp.path(), &[], &[], &buf);
         let reader = IndexReader::open(tmp.path()).expect("dense IDs should be accepted");
         assert_eq!(reader.file_paths.len(), 3);
-        assert_eq!(reader.file_paths[0], "a.rs");
-        assert_eq!(reader.file_paths[1], "b.rs");
-        assert_eq!(reader.file_paths[2], "c.rs");
+        assert_eq!(&reader.file_paths[0], "a.rs");
+        assert_eq!(&reader.file_paths[1], "b.rs");
+        assert_eq!(&reader.file_paths[2], "c.rs");
     }
 
     #[test]

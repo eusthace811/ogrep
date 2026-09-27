@@ -214,6 +214,7 @@ pub(crate) fn write_file_entry(
 /// not enough bytes for a declared path or a partial header), so that callers
 /// don't silently load a partial file table that would cause queries to drop
 /// matches.
+#[cfg(test)]
 pub(crate) fn decode_file_entries(data: &[u8]) -> crate::Result<Vec<(u32, String)>> {
     let mut entries = Vec::new();
     let mut pos = 0;

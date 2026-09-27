@@ -1392,7 +1392,6 @@ pub fn append_overlay_to_index(
     let paths = reader
         .all_paths()
         .iter()
-        .map(String::as_str)
         .chain(overlay_paths.iter().map(String::as_str));
     write_files_and_meta(
         out_dir,
@@ -1593,9 +1592,8 @@ pub fn merge_index_with_delta(
     let paths = reader
         .all_paths()
         .iter()
-        .filter(|path| !removed_paths.contains(path.as_str()))
-        .map(String::as_str)
-        .chain(delta.all_paths().iter().map(String::as_str));
+        .filter(|path| !removed_paths.contains(*path))
+        .chain(delta.all_paths().iter());
     write_files_and_meta(
         out_dir,
         root,
