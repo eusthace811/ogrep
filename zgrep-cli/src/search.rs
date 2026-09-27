@@ -332,6 +332,20 @@ impl SearchOptions {
             && !self.quiet
     }
 
+    /// Whether one matching line fully decides this file's output.
+    ///
+    /// `-l` prints the file name once whatever else matches, so the rest of the
+    /// file need not be searched. `--stats` still wants every match counted,
+    /// and `-m 0` has to keep suppressing the file.
+    fn stops_at_first_line(&self) -> bool {
+        self.files_only
+            && !self.count
+            && !self.count_matches
+            && !self.stats
+            && !self.invert_match
+            && self.max_count != Some(0)
+    }
+
     fn match_options(&self) -> crate::matching::MatchOptions {
         crate::matching::MatchOptions {
             invert_match: self.invert_match,
@@ -342,6 +356,9 @@ impl SearchOptions {
             // `-q` and `--files-without-match` only need to know whether the
             // file matched at all, so stop at the first hit.
             max_count: if self.quiet || self.files_without_match {
+                Some(1)
+            } else if self.stops_at_first_line() {
+                // `-l` prints the name once, however many lines match.
                 Some(1)
             } else {
                 self.max_count
@@ -1378,22 +1395,36 @@ fn search_local_index(
     // which is what makes binary files visible in ripgrep.
     let explicit = matches!(scope, IndexScope::File(_));
 
-    for (_, rel_path) in &candidates {
-        let metadata_span = crate::profile::span(crate::profile::Phase::Metadata);
-        let full_path = scope.full_path(&index_root, rel_path);
-        if exceeds_max_filesize(&full_path, opts, explicit) {
-            continue;
-        }
-        drop(metadata_span);
-        let read = match read_text_lossy(&full_path, opts.encoding) {
-            Ok(c) => c,
-            Err(_) => continue,
-        };
+    let threads = local_verify_threads(opts, candidates.len());
+    if threads > 1 && parallel_prefilter_is_exact(opts) {
+        had_matches = verify_candidates_parallel(
+            &candidates,
+            threads,
+            &index_root,
+            &scope,
+            &matcher,
+            opts,
+            writer,
+            explicit,
+        )?;
+    } else {
+        for (_, rel_path) in &candidates {
+            let metadata_span = crate::profile::span(crate::profile::Phase::Metadata);
+            let full_path = scope.full_path(&index_root, rel_path);
+            if exceeds_max_filesize(&full_path, opts, explicit) {
+                continue;
+            }
+            drop(metadata_span);
+            let read = match read_text_lossy(&full_path, opts.encoding) {
+                Ok(c) => c,
+                Err(_) => continue,
+            };
 
-        if search_file(&read, &matcher, rel_path, opts, writer, explicit)? {
-            had_matches = true;
-            if opts.quiet {
-                break;
+            if search_file(&read, &matcher, rel_path, opts, writer, explicit)? {
+                had_matches = true;
+                if opts.quiet {
+                    break;
+                }
             }
         }
     }
@@ -1418,6 +1449,124 @@ fn search_local_index(
 
     let _flush_span = crate::profile::span(crate::profile::Phase::Flush);
     writer.flush()?;
+    Ok(had_matches)
+}
+
+/// Candidates below this many are verified on the calling thread: building a
+/// pool and handing work to it costs more than a few small files do.
+const PARALLEL_VERIFY_MIN_CANDIDATES: usize = 48;
+
+/// Candidates handed to the pool at once. Output is rendered in candidate order
+/// after each batch, so this bounds how many files' contents are held at once.
+const PARALLEL_VERIFY_BATCH: usize = 512;
+
+fn local_verify_threads(opts: &SearchOptions, candidates: usize) -> usize {
+    if candidates < PARALLEL_VERIFY_MIN_CANDIDATES {
+        return 1;
+    }
+    let available = std::thread::available_parallelism().map_or(1, |n| n.get());
+    opts.threads.unwrap_or(available).clamp(1, available.max(1))
+}
+
+/// Whether a file with no matching line is certain to produce no output and no
+/// state change, so worker threads may drop it before the ordered render.
+///
+/// Modes that report non-matching files (`--files-without-match`,
+/// `--include-zero`), print them anyway (`--passthru`), invert the line test,
+/// or account for every searched byte (`--stats`) keep the sequential path.
+fn parallel_prefilter_is_exact(opts: &SearchOptions) -> bool {
+    !opts.files_without_match
+        && !opts.include_zero
+        && !opts.invert_match
+        && !opts.effective_passthru()
+        && !opts.stats
+        && opts.max_count != Some(0)
+}
+
+/// What a worker learned about one candidate.
+enum Verified {
+    /// No selected line, or a binary file traversal hides: nothing to print.
+    Nothing,
+    /// `-l`/`-q`: a line matched, which is all the output needs.
+    Matched,
+    /// Some line matched; render the file in order on the calling thread.
+    Render(FileRead),
+}
+
+/// Read and test candidates on a pool, then render survivors in candidate
+/// order, so output is identical to the sequential loop.
+#[allow(clippy::too_many_arguments)]
+fn verify_candidates_parallel(
+    candidates: &[(u32, String)],
+    threads: usize,
+    index_root: &Path,
+    scope: &IndexScope,
+    matcher: &SearchMatcher,
+    opts: &SearchOptions,
+    writer: &mut OutputWriter,
+    explicit: bool,
+) -> Result<bool> {
+    use rayon::prelude::*;
+
+    let pool = rayon::ThreadPoolBuilder::new()
+        .num_threads(threads)
+        .build()
+        .map_err(|e| anyhow::anyhow!("failed to start search threads: {e}"))?;
+    let decides = opts.quiet || opts.stops_at_first_line();
+    let mut probe = opts.match_options();
+    probe.max_count = Some(1);
+    probe.all_spans = false;
+    probe.before_context = 0;
+    probe.after_context = 0;
+    let visible = |read: &FileRead| opts.text || read.first_nul.is_none() || explicit || opts.binary;
+
+    let verify = |rel_path: &String| -> Result<Verified> {
+        let full_path = scope.full_path(index_root, rel_path);
+        if exceeds_max_filesize(&full_path, opts, explicit) {
+            return Ok(Verified::Nothing);
+        }
+        let Ok(read) = read_text_lossy(&full_path, opts.encoding) else {
+            return Ok(Verified::Nothing);
+        };
+        if !visible(&read) {
+            return Ok(Verified::Nothing);
+        }
+        let found = crate::matching::FileMatches::find(read.text.as_str(), matcher, &probe)?;
+        Ok(if found.is_empty() {
+            Verified::Nothing
+        } else if decides {
+            Verified::Matched
+        } else {
+            drop(found);
+            Verified::Render(read)
+        })
+    };
+
+    let mut had_matches = false;
+    for batch in candidates.chunks(PARALLEL_VERIFY_BATCH) {
+        let results: Vec<Result<Verified>> =
+            pool.install(|| batch.par_iter().map(|(_, rel)| verify(rel)).collect());
+        for ((_, rel_path), result) in batch.iter().zip(results) {
+            match result? {
+                Verified::Nothing => {}
+                Verified::Matched => {
+                    had_matches = true;
+                    if opts.quiet {
+                        return Ok(true);
+                    }
+                    writer.write_file(rel_path)?;
+                }
+                Verified::Render(read) => {
+                    if search_file(&read, matcher, rel_path, opts, writer, explicit)? {
+                        had_matches = true;
+                        if opts.quiet {
+                            return Ok(true);
+                        }
+                    }
+                }
+            }
+        }
+    }
     Ok(had_matches)
 }
 

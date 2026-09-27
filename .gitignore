@@ -5,3 +5,4 @@ __pycache__/
 .zgrep_staging/
 .zgrep_flush_staging/
 .zgrep_save_staging/
+/lab/work
