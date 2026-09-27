@@ -1,0 +1,8 @@
+rust: refresh -1 (-1 is warmup)
+rust: 3300.8 ms, 6.61 CPU seconds, 1072.7 MiB peak
+rust: refresh 0 (-1 is warmup)
+rust: 3041.4 ms, 5.94 CPU seconds, 1666.1 MiB peak
+rust: refresh 1 (-1 is warmup)
+rust: 3069.9 ms, 5.95 CPU seconds, 1666.1 MiB peak
+rust: refresh 2 (-1 is warmup)
+rust: 3090.8 ms, 6.01 CPU seconds, 2121.2 MiB peak

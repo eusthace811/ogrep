@@ -47,3 +47,7 @@ Four integration tests cover real-daemon initial construction, completed edits, 
 Adapter 1.1.0 exposes `refresh_index` through MCP and `zgrep_refresh_index` through pi. The tool waits for startup within its own budget, then calls the strict CLI and validates the receipt. It accepts 1–300 seconds (default 30); no path override is accepted. Service readiness, local fallback and an old server cannot produce a success receipt. The shared service may keep working after client cancellation. `freshness: current` retains its direct-scan semantics. Installations now probe the binary's refresh capability and reject an incompatible binary.
 
 [42 agent/installer tests](../evidence/next-release/agent-refresh-tests.log) passed, including the real pi→MCP→CLI→server route. A no-watch daemon test proves the new marker is absent from indexed search before refresh, present afterwards, and that a follow-up CLI query actually uses the server. Tests also cover service startup, deadlines, cancellation during startup and CLI work, strict validation, invalid replies, and MCP cancellation/shutdown reaping search and refresh children. This is local adapter evidence, not a hosted agent/model behavior claim.
+
+## Workload evaluation
+
+[Immediate parity under load and pinned-corpus cost](REFRESH_EVALUATION.md) records 225 receipts, 450 immediate comparisons, 10,840 checked concurrent searches and the roughly 3.07-second full Rust-tree refresh cost. Repeated-refresh memory stability and final release qualification remain open.

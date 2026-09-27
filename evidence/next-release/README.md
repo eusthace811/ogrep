@@ -82,3 +82,5 @@ The [content refresh RPC](../../docs/REFRESH_COMPLETION.md#rpc-implementation-ev
 The [refresh CLI](../../docs/REFRESH_COMPLETION.md#cli-and-live-daemon-tests) adds real-daemon initial-build/edit/restart tests in all modes, strict receipt and root validation, and a total client deadline. Agent integration and independent workload evaluation remain pending.
 
 [Agent refresh integration](../../docs/REFRESH_COMPLETION.md#agent-integration) is implemented with 42 passing tests. The no-watch test distinguishes a real publication barrier from ordinary watcher convergence; MCP/pi tests cover the tool route and cancellation.
+
+[Refresh workload evaluation](../../docs/REFRESH_EVALUATION.md) preserves immediate parity/load results and full Rust-tree cost, including increasing RSS that requires a longer stability experiment.
