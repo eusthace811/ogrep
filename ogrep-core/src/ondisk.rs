@@ -208,25 +208,27 @@ pub(crate) fn write_file_entry(
     Ok(())
 }
 
-/// Decode file entries from `files.bin` data.
+/// Walk the `files.bin` records that start at `pos`, calling `record` with
+/// each one's file ID and the offset and length of its path.
 ///
 /// Returns `Error::IndexCorrupted` if `data` is truncated mid-record (i.e.
 /// not enough bytes for a declared path or a partial header), so that callers
 /// don't silently load a partial file table that would cause queries to drop
 /// matches.
-#[cfg(test)]
-pub(crate) fn decode_file_entries(data: &[u8]) -> crate::Result<Vec<(u32, String)>> {
-    let mut entries = Vec::new();
-    let mut pos = 0;
+pub(crate) fn walk_file_records(
+    data: &[u8],
+    mut pos: usize,
+    mut record: impl FnMut(u32, usize, usize),
+) -> crate::Result<()> {
     while pos < data.len() {
-        if pos + 6 > data.len() {
+        let Some(header) = data.get(pos..pos + 6) else {
             return Err(crate::Error::IndexCorrupted(format!(
                 "files.bin truncated: {} trailing bytes < 6-byte header",
                 data.len() - pos
             )));
-        }
-        let file_id = u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap());
-        let path_len = u16::from_le_bytes(data[pos + 4..pos + 6].try_into().unwrap()) as usize;
+        };
+        let file_id = u32::from_le_bytes(header[..4].try_into().unwrap());
+        let path_len = u16::from_le_bytes(header[4..].try_into().unwrap()) as usize;
         pos += 6;
         if pos + path_len > data.len() {
             return Err(crate::Error::IndexCorrupted(format!(
@@ -235,10 +237,22 @@ pub(crate) fn decode_file_entries(data: &[u8]) -> crate::Result<Vec<(u32, String
                 data.len() - pos
             )));
         }
-        let path = String::from_utf8_lossy(&data[pos..pos + path_len]).into_owned();
-        entries.push((file_id, path));
+        record(file_id, pos, path_len);
         pos += path_len;
     }
+    Ok(())
+}
+
+/// Decode file entries from `files.bin` data, for tests of the format.
+#[cfg(test)]
+pub(crate) fn decode_file_entries(data: &[u8]) -> crate::Result<Vec<(u32, String)>> {
+    let mut entries = Vec::new();
+    walk_file_records(data, 0, |id, start, len| {
+        entries.push((
+            id,
+            String::from_utf8_lossy(&data[start..start + len]).into_owned(),
+        ));
+    })?;
     Ok(entries)
 }
 

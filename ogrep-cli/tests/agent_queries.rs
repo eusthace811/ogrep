@@ -168,6 +168,39 @@ fn file_conditions_and_identifier_search_agree_in_every_mode() {
             vec!["-l", "--with", "nothing_has_this", "--", "Mutex", "."],
             vec![],
         ),
+        // `-U`: a condition may span lines.
+        (
+            vec!["-l", "-U", "--with", r"Mutex;\nasync", "--", "run", "."],
+            vec!["src/a.rs", "src/c.rs"],
+        ),
+        // Modes the pattern's trigrams cannot narrow; `--with` still does.
+        (
+            vec![
+                "--files-without-match",
+                "--with",
+                "async",
+                "--",
+                "Mutex",
+                ".",
+            ],
+            vec!["src/d.rs"],
+        ),
+        (
+            vec!["-l", "-v", "--with", "Mutex", "--", "zzz", "."],
+            vec!["src/a.rs", "src/b.rs", "src/c.rs"],
+        ),
+        (
+            vec![
+                "-c",
+                "--include-zero",
+                "--with",
+                "only_async",
+                "--",
+                "Mutex",
+                ".",
+            ],
+            vec!["src/d.rs:0"],
+        ),
     ];
 
     for mode in ["scan", "local"] {
@@ -195,8 +228,12 @@ fn file_conditions_and_identifier_search_agree_in_every_mode() {
             .args(&with_stats)
             .output()
             .unwrap();
+        // The client answers these two modes from the index itself.
+        let local_only = args
+            .iter()
+            .any(|a| *a == "--files-without-match" || *a == "--include-zero");
         assert!(
-            String::from_utf8_lossy(&output.stderr).contains("(via server)"),
+            local_only || String::from_utf8_lossy(&output.stderr).contains("(via server)"),
             "{args:?} did not use the server: {}",
             String::from_utf8_lossy(&output.stderr)
         );
@@ -205,6 +242,13 @@ fn file_conditions_and_identifier_search_agree_in_every_mode() {
             expected,
             "server {args:?}"
         );
+    }
+}
+
+#[test]
+fn file_listing_refuses_content_conditions() {
+    for flag in ["--with", "--without"] {
+        ogrep().args(["--files", flag, "x", "."]).assert().code(2);
     }
 }
 

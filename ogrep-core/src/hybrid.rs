@@ -51,6 +51,11 @@ pub struct HybridIndex {
     pub root: PathBuf,
 }
 
+/// The on-disk path of `rel`, an index-relative path (always `/`-separated).
+pub fn join_indexed_path(root: &Path, rel: &str) -> PathBuf {
+    root.join(rel.replace('/', std::path::MAIN_SEPARATOR_STR))
+}
+
 impl HybridIndex {
     pub fn open(index_dir: &Path, root: &Path) -> Result<Self> {
         let reader = IndexReader::open(index_dir)?;
@@ -275,10 +280,8 @@ impl HybridIndex {
 
     /// Resolve a file ID to an absolute path using a specific reader snapshot.
     pub fn resolve_full_path(&self, file_id: u32, reader: &IndexReader) -> Option<PathBuf> {
-        self.resolve_path(file_id, reader).map(|rel| {
-            self.root
-                .join(rel.replace('/', std::path::MAIN_SEPARATOR_STR))
-        })
+        self.resolve_path(file_id, reader)
+            .map(|rel| join_indexed_path(&self.root, &rel))
     }
 
     /// Look up candidate file IDs for a trigram using a specific reader snapshot.
@@ -468,7 +471,7 @@ impl HybridIndex {
         const DROPPED: u32 = u32::MAX;
         let reader_paths = reader.all_paths();
         let mut reader_id_map: Vec<u32> = Vec::with_capacity(reader_paths.len());
-        for path in reader_paths {
+        for path in reader_paths.iter() {
             if self.live.is_deleted(path) || self.live.has_path(path) {
                 reader_id_map.push(DROPPED);
                 continue;

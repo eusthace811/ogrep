@@ -1135,6 +1135,14 @@ fn run_cli() {
         process::exit(2);
     }
 
+    // `--files` lists what would be searched without reading any content, so
+    // it cannot apply content conditions; silently ignoring them would list
+    // files the user excluded.
+    if cli.list_files && (!cli.with.is_empty() || !cli.without.is_empty()) {
+        eprintln!("ogrep: --with/--without cannot be combined with --files");
+        process::exit(2);
+    }
+
     if cli.search_zip {
         eprintln!("ogrep: -z/--search-zip is not supported; decompress the files first");
         process::exit(2);

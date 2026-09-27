@@ -244,18 +244,32 @@ pub fn build_multi_pattern_plan(
     })
 }
 
-/// Build a plan for PCRE-style patterns that `regex-syntax` cannot parse.
-///
-/// Each pattern is first relaxed (see [`relax_for_indexing`]); anything that
-/// cannot be relaxed, or that still fails to parse afterwards, degrades to
-/// `MatchAll`. Relaxation failure is never an error: it only costs the index
-/// optimisation, and the caller still runs the real PCRE matcher over whatever
-/// candidates come back.
-/// Require every plan: the candidates of a search whose files must also
-/// satisfy further, independently planned conditions. `MatchAll` parts add
-/// nothing and are dropped.
-pub fn require_all(plans: Vec<QueryPlan>) -> QueryPlan {
-    let mut parts: Vec<QueryPlan> = plans.into_iter().filter(|p| !p.is_match_all()).collect();
+/// Narrow `plan` by patterns every searched file must also contain (`--with`):
+/// each one's trigrams are mandatory too, even when `plan` itself is
+/// `MatchAll`. A pattern `regex-syntax` cannot parse contributes its relaxed
+/// plan; `MatchAll` parts add nothing. The caller must know the index covers
+/// the text being searched (no re-decoding).
+pub fn require_patterns(
+    plan: QueryPlan,
+    required: &[String],
+    fixed_string: bool,
+    case_insensitive: bool,
+) -> QueryPlan {
+    if required.is_empty() {
+        return plan;
+    }
+    let mut parts: Vec<QueryPlan> = Some(plan)
+        .filter(|p| !p.is_match_all())
+        .into_iter()
+        .collect();
+    for pattern in required {
+        let one = std::slice::from_ref(pattern);
+        let part = build_multi_pattern_plan(one, fixed_string, case_insensitive)
+            .unwrap_or_else(|_| build_relaxed_multi_pattern_plan(one, case_insensitive));
+        if !part.is_match_all() {
+            parts.push(part);
+        }
+    }
     match parts.len() {
         0 => QueryPlan::MatchAll,
         1 => parts.pop().unwrap(),
@@ -263,6 +277,13 @@ pub fn require_all(plans: Vec<QueryPlan>) -> QueryPlan {
     }
 }
 
+/// Build a plan for PCRE-style patterns that `regex-syntax` cannot parse.
+///
+/// Each pattern is first relaxed (see [`relax_for_indexing`]); anything that
+/// cannot be relaxed, or that still fails to parse afterwards, degrades to
+/// `MatchAll`. Relaxation failure is never an error: it only costs the index
+/// optimisation, and the caller still runs the real PCRE matcher over whatever
+/// candidates come back.
 pub fn build_relaxed_multi_pattern_plan(patterns: &[String], case_insensitive: bool) -> QueryPlan {
     let mut plans = Vec::with_capacity(patterns.len());
     for pattern in patterns {

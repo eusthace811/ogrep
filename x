@@ -142,12 +142,9 @@ case "${1:-help}" in
            cp -f "$RELEASE_DIR/ogrep.exe" "$dest/"
            echo "installed ogrep.exe to $dest"
            "$dest/ogrep.exe" --version
-           if [ "$HOST" = win ] && [ "$dest" = "$BIN_DEFAULT" ]; then
-             # Git Bash exports $HOME/bin:$PATH unconditionally (in
-             # /etc/profile.d/env.sh), so there is only a stale command
-             # cache to clear.
-             echo "~/bin is already on Git Bash's PATH: run 'hash -r', then: ogrep --help"
-           elif [ "$HOST" = wsl ]; then
+           # Git Bash exports $HOME/bin:$PATH unconditionally (in
+           # /etc/profile.d/env.sh), so the default needs only a cache clear.
+           if [ "$HOST" = wsl ]; then
              echo "from Git Bash: 'hash -r', then: ogrep --help"
              echo "(a Windows .exe; for a Linux binary in WSL use: make install)"
            else
@@ -158,8 +155,7 @@ case "${1:-help}" in
              esac
            fi ;;
 
-  test)    if [ "$#" -gt 0 ]; then shift; fi
-           run_cargo test --workspace --locked "$@" ;;
+  test)    shift; run_cargo test --workspace --locked "$@" ;;
 
   vendor)  shift
            run_cargo vendor --locked --versioned-dirs "$(winpath "$HERE/vendor")" "$@" >/dev/null
@@ -188,11 +184,11 @@ case "${1:-help}" in
            fi
            echo ""
            echo "checking that every locked crate resolves..."
-           if run_cargo fetch --locked >/dev/null 2>&1; then
+           if fetched="$(run_cargo fetch --locked 2>&1)"; then
              echo "ok: all crates available"
            else
              echo "FAILED: cargo cannot fetch the locked crates. Output:" >&2
-             run_cargo fetch --locked 2>&1 | tail -15 | sed 's/^/  /' >&2
+             printf '%s\n' "$fetched" | tail -15 | sed 's/^/  /' >&2
              echo "" >&2
              echo "On a corporate network, point cargo at the Artifactory Cargo remote, in" >&2
              echo "$CARGO_CONFIG_U:" >&2

@@ -23,30 +23,42 @@ pub struct IndexReader {
     num_entries: usize,
 }
 
-/// The bytes of `files.bin`: mapped when large, since every query reads the
-/// whole table once and copying it onto a fresh heap costs a page fault per 4 KiB.
-#[derive(Default)]
+/// The bytes of `files.bin`.
+///
+/// Mapped on Unix: a search reads the whole table once, and copying it onto a
+/// fresh process heap costs a page fault per 4 KiB, about 1.2 ms of a 4 ms
+/// query on a 63K-file index. Read on Windows: a server replaces `files.bin`
+/// by renaming over it while readers hold the old table, and Windows refuses
+/// that for a mapped file wherever it cannot rename POSIX-style (older
+/// systems, network shares).
 pub(crate) enum TableBytes {
-    #[default]
-    Empty,
     Owned(Vec<u8>),
+    #[cfg(unix)]
     Mapped(Mmap),
+}
+
+impl Default for TableBytes {
+    fn default() -> Self {
+        Self::Owned(Vec::new())
+    }
 }
 
 impl TableBytes {
     fn open(path: &Path) -> Result<Self> {
-        const MAP_MIN: u64 = 256 * 1024;
         let file = File::open(path)?;
-        let len = file.metadata()?.len();
-        if len >= MAP_MIN {
+        #[cfg(unix)]
+        {
+            const MAP_MIN: u64 = 256 * 1024;
+            let len = file.metadata()?.len();
             // SAFETY: read-only map owned by the reader, like `lookup.bin`.
-            if let Ok(map) = unsafe { memmap2::MmapOptions::new().populate().map(&file) }
+            if len >= MAP_MIN
+                && let Ok(map) = unsafe { memmap2::MmapOptions::new().populate().map(&file) }
                 && map.len() as u64 == len
             {
                 return Ok(Self::Mapped(map));
             }
         }
-        let mut bytes = Vec::with_capacity(len as usize);
+        let mut bytes = Vec::new();
         std::io::Read::read_to_end(&mut &file, &mut bytes)?;
         Ok(Self::Owned(bytes))
     }
@@ -57,8 +69,8 @@ impl std::ops::Deref for TableBytes {
 
     fn deref(&self) -> &[u8] {
         match self {
-            Self::Empty => &[],
             Self::Owned(bytes) => bytes,
+            #[cfg(unix)]
             Self::Mapped(map) => map,
         }
     }
@@ -97,33 +109,15 @@ impl PathTable {
         let mut spans: Vec<(u32, u32)> = Vec::with_capacity(data.len() / 32);
         let mut records: Vec<(u32, u32, u32)> = Vec::new();
         let mut all_utf8 = true;
-        let mut pos = body_start;
-        while pos < data.len() {
-            let Some(header) = data.get(pos..pos + 6) else {
-                return Err(crate::Error::IndexCorrupted(format!(
-                    "files.bin truncated: {} trailing bytes < 6-byte header",
-                    data.len() - pos
-                )));
-            };
-            let file_id = u32::from_le_bytes(header[..4].try_into().unwrap());
-            let path_len = u16::from_le_bytes(header[4..].try_into().unwrap()) as usize;
-            pos += 6;
-            if pos + path_len > data.len() {
-                return Err(crate::Error::IndexCorrupted(format!(
-                    "files.bin truncated: declared path_len {} exceeds remaining {} bytes",
-                    path_len,
-                    data.len() - pos
-                )));
-            }
-            let path = &data[pos..pos + path_len];
+        ondisk::walk_file_records(data, body_start, |file_id, start, len| {
+            let path = &data[start..start + len];
             all_utf8 &= path.is_ascii() || std::str::from_utf8(path).is_ok();
             if records.is_empty() && file_id as usize == spans.len() {
-                spans.push((pos as u32, path_len as u32));
+                spans.push((start as u32, len as u32));
             } else {
-                records.push((file_id, pos as u32, path_len as u32));
+                records.push((file_id, start as u32, len as u32));
             }
-            pos += path_len;
-        }
+        })?;
         if records.is_empty() {
             return Ok((spans, all_utf8));
         }
@@ -162,7 +156,7 @@ impl PathTable {
     pub(crate) fn from_spans(
         data: TableBytes,
         (mut spans, all_utf8): (Vec<(u32, u32)>, bool),
-    ) -> Result<Self> {
+    ) -> Self {
         let mut repaired = Vec::new();
         for span in spans.iter_mut().filter(|_| !all_utf8) {
             let bytes = &data[span.0 as usize..(span.0 + span.1) as usize];
@@ -173,11 +167,11 @@ impl PathTable {
                 *span = (at as u32, fixed.len() as u32);
             }
         }
-        Ok(Self {
+        Self {
             data,
             spans,
             repaired,
-        })
+        }
     }
 
     pub fn len(&self) -> usize {
@@ -205,9 +199,7 @@ impl PathTable {
     pub fn iter(&self) -> impl ExactSizeIterator<Item = &str> + Clone + '_ {
         (0..self.len()).map(|id| &self[id])
     }
-}
 
-impl PathTable {
     /// Owned copies of every path, in file ID order.
     pub fn to_vec(&self) -> Vec<String> {
         self.iter().map(str::to_string).collect()
@@ -226,26 +218,11 @@ impl<S: AsRef<str>, const N: usize> PartialEq<[S; N]> for PathTable {
     }
 }
 
-impl<S: AsRef<str>> PartialEq<[S]> for PathTable {
-    fn eq(&self, other: &[S]) -> bool {
-        self.len() == other.len() && self.iter().zip(other).all(|(a, b)| a == b.as_ref())
-    }
-}
-
 impl std::ops::Index<usize> for PathTable {
     type Output = str;
 
     fn index(&self, id: usize) -> &str {
         self.get(id).expect("file ID out of range")
-    }
-}
-
-impl<'a> IntoIterator for &'a PathTable {
-    type Item = &'a str;
-    type IntoIter = Box<dyn Iterator<Item = &'a str> + 'a>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        Box::new(self.iter())
     }
 }
 
@@ -343,9 +320,11 @@ impl IndexReader {
         // resulting in queries that returned empty file paths for high IDs.
         let files_data = TableBytes::open(&files_path)?;
         let body_start = files_data.len() - ondisk::file_table_body(&files_data)?.len();
-        // Hashing and decoding each walk the whole table; overlap them.
+        // Hashing and decoding each walk the whole table; overlap them once
+        // the table is big enough to repay starting a thread.
+        const PARALLEL_HASH_MIN: usize = 256 * 1024;
         let (file_table_id, file_paths) = std::thread::scope(|scope| {
-            let hasher = (files_data.len() >= 256 * 1024)
+            let hasher = (files_data.len() >= PARALLEL_HASH_MIN)
                 .then(|| scope.spawn(|| crate::meta::file_table_id(&files_data)));
             let spans = PathTable::decode_spans(&files_data, body_start);
             let id = match hasher {
@@ -354,7 +333,7 @@ impl IndexReader {
             };
             (id, spans)
         });
-        let file_paths = PathTable::from_spans(files_data, file_paths?)?;
+        let file_paths = PathTable::from_spans(files_data, file_paths?);
         Ok(Self {
             lookup,
             postings,
@@ -831,6 +810,27 @@ mod tests {
             crate::Error::IndexCorrupted(msg) => assert!(msg.contains("duplicate")),
             other => panic!("expected IndexCorrupted, got {other:?}"),
         }
+    }
+
+    #[test]
+    fn an_open_reader_does_not_block_replacing_files_bin() {
+        // A server publishes a new filename index by renaming over files.bin
+        // while readers still hold the old one. The table is large enough to
+        // be mapped on Unix and to take the threaded decode.
+        let tmp = TempDir::new().unwrap();
+        let mut buf = Vec::new();
+        for id in 0..20_000 {
+            buf.extend_from_slice(
+                &ondisk::encode_file_entry(id, &format!("src/f{id}.rs")).unwrap(),
+            );
+        }
+        write_index(tmp.path(), &[], &[], &buf);
+        let reader = IndexReader::open(tmp.path()).unwrap();
+        let next = tmp.path().join("files.bin.new");
+        std::fs::write(&next, ondisk::encode_file_entry(0, "new.rs").unwrap()).unwrap();
+        std::fs::rename(&next, tmp.path().join("files.bin")).expect("replace files.bin");
+        assert_eq!(reader.file_paths.len(), 20_000);
+        assert_eq!(&reader.file_paths[19_999], "src/f19999.rs");
     }
 
     #[test]

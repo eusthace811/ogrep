@@ -454,15 +454,20 @@ impl std::ops::Deref for IndexRead {
     }
 }
 
+/// Decode `bytes` as the index does: the text it indexes, or `None` for
+/// content it classifies as binary and holds no postings for.
+fn indexable_text(bytes: &[u8]) -> Option<std::borrow::Cow<'_, [u8]>> {
+    let text = crate::encoding::decode_for_index(bytes);
+    (!trigram::is_binary(&text)).then_some(text)
+}
+
 fn extract_indexed_file(path: String, data: &IndexRead) -> ExtractedFile {
-    let text = crate::encoding::decode_for_index(data);
-    let (trigrams, content_id) = if trigram::is_binary(&text) {
-        (None, None)
-    } else {
-        (
+    let (trigrams, content_id) = match indexable_text(data) {
+        Some(text) => (
             Some(trigram::extract_merged_masks(&text)),
             Some(meta::ContentId::from_indexed_bytes(&text)),
-        )
+        ),
+        None => (None, None),
     };
     let version = data.verified_version();
     // Unlike owned bytes, a raced map may have changed between extracting
@@ -491,12 +496,6 @@ impl std::ops::Deref for FileBytes {
     }
 }
 
-/// Get a file's bytes for indexing, mapping it when it is large enough to be
-/// worth avoiding the copy.
-///
-/// Falls back to an owned read whenever mapping is unavailable. Ordinary reads
-/// share the batch budget; an unlimited oversized fallback claims it
-/// exclusively so at most one such allocation is in flight.
 /// What an index read of a file would find right now.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CurrentContent {
@@ -512,44 +511,25 @@ pub enum CurrentContent {
 ///
 /// A refresh compares this against the stored identity to skip rebuilding
 /// postings for content that is byte-for-byte what the index already holds.
-/// `None` never skips anything: the caller must then reindex the file.
+/// `None` never skips anything: the caller must then reindex the file. It
+/// reads and classifies exactly as indexing does, so the two cannot disagree.
 pub fn current_content(path: &Path, max_size: Option<u64>) -> Option<CurrentContent> {
-    use std::io::Read;
-
-    let mut file = std::fs::File::open(path).ok()?;
-    let before = file_version(&file.metadata().ok()?);
-    if !before.is_trusted() || max_size.is_some_and(|limit| before.stamp().size > limit) {
-        return None;
-    }
-    let size = before.stamp().size;
-    let owned;
-    let mapped;
-    let bytes: &[u8] = if size >= MMAP_MIN_BYTES {
-        // SAFETY: read-only map dropped before returning; see `read_for_index`.
-        mapped = unsafe { memmap2::Mmap::map(&file) }.ok()?;
-        &mapped
-    } else {
-        let mut buf = Vec::with_capacity(usize::try_from(size).ok()?);
-        Read::by_ref(&mut file)
-            .take(size + 1)
-            .read_to_end(&mut buf)
-            .ok()?;
-        owned = buf;
-        &owned
+    let size = std::fs::metadata(path).ok()?.len();
+    let data = read_for_index(path, size, &OwnedReadBudget::new(u64::MAX), max_size).ok()?;
+    let content = match indexable_text(&data) {
+        Some(text) => CurrentContent::Text(meta::ContentId::from_indexed_bytes(&text)),
+        None => CurrentContent::Binary,
     };
-    if bytes.len() as u64 != size {
-        return None;
-    }
-    let text = crate::encoding::decode_for_index(bytes);
-    let content = if trigram::is_binary(&text) {
-        CurrentContent::Binary
-    } else {
-        CurrentContent::Text(meta::ContentId::from_indexed_bytes(&text))
-    };
-    let after = file_version(&file.metadata().ok()?);
-    (after == before).then_some(content)
+    // After decoding: mapped bytes can change even after the read.
+    data.verified_version().map(|_| content)
 }
 
+/// Get a file's bytes for indexing, mapping it when it is large enough to be
+/// worth avoiding the copy.
+///
+/// Falls back to an owned read whenever mapping is unavailable. Ordinary reads
+/// share the batch budget; an unlimited oversized fallback claims it
+/// exclusively so at most one such allocation is in flight.
 fn read_for_index(
     path: &Path,
     size: u64,
@@ -1477,7 +1457,7 @@ pub fn merge_index_with_delta(
     const DROPPED: u32 = u32::MAX;
     let mut next_id = 0u32;
     let mut reader_id_map = Vec::with_capacity(reader.num_files());
-    for path in reader.all_paths() {
+    for path in reader.all_paths().iter() {
         if removed_paths.contains(path) {
             reader_id_map.push(DROPPED);
         } else {

@@ -357,12 +357,9 @@ impl SearchOptions {
             only_matching: self.effective_only_matching(),
             before_context: self.before_ctx(),
             after_context: self.after_ctx(),
-            // `-q` and `--files-without-match` only need to know whether the
-            // file matched at all, so stop at the first hit.
-            max_count: if self.quiet || self.files_without_match {
-                Some(1)
-            } else if self.stops_at_first_line() {
-                // `-l` prints the name once, however many lines match.
+            // `-q`, `--files-without-match` and `-l` only need to know whether
+            // the file matched at all, so stop at the first hit.
+            max_count: if self.quiet || self.files_without_match || self.stops_at_first_line() {
                 Some(1)
             } else {
                 self.max_count
@@ -390,20 +387,14 @@ impl SearchOptions {
         )
     }
 
-    /// Narrow `plan` by the trigrams every `--with` pattern requires.
+    /// Narrow `plan` by the trigrams every `--with` pattern requires. Sound in
+    /// every mode, because a file failing `--with` produces no output at all,
+    /// except under a non-default `--encoding`, whose text the index never saw.
     fn plan_with_file_filters(&self, plan: QueryPlan, ci: bool) -> QueryPlan {
-        if self.with_patterns.is_empty() || plan.is_match_all() {
-            return plan;
+        if self.encoding.may_differ_from_index() {
+            return QueryPlan::MatchAll;
         }
-        let mut plans = vec![plan];
-        for pattern in &self.with_patterns {
-            let one = std::slice::from_ref(pattern);
-            plans.push(
-                query::build_multi_pattern_plan(one, self.fixed_string, ci)
-                    .unwrap_or_else(|_| query::build_relaxed_multi_pattern_plan(one, ci)),
-            );
-        }
-        query::require_all(plans)
+        query::require_patterns(plan, &self.with_patterns, self.fixed_string, ci)
     }
 
     /// Pattern-compilation settings, shared with the server path.
@@ -805,8 +796,7 @@ fn list_files_via_server(
     let result = response
         .get("result")
         .ok_or_else(|| anyhow::anyhow!("server response did not contain a result"))?;
-    require_server_coverage(result)?;
-    require_file_filter_support(opts, result.get("file_filters").and_then(|v| v.as_bool()))?;
+    require_server_support_in(opts, result)?;
     result
         .get("files")
         .and_then(|files| files.as_array())
@@ -822,24 +812,29 @@ fn list_files_via_server(
 
 /// An older server ignores `with`/`without` and would answer as if they were
 /// absent; refuse its reply so the caller falls back to the local index.
-fn require_file_filter_support(opts: &SearchOptions, supported: Option<bool>) -> Result<()> {
+/// Refuse a reply the server could not answer completely. Older servers
+/// ignore request fields they do not know, so without these explicit flags
+/// they would silently skip hidden files or `--with`/`--without`.
+fn require_server_support(
+    opts: &SearchOptions,
+    hidden_complete: Option<bool>,
+    file_filters: Option<bool>,
+) -> Result<()> {
+    if hidden_complete != Some(true) {
+        anyhow::bail!("server does not support complete hidden-file coverage");
+    }
     if (!opts.with_patterns.is_empty() || !opts.without_patterns.is_empty())
-        && supported != Some(true)
+        && file_filters != Some(true)
     {
         anyhow::bail!("server does not support --with/--without");
     }
     Ok(())
 }
 
-fn require_server_coverage(result: &serde_json::Value) -> Result<()> {
-    if result
-        .get("hidden_complete")
-        .and_then(|value| value.as_bool())
-        != Some(true)
-    {
-        anyhow::bail!("server does not support complete hidden-file coverage");
-    }
-    Ok(())
+/// [`require_server_support`] for a reply parsed as an untyped `result`.
+fn require_server_support_in(opts: &SearchOptions, result: &serde_json::Value) -> Result<()> {
+    let flag = |key| result.get(key).and_then(serde_json::Value::as_bool);
+    require_server_support(opts, flag("hidden_complete"), flag("file_filters"))
 }
 
 /// Run one search path's worth of work, writing through the caller's `writer`.
@@ -1082,9 +1077,9 @@ fn search_via_server(
     let result = response
         .get("result")
         .ok_or_else(|| anyhow::anyhow!("no result in response"))?;
-    // Older servers ignore unknown request fields. Validate before writing any
-    // rows, so an old/partial server can never silently answer --hidden.
-    require_server_coverage(result)?;
+    // Validate before writing any rows, so an old or partial server can never
+    // silently answer --hidden or --with/--without.
+    require_server_support_in(opts, result)?;
 
     let empty_vec = Vec::new();
     let matches = result
@@ -1362,22 +1357,17 @@ fn search_via_server(
 }
 
 #[derive(serde::Deserialize)]
-struct FileListEnvelope<'a> {
-    #[serde(borrow, default)]
-    result: Option<FileListResult<'a>>,
-    #[serde(default)]
+struct FileListEnvelope {
+    result: Option<FileListResult>,
     error: Option<serde_json::Value>,
 }
 
 #[derive(serde::Deserialize)]
-struct FileListResult<'a> {
-    #[serde(borrow, default)]
-    files: Option<Vec<std::borrow::Cow<'a, str>>>,
+struct FileListResult {
+    files: Option<Vec<String>>,
     #[serde(default)]
     matches: Vec<serde_json::Value>,
-    #[serde(default)]
     hidden_complete: Option<bool>,
-    #[serde(default)]
     file_filters: Option<bool>,
 }
 
@@ -1394,7 +1384,7 @@ fn write_file_list_reply(
     opts: &SearchOptions,
     writer: &mut OutputWriter,
 ) -> Result<Option<bool>> {
-    let envelope: FileListEnvelope<'_> = serde_json::from_str(line)?;
+    let envelope: FileListEnvelope = serde_json::from_str(line)?;
     if let Some(error) = envelope.error {
         return Err(server_error(&error));
     }
@@ -1404,10 +1394,7 @@ fn write_file_list_reply(
     let Some(files) = result.files else {
         return Ok(None);
     };
-    if result.hidden_complete != Some(true) {
-        anyhow::bail!("server does not support complete hidden-file coverage");
-    }
-    require_file_filter_support(opts, result.file_filters)?;
+    require_server_support(opts, result.hidden_complete, result.file_filters)?;
     let hidden_binary: std::collections::HashSet<&str> =
         if opts.binary || matches!(scope, IndexScope::File(_)) {
             Default::default()
@@ -1422,7 +1409,7 @@ fn write_file_list_reply(
     let whole = matches!(scope, IndexScope::Whole) && opts.max_depth.is_none();
     let mut had_matches = false;
     for file in &files {
-        if hidden_binary.contains(file.as_ref()) {
+        if hidden_binary.contains(file.as_str()) {
             continue;
         }
         if whole {
@@ -1517,7 +1504,17 @@ fn search_local_index(
     // A PCRE-style pattern is not parseable by `regex-syntax`, but relaxing it
     // (dropping lookarounds and the like) yields one that is, and that matches a
     // superset — so its trigrams remain mandatory for the original.
-    let plan = if opts.effective_passthru() || opts.encoding.may_differ_from_index() {
+    //
+    // `-v` inverts at the *line* level: a file matches when some line does not.
+    // The pattern's trigrams select files that contain it, which is exactly the
+    // wrong filter. Same for `--files-without-match` and `--include-zero`, which
+    // both have to report files the pattern excluded. `--with` still narrows.
+    let plan = if opts.effective_passthru()
+        || opts.encoding.may_differ_from_index()
+        || opts.files_without_match
+        || opts.invert_match
+        || opts.include_zero
+    {
         QueryPlan::MatchAll
     } else if matcher.is_standard() || opts.fixed_string {
         query::build_multi_pattern_plan(&opts.all_patterns()?, opts.fixed_string, ci)
@@ -1528,20 +1525,13 @@ fn search_local_index(
     let plan = opts.plan_with_file_filters(plan, ci);
     drop(compile_span);
 
-    let is_match_all = plan.is_match_all();
-
-    // `-v` inverts at the *line* level: a file matches when some line does not.
-    // The trigram plan selects files that contain the pattern, which is exactly
-    // the wrong filter, so it has to be bypassed. Same for `--files-without-match`
-    // and `--include-zero`, which both have to report files the plan excluded.
     let mut query_work = query::QueryWork::default();
     let postings_span = crate::profile::span(crate::profile::Phase::Postings);
-    let candidate_ids =
-        if is_match_all || opts.files_without_match || opts.invert_match || opts.include_zero {
-            reader.all_file_ids()
-        } else {
-            query::execute_plan_indexed(&plan, &reader, &mut query_work)
-        };
+    let candidate_ids = if plan.is_match_all() {
+        reader.all_file_ids()
+    } else {
+        query::execute_plan_indexed(&plan, &reader, &mut query_work)
+    };
     drop(postings_span);
 
     // Drop everything outside the searched subtree and re-express the survivors
@@ -1755,12 +1745,10 @@ fn verify_candidates_parallel(
                     writer.write_file(rel_path)?;
                 }
                 Verified::Render(read) => {
-                    if search_file(&read, matcher, filter, rel_path, opts, writer, explicit)? {
-                        had_matches = true;
-                        if opts.quiet {
-                            return Ok(true);
-                        }
-                    }
+                    // The worker already applied `--with`/`--without`, and `-q`
+                    // always decides in the worker, so it never renders.
+                    had_matches |=
+                        search_file(&read, matcher, None, rel_path, opts, writer, explicit)?;
                 }
             }
         }
@@ -2645,7 +2633,10 @@ mod tests {
 
     #[test]
     fn quiet_file_selection_distinguishes_nonmatching_and_skipped_files() {
-        let matcher = SearchMatcher::Standard(regex::Regex::new("needle").unwrap(), None);
+        let matcher = SearchMatcher::Standard(
+            regex::Regex::new("needle").unwrap(),
+            crate::matching::Prescan::Direct,
+        );
         for (content, explicit, binary, matched, without_match) in [
             ("needle\n", false, false, true, false),
             ("other\n", false, false, false, true),
@@ -2808,14 +2799,33 @@ mod tests {
 
     #[test]
     fn server_response_requires_explicit_complete_hidden_coverage() {
+        let opts = SearchOptions::default();
         for response in [
             serde_json::json!({}),
             serde_json::json!({"hidden_complete": false}),
             serde_json::json!({"hidden_complete": null}),
         ] {
-            assert!(require_server_coverage(&response).is_err());
+            assert!(require_server_support_in(&opts, &response).is_err());
         }
-        assert!(require_server_coverage(&serde_json::json!({"hidden_complete": true})).is_ok());
+        assert!(
+            require_server_support_in(&opts, &serde_json::json!({"hidden_complete": true})).is_ok()
+        );
+        // `--with` needs a server that says it applied the file conditions.
+        let with = SearchOptions {
+            with_patterns: vec!["x".into()],
+            ..SearchOptions::default()
+        };
+        assert!(
+            require_server_support_in(&with, &serde_json::json!({"hidden_complete": true}))
+                .is_err()
+        );
+        assert!(
+            require_server_support_in(
+                &with,
+                &serde_json::json!({"hidden_complete": true, "file_filters": true})
+            )
+            .is_ok()
+        );
     }
 
     #[test]

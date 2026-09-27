@@ -245,11 +245,8 @@ pub fn expand_context_window(
 /// The compiled pattern. `regex` handles almost everything and is linear-time;
 /// `fancy_regex` is the fallback for backreferences and lookaround.
 pub enum SearchMatcher {
-    /// A linear-time match, plus the same pattern compiled with `^`/`$`
-    /// anchored at every line, for scanning a whole buffer at once. The second
-    /// regex exists only for anchored line-oriented patterns; see
-    /// [`line_anchored_prescan`].
-    Standard(regex::Regex, Option<regex::Regex>),
+    /// A linear-time match, and how a whole buffer may be scanned for it.
+    Standard(regex::Regex, Prescan),
     /// A backtracking match, optionally gated by a linear-time prefilter.
     ///
     /// `fancy_regex` already delegates to `regex` when a pattern needs nothing
@@ -267,6 +264,58 @@ pub enum SearchMatcher {
         re: fancy_regex::Regex,
         prefilter: Option<regex::Regex>,
     },
+}
+
+/// How [`candidate_lines`] may scan a whole buffer for a line-oriented,
+/// linear-time pattern, decided once when the matcher is built.
+pub enum Prescan {
+    /// Anchor-free: the pattern itself finds every line's matches.
+    Direct,
+    /// Anchored with `^`/`$` only: the pattern recompiled in multi-line mode
+    /// (see [`Prescan::for_pattern`]), built on first use because modes such
+    /// as `-v` never scan.
+    LineAnchored {
+        config: MatcherConfig,
+        regex: std::sync::OnceLock<Option<regex::Regex>>,
+    },
+    /// Anchors that cannot be made line-relative: check every line.
+    Unavailable,
+}
+
+impl Prescan {
+    /// Line-oriented matching runs the pattern on each line separately, where
+    /// `^` and `$` mean the line's ends. Lines split only at `\n` and keep any
+    /// `\r`, so multi-line mode gives `^` and `$` exactly those positions inside
+    /// a buffer. CRLF mode must stay off: it stops `$` matching between `\r`
+    /// and `\n`, which would lose `\r$` on every CRLF line. What cannot be made
+    /// line-relative is excluded: `\A`, `\z` and `\Z` stay bound to the buffer,
+    /// and an inline flag group could switch multi-line mode back off.
+    fn for_pattern(pattern: &str, cfg: &MatcherConfig) -> Self {
+        if pattern_is_anchor_free(pattern) {
+            Self::Direct
+        } else if cfg.multiline || !anchors_are_line_relative(pattern) {
+            Self::Unavailable
+        } else {
+            Self::LineAnchored {
+                config: MatcherConfig {
+                    multiline: true,
+                    ..cfg.clone()
+                },
+                regex: std::sync::OnceLock::new(),
+            }
+        }
+    }
+
+    /// The regex to scan a whole buffer with, if any.
+    fn regex<'a>(&'a self, re: &'a regex::Regex) -> Option<&'a regex::Regex> {
+        match self {
+            Self::Direct => Some(re),
+            Self::LineAnchored { config, regex } => regex
+                .get_or_init(|| build_regex(re.as_str(), config).ok())
+                .as_ref(),
+            Self::Unavailable => None,
+        }
+    }
 }
 
 impl SearchMatcher {
@@ -468,13 +517,18 @@ impl FileFilter {
 
     /// Whether `content` satisfies every condition.
     pub fn passes(&self, content: &str) -> Result<bool> {
+        // One line table, built only if a condition needs it, for them all.
+        let index = LineIndex::new(content);
         let probe = MatchOptions {
-            multiline: self.multiline,
             max_count: Some(1),
             ..Default::default()
         };
         let has = |m: &SearchMatcher| -> Result<bool> {
-            Ok(!FileMatches::find(content, m, &probe)?.is_empty())
+            if self.multiline {
+                Ok(m.find_first_span(content)?.is_some())
+            } else {
+                Ok(!collect_hits(content, &index, m, &probe)?.is_empty())
+            }
         };
         for m in &self.with {
             if !has(m)? {
@@ -511,7 +565,7 @@ pub fn build_search_matcher(patterns: &[String], cfg: &MatcherConfig) -> Result<
 
     match build_regex(&combined, cfg) {
         Ok(re) => {
-            let prescan = line_anchored_prescan(&combined, cfg);
+            let prescan = Prescan::for_pattern(&combined, cfg);
             Ok(SearchMatcher::Standard(re, prescan))
         }
         // Exceeding `--regex-size-limit`/`--dfa-size-limit` is a resource error,
@@ -930,32 +984,6 @@ fn pattern_is_anchor_free(pattern: &str) -> bool {
     true
 }
 
-/// The pattern recompiled so a whole buffer can stand in for each of its lines,
-/// when it is anchored with `^`/`$` and so cannot use the plain prescan.
-///
-/// Line-oriented matching runs the pattern on each line separately, where `^`
-/// and `$` mean the line's ends. Lines split only at `\n` and keep any `\r`,
-/// so multi-line mode gives `^` and `$` exactly those positions inside a
-/// buffer. CRLF mode must stay off: it stops `$` matching between `\r` and
-/// `\n`, which would lose `\r$` on every CRLF line. What cannot be made
-/// line-relative is excluded: `\A`, `\z` and `\Z` stay bound to the buffer,
-/// and an inline flag group could switch multi-line mode back off.
-fn line_anchored_prescan(combined: &str, cfg: &MatcherConfig) -> Option<regex::Regex> {
-    if cfg.multiline || pattern_is_anchor_free(combined) || !anchors_are_line_relative(combined) {
-        return None;
-    }
-    RegexBuilder::new(combined)
-        .case_insensitive(cfg.case_insensitive)
-        .multi_line(true)
-        .dot_matches_new_line(cfg.dotall)
-        .unicode(!cfg.no_unicode)
-        .size_limit(cfg.regex_size_limit.unwrap_or(100 * (1 << 20)))
-        .dfa_size_limit(cfg.dfa_size_limit.unwrap_or(1000 * (1 << 20)))
-        .nest_limit(250)
-        .build()
-        .ok()
-}
-
 /// Whether every anchor in `pattern` is `^` or `$` under the builder's own
 /// multi-line setting: no haystack anchors, and no `(?...)` group other than
 /// non-capturing, named, or flags that leave multi-line and CRLF mode alone.
@@ -1019,16 +1047,13 @@ fn candidate_lines<'a>(
     if opts.stop_on_nonmatch {
         return None;
     }
-    let SearchMatcher::Standard(re, line_anchored) = matcher else {
+    let SearchMatcher::Standard(re, prescan) = matcher else {
         return None;
     };
-    let re = if pattern_is_anchor_free(re.as_str()) {
-        re
-    } else {
-        line_anchored.as_ref()?
-    };
+    let re = prescan.regex(re)?;
     // A pattern that matches the empty string matches at every offset, so the
-    // prescan would yield every line and the real loop is cheaper.
+    // prescan would yield every line and the real loop is cheaper. Patterns
+    // that only match empty at some offsets (`\b`) still prescan.
     if re.is_match("") {
         return None;
     }
@@ -1038,8 +1063,13 @@ fn candidate_lines<'a>(
         re.find_iter(content)
             .flat_map(move |m| {
                 let first = index.line_of(m.start());
-                // Matches are non-empty here, so `end - 1` is inside the match.
-                let last_line = index.line_of(m.end() - 1);
+                // A zero-width match (`\b`, `^\b`) belongs to the line it sits
+                // on; otherwise `end - 1` is the match's last byte.
+                let last_line = if m.is_empty() {
+                    first
+                } else {
+                    index.line_of(m.end() - 1)
+                };
                 first..=last_line
             })
             .filter(move |&li| {
@@ -1128,7 +1158,8 @@ mod tests {
 
     #[test]
     fn stats_keep_original_multiline_matches_and_physical_lines() {
-        let matcher = SearchMatcher::Standard(regex::Regex::new(r"hello\nworld").unwrap(), None);
+        let matcher =
+            SearchMatcher::Standard(regex::Regex::new(r"hello\nworld").unwrap(), Prescan::Direct);
         for vimgrep in [false, true] {
             let found = FileMatches::find(
                 "hello\nworld\n",
@@ -1213,7 +1244,7 @@ mod tests {
 
         for pat in patterns {
             let re = regex::Regex::new(pat).expect("test pattern compiles");
-            let matcher = SearchMatcher::Standard(re, None);
+            let matcher = SearchMatcher::Standard(re, Prescan::Direct);
             for hay in haystacks {
                 let index = LineIndex::new(hay);
                 let opts = MatchOptions::default();
@@ -1284,6 +1315,11 @@ mod tests {
             r"^\r",
             r"a\r$",
             r"\s$",
+            // Zero-width matches that `""` alone does not satisfy.
+            r"^\b",
+            r"\b$",
+            r"\b",
+            r"^\b|b",
         ];
         // Every short haystack over a small alphabet, so each arrangement of
         // line breaks, carriage returns and spaces around the anchors is seen.
@@ -1348,7 +1384,7 @@ mod tests {
             else {
                 panic!("expected the linear-time engine");
             };
-            scan.is_some()
+            matches!(scan, Prescan::LineAnchored { .. })
         };
         assert!(prescan("^use std::"));
         assert!(prescan(r"^\s*fn\s+\w+"));
@@ -1369,13 +1405,13 @@ mod tests {
         else {
             panic!("expected the linear-time engine");
         };
-        assert!(scan.is_none());
+        assert!(matches!(scan, Prescan::Unavailable));
     }
 
     #[test]
     fn prescan_respects_max_count_and_stop_on_nonmatch() {
         let hay = "hit\nhit\nmiss\nhit\n";
-        let matcher = SearchMatcher::Standard(regex::Regex::new("hit").unwrap(), None);
+        let matcher = SearchMatcher::Standard(regex::Regex::new("hit").unwrap(), Prescan::Direct);
         let index = LineIndex::new(hay);
 
         let opts = MatchOptions {
@@ -1402,7 +1438,7 @@ mod tests {
         // propose every line at the cost of an extra pass.
         let hay = "a\nb\n";
         let index = LineIndex::new(hay);
-        let matcher = SearchMatcher::Standard(regex::Regex::new("x*").unwrap(), None);
+        let matcher = SearchMatcher::Standard(regex::Regex::new("x*").unwrap(), Prescan::Direct);
         let opts = MatchOptions::default();
         assert!(candidate_lines(hay, &index, &matcher, &opts).is_none());
     }
@@ -1413,7 +1449,7 @@ mod tests {
         // both have to be offered.
         let hay = "a \n b\nzzz\n";
         let index = LineIndex::new(hay);
-        let matcher = SearchMatcher::Standard(regex::Regex::new(r"\s+").unwrap(), None);
+        let matcher = SearchMatcher::Standard(regex::Regex::new(r"\s+").unwrap(), Prescan::Direct);
         let opts = MatchOptions::default();
         let proposed: Vec<usize> = candidate_lines(hay, &index, &matcher, &opts)
             .expect("anchor-free and non-empty")

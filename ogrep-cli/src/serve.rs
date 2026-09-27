@@ -392,13 +392,6 @@ impl ContentCache {
         self.lru.peek(key)
     }
 
-    /// Whether recency still decides anything: until the cache is half full
-    /// by either bound, nothing is close to eviction and promoting hits only
-    /// costs a write lock and a list splice per candidate.
-    fn recency_matters(&self) -> bool {
-        self.lru.len() * 2 >= self.lru.cap().get() || self.bytes * 2 >= self.max_bytes
-    }
-
     /// Promote an entry to most-recently-used.
     fn touch(&mut self, key: &str) {
         self.lru.get(key);
@@ -1883,28 +1876,21 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
     } else {
         query::build_relaxed_multi_pattern_plan(&all_patterns, case_insensitive)
     };
-    // Every `--with` pattern is also necessary, so its trigrams narrow too.
-    let plan = if plan.is_match_all() || with_patterns.is_empty() {
+    // Every `--with` pattern is also necessary, so its trigrams narrow too, even
+    // for `-v`: a file failing `--with` produces no output. Re-decoded text is
+    // not what the index saw, so nothing narrows it.
+    let plan = if encoding.may_differ_from_index() {
         plan
     } else {
-        let mut plans = vec![plan];
-        for pattern in &with_patterns {
-            let one = std::slice::from_ref(pattern);
-            plans.push(
-                query::build_multi_pattern_plan(one, fixed_string, case_insensitive)
-                    .unwrap_or_else(|_| {
-                        query::build_relaxed_multi_pattern_plan(one, case_insensitive)
-                    }),
-            );
-        }
-        query::require_all(plans)
+        query::require_patterns(plan, &with_patterns, fixed_string, case_insensitive)
     };
 
+    let stats = params
+        .get("stats")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
     let file_list = files_only
-        && !params
-            .get("stats")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(false)
+        && !stats
         && params
             .get("file_list")
             .and_then(|v| v.as_bool())
@@ -1942,10 +1928,7 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
             vimgrep,
             detail,
             positions,
-            stats: params
-                .get("stats")
-                .and_then(|v| v.as_bool())
-                .unwrap_or(false),
+            stats,
         },
     })
 }
@@ -2038,7 +2021,7 @@ fn handle_search(
             if !glob_filter.is_empty() && !glob_filter.matches(scoped) {
                 return Filtered::Glob(rel_path);
             }
-            let full_path = root.join(rel_path.replace('/', std::path::MAIN_SEPARATOR_STR));
+            let full_path = ogrep_core::hybrid::join_indexed_path(root, &rel_path);
             if let Some(limit) = query_size_limit
                 && std::fs::metadata(&full_path).is_ok_and(|md| md.len() > limit)
             {
@@ -2105,29 +2088,27 @@ fn handle_search(
     // Two-phase approach: read-lock for cache hits, then disk I/O outside the
     // lock, then a single write-lock to promote hits and insert misses.
     let t_resolve = Instant::now();
+    let candidate_count = candidate_info.len();
     let candidate_contents: Vec<(String, Arc<DecodedFile>)> = if encoding.may_differ_from_index() {
         // The cache holds text decoded with the default (BOM-sniffing) rules and
         // is shared by every client. A request that asked for a different
         // `--encoding` must neither read those entries nor write its own, or one
         // client's `-E sjis` would silently change what the next client sees.
         candidate_info
-            .iter()
+            .into_iter()
             .filter_map(|(rel_path, full_path)| {
                 let bytes = std::fs::read(full_path).ok()?;
-                Some((
-                    rel_path.clone(),
-                    Arc::new(DecodedFile::new(bytes, encoding)),
-                ))
+                Some((rel_path, Arc::new(DecodedFile::new(bytes, encoding))))
             })
             .collect()
     } else {
         let cache_generation = state.cache_generation.load(Ordering::SeqCst);
         // Phase 1: read-lock to find cache hits (peek avoids write-lock need),
         // one slot per candidate so order needs no map to restore.
-        let (mut slots, recency_matters): (Vec<Option<Arc<DecodedFile>>>, bool) = {
+        let mut slots: Vec<Option<Arc<DecodedFile>>> = {
             let cache = state.cache.read().unwrap();
             let peek = |(rel_path, _): &(String, PathBuf)| cache.peek(rel_path).cloned();
-            let slots = if candidate_info.len() >= PARALLEL_SERVER_MIN {
+            if candidate_info.len() >= PARALLEL_SERVER_MIN {
                 candidate_info
                     .par_iter()
                     .with_min_len(512)
@@ -2135,19 +2116,14 @@ fn handle_search(
                     .collect()
             } else {
                 candidate_info.iter().map(peek).collect()
-            };
-            (slots, cache.recency_matters())
+            }
         }; // read lock released
-        let hit_keys: Vec<String> = if recency_matters {
-            slots
-                .iter()
-                .zip(&candidate_info)
-                .filter(|(slot, _)| slot.is_some())
-                .map(|(_, (rel_path, _))| rel_path.clone())
-                .collect()
-        } else {
-            Vec::new()
-        };
+        let hit_keys: Vec<String> = slots
+            .iter()
+            .zip(&candidate_info)
+            .filter(|(slot, _)| slot.is_some())
+            .map(|(_, (rel_path, _))| rel_path.clone())
+            .collect();
 
         // Phase 2: read cache misses from disk (no lock held). Lossy, like the
         // local path: refusing invalid UTF-8 would make UTF-16 and Latin-1
@@ -2177,9 +2153,9 @@ fn handle_search(
             slots[i] = Some(content);
         }
         candidate_info
-            .iter()
+            .into_iter()
             .zip(slots)
-            .filter_map(|((rel_path, _), slot)| slot.map(|c| (rel_path.clone(), c)))
+            .filter_map(|((rel_path, _), slot)| slot.map(|c| (rel_path, c)))
             .collect()
     };
     let resolve_ms = t_resolve.elapsed().as_secs_f64() * 1000.0;
@@ -2220,7 +2196,7 @@ fn handle_search(
         pattern,
         case_insensitive,
         raw_candidate_count,
-        candidate_info.len(),
+        candidate_count,
         matches.len(),
         elapsed_ms,
         index_ms,
@@ -2231,55 +2207,59 @@ fn handle_search(
     // Serialize the rows straight into the reply. Wrapping them in `json!`
     // first deep-copies every row into a new tree, twice with the JSON-RPC
     // envelope, which cost more than the search itself on broad listings.
-    let mut rest = serde_json::Map::new();
-    // The number of rows in `matches` (plus `files`), which is not a
-    // ripgrep-style match count: it spans the whole indexed tree (the client
-    // applies any subdirectory argument to the reply) and includes context
-    // rows. `file_stats`, when requested, carries the original match totals.
-    rest.insert("num_matches".into(), (matches.len() + listed.len()).into());
-    rest.insert("elapsed_ms".into(), elapsed_ms.into());
-    rest.insert("hidden_complete".into(), true.into());
-    // Tells clients `with`/`without` were applied; older servers ignore them.
-    rest.insert("file_filters".into(), true.into());
-    if let Some(total_files) = total_files {
-        rest.insert("file_stats".into(), serde_json::json!(file_stats));
-        rest.insert(
-            "index_stats".into(),
-            serde_json::json!({
-                "query_plan": crate::search::plan_summary(&plan),
-                "raw_candidates": raw_candidate_count,
-                "candidates": filtered_candidate_count,
-                "total_files": total_files,
-                "work": query_work,
+    let reply = SearchReply {
+        jsonrpc: "2.0",
+        id: id.as_ref(),
+        result: SearchReplyResult {
+            // The number of rows in `matches` (plus `files`), which is not a
+            // ripgrep-style match count: it spans the whole indexed tree (the
+            // client applies any subdirectory argument to the reply) and
+            // includes context rows. `file_stats`, when requested, carries the
+            // original match totals.
+            num_matches: matches.len() + listed.len(),
+            matches: &matches,
+            files: opts.file_list.then_some(listed.as_slice()),
+            elapsed_ms,
+            hidden_complete: true,
+            file_filters: true,
+            file_stats: total_files.is_some().then_some(file_stats.as_slice()),
+            index_stats: total_files.map(|total_files| {
+                serde_json::json!({
+                    "query_plan": crate::search::plan_summary(&plan),
+                    "raw_candidates": raw_candidate_count,
+                    "candidates": filtered_candidate_count,
+                    "total_files": total_files,
+                    "work": query_work,
+                })
             }),
-        );
-    }
-    let mut out = Vec::with_capacity(
-        256 + listed.iter().map(|p| p.len() + 3).sum::<usize>() + matches.len() * 64,
-    );
-    out.extend_from_slice(b"{\"jsonrpc\":\"2.0\",\"id\":");
-    let written = serde_json::to_writer(&mut out, &id.unwrap_or(serde_json::Value::Null))
-        .and_then(|()| {
-            out.extend_from_slice(b",\"result\":{\"matches\":");
-            serde_json::to_writer(&mut out, &matches)
-        })
-        .and_then(|()| {
-            if opts.file_list {
-                out.extend_from_slice(b",\"files\":");
-                serde_json::to_writer(&mut out, &listed)?;
-            }
-            out.push(b',');
-            // `rest` always has fields: splice them in without its own braces.
-            let tail = serde_json::to_vec(&rest)?;
-            out.extend_from_slice(&tail[1..]);
-            out.push(b'}');
-            Ok(())
-        });
-    if let Err(e) = written {
-        return json_rpc_error(None, -32603, &format!("failed to encode reply: {e}"));
-    }
-    // SAFETY: serde_json emits UTF-8, as do the ASCII literals around it.
-    unsafe { String::from_utf8_unchecked(out) }
+        },
+    };
+    serde_json::to_string(&reply)
+        .unwrap_or_else(|e| json_rpc_error(None, -32603, &format!("failed to encode reply: {e}")))
+}
+
+#[derive(Serialize)]
+struct SearchReply<'a> {
+    jsonrpc: &'static str,
+    id: Option<&'a serde_json::Value>,
+    result: SearchReplyResult<'a>,
+}
+
+#[derive(Serialize)]
+struct SearchReplyResult<'a> {
+    matches: &'a [serde_json::Value],
+    /// `file_list` replies: the matching paths, as plain strings.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    files: Option<&'a [&'a str]>,
+    num_matches: usize,
+    elapsed_ms: f64,
+    hidden_complete: bool,
+    /// Tells clients `with`/`without` were applied; older servers omit it.
+    file_filters: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    file_stats: Option<&'a [crate::search::FileMatchStats]>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    index_stats: Option<serde_json::Value>,
 }
 
 /// Candidate sets smaller than this are filtered and resolved on the request
@@ -2374,7 +2354,7 @@ fn search_file_matches(
         return Ok(FileSearchResult::default());
     }
     let mut result = FileSearchResult {
-        listed: false,
+        listed: opts.file_list,
         rows: Vec::new(),
         stats: opts.stats.then(|| {
             let (matches, matched_lines) = found.match_totals();
@@ -2401,14 +2381,12 @@ fn search_file_matches(
         // `--json` reports binary matches as ordinary match events carrying a
         // `binary_offset`, so those clients ask for the lines as well.
         result.rows.push(marker);
-        result.listed = opts.file_list;
         if !opts.binary_lines || (opts.files_only && (opts.stats || opts.compact_files)) {
             return Ok(result);
         }
     }
 
     if opts.file_list {
-        result.listed = true;
         return Ok(result);
     }
 
@@ -7028,41 +7006,41 @@ fn drop_identical_content(
 ) -> Vec<String> {
     use ogrep_core::builder::CurrentContent;
 
-    // `None`: not indexed, so only still-binary content can be skipped.
-    let expected: std::collections::HashMap<String, Option<ogrep_core::meta::ContentId>> = {
+    // What each path must read as for its rebuild to be skippable: the
+    // identity its postings were built from, or, when it holds no postings,
+    // still-binary content. `None` never skips.
+    let expected: Vec<Option<CurrentContent>> = {
         let evidence = state.file_evidence.read().unwrap();
         let unreadable = state.unreadable.read().unwrap();
         changed
             .iter()
-            .filter(|path| !unreadable.contains_key(*path))
-            .filter_map(|path| {
-                if indexed_paths.contains(path) {
-                    Some((path.clone(), Some(evidence.content_id(path)?)))
+            .map(|path| {
+                if unreadable.contains_key(path) {
+                    None
+                } else if indexed_paths.contains(path) {
+                    evidence.content_id(path).map(CurrentContent::Text)
                 } else {
-                    Some((path.clone(), None))
+                    Some(CurrentContent::Binary)
                 }
             })
             .collect()
     };
-    if expected.is_empty() {
+    if expected.iter().all(Option::is_none) {
         return changed;
     }
     let max_size = state.max_file_size;
     let before = changed.len();
     let kept: Vec<String> = changed
         .into_par_iter()
-        .filter(|path| {
-            let Some(expected) = expected.get(path) else {
+        .zip(expected)
+        .filter(|(path, expected)| {
+            let Some(expected) = expected else {
                 return true;
             };
-            let full = root.join(path.replace('/', std::path::MAIN_SEPARATOR_STR));
-            let current = ogrep_core::builder::current_content(&full, max_size);
-            let unchanged = match expected {
-                Some(id) => current == Some(CurrentContent::Text(*id)),
-                None => current == Some(CurrentContent::Binary),
-            };
-            !unchanged
+            let full = ogrep_core::hybrid::join_indexed_path(root, path);
+            ogrep_core::builder::current_content(&full, max_size) != Some(*expected)
         })
+        .map(|(path, _)| path)
         .collect();
     eprintln!(
         "[trace] refresh: {} of {} file(s) have unchanged content; rebuilding {}",
