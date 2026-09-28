@@ -293,7 +293,9 @@ fn several_patterns_match_and_plan_like_separate_ones() {
     let run = |args: &[&str]| {
         let mut cmd = Command::cargo_bin("ogrep").unwrap();
         cmd.current_dir(&root)
-            .args(["--no-config", "--stats", "--sort", "path", "--index-path"])
+            .args(["--no-config", "--stats", "--sort", "path"])
+            // The same printed paths on Windows.
+            .args(["--path-separator", "/", "--index-path"])
             .arg(&index)
             .args(args)
             .arg(".");
