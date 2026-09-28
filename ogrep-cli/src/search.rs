@@ -54,9 +54,6 @@ pub struct SearchOptions {
     /// request and every path argument all use them, and `-f` may name a pipe
     /// that can be read only once.
     pub file_patterns: Option<Vec<String>>,
-    /// [`effective_case_insensitive`](Self::effective_case_insensitive),
-    /// fixed once all patterns are known; see [`resolve_case`](Self::resolve_case).
-    pub resolved_case_insensitive: Option<bool>,
     pub case_insensitive: bool,
     pub case_sensitive: bool,
     pub smart_case: bool,
@@ -246,9 +243,6 @@ impl SearchOptions {
     /// of those literals is uppercase; see [`query::LiteralCase`] for what
     /// counts as a literal under each engine.
     pub fn effective_case_insensitive(&self) -> bool {
-        if let Some(resolved) = self.resolved_case_insensitive {
-            return resolved;
-        }
         if self.case_insensitive {
             return true;
         }
@@ -258,7 +252,8 @@ impl SearchOptions {
         let pcre = self.engine == crate::matching::RegexEngine::Pcre2;
         // The main patterns form one alternation and share an engine; each
         // file condition is compiled on its own.
-        let mut case = query::LiteralCase::of_all(&self.pattern_refs(), self.fixed_string, pcre);
+        let patterns: Vec<&str> = self.pattern_refs().collect();
+        let mut case = query::LiteralCase::of_all(&patterns, self.fixed_string, pcre);
         for condition in self.with_patterns.iter().chain(&self.without_patterns) {
             case = case.merge(query::LiteralCase::of_all(
                 &[condition.as_str()],
@@ -267,12 +262,6 @@ impl SearchOptions {
             ));
         }
         case.ignores_case()
-    }
-
-    /// Fix the case decision so every path argument reuses it: smart case
-    /// parses every pattern, which a large `-f` file makes costly.
-    pub fn resolve_case(&mut self) {
-        self.resolved_case_insensitive = Some(self.effective_case_insensitive());
     }
 
     /// Whether `.` should match a newline. ripgrep keeps this separate from
@@ -487,7 +476,7 @@ impl SearchOptions {
     }
 
     /// Every pattern (primary, `-e`/`--ident`, `-f`), borrowed.
-    fn pattern_refs(&self) -> Vec<&str> {
+    fn pattern_refs(&self) -> impl Iterator<Item = &str> {
         let has_extra = !self.extra_patterns.is_empty() || self.file_patterns.is_some();
         // `-e`/`-f` move the positional argument into the path list, leaving the
         // base pattern empty. Keeping it would contribute an empty alternative
@@ -497,31 +486,27 @@ impl SearchOptions {
             .into_iter()
             .chain(self.extra_patterns.iter().map(String::as_str))
             .chain(self.file_patterns.iter().flatten().map(String::as_str))
-            .collect()
     }
 
     /// Collect all patterns (primary + -e extras + -f file patterns).
     fn all_patterns(&self) -> Vec<String> {
-        self.pattern_refs()
-            .into_iter()
-            .map(str::to_string)
-            .collect()
+        self.pattern_refs().map(str::to_string).collect()
     }
 
     /// Whether there is any pattern at all. There is none when every pattern
     /// source was empty (an empty `-f` file): then nothing can match, and `-v`
     /// selects every line.
     pub fn has_patterns(&self) -> bool {
-        !self.pattern_refs().is_empty()
+        self.pattern_refs().next().is_some()
     }
 
     /// Build the glob, type and `--with`/`--without` filters, reporting the
     /// first invalid one, without searching: a bad argument is rejected up
     /// front, even for a search that needs no work, as ripgrep does.
-    pub fn check_filters(&self) -> Result<()> {
+    pub fn check_filters(&self, ci: bool) -> Result<()> {
         self.glob_filter()?;
         self.type_filter()?;
-        self.file_filter(self.effective_case_insensitive())?;
+        self.file_filter(ci)?;
         Ok(())
     }
 }
@@ -893,10 +878,13 @@ fn require_server_support_in(opts: &SearchOptions, result: &serde_json::Value) -
 /// ripgrep emits one JSON `summary` for the whole invocation, so stats have to
 /// accumulate across paths and the summary is emitted by
 /// [`OutputWriter::finish`] once the last path is done.
+/// `ci` is [`SearchOptions::effective_case_insensitive`], decided once by the
+/// caller for every path argument: smart case parses every pattern.
 pub fn run(
     root: &Path,
     index_path: Option<&Path>,
     opts: &SearchOptions,
+    ci: bool,
     writer: &mut OutputWriter,
 ) -> Result<bool> {
     writer.reset_match_totals();
@@ -908,8 +896,6 @@ pub fn run(
     let index_dir = index_path
         .map(|p| p.to_path_buf())
         .unwrap_or_else(|| builder::default_index_dir(&root));
-
-    let ci = opts.effective_case_insensitive();
 
     // A non-default `--encoding` re-decodes files into text the index never
     // saw. Worse, a file the indexer classified as binary (BOM-less UTF-16 is
@@ -1033,9 +1019,10 @@ fn search_via_server(
     // drop them and make results depend on whether a daemon happens to run.
     // The caller keeps pattern-less searches off the server: an empty list
     // would reach it as the empty pattern, which matches every line.
-    let mut extras = opts.all_patterns();
-    assert!(!extras.is_empty(), "server searches always have a pattern");
-    let primary = extras.remove(0);
+    let patterns: Vec<&str> = opts.pattern_refs().collect();
+    let (primary, extras) = patterns
+        .split_first()
+        .expect("server searches always have a pattern");
 
     // Context lines are pure presentation; requesting them while counting would
     // stream rows the count path has to filter back out.

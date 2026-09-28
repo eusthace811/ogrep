@@ -921,7 +921,6 @@ impl Cli {
                 )
                 .collect(),
             file_patterns: None,
-            resolved_case_insensitive: None,
             with_patterns: self.with.clone(),
             without_patterns: self.without.clone(),
             case_insensitive: self.ignore_case,
@@ -1375,7 +1374,7 @@ fn list_files(
 ) -> anyhow::Result<()> {
     // A bad glob or type is an argument error, reported before any path is
     // looked at, even a missing one, as rg does.
-    if let Err(e) = opts.check_filters() {
+    if let Err(e) = opts.check_filters(opts.effective_case_insensitive()) {
         eprintln!("ogrep: {e}");
         process::exit(2);
     }
@@ -1436,10 +1435,10 @@ fn run_search(
         opts.file_patterns = Some(patterns);
     }
     // Decided once from every pattern, not again per path argument.
-    opts.resolve_case();
+    let ci = opts.effective_case_insensitive();
     // A bad glob, type or --with/--without is an argument error: reported
     // before anything is searched, even under --no-messages, as rg does.
-    if let Err(e) = opts.check_filters() {
+    if let Err(e) = opts.check_filters(ci) {
         eprintln!("ogrep: {e}");
         process::exit(2);
     }
@@ -1470,7 +1469,13 @@ fn run_search(
             continue;
         }
         writer.set_path_display(target.display());
-        match search::run(&target.path, cli.index_path.as_deref(), &opts, &mut writer) {
+        match search::run(
+            &target.path,
+            cli.index_path.as_deref(),
+            &opts,
+            ci,
+            &mut writer,
+        ) {
             Ok(true) => {
                 had_matches = true;
                 if opts.quiet {
@@ -1482,9 +1487,12 @@ fn run_search(
             }
             Ok(false) => {}
             Err(e) => {
-                // --no-messages hides only failures to open and read files, as
-                // in ripgrep; a bad pattern or a broken index is always reported.
-                if !opts.no_messages || e.downcast_ref::<std::io::Error>().is_none() {
+                // --no-messages hides failures met while searching files, as in
+                // ripgrep; a pattern that cannot compile or a broken index is an
+                // argument error and always reported.
+                let argument_error =
+                    e.is::<matching::PatternError>() || e.is::<ogrep_core::Error>();
+                if !opts.no_messages || argument_error {
                     eprintln!("ogrep: {e}");
                 }
                 let _ = writer.finish();

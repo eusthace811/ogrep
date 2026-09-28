@@ -548,6 +548,19 @@ impl FileFilter {
     }
 }
 
+/// A pattern that cannot be compiled. An argument error: reported even under
+/// `--no-messages`, which hides only failures met while searching files.
+#[derive(Debug)]
+pub struct PatternError(pub String);
+
+impl std::fmt::Display for PatternError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "regex error: {}", self.0)
+    }
+}
+
+impl std::error::Error for PatternError {}
+
 /// Compile `patterns` into a single matcher.
 ///
 /// `multiline` lets a match cross line boundaries; `dotall` is kept separate
@@ -569,7 +582,7 @@ pub fn build_search_matcher(patterns: &[String], cfg: &MatcherConfig) -> Result<
 
     if cfg.engine == RegexEngine::Pcre2 {
         return build_fancy(&combined, cfg).map_err(|e| {
-            anyhow::anyhow!("regex error: PCRE-style engine rejected the pattern: {e}")
+            PatternError(format!("PCRE-style engine rejected the pattern: {e}")).into()
         });
     }
 
@@ -581,13 +594,16 @@ pub fn build_search_matcher(patterns: &[String], cfg: &MatcherConfig) -> Result<
         // Exceeding `--regex-size-limit`/`--dfa-size-limit` is a resource error,
         // not an unsupported construct. Retrying on the backtracking engine
         // would silently ignore the limit the user asked for.
-        Err(e @ regex::Error::CompiledTooBig(_)) => Err(anyhow::anyhow!("regex error: {e}")),
+        Err(e @ regex::Error::CompiledTooBig(_)) => Err(PatternError(e.to_string()).into()),
         Err(regex_err) if !cfg.fixed_string && cfg.engine == RegexEngine::Auto => {
             build_fancy(&combined, cfg).map_err(|fancy_err| {
-                anyhow::anyhow!("regex error: {regex_err}; PCRE-style fallback failed: {fancy_err}")
+                PatternError(format!(
+                    "{regex_err}; PCRE-style fallback failed: {fancy_err}"
+                ))
+                .into()
             })
         }
-        Err(regex_err) => Err(anyhow::anyhow!("regex error: {regex_err}")),
+        Err(regex_err) => Err(PatternError(regex_err.to_string()).into()),
     }
 }
 

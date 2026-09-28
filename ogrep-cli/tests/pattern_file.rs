@@ -194,6 +194,24 @@ fn pattern_files_read_like_ripgrep_in_scan_and_index_modes() {
             .code(2)
             .stderr(predicates::str::contains(message));
     }
+    // A failure while matching a file (here the backtracking engine's limit)
+    // is a search error, which --no-messages hides as rg does.
+    fs::write(root.join("aaa.txt"), format!("{}\n", "a".repeat(40))).unwrap();
+    for (quiet, silent) in [(false, false), (true, true)] {
+        let mut cmd = Command::cargo_bin("ogrep").unwrap();
+        cmd.current_dir(&root).args(["--no-config", "--no-index"]);
+        if quiet {
+            cmd.arg("--no-messages");
+        }
+        let assert = cmd.args([r"(a|a)*\1b", "aaa.txt"]).assert().code(2);
+        if silent {
+            assert.stderr("");
+        } else {
+            assert.stderr(predicates::str::contains("regex match error"));
+        }
+    }
+    fs::remove_file(root.join("aaa.txt")).unwrap();
+
     // A bad regex is not a file error: --no-messages does not hide it.
     Command::cargo_bin("ogrep")
         .unwrap()

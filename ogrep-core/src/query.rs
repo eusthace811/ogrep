@@ -267,30 +267,26 @@ impl LiteralCase {
     /// the set to the PCRE-style engine, ripgrep's PCRE2 rule applies to all.
     /// Each pattern is parsed once, for both decisions.
     pub fn of_all(patterns: &[&str], fixed_string: bool, pcre: bool) -> Self {
-        let parsed: Vec<Option<regex_syntax::ast::Ast>> = if fixed_string || pcre {
-            Vec::new()
-        } else {
-            patterns
-                .iter()
-                .map(|p| regex_syntax::ast::parse::Parser::new().parse(p).ok())
-                .collect()
-        };
-        let pcre = pcre || parsed.iter().any(Option::is_none);
-        let mut all = Self::default();
-        for (i, pattern) in patterns.iter().enumerate() {
-            let one = if fixed_string {
-                Self::fixed(pattern)
-            } else if pcre {
-                Self::pcre_rule(pattern)
-            } else {
-                Self::literals(parsed[i].as_ref().expect("parsed above"))
-            };
-            all = all.merge(one);
-            if all.any_uppercase {
-                break;
-            }
+        if fixed_string {
+            return Self::merge_all(patterns.iter().map(|p| Self::fixed(p)));
         }
-        all
+        if !pcre {
+            // Judge each pattern as it is parsed, dropping its AST; the first
+            // one that does not parse sends the whole set to the PCRE rule.
+            let mut literal = Self::default();
+            for pattern in patterns {
+                match regex_syntax::ast::parse::Parser::new().parse(pattern) {
+                    Ok(parsed) => literal = literal.merge(Self::literals(&parsed)),
+                    Err(_) => return Self::merge_all(patterns.iter().map(|p| Self::pcre_rule(p))),
+                }
+            }
+            return literal;
+        }
+        Self::merge_all(patterns.iter().map(|p| Self::pcre_rule(p)))
+    }
+
+    fn merge_all(cases: impl Iterator<Item = Self>) -> Self {
+        cases.fold(Self::default(), Self::merge)
     }
 
     /// Both verdicts together, as smart case weighs every pattern at once.
