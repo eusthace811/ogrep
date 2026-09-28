@@ -841,18 +841,18 @@ impl Cli {
         })
     }
 
-    /// Split the positional arguments into a pattern and a list of paths.
-    ///
-    /// ripgrep only treats the first positional as the pattern when no pattern
-    /// was supplied another way. Once `-e` or `-f` is present every positional
-    /// is a path, so `rg -e foo src` searches `src` rather than also searching
-    /// for the literal string `src`.
     /// Whether a flag (`-e`, `-f`, `--ident`) supplies the pattern, so every
     /// positional argument is a path.
     fn pattern_from_flags(&self) -> bool {
         !self.regexp.is_empty() || self.pattern_file.is_some() || !self.ident.is_empty()
     }
 
+    /// Split the positional arguments into a pattern and a list of paths.
+    ///
+    /// ripgrep only treats the first positional as the pattern when no pattern
+    /// was supplied another way. Once `-e`, `-f` or `--ident` is present every
+    /// positional is a path, so `rg -e foo src` searches `src` rather than also
+    /// searching for the literal string `src`.
     fn split_pattern_and_paths(
         &self,
         positional: Option<&String>,
