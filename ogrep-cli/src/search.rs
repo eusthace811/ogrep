@@ -232,18 +232,18 @@ fn time_key(path: &Path, key: SortKey) -> Option<std::time::SystemTime> {
 }
 
 impl SearchOptions {
-    /// Resolve smart-case: case-insensitive if pattern is all lowercase.
+    /// Whether the search ignores case. `-i` wins over `-s`, which wins over
+    /// `-S`, matching ripgrep. Like ripgrep, smart case looks at every pattern
+    /// together (`-e`, `--ident`, and the `--with`/`--without` conditions
+    /// too): one with an uppercase letter makes the whole search
+    /// case-sensitive.
     pub fn effective_case_insensitive(&self) -> bool {
-        // `-s` wins over `-S`, matching ripgrep, but `-i` still wins over `-s`.
         if self.case_insensitive {
             return true;
         }
         if self.case_sensitive {
             return false;
         }
-        // Like ripgrep, smart case looks at every pattern together (`-e`,
-        // `--ident`, and the `--with`/`--without` conditions too): one with an
-        // uppercase letter makes the whole search case-sensitive.
         if self.smart_case {
             return !std::iter::once(&self.pattern)
                 .chain(&self.extra_patterns)

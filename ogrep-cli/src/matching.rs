@@ -520,10 +520,8 @@ impl FileFilter {
         }))
     }
 
-    /// Whether the text `index` describes satisfies every condition. The
-    /// caller hands the same index to the main search afterwards, so the line
-    /// table is built at most once per file, and only if something needs it.
-    pub fn passes(&self, index: &LineIndex<'_>) -> Result<bool> {
+    /// Whether the text `index` describes satisfies every condition.
+    fn passes(&self, index: &LineIndex<'_>) -> Result<bool> {
         let content = index.content();
         let probe = MatchOptions {
             max_count: Some(1),
@@ -768,11 +766,7 @@ impl<'a> FileMatches<'a> {
     }
 
     /// Match the text `index` describes.
-    pub fn find(
-        index: LineIndex<'a>,
-        matcher: &SearchMatcher,
-        opts: &MatchOptions,
-    ) -> Result<Self> {
+    fn find(index: LineIndex<'a>, matcher: &SearchMatcher, opts: &MatchOptions) -> Result<Self> {
         let _match_span = crate::profile::span(crate::profile::Phase::Match);
         let content = index.content();
         let (hits, match_totals) = if opts.max_count == Some(0) {

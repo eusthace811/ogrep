@@ -60,7 +60,8 @@ struct Cli {
     #[arg(short = 's', long = "case-sensitive", global = true)]
     case_sensitive: bool,
 
-    /// Smart case: case-insensitive if pattern is all lowercase.
+    /// Smart case: case-insensitive unless some pattern has an uppercase letter
+    /// (every pattern counts: -e, --ident, --with and --without included).
     #[arg(short = 'S', long = "smart-case", global = true)]
     smart_case: bool,
 
