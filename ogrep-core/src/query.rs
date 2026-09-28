@@ -265,15 +265,27 @@ impl LiteralCase {
     ///
     /// The patterns are matched as one alternation, so when any of them sends
     /// the set to the PCRE-style engine, ripgrep's PCRE2 rule applies to all.
+    /// Each pattern is parsed once, for both decisions.
     pub fn of_all(patterns: &[&str], fixed_string: bool, pcre: bool) -> Self {
-        let pcre = pcre
-            || (!fixed_string
-                && patterns
-                    .iter()
-                    .any(|p| regex_syntax::ast::parse::Parser::new().parse(p).is_err()));
+        let parsed: Vec<Option<regex_syntax::ast::Ast>> = if fixed_string || pcre {
+            Vec::new()
+        } else {
+            patterns
+                .iter()
+                .map(|p| regex_syntax::ast::parse::Parser::new().parse(p).ok())
+                .collect()
+        };
+        let pcre = pcre || parsed.iter().any(Option::is_none);
         let mut all = Self::default();
-        for pattern in patterns {
-            all = all.merge(Self::of(pattern, fixed_string, pcre));
+        for (i, pattern) in patterns.iter().enumerate() {
+            let one = if fixed_string {
+                Self::fixed(pattern)
+            } else if pcre {
+                Self::pcre_rule(pattern)
+            } else {
+                Self::literals(parsed[i].as_ref().expect("parsed above"))
+            };
+            all = all.merge(one);
             if all.any_uppercase {
                 break;
             }
@@ -293,37 +305,35 @@ impl LiteralCase {
         self.any_literal && !self.any_uppercase
     }
 
-    pub fn of(pattern: &str, fixed_string: bool, pcre: bool) -> Self {
-        use regex_syntax::ast::{self, Ast, ClassSetItem};
+    /// A fixed string is all literal.
+    fn fixed(pattern: &str) -> Self {
+        Self {
+            any_literal: !pattern.is_empty(),
+            any_uppercase: pattern.chars().any(char::is_uppercase),
+        }
+    }
 
-        if fixed_string {
-            return Self {
-                any_literal: !pattern.is_empty(),
-                any_uppercase: pattern.chars().any(char::is_uppercase),
-            };
-        }
-        // ripgrep's PCRE2 rule has no literal requirement.
-        let pcre_rule = || {
-            let mut chars = pattern.chars();
-            let mut any_uppercase = false;
-            while let Some(c) = chars.next() {
-                if c == '\\' {
-                    chars.next();
-                } else {
-                    any_uppercase |= c.is_uppercase();
-                }
+    /// ripgrep's PCRE2 rule: every character but the one after a backslash,
+    /// with no literal requirement.
+    fn pcre_rule(pattern: &str) -> Self {
+        let mut chars = pattern.chars();
+        let mut any_uppercase = false;
+        while let Some(c) = chars.next() {
+            if c == '\\' {
+                chars.next();
+            } else {
+                any_uppercase |= c.is_uppercase();
             }
-            Self {
-                any_literal: true,
-                any_uppercase,
-            }
-        };
-        if pcre {
-            return pcre_rule();
         }
-        let Ok(parsed) = ast::parse::Parser::new().parse(pattern) else {
-            return pcre_rule();
-        };
+        Self {
+            any_literal: true,
+            any_uppercase,
+        }
+    }
+
+    /// The literal characters of a parsed pattern, in classes and ranges too.
+    fn literals(parsed: &regex_syntax::ast::Ast) -> Self {
+        use regex_syntax::ast::{self, Ast, ClassSetItem};
 
         struct Literals(LiteralCase);
         impl Literals {
@@ -359,7 +369,7 @@ impl LiteralCase {
                 Ok(())
             }
         }
-        match ast::visit(&parsed, Literals(Self::default())) {
+        match ast::visit(parsed, Literals(Self::default())) {
             Ok(case) => case,
             Err(never) => match never {},
         }
@@ -1126,7 +1136,7 @@ mod tests {
     #[test]
     fn literal_case_counts_only_literals() {
         let case = |p: &str| {
-            let c = LiteralCase::of(p, false, false);
+            let c = LiteralCase::of_all(&[p], false, false);
             (c.any_literal, c.any_uppercase)
         };
         assert_eq!(case("foo"), (true, false));
@@ -1141,7 +1151,7 @@ mod tests {
         assert_eq!(case(r"\x41"), (true, true));
         // A fixed string counts every character.
         assert_eq!(
-            LiteralCase::of(r"\S", true, false),
+            LiteralCase::of_all(&[r"\S"], true, false),
             LiteralCase {
                 any_literal: true,
                 any_uppercase: true
@@ -1149,15 +1159,15 @@ mod tests {
         );
         // A pattern regex-syntax rejects, and every -P pattern, count every
         // character except the one after a backslash.
-        assert!(LiteralCase::of("(?<=A)b", false, false).any_uppercase);
-        assert!(!LiteralCase::of(r"(?<!\S)bar", false, false).any_uppercase);
-        assert!(!LiteralCase::of(r"\x41", false, true).any_uppercase);
-        assert!(LiteralCase::of(r"x \p{Lu} y", false, true).any_uppercase);
+        assert!(LiteralCase::of_all(&["(?<=A)b"], false, false).any_uppercase);
+        assert!(!LiteralCase::of_all(&[r"(?<!\S)bar"], false, false).any_uppercase);
+        assert!(!LiteralCase::of_all(&[r"\x41"], false, true).any_uppercase);
+        assert!(LiteralCase::of_all(&[r"x \p{Lu} y"], false, true).any_uppercase);
         assert!(LiteralCase::of_all(&["foo", "Bar"], false, false).any_uppercase);
         // One pattern that needs the PCRE-style engine takes the set with it:
         // `\x41` no longer counts as an uppercase literal.
         assert!(LiteralCase::of_all(&["(?<=a)b", r"\x41"], false, false).ignores_case());
-        assert!(!LiteralCase::of(r"\w+", false, false).ignores_case());
+        assert!(!LiteralCase::of_all(&[r"\w+"], false, false).ignores_case());
     }
 
     #[test]

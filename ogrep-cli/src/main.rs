@@ -921,6 +921,7 @@ impl Cli {
                 )
                 .collect(),
             file_patterns: None,
+            resolved_case_insensitive: None,
             with_patterns: self.with.clone(),
             without_patterns: self.without.clone(),
             case_insensitive: self.ignore_case,
@@ -1372,6 +1373,12 @@ fn list_files(
     index_path: Option<&std::path::Path>,
     opts: &search::SearchOptions,
 ) -> anyhow::Result<()> {
+    // A bad glob or type is an argument error, reported before any path is
+    // looked at, even a missing one, as rg does.
+    if let Err(e) = opts.check_filters() {
+        eprintln!("ogrep: {e}");
+        process::exit(2);
+    }
     let mut opts = opts.clone();
     for target in normalize_search_paths(paths) {
         if !target.path.exists() {
@@ -1428,15 +1435,17 @@ fn run_search(
         }
         opts.file_patterns = Some(patterns);
     }
-    // Every pattern source was empty (an empty -f file). Like ripgrep: no
-    // match is possible, so without -v there is nothing to search or print.
-    // With -v every line is selected, which the empty matcher provides.
+    // Decided once from every pattern, not again per path argument.
+    opts.resolve_case();
     // A bad glob, type or --with/--without is an argument error: reported
     // before anything is searched, even under --no-messages, as rg does.
     if let Err(e) = opts.check_filters() {
         eprintln!("ogrep: {e}");
         process::exit(2);
     }
+    // Every pattern source was empty (an empty -f file). Like ripgrep: no
+    // match is possible, so without -v there is nothing to search or print.
+    // With -v every line is selected, which the empty matcher provides.
     if !opts.has_patterns() && !opts.invert_match {
         process::exit(1);
     }
@@ -1473,7 +1482,9 @@ fn run_search(
             }
             Ok(false) => {}
             Err(e) => {
-                if !opts.no_messages {
+                // --no-messages hides only failures to open and read files, as
+                // in ripgrep; a bad pattern or a broken index is always reported.
+                if !opts.no_messages || e.downcast_ref::<std::io::Error>().is_none() {
                     eprintln!("ogrep: {e}");
                 }
                 let _ = writer.finish();

@@ -170,7 +170,10 @@ fn pattern_files_read_like_ripgrep_in_scan_and_index_modes() {
 
     // A bad argument is an error before anything is searched, even under
     // --no-messages (which rg does not apply to argument errors).
-    for bad in [&["-g", "["][..], &["-t", "nosuchtype"]] {
+    for (bad, message) in [
+        (&["-g", "["][..], "error parsing glob"),
+        (&["-t", "nosuchtype"], "unrecognized file type"),
+    ] {
         Command::cargo_bin("ogrep")
             .unwrap()
             .current_dir(&root)
@@ -179,8 +182,26 @@ fn pattern_files_read_like_ripgrep_in_scan_and_index_modes() {
             .arg(".")
             .assert()
             .code(2)
-            .stderr(predicates::str::is_empty().not());
+            .stderr(predicates::str::contains(message));
+        // --files checks them too, before looking at any path.
+        Command::cargo_bin("ogrep")
+            .unwrap()
+            .current_dir(&root)
+            .args(["--no-config", "--no-messages", "--files"])
+            .args(bad)
+            .arg("nosuch")
+            .assert()
+            .code(2)
+            .stderr(predicates::str::contains(message));
     }
+    // A bad regex is not a file error: --no-messages does not hide it.
+    Command::cargo_bin("ogrep")
+        .unwrap()
+        .current_dir(&root)
+        .args(["--no-config", "--no-index", "--no-messages", "(", "."])
+        .assert()
+        .code(2)
+        .stderr(predicates::str::contains("regex"));
 
     // No match is possible, but a bad argument is still an error.
     for bad in [

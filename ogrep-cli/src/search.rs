@@ -54,6 +54,9 @@ pub struct SearchOptions {
     /// request and every path argument all use them, and `-f` may name a pipe
     /// that can be read only once.
     pub file_patterns: Option<Vec<String>>,
+    /// [`effective_case_insensitive`](Self::effective_case_insensitive),
+    /// fixed once all patterns are known; see [`resolve_case`](Self::resolve_case).
+    pub resolved_case_insensitive: Option<bool>,
     pub case_insensitive: bool,
     pub case_sensitive: bool,
     pub smart_case: bool,
@@ -243,6 +246,9 @@ impl SearchOptions {
     /// of those literals is uppercase; see [`query::LiteralCase`] for what
     /// counts as a literal under each engine.
     pub fn effective_case_insensitive(&self) -> bool {
+        if let Some(resolved) = self.resolved_case_insensitive {
+            return resolved;
+        }
         if self.case_insensitive {
             return true;
         }
@@ -261,6 +267,12 @@ impl SearchOptions {
             ));
         }
         case.ignores_case()
+    }
+
+    /// Fix the case decision so every path argument reuses it: smart case
+    /// parses every pattern, which a large `-f` file makes costly.
+    pub fn resolve_case(&mut self) {
+        self.resolved_case_insensitive = Some(self.effective_case_insensitive());
     }
 
     /// Whether `.` should match a newline. ripgrep keeps this separate from
@@ -489,7 +501,7 @@ impl SearchOptions {
     }
 
     /// Collect all patterns (primary + -e extras + -f file patterns).
-    pub fn all_patterns(&self) -> Vec<String> {
+    fn all_patterns(&self) -> Vec<String> {
         self.pattern_refs()
             .into_iter()
             .map(str::to_string)
@@ -500,11 +512,7 @@ impl SearchOptions {
     /// source was empty (an empty `-f` file): then nothing can match, and `-v`
     /// selects every line.
     pub fn has_patterns(&self) -> bool {
-        // Without -f there is always one: the positional pattern (even empty,
-        // which matches every line) or -e/--ident. Agrees with pattern_refs().
-        self.file_patterns.as_ref().is_none_or(|f| !f.is_empty())
-            || !self.pattern.is_empty()
-            || !self.extra_patterns.is_empty()
+        !self.pattern_refs().is_empty()
     }
 
     /// Build the glob, type and `--with`/`--without` filters, reporting the
@@ -1023,13 +1031,11 @@ fn search_via_server(
     // than a path: the server has a different working directory and no file
     // parameter, so forwarding only `pattern`/`extra_patterns` would silently
     // drop them and make results depend on whether a daemon happens to run.
-    let patterns = opts.all_patterns();
     // The caller keeps pattern-less searches off the server: an empty list
     // would reach it as the empty pattern, which matches every line.
-    let (primary, extras) = patterns
-        .split_first()
-        .map(|(p, rest)| (p.clone(), rest.to_vec()))
-        .expect("server searches always have a pattern");
+    let mut extras = opts.all_patterns();
+    assert!(!extras.is_empty(), "server searches always have a pattern");
+    let primary = extras.remove(0);
 
     // Context lines are pure presentation; requesting them while counting would
     // stream rows the count path has to filter back out.
@@ -2623,27 +2629,6 @@ pub(crate) fn plan_summary(plan: &QueryPlan) -> String {
 
 #[cfg(test)]
 mod tests {
-    #[test]
-    fn has_patterns_agrees_with_pattern_refs() {
-        for pattern in ["", "p"] {
-            for extra in [vec![], vec!["e".to_string()]] {
-                for file in [None, Some(vec![]), Some(vec!["f".to_string()])] {
-                    let opts = SearchOptions {
-                        pattern: pattern.to_string(),
-                        extra_patterns: extra.clone(),
-                        file_patterns: file.clone(),
-                        ..SearchOptions::default()
-                    };
-                    assert_eq!(
-                        opts.has_patterns(),
-                        !opts.pattern_refs().is_empty(),
-                        "{pattern:?} {extra:?} {file:?}"
-                    );
-                }
-            }
-        }
-    }
-
     #[test]
     fn identifier_pattern_matches_every_naming_convention() {
         for name in [
