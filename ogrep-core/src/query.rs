@@ -244,6 +244,75 @@ pub fn build_multi_pattern_plan(
     })
 }
 
+/// What smart case needs to know about a pattern: whether it matches any
+/// character literally, and whether one of those is uppercase.
+///
+/// Like ripgrep, only literals count: the letter in an escape (`\S`, `\W`),
+/// a class name (`\p{Lu}`) or a flag group is not text the pattern matches.
+/// A fixed string is all literal. A pattern `regex-syntax` cannot parse
+/// counts every character.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct LiteralCase {
+    pub any_literal: bool,
+    pub any_uppercase: bool,
+}
+
+impl LiteralCase {
+    pub fn of(pattern: &str, fixed_string: bool) -> Self {
+        use regex_syntax::ast::{self, Ast, ClassSetItem};
+
+        let all_chars = Self {
+            any_literal: !pattern.is_empty(),
+            any_uppercase: pattern.chars().any(char::is_uppercase),
+        };
+        if fixed_string {
+            return all_chars;
+        }
+        let Ok(parsed) = ast::parse::Parser::new().parse(pattern) else {
+            return all_chars;
+        };
+
+        struct Literals(LiteralCase);
+        impl Literals {
+            fn note(&mut self, c: char) {
+                self.0.any_literal = true;
+                self.0.any_uppercase |= c.is_uppercase();
+            }
+        }
+        impl ast::Visitor for Literals {
+            type Output = LiteralCase;
+            type Err = std::convert::Infallible;
+
+            fn finish(self) -> Result<LiteralCase, Self::Err> {
+                Ok(self.0)
+            }
+
+            fn visit_pre(&mut self, ast: &Ast) -> Result<(), Self::Err> {
+                if let Ast::Literal(literal) = ast {
+                    self.note(literal.c);
+                }
+                Ok(())
+            }
+
+            fn visit_class_set_item_pre(&mut self, item: &ClassSetItem) -> Result<(), Self::Err> {
+                match item {
+                    ClassSetItem::Literal(literal) => self.note(literal.c),
+                    ClassSetItem::Range(range) => {
+                        self.note(range.start.c);
+                        self.note(range.end.c);
+                    }
+                    _ => {}
+                }
+                Ok(())
+            }
+        }
+        match ast::visit(&parsed, Literals(Self::default())) {
+            Ok(case) => case,
+            Err(never) => match never {},
+        }
+    }
+}
+
 /// Narrow `plan` by patterns every searched file must also contain (`--with`):
 /// each one's trigrams are mandatory too, even when `plan` itself is
 /// `MatchAll`. A pattern `regex-syntax` cannot parse contributes its relaxed
@@ -999,6 +1068,33 @@ mod tests {
             Some(expected),
             "relaxing {pattern:?}"
         );
+    }
+
+    #[test]
+    fn literal_case_counts_only_literals() {
+        let case = |p: &str| {
+            let c = LiteralCase::of(p, false);
+            (c.any_literal, c.any_uppercase)
+        };
+        assert_eq!(case("foo"), (true, false));
+        assert_eq!(case("Foo"), (true, true));
+        // Escapes, class names and flags are not matched text.
+        assert_eq!(case(r"\S=\W\D\B"), (true, false));
+        assert_eq!(case(r"\p{Lu}"), (false, false));
+        assert_eq!(case(r"(?i)foo"), (true, false));
+        assert_eq!(case(r"\w+"), (false, false));
+        // Literals inside classes and ranges do count.
+        assert_eq!(case("[A-C]x"), (true, true));
+        assert_eq!(case(r"\x41"), (true, true));
+        // A fixed string, or a pattern regex-syntax rejects, counts every char.
+        assert_eq!(
+            LiteralCase::of(r"\S", true),
+            LiteralCase {
+                any_literal: true,
+                any_uppercase: true
+            }
+        );
+        assert!(LiteralCase::of("(?<=A)b", false).any_uppercase);
     }
 
     #[test]

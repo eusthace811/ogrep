@@ -234,24 +234,28 @@ fn time_key(path: &Path, key: SortKey) -> Option<std::time::SystemTime> {
 impl SearchOptions {
     /// Whether the search ignores case. `-i` wins over `-s`, which wins over
     /// `-S`, matching ripgrep. Like ripgrep, smart case looks at every pattern
-    /// together (`-e`, `--ident`, and the `--with`/`--without` conditions
-    /// too): one with an uppercase letter makes the whole search
-    /// case-sensitive.
-    pub fn effective_case_insensitive(&self) -> bool {
+    /// together (`-e`, `-f`, `--ident`, and the `--with`/`--without` conditions
+    /// too) and ignores case only when some pattern matches a literal and none
+    /// of those literals is uppercase; see [`query::LiteralCase`].
+    pub fn effective_case_insensitive(&self) -> Result<bool> {
         if self.case_insensitive {
-            return true;
+            return Ok(true);
         }
-        if self.case_sensitive {
-            return false;
+        if !self.smart_case || self.case_sensitive {
+            return Ok(false);
         }
-        if self.smart_case {
-            return !std::iter::once(&self.pattern)
-                .chain(&self.extra_patterns)
-                .chain(&self.with_patterns)
-                .chain(&self.without_patterns)
-                .any(|p| p.chars().any(char::is_uppercase));
+        let mut case = query::LiteralCase::default();
+        for pattern in self
+            .all_patterns()?
+            .iter()
+            .chain(&self.with_patterns)
+            .chain(&self.without_patterns)
+        {
+            let one = query::LiteralCase::of(pattern, self.fixed_string);
+            case.any_literal |= one.any_literal;
+            case.any_uppercase |= one.any_uppercase;
         }
-        false
+        Ok(case.any_literal && !case.any_uppercase)
     }
 
     /// Whether `.` should match a newline. ripgrep keeps this separate from
@@ -861,7 +865,7 @@ pub fn run(
         .map(|p| p.to_path_buf())
         .unwrap_or_else(|| builder::default_index_dir(&root));
 
-    let ci = opts.effective_case_insensitive();
+    let ci = opts.effective_case_insensitive()?;
 
     // A non-default `--encoding` re-decodes files into text the index never
     // saw. Worse, a file the indexer classified as binary (BOM-less UTF-16 is

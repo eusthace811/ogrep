@@ -128,6 +128,7 @@ fn lines(root: &Path, index: &Path, mode: &str, args: &[&str]) -> Vec<String> {
 #[test]
 fn file_conditions_and_identifier_search_agree_in_every_mode() {
     let (_temp, root, index) = fixture();
+    fs::write(root.parent().unwrap().join("pats"), "Foo\n").unwrap();
     let cases: Vec<(Vec<&str>, Vec<&str>)> = vec![
         (
             vec!["-l", "--with", "async", "--", "Mutex", "."],
@@ -176,6 +177,13 @@ fn file_conditions_and_identifier_search_agree_in_every_mode() {
             vec!["src/i.txt"],
         ),
         (vec!["-l", "-S", "-e", "Foo", "."], vec!["src/i.txt"]),
+        // Only literals count: `\S` has no uppercase letter to match.
+        (
+            vec!["-l", "-S", "--with", r"\S", "--", "foo", "."],
+            vec!["src/i.txt", "src/j.txt"],
+        ),
+        // Patterns read with -f count too.
+        (vec!["-l", "-S", "-f", "../pats", "."], vec!["src/i.txt"]),
         // `-U`: a condition may span lines.
         (
             vec!["-l", "-U", "--with", r"Mutex;\nasync", "--", "run", "."],
