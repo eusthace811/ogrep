@@ -1557,12 +1557,13 @@ fn search_local_index(
         || opts.include_zero
     {
         QueryPlan::MatchAll
-    } else if matcher.is_standard() || opts.fixed_string {
-        // The matcher compiled, so a pattern the planner cannot parse on its
-        // own (a -x/-w wrapper can complete one, as in `-x 'a)(b'`) only
-        // costs the narrowing: search every candidate.
-        query::build_multi_pattern_plan(&opts.all_patterns(), opts.fixed_string, ci)
-            .unwrap_or(QueryPlan::MatchAll)
+    } else if opts.fixed_string {
+        query::build_multi_pattern_plan(&opts.all_patterns(), true, ci)
+            .map_err(|e| anyhow::anyhow!("{e}"))?
+    } else if let Some(compiled) = matcher.compiled_pattern() {
+        // Planned from exactly what the matcher compiled: -x/-w wrap the
+        // patterns, so a raw pattern alone may not parse (`-x 'a)(b'`).
+        query::build_query_plan(compiled, ci).map_err(|e| anyhow::anyhow!("{e}"))?
     } else {
         query::build_relaxed_multi_pattern_plan(&opts.all_patterns(), ci)
     };
@@ -1916,7 +1917,12 @@ fn index_storage_exclusions(index_dir: &Path) -> Result<Vec<PathBuf>> {
     match std::fs::canonicalize(index_dir) {
         Ok(path) => Ok(vec![path]),
         Err(error) if error.kind() == ErrorKind::NotFound => Ok(Vec::new()),
-        Err(error) => Err(error.into()),
+        // Not a file being searched: the whole search stops, so it must not
+        // pass for a per-file error that --no-messages hides.
+        Err(error) => Err(anyhow::anyhow!(
+            "cannot resolve index path {}: {error}",
+            index_dir.display()
+        )),
     }
 }
 

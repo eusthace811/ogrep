@@ -324,8 +324,14 @@ impl Prescan {
 }
 
 impl SearchMatcher {
-    pub fn is_standard(&self) -> bool {
-        matches!(self, Self::Standard(..))
+    /// The regex the linear-time engine compiled: every pattern combined, with
+    /// any `-x`/`-w` wrapper. The index plan is built from this, so planning
+    /// and matching read the same text.
+    pub fn compiled_pattern(&self) -> Option<&str> {
+        match self {
+            Self::Standard(re, _) => Some(re.as_str()),
+            Self::Fancy { .. } => None,
+        }
     }
 
     /// Whether the prefilter has already ruled this haystack out.
@@ -548,8 +554,8 @@ impl FileFilter {
 }
 
 /// A regex that failed while matching a file (the backtracking engine's
-/// limits). Like a file that cannot be read, it concerns one file only, so
-/// `--no-messages` hides it.
+/// limits). ripgrep counts it as a per-file search error, which
+/// `--no-messages` hides; ogrep still stops the search at it.
 #[derive(Debug)]
 pub struct MatchError(String);
 
@@ -565,6 +571,11 @@ fn match_error(e: impl std::fmt::Display) -> anyhow::Error {
     MatchError(e.to_string()).into()
 }
 
+/// Compile `patterns` into a single matcher.
+///
+/// `multiline` lets a match cross line boundaries; `dotall` is kept separate
+/// so `-U` alone does not silently turn `.` into a line-crossing wildcard,
+/// matching ripgrep's split between `--multiline` and `--multiline-dotall`.
 pub fn build_search_matcher(patterns: &[String], cfg: &MatcherConfig) -> Result<SearchMatcher> {
     // No pattern at all (every `-f` file empty) matches nothing, so `-v`
     // selects every line. An empty class is the regex that never matches.

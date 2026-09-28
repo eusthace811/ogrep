@@ -212,8 +212,9 @@ fn pattern_files_read_like_ripgrep_in_scan_and_index_modes() {
     }
     fs::remove_file(root.join("aaa.txt")).unwrap();
 
-    // -x completes a pattern the index planner cannot parse on its own; the
-    // search still runs (without narrowing) and matches like rg.
+    // -x completes a pattern whose raw text alone does not parse. The index
+    // plan comes from what the matcher compiled, so the indexed search works
+    // and matches like rg.
     Command::cargo_bin("ogrep")
         .unwrap()
         .current_dir(&root)
@@ -230,7 +231,7 @@ fn pattern_files_read_like_ripgrep_in_scan_and_index_modes() {
         .assert()
         .code(0)
         .stdout("5:ab\n")
-        .stderr(predicates::str::contains("Query plan: MatchAll"));
+        .stderr(predicates::str::contains("Query plan:"));
 
     // A bad regex is not a file error: --no-messages does not hide it.
     Command::cargo_bin("ogrep")

@@ -1487,10 +1487,10 @@ fn run_search(
             }
             Ok(false) => {}
             Err(e) => {
-                // --no-messages hides only what concerns a single file, as in
-                // ripgrep: one that cannot be read, or a regex failing on it.
-                // Anything else (a bad pattern, a broken index, a busy server)
-                // is always reported.
+                // --no-messages hides per-file search errors, as in ripgrep: a
+                // file that cannot be read, or a regex failing on one. Anything
+                // else (a bad pattern, a broken index, a busy server) is always
+                // reported.
                 let file_error = e.is::<std::io::Error>() || e.is::<matching::MatchError>();
                 if !(opts.no_messages && file_error) {
                     eprintln!("ogrep: {e}");
