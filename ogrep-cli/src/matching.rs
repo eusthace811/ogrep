@@ -343,8 +343,7 @@ impl SearchMatcher {
                 if Self::ruled_out(prefilter, hay) {
                     return Ok(false);
                 }
-                re.is_match(hay)
-                    .map_err(|e| anyhow::anyhow!("regex match error: {e}"))
+                re.is_match(hay).map_err(match_error)
             }
         }
     }
@@ -363,7 +362,7 @@ impl SearchMatcher {
                     return Ok(spans);
                 }
                 for m in re.find_iter(hay) {
-                    let m = m.map_err(|e| anyhow::anyhow!("regex match error: {e}"))?;
+                    let m = m.map_err(match_error)?;
                     spans.push((m.start(), m.end()));
                 }
             }
@@ -384,7 +383,7 @@ impl SearchMatcher {
                 }
                 re.find(hay)
                     .map(|m| m.map(|m| (m.start(), m.end())))
-                    .map_err(|e| anyhow::anyhow!("regex match error: {e}"))
+                    .map_err(match_error)
             }
         }
     }
@@ -430,7 +429,7 @@ impl SearchMatcher {
                     return Ok(out);
                 }
                 for caps in re.captures_iter(hay) {
-                    let caps = caps.map_err(|e| anyhow::anyhow!("regex match error: {e}"))?;
+                    let caps = caps.map_err(match_error)?;
                     let m = caps.get(0).expect("group 0 always participates");
                     let mut dst = String::new();
                     caps.expand(replacement, &mut dst);
@@ -548,24 +547,24 @@ impl FileFilter {
     }
 }
 
-/// A pattern that cannot be compiled. An argument error: reported even under
-/// `--no-messages`, which hides only failures met while searching files.
+/// A regex that failed while matching a file (the backtracking engine's
+/// limits). Like a file that cannot be read, it concerns one file only, so
+/// `--no-messages` hides it.
 #[derive(Debug)]
-pub struct PatternError(pub String);
+pub struct MatchError(String);
 
-impl std::fmt::Display for PatternError {
+impl std::fmt::Display for MatchError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "regex error: {}", self.0)
+        write!(f, "regex match error: {}", self.0)
     }
 }
 
-impl std::error::Error for PatternError {}
+impl std::error::Error for MatchError {}
 
-/// Compile `patterns` into a single matcher.
-///
-/// `multiline` lets a match cross line boundaries; `dotall` is kept separate
-/// so `-U` alone does not silently turn `.` into a line-crossing wildcard,
-/// matching ripgrep's split between `--multiline` and `--multiline-dotall`.
+fn match_error(e: impl std::fmt::Display) -> anyhow::Error {
+    MatchError(e.to_string()).into()
+}
+
 pub fn build_search_matcher(patterns: &[String], cfg: &MatcherConfig) -> Result<SearchMatcher> {
     // No pattern at all (every `-f` file empty) matches nothing, so `-v`
     // selects every line. An empty class is the regex that never matches.
@@ -582,7 +581,7 @@ pub fn build_search_matcher(patterns: &[String], cfg: &MatcherConfig) -> Result<
 
     if cfg.engine == RegexEngine::Pcre2 {
         return build_fancy(&combined, cfg).map_err(|e| {
-            PatternError(format!("PCRE-style engine rejected the pattern: {e}")).into()
+            anyhow::anyhow!("regex error: PCRE-style engine rejected the pattern: {e}")
         });
     }
 
@@ -594,16 +593,13 @@ pub fn build_search_matcher(patterns: &[String], cfg: &MatcherConfig) -> Result<
         // Exceeding `--regex-size-limit`/`--dfa-size-limit` is a resource error,
         // not an unsupported construct. Retrying on the backtracking engine
         // would silently ignore the limit the user asked for.
-        Err(e @ regex::Error::CompiledTooBig(_)) => Err(PatternError(e.to_string()).into()),
+        Err(e @ regex::Error::CompiledTooBig(_)) => Err(anyhow::anyhow!("regex error: {e}")),
         Err(regex_err) if !cfg.fixed_string && cfg.engine == RegexEngine::Auto => {
             build_fancy(&combined, cfg).map_err(|fancy_err| {
-                PatternError(format!(
-                    "{regex_err}; PCRE-style fallback failed: {fancy_err}"
-                ))
-                .into()
+                anyhow::anyhow!("regex error: {regex_err}; PCRE-style fallback failed: {fancy_err}")
             })
         }
-        Err(regex_err) => Err(PatternError(regex_err.to_string()).into()),
+        Err(regex_err) => Err(anyhow::anyhow!("regex error: {regex_err}")),
     }
 }
 

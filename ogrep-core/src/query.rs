@@ -268,25 +268,39 @@ impl LiteralCase {
     /// Each pattern is parsed once, for both decisions.
     pub fn of_all(patterns: &[&str], fixed_string: bool, pcre: bool) -> Self {
         if fixed_string {
-            return Self::merge_all(patterns.iter().map(|p| Self::fixed(p)));
+            return Self::merge_until_uppercase(patterns.iter().map(|p| Self::fixed(p)));
         }
         if !pcre {
-            // Judge each pattern as it is parsed, dropping its AST; the first
-            // one that does not parse sends the whole set to the PCRE rule.
+            // Judge each pattern as it is parsed, dropping its AST. The first
+            // one that does not parse sends the whole set to the PCRE rule, so
+            // every pattern has to be seen before an uppercase literal decides.
             let mut literal = Self::default();
-            for pattern in patterns {
+            let all_parse = patterns.iter().all(|pattern| {
                 match regex_syntax::ast::parse::Parser::new().parse(pattern) {
-                    Ok(parsed) => literal = literal.merge(Self::literals(&parsed)),
-                    Err(_) => return Self::merge_all(patterns.iter().map(|p| Self::pcre_rule(p))),
+                    Ok(parsed) => {
+                        literal = literal.merge(Self::literals(&parsed));
+                        true
+                    }
+                    Err(_) => false,
                 }
+            });
+            if all_parse {
+                return literal;
             }
-            return literal;
         }
-        Self::merge_all(patterns.iter().map(|p| Self::pcre_rule(p)))
+        Self::merge_until_uppercase(patterns.iter().map(|p| Self::pcre_rule(p)))
     }
 
-    fn merge_all(cases: impl Iterator<Item = Self>) -> Self {
-        cases.fold(Self::default(), Self::merge)
+    /// Merge verdicts, stopping at the first uppercase literal, which decides.
+    fn merge_until_uppercase(cases: impl Iterator<Item = Self>) -> Self {
+        let mut all = Self::default();
+        for case in cases {
+            all = all.merge(case);
+            if all.any_uppercase {
+                break;
+            }
+        }
+        all
     }
 
     /// Both verdicts together, as smart case weighs every pattern at once.

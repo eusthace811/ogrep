@@ -51,10 +51,15 @@ fn write_serve_json(index: &Path, port: u16) {
 }
 
 fn search(root: &Path, index: &Path) -> std::process::Output {
+    search_with(root, index, &[])
+}
+
+fn search_with(root: &Path, index: &Path, extra: &[&str]) -> std::process::Output {
     ogrep()
         .current_dir(root)
         .args(["--no-config", "--stats", "-l", "--index-path"])
         .arg(index)
+        .args(extra)
         .args(["--", "stale_server_marker", "."])
         .timeout(Duration::from_secs(30))
         .output()
@@ -131,7 +136,9 @@ fn a_server_whose_pid_is_not_visible_here_is_still_used() {
         .unwrap();
     });
 
-    let output = search(&root, &index);
+    // A busy server stops the whole search, so --no-messages, which hides only
+    // single-file failures, must not hide it.
+    let output = search_with(&root, &index, &["--no-messages"]);
     server
         .join()
         .expect("the client never contacted the server");

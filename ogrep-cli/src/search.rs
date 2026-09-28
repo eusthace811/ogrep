@@ -1019,10 +1019,11 @@ fn search_via_server(
     // drop them and make results depend on whether a daemon happens to run.
     // The caller keeps pattern-less searches off the server: an empty list
     // would reach it as the empty pattern, which matches every line.
-    let patterns: Vec<&str> = opts.pattern_refs().collect();
-    let (primary, extras) = patterns
-        .split_first()
+    let mut patterns = opts.pattern_refs();
+    let primary = patterns
+        .next()
         .expect("server searches always have a pattern");
+    let extras: Vec<&str> = patterns.collect();
 
     // Context lines are pure presentation; requesting them while counting would
     // stream rows the count path has to filter back out.
@@ -1557,8 +1558,11 @@ fn search_local_index(
     {
         QueryPlan::MatchAll
     } else if matcher.is_standard() || opts.fixed_string {
+        // The matcher compiled, so a pattern the planner cannot parse on its
+        // own (a -x/-w wrapper can complete one, as in `-x 'a)(b'`) only
+        // costs the narrowing: search every candidate.
         query::build_multi_pattern_plan(&opts.all_patterns(), opts.fixed_string, ci)
-            .map_err(|e| anyhow::anyhow!("{e}"))?
+            .unwrap_or(QueryPlan::MatchAll)
     } else {
         query::build_relaxed_multi_pattern_plan(&opts.all_patterns(), ci)
     };

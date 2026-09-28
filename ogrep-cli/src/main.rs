@@ -1487,12 +1487,12 @@ fn run_search(
             }
             Ok(false) => {}
             Err(e) => {
-                // --no-messages hides failures met while searching files, as in
-                // ripgrep; a pattern that cannot compile or a broken index is an
-                // argument error and always reported.
-                let argument_error =
-                    e.is::<matching::PatternError>() || e.is::<ogrep_core::Error>();
-                if !opts.no_messages || argument_error {
+                // --no-messages hides only what concerns a single file, as in
+                // ripgrep: one that cannot be read, or a regex failing on it.
+                // Anything else (a bad pattern, a broken index, a busy server)
+                // is always reported.
+                let file_error = e.is::<std::io::Error>() || e.is::<matching::MatchError>();
+                if !(opts.no_messages && file_error) {
                     eprintln!("ogrep: {e}");
                 }
                 let _ = writer.finish();

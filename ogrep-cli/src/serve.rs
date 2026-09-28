@@ -1882,7 +1882,10 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
     let plan = if invert_match || encoding.may_differ_from_index() {
         query::QueryPlan::MatchAll
     } else if matcher.is_standard() || fixed_string {
-        query::build_multi_pattern_plan(&all_patterns, fixed_string, case_insensitive)?
+        // The matcher compiled, so a pattern the planner cannot parse on its
+        // own (completed by a -x/-w wrapper) only costs the narrowing.
+        query::build_multi_pattern_plan(&all_patterns, fixed_string, case_insensitive)
+            .unwrap_or(query::QueryPlan::MatchAll)
     } else {
         query::build_relaxed_multi_pattern_plan(&all_patterns, case_insensitive)
     };
