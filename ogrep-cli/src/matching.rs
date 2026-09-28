@@ -327,11 +327,13 @@ impl SearchMatcher {
     /// The trigram plan for `patterns`, the ones this matcher was built from.
     /// Shared by the local and server paths so they pick the same candidates.
     ///
-    /// Each pattern is planned on its own first: they are grouped separately
-    /// in the matcher, so this is sound, and it keeps each one's trigrams
-    /// (planned as one alternation, `-i` patterns lose those past a shared
-    /// prefix). A pattern that only parses once `-x`/`-w` wraps it (`-x
-    /// 'a)(b'`) is planned from the regex actually compiled instead. A
+    /// Fixed strings are planned as literals, whatever the engine. Otherwise
+    /// each pattern is planned on its own first: they are grouped separately
+    /// in the matcher, and this keeps each one's trigrams (planned as one
+    /// alternation, `-i` patterns lose those past a shared prefix). The
+    /// regex actually compiled is planned instead when a pattern only parses
+    /// once `-x`/`-w` wraps it (`-x 'a)(b'`), or when one can turn on verbose
+    /// mode, whose `#` comments run past its group into the next pattern. A
     /// PCRE-style pattern is relaxed into one the planner can read.
     pub fn index_plan(
         &self,
@@ -340,15 +342,24 @@ impl SearchMatcher {
         case_insensitive: bool,
     ) -> Result<ogrep_core::query::QueryPlan> {
         use ogrep_core::query;
-        let plan = match self {
-            Self::Standard(re, _) => {
-                query::build_multi_pattern_plan(patterns, fixed_string, case_insensitive)
-                    .or_else(|_| query::build_query_plan(re.as_str(), case_insensitive))
+        let plan = if fixed_string {
+            query::build_multi_pattern_plan(patterns, true, case_insensitive)
+        } else {
+            match self {
+                Self::Standard(re, _) => {
+                    let separate = (patterns.len() == 1
+                        || !patterns.iter().any(|p| may_enable_verbose(p)))
+                    .then(|| query::build_multi_pattern_plan(patterns, false, case_insensitive));
+                    match separate {
+                        Some(Ok(plan)) => Ok(plan),
+                        _ => query::build_query_plan(re.as_str(), case_insensitive),
+                    }
+                }
+                Self::Fancy { .. } => Ok(query::build_relaxed_multi_pattern_plan(
+                    patterns,
+                    case_insensitive,
+                )),
             }
-            Self::Fancy { .. } => Ok(query::build_relaxed_multi_pattern_plan(
-                patterns,
-                case_insensitive,
-            )),
         };
         plan.map_err(|e| anyhow::anyhow!("{e}"))
     }
@@ -699,14 +710,27 @@ fn combine_patterns(
     if patterns.len() == 1 {
         wrap(&patterns[0])
     } else {
-        // Each pattern in its own group, as ripgrep does, so an inline flag in
-        // one (`-e '(?i)zzz'`) ends there instead of reaching the ones after.
+        // Each pattern in its own group, joined as ripgrep joins them, so an
+        // inline flag in one (`-e '(?i)zzz'`) ends there instead of reaching
+        // the ones after, with no extra nesting level.
         let parts: Vec<String> = patterns
             .iter()
             .map(|p| format!("(?:{})", wrap(p)))
             .collect();
-        format!("(?:{})", parts.join("|"))
+        parts.join("|")
     }
+}
+
+/// Whether `pattern` may turn on verbose mode (a flag group with `x`), whose
+/// `#` comments run to the end of the line, past the group each pattern is
+/// wrapped in. Erring toward yes only costs the per-pattern plan.
+fn may_enable_verbose(pattern: &str) -> bool {
+    pattern.match_indices("(?").any(|(i, _)| {
+        pattern[i + 2..]
+            .chars()
+            .take_while(|c| c.is_ascii_alphabetic() || *c == '-')
+            .any(|c| c == 'x')
+    })
 }
 
 fn build_regex(

@@ -284,6 +284,7 @@ fn several_patterns_match_and_plan_like_separate_ones() {
     fs::write(root.join("b.txt"), "fooba nope\n").unwrap();
     fs::write(root.join("c.txt"), "abcdef\n").unwrap();
     fs::write(root.join("d.txt"), "abc\ndef\n").unwrap();
+    fs::write(root.join("e.txt"), "x \\x41BCD y\nqqzzz\n").unwrap();
     Command::cargo_bin("ogrep")
         .unwrap()
         .args(["index", root.to_str().unwrap(), "--index-path"])
@@ -305,16 +306,25 @@ fn several_patterns_match_and_plan_like_separate_ones() {
     // (?i) in the first pattern does not reach `foobar`.
     run(&["-e", "(?i)zzz", "-e", "foobar"])
         .code(0)
-        .stdout("./a.txt:foobar\n./a.txt:zzz\n");
+        .stdout("./a.txt:foobar\n./a.txt:zzz\n./e.txt:qqzzz\n");
     // Each -i pattern keeps all its trigrams: b.txt is not a candidate.
     run(&["-i", "-e", "foobar", "-e", "foobaz"])
         .code(0)
         .stdout("./a.txt:foobar\n./a.txt:FOOBAR\n")
-        .stderr(predicates::str::contains("candidates: 1/4"));
+        .stderr(predicates::str::contains("candidates: 1/5"));
+    // -F plans the literal text even with the PCRE-style engine.
+    run(&["-F", "-P", r"\x41BCD"])
+        .code(0)
+        .stdout("./e.txt:x \\x41BCD y\n");
+    // A (?x) comment runs past its pattern's group into the next one, so
+    // the plan must come from the combined regex (`qqq?zzz` matches).
+    run(&["-e", "(?x)qqq #", "-e", "yyy\n?zzz"])
+        .code(0)
+        .stdout("./e.txt:qqzzz\n");
     // Only the -x-wrapped regex parses; it still narrows (d.txt has both
     // halves, c.txt the match).
     run(&["-x", "abc)(def"])
         .code(0)
         .stdout("./c.txt:abcdef\n")
-        .stderr(predicates::str::contains("candidates: 2/4"));
+        .stderr(predicates::str::contains("candidates: 2/5"));
 }
