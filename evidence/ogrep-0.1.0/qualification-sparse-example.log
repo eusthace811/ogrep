@@ -1,0 +1,9 @@
+   Compiling ogrep-core v0.1.0 (/home/eusth/projects/Experiments/tgrep/ogrep/ogrep-core)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.07s
+     Running unittests examples/sparse_probe.rs (target/debug/examples/sparse_probe-3a0a47fa884e9268)
+
+running 1 test
+test covering_is_present_in_every_embedding ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.52s
+

@@ -31,12 +31,20 @@ ogrep -n --ident parseHeader .                              # parse_header, Pars
 
 ## Results
 
-On zgrep's own harness (102-query Rust workload plus targeted Rust and CPython sets, local and server), ogrep is faster than zgrep 0.3.0 on every workload. See `lab/results/` and the table in `../research_notes/Beating zgrep search algorithms/experiments_ogrep.md`.
+On zgrep's own harness (102-query Rust workload plus targeted Rust and CPython sets, local and server), ogrep 0.1.0 is faster than both tgrep 1.0.10 and zgrep 0.3.0 on every workload, and all 264 queries agree with fresh ripgrep scans:
+
+| Workload | vs tgrep | vs zgrep |
+|---|---:|---:|
+| Rust broad, local / server | 3.70× / 1.93× | 2.77× / 1.72× |
+| Rust targeted, local / server | 4.82× / 2.13× | 2.69× / 1.52× |
+| CPython targeted, local / server | 2.23× / 1.30× | 1.84× / 1.17× |
+
+The full qualification against tgrep covers gates, correctness, recovery, refresh, load, startup, cache, index resources and dependencies. It lives in [evidence/ogrep-0.1.0/PRODUCTION_READINESS.md](evidence/ogrep-0.1.0/PRODUCTION_READINESS.md), with the raw results beside it.
 
 ## Verification
 
-- 984 workspace tests pass on Linux (zgrep's tests plus the new ones), 1 ignored as in zgrep; clippy and fmt are clean.
-- 955 pass on Windows (MSVC, run from Git Bash with `./x test` in a checkout on a Windows disk), 1 ignored. The gap is platform-specific tests: symlinks, FIFOs and Unix change times run only on Linux, while the Windows-only tests cover mapped index files that must not be replaced or removed while mapped, and Windows hidden attributes.
+- 997 workspace tests pass on Linux (zgrep's tests plus the new ones), 1 ignored as in zgrep; clippy and fmt are clean.
+- 966 pass on Windows (MSVC, run from Git Bash with `./x test` in a checkout on a Windows disk), 1 ignored. The gap is platform-specific tests: symlinks, FIFOs and Unix change times run only on Linux, while the Windows-only tests cover mapped index files that must not be replaced or removed while mapped, and Windows hidden attributes.
 - One inherited test, `concurrent_high_volume_searches`, failed on Windows for zgrep 0.3.0 and ogrep alike. It sends 50 simultaneous searches to a server that admits 4 active plus 32 queued. It now retries the documented "queue is full" answer instead of treating it as a failure.
 - The anchored prescan is checked exhaustively against the per-line matcher.
 - New options are checked for agreement across scan, local and server modes.

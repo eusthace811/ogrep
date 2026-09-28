@@ -1710,6 +1710,11 @@ mod tests {
         sizes.iter().copied().map(batch_charge).collect()
     }
 
+    // Unix only: there files.bin is mapped, and a rewrite in place would
+    // change the bytes under an open reader. Windows reads the table instead,
+    // and refuses the in-place rebuild of the other mapped index files while a
+    // reader is open (error 1224) rather than changing them underneath it.
+    #[cfg(unix)]
     #[test]
     fn rebuilding_in_place_leaves_an_open_reader_its_paths() {
         // Large enough for files.bin to be mapped on Unix, so a table that was

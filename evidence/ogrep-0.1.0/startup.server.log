@@ -1,0 +1,70 @@
+[trace] opened index: 63009 files, 289753 trigrams in 2.3ms
+[trace] serve ready in 315.4ms. TCP on port 36055. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] file watcher disabled (--no-watch)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: index is up-to-date (63026 files checked in 52ms)
+[trace] search: pattern="NonNull" case_insensitive=false raw_candidates=389 candidates=246 matches=246 elapsed=7.1ms (index=0.3ms resolve=4.2ms search=2.4ms)
+[trace] opened index: 63009 files, 289753 trigrams in 1.8ms
+[trace] serve ready in 321.1ms. TCP on port 46079. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] file watcher disabled (--no-watch)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.0ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: index is up-to-date (63026 files checked in 50ms)
+[trace] search: pattern="NonNull" case_insensitive=false raw_candidates=389 candidates=246 matches=246 elapsed=8.2ms (index=0.5ms resolve=4.8ms search=2.6ms)
+[trace] opened index: 63009 files, 289753 trigrams in 1.9ms
+[trace] serve ready in 317.6ms. TCP on port 36293. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] file watcher disabled (--no-watch)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: index is up-to-date (63026 files checked in 52ms)
+[trace] search: pattern="NonNull" case_insensitive=false raw_candidates=389 candidates=246 matches=246 elapsed=6.0ms (index=0.4ms resolve=3.3ms search=2.2ms)
+[trace] opened index: 63009 files, 289753 trigrams in 1.8ms
+[trace] serve ready in 326.8ms. TCP on port 39159. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] file watcher disabled (--no-watch)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.7ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: index is up-to-date (63026 files checked in 50ms)
+[trace] search: pattern="NonNull" case_insensitive=false raw_candidates=389 candidates=246 matches=246 elapsed=6.8ms (index=0.4ms resolve=3.8ms search=2.3ms)
+[trace] opened index: 63009 files, 289753 trigrams in 1.8ms
+[trace] serve ready in 305.2ms. TCP on port 45925. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] file watcher disabled (--no-watch)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: index is up-to-date (63026 files checked in 53ms)
+[trace] search: pattern="NonNull" case_insensitive=false raw_candidates=389 candidates=246 matches=246 elapsed=6.7ms (index=0.3ms resolve=3.7ms search=2.6ms)
+[trace] opened index: 63009 files, 289753 trigrams in 2.1ms
+[trace] serve ready in 320.1ms. TCP on port 44151. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] file watcher disabled (--no-watch)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.0ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: index is up-to-date (63026 files checked in 53ms)
+[trace] search: pattern="NonNull" case_insensitive=false raw_candidates=389 candidates=246 matches=246 elapsed=6.5ms (index=0.3ms resolve=3.7ms search=2.3ms)
+[trace] opened index: 63009 files, 289753 trigrams in 1.8ms
+[trace] serve ready in 329.3ms. TCP on port 39567. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] file watcher disabled (--no-watch)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.9ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: index is up-to-date (63026 files checked in 49ms)
+[trace] search: pattern="NonNull" case_insensitive=false raw_candidates=389 candidates=246 matches=246 elapsed=8.0ms (index=0.3ms resolve=4.8ms search=2.6ms)
+[trace] opened index: 63009 files, 289753 trigrams in 1.9ms
+[trace] serve ready in 312.2ms. TCP on port 43955. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] file watcher disabled (--no-watch)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 2.0ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: index is up-to-date (63026 files checked in 57ms)
+[trace] search: pattern="NonNull" case_insensitive=false raw_candidates=389 candidates=246 matches=246 elapsed=6.5ms (index=0.3ms resolve=3.3ms search=2.7ms)
+[trace] opened index: 63009 files, 289753 trigrams in 1.8ms
+[trace] serve ready in 313.7ms. TCP on port 37191. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] file watcher disabled (--no-watch)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: index is up-to-date (63026 files checked in 54ms)
+[trace] search: pattern="NonNull" case_insensitive=false raw_candidates=389 candidates=246 matches=246 elapsed=6.2ms (index=0.3ms resolve=3.3ms search=2.4ms)
+[trace] opened index: 63009 files, 289753 trigrams in 1.9ms
+[trace] serve ready in 339.5ms. TCP on port 36397. Cache: max 50000 entries / 1024 MiB (entries over 64 MiB not cached). Memory cap: 16384 MB. Index threads: 16. Watcher queue cap: 16384.
+[trace] file watcher disabled (--no-watch)
+[trace] stale check: comparing index against filesystem...
+[trace] gitignore matcher built from stale walk in 1.8ms (24 .gitignore + 2 .ignore files)
+[trace] stale check: index is up-to-date (63026 files checked in 59ms)
+[trace] search: pattern="NonNull" case_insensitive=false raw_candidates=389 candidates=246 matches=246 elapsed=7.2ms (index=0.3ms resolve=3.9ms search=2.8ms)

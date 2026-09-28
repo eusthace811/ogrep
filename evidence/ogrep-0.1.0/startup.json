@@ -1,0 +1,117 @@
+{
+  "binary_sha256": "85c2647e6cff74d9aa5bc2c59e6bd617a23c356c2d01834ed3a844e98629ac07",
+  "corpus": "/home/eusth/projects/Experiments/tgrep/build/corpora-pinned/rust",
+  "description": "Ten sequential warm-page-cache process restarts using the same frozen Rust index. Readiness includes completed startup reconciliation and up to 50ms status polling delay. First RPC query file set independently checked against rg.",
+  "samples": [
+    {
+      "round": 0,
+      "ready_ms": 859.336081019137,
+      "first_query_ms": 10.002533002989367,
+      "correct": true,
+      "resources": {
+        "cpu_seconds": 1.24,
+        "VmHWM": 543656,
+        "VmRSS": 274664
+      }
+    },
+    {
+      "round": 1,
+      "ready_ms": 858.9500550006051,
+      "first_query_ms": 9.378894988913089,
+      "correct": true,
+      "resources": {
+        "cpu_seconds": 1.26,
+        "VmHWM": 546728,
+        "VmRSS": 278388
+      }
+    },
+    {
+      "round": 2,
+      "ready_ms": 858.2556119945366,
+      "first_query_ms": 6.829549005487934,
+      "correct": true,
+      "resources": {
+        "cpu_seconds": 1.26,
+        "VmHWM": 547108,
+        "VmRSS": 277784
+      }
+    },
+    {
+      "round": 3,
+      "ready_ms": 909.1788959922269,
+      "first_query_ms": 7.529216003604233,
+      "correct": true,
+      "resources": {
+        "cpu_seconds": 1.31,
+        "VmHWM": 544168,
+        "VmRSS": 274948
+      }
+    },
+    {
+      "round": 4,
+      "ready_ms": 858.6081379908137,
+      "first_query_ms": 7.643899007234722,
+      "correct": true,
+      "resources": {
+        "cpu_seconds": 1.26,
+        "VmHWM": 535296,
+        "VmRSS": 268140
+      }
+    },
+    {
+      "round": 5,
+      "ready_ms": 812.7295810263604,
+      "first_query_ms": 7.2330699767917395,
+      "correct": true,
+      "resources": {
+        "cpu_seconds": 1.25,
+        "VmHWM": 541184,
+        "VmRSS": 271928
+      }
+    },
+    {
+      "round": 6,
+      "ready_ms": 858.796969987452,
+      "first_query_ms": 8.744663995457813,
+      "correct": true,
+      "resources": {
+        "cpu_seconds": 1.26,
+        "VmHWM": 543144,
+        "VmRSS": 274212
+      }
+    },
+    {
+      "round": 7,
+      "ready_ms": 858.6748460074887,
+      "first_query_ms": 7.208388997241855,
+      "correct": true,
+      "resources": {
+        "cpu_seconds": 1.3,
+        "VmHWM": 544424,
+        "VmRSS": 277512
+      }
+    },
+    {
+      "round": 8,
+      "ready_ms": 864.8437380034011,
+      "first_query_ms": 7.0219610061030835,
+      "correct": true,
+      "resources": {
+        "cpu_seconds": 1.29,
+        "VmHWM": 541912,
+        "VmRSS": 272952
+      }
+    },
+    {
+      "round": 9,
+      "ready_ms": 909.1789119993336,
+      "first_query_ms": 7.996201980859041,
+      "correct": true,
+      "resources": {
+        "cpu_seconds": 1.35,
+        "VmHWM": 544680,
+        "VmRSS": 277500
+      }
+    }
+  ]
+}

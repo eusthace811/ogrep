@@ -2,18 +2,18 @@
 
 Indexed exact text and regex search for large codebases. ogrep is based on zgrep 0.3.0, which forked [Microsoft tgrep](https://github.com/microsoft/tgrep) at `56f8c62`. It keeps zgrep's index format, command line, server protocol and exact match verification, and removes the costs that dominated zgrep's measured profile. It also adds file-level conditions (`--with`, `--without`) and naming-convention-insensitive identifier search (`--ident`).
 
-On zgrep's own evaluation harness (102-query Rust workload, targeted Rust and CPython sets, local and server-backed), ogrep 0.1.0 is faster than zgrep 0.3.0 on every workload, with identical output:
+On zgrep's own evaluation harness (102-query Rust workload, targeted Rust and CPython sets, local and server-backed), ogrep 0.1.0 is faster than both on every workload. All 264 queries return output identical to fresh ripgrep scans:
 
-| Workload | vs zgrep 0.3.0 | vs tgrep 1.0.10 |
+| Workload | vs tgrep 1.0.10 | vs zgrep 0.3.0 |
 |---|---:|---:|
-| Rust broad, local | 2.78× | 3.69× |
-| Rust broad, server | 1.67× | 1.84× |
-| Rust targeted, local | 2.63× | 4.75× |
-| Rust targeted, server | 1.54× | 2.10× |
-| CPython targeted, local | 1.86× | 2.25× |
-| CPython targeted, server | 1.17× | 1.28× |
+| Rust broad, local | 3.70× | 2.77× |
+| Rust broad, server | 1.93× | 1.72× |
+| Rust targeted, local | 4.82× | 2.69× |
+| Rust targeted, server | 2.13× | 1.52× |
+| CPython targeted, local | 2.23× | 1.84× |
+| CPython targeted, server | 1.30× | 1.17× |
 
-Those numbers were measured on Linux. What changed and why is in [OGREP.md](OGREP.md).
+Under 16 concurrent clients the server handles 3.5× tgrep's request rate at a quarter of its p99 latency and a third of its memory. Those numbers were measured on Linux. What changed is in [OGREP.md](OGREP.md). The production qualification against tgrep covers gates, recovery, refresh, load, startup, cache and dependencies, and is in [evidence/ogrep-0.1.0/PRODUCTION_READINESS.md](evidence/ogrep-0.1.0/PRODUCTION_READINESS.md).
 
 ## Install
 
