@@ -508,8 +508,8 @@ impl SearchOptions {
     }
 
     /// Build the glob, type and `--with`/`--without` filters, reporting the
-    /// first invalid one, without searching. A search that needs no work
-    /// still has to reject a bad argument, as ripgrep does.
+    /// first invalid one, without searching: a bad argument is rejected up
+    /// front, even for a search that needs no work, as ripgrep does.
     pub fn check_filters(&self) -> Result<()> {
         self.glob_filter()?;
         self.type_filter()?;

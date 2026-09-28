@@ -1431,11 +1431,13 @@ fn run_search(
     // Every pattern source was empty (an empty -f file). Like ripgrep: no
     // match is possible, so without -v there is nothing to search or print.
     // With -v every line is selected, which the empty matcher provides.
+    // A bad glob, type or --with/--without is an argument error: reported
+    // before anything is searched, even under --no-messages, as rg does.
+    if let Err(e) = opts.check_filters() {
+        eprintln!("ogrep: {e}");
+        process::exit(2);
+    }
     if !opts.has_patterns() && !opts.invert_match {
-        if let Err(e) = opts.check_filters() {
-            eprintln!("ogrep: {e}");
-            process::exit(2);
-        }
         process::exit(1);
     }
     let mut had_matches = false;
