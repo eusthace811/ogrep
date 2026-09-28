@@ -1177,6 +1177,24 @@ fn write_flat_posting_entries(
     Ok(())
 }
 
+/// Write `files.bin` in `index_dir` beside its final name, then rename it into
+/// place. It is never rewritten in place: on Unix readers map the table and
+/// trust the paths they validated when they opened it (see `PathTable::get`),
+/// so its bytes must not change underneath them. A rename leaves an existing
+/// mapping on the previous file.
+pub fn replace_file_table(
+    index_dir: &Path,
+    write: impl FnOnce(&mut std::io::BufWriter<std::fs::File>) -> Result<()>,
+) -> Result<()> {
+    let staged = index_dir.join("files.bin.tmp");
+    let mut file = std::io::BufWriter::new(std::fs::File::create(&staged)?);
+    write(&mut file)?;
+    file.flush()?;
+    drop(file);
+    std::fs::rename(&staged, index_dir.join("files.bin"))?;
+    Ok(())
+}
+
 fn write_files_and_meta<'a>(
     index_dir: &Path,
     root: &Path,
@@ -1185,13 +1203,13 @@ fn write_files_and_meta<'a>(
     trigram_count: usize,
     complete: Option<bool>,
 ) -> Result<()> {
-    let mut files_file =
-        std::io::BufWriter::new(std::fs::File::create(index_dir.join("files.bin"))?);
-    ondisk::write_file_table_header(&mut files_file)?;
-    for (id, path) in paths.into_iter().enumerate() {
-        ondisk::write_file_entry(&mut files_file, id as u32, path)?;
-    }
-    files_file.flush()?;
+    replace_file_table(index_dir, |files_file| {
+        ondisk::write_file_table_header(files_file)?;
+        for (id, path) in paths.into_iter().enumerate() {
+            ondisk::write_file_entry(files_file, id as u32, path)?;
+        }
+        Ok(())
+    })?;
 
     let canon_root = std::fs::canonicalize(root)?;
     let mut meta = IndexMeta::new(
@@ -1690,6 +1708,43 @@ mod tests {
 
     fn charges(sizes: &[u64]) -> Vec<BatchCharge> {
         sizes.iter().copied().map(batch_charge).collect()
+    }
+
+    #[test]
+    fn rebuilding_in_place_leaves_an_open_reader_its_paths() {
+        // Large enough for files.bin to be mapped on Unix, so a table that was
+        // rewritten in place would change underneath the open reader.
+        let write = |repo: &Path, letter: char| {
+            for entry in std::fs::read_dir(repo).unwrap() {
+                std::fs::remove_file(entry.unwrap().path()).unwrap();
+            }
+            for i in 0..1400 {
+                let name = format!("{i:04}_{}.txt", letter.to_string().repeat(180));
+                std::fs::write(repo.join(name), "alpha beta\n").unwrap();
+            }
+        };
+        let repo = tempfile::TempDir::new().unwrap();
+        let index = tempfile::TempDir::new().unwrap();
+        write(repo.path(), 'a');
+        build_index(repo.path(), Some(index.path()), false, false, &[]).unwrap();
+        assert!(
+            std::fs::metadata(index.path().join("files.bin"))
+                .unwrap()
+                .len()
+                > 256 * 1024
+        );
+        let reader = IndexReader::open(index.path()).unwrap();
+
+        write(repo.path(), 'b');
+        build_index(repo.path(), Some(index.path()), false, false, &[]).unwrap();
+
+        assert_eq!(reader.num_files(), 1400);
+        for id in 0..1400 {
+            assert!(reader.file_path(id).unwrap().contains("aaaa"), "{id}");
+        }
+        assert!(!index.path().join("files.bin.tmp").exists());
+        let rebuilt = IndexReader::open(index.path()).unwrap();
+        assert!(rebuilt.file_path(0).unwrap().contains("bbbb"));
     }
 
     #[test]

@@ -1436,16 +1436,17 @@ fn run_search(
     }
     // Decided once from every pattern, not again per path argument.
     let ci = opts.effective_case_insensitive();
-    // A bad glob, type or --with/--without is an argument error: reported
-    // before anything is searched, even under --no-messages, as rg does.
-    if let Err(e) = opts.check_filters(ci) {
-        eprintln!("ogrep: {e}");
-        process::exit(2);
-    }
     // Every pattern source was empty (an empty -f file). Like ripgrep: no
     // match is possible, so without -v there is nothing to search or print.
-    // With -v every line is selected, which the empty matcher provides.
+    // With -v every line is selected, which the empty matcher provides. A bad
+    // glob, type or --with/--without is still an argument error. (A search
+    // reports those itself when it builds its filters, --no-messages or not,
+    // so ordinary searches need no second build here.)
     if !opts.has_patterns() && !opts.invert_match {
+        if let Err(e) = opts.check_filters(ci) {
+            eprintln!("ogrep: {e}");
+            process::exit(2);
+        }
         process::exit(1);
     }
     let mut had_matches = false;

@@ -6249,7 +6249,8 @@ fn create_empty_index(index_dir: &Path) -> Result<()> {
     // Empty lookup.bin, index.bin, files.bin
     std::fs::write(index_dir.join("lookup.bin"), b"")?;
     std::fs::write(index_dir.join("index.bin"), b"")?;
-    std::fs::write(index_dir.join("files.bin"), b"")?;
+    // Replaced, not truncated in place: readers may have the old one mapped.
+    ogrep_core::builder::replace_file_table(index_dir, |_| Ok(()))?;
     ogrep_core::path_index::remove_extra_paths(index_dir)?;
     let mut meta = IndexMeta::new("", 0, 0);
     meta.complete = false; // empty skeleton — not a complete index
