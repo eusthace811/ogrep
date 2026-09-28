@@ -1,0 +1,40 @@
+{
+  "skill_name": "ogrep",
+  "evals": [
+    {
+      "id": 0,
+      "name": "search-after-own-edit",
+      "prompt": "Rename the helper `load_cfg` to `load_config` in src/settings.rs, then find every remaining caller of `load_cfg` in the repo so we can update them.",
+      "expected_output": "After editing, does not trust a stale index: runs `ogrep refresh .` when a server is running (or `ogrep --no-index` / `ogrep index .` when not) before searching with `ogrep -n -w load_cfg .` or `ogrep -F`. Treats exit 1 as 'no callers left', not as an error.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "name": "file-level-conditions",
+      "prompt": "Which files use a Mutex inside async code but aren't test modules? Just the file list.",
+      "expected_output": "Uses one command, `ogrep -l --with 'async' --without '#\\[cfg\\(test' -- Mutex .` (or equivalent), instead of piping several rg calls through comm/xargs. Places options before `--`.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "identifier-across-conventions",
+      "prompt": "The frontend calls it userAccountId and the backend probably uses snake case or constants. Show me everywhere it appears, with line numbers.",
+      "expected_output": "Uses `ogrep -n --ident userAccountId .`, which covers user_account_id, UserAccountId, USER_ACCOUNT_ID and user-account-id, rather than a hand-written case-insensitive regex with optional underscores.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "subdirectory-without-losing-the-index",
+      "prompt": "In this monorepo, search only services/billing for places that construct a RetryPolicy.",
+      "expected_output": "Searches from the repository root with `-g 'services/billing/**'` (or `--index-path .ogrep ... services/billing`), not `ogrep RetryPolicy services/billing`, which would miss the root index and scan. Recognises the 'no index at ... scanning every file' warning if it appears.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "set-up-in-a-new-large-repo",
+      "prompt": "I just cloned a huge repo into ~/src/chromium. Get it ready so searches are fast for the rest of this session, and I'll be editing files.",
+      "expected_output": "Checks `command -v ogrep` and `ogrep status .`, runs `ogrep index .`, hides `.ogrep/` via .git/info/exclude rather than editing the tracked .gitignore, and starts `ogrep serve .` in the background so edits are followed and `ogrep refresh` is available.",
+      "files": []
+    }
+  ]
+}

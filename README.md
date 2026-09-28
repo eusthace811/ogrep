@@ -1,77 +1,206 @@
 # ogrep
 
-Indexed exact text and regex search for large codebases. ogrep is based on zgrep 0.3.0, which forked [Microsoft tgrep](https://github.com/microsoft/tgrep) at `56f8c62`. It keeps zgrep's index format, command line, server protocol and exact match verification, and removes the costs that dominated zgrep's measured profile. It also adds file-level conditions (`--with`, `--without`) and naming-convention-insensitive identifier search (`--ident`).
+**Fast code search for big repositories.** ogrep is a grep that indexes your
+repository once. After that it answers each search by reading only the few files
+that can possibly match. The command line, output and exit codes are ripgrep's,
+so if you know `rg`, you already know ogrep.
 
-On zgrep's own evaluation harness (102-query Rust workload, targeted Rust and CPython sets, local and server-backed), ogrep 0.1.0 is faster than both on every workload. All 264 queries return output identical to fresh ripgrep scans:
+```sh
+ogrep index .                  # once: build the index (a few seconds for 63,000 files)
+ogrep -n 'fn parse_header' .   # search, like rg
+```
 
-| Workload | vs tgrep 1.0.10 | vs zgrep 0.3.0 |
+## Why ogrep
+
+**ripgrep reads every file on every search.** That is fast on a small project
+and slow on a big one. ogrep's index records which files contain which
+three-character sequences (*trigrams*). Before searching, it uses the index to
+cut the repository down to the files that could match, then checks those files
+with a real regex engine. You get exactly the lines ripgrep would print, because
+matching is still done on the file contents.
+
+Searching the Rust compiler's source (63,000 files) for `fn parse_header`:
+
+| Tool | Files read | Time |
 |---|---:|---:|
-| Rust broad, local | 3.70× | 2.77× |
-| Rust broad, server | 1.93× | 1.72× |
-| Rust targeted, local | 4.82× | 2.69× |
-| Rust targeted, server | 2.13× | 1.52× |
-| CPython targeted, local | 2.23× | 1.84× |
-| CPython targeted, server | 1.30× | 1.17× |
+| ripgrep | 63,000 | 43 ms |
+| tgrep | 3 | 17.5 ms |
+| **ogrep** | **3** | **3.4 ms** |
 
-Under 16 concurrent clients the server handles 3.5× tgrep's request rate at a quarter of its p99 latency and a third of its memory. Those numbers were measured on Linux. What changed is in [OGREP.md](OGREP.md). The production qualification against tgrep covers gates, recovery, refresh, load, startup, cache and dependencies, and is in [evidence/ogrep-0.1.0/PRODUCTION_READINESS.md](evidence/ogrep-0.1.0/PRODUCTION_READINESS.md).
+The bigger the repository and the more specific the search, the bigger the gap.
+[BENCHMARKS.md](BENCHMARKS.md) has the full numbers, including broad searches,
+where the gap is smaller.
+
+It also does things plain grep cannot:
+
+- **Stays current.** `ogrep serve` keeps the index in memory and updates it as
+  you edit. `ogrep refresh` waits until your latest edits are searchable.
+- **Searches by file conditions.** `--with PATTERN` and `--without PATTERN`
+  search only files that also contain, or never contain, another pattern.
+- **Finds identifiers in any naming style.** `--ident getUserId` also finds
+  `get_user_id`, `GetUserID`, `get-user-id` and `GET_USER_ID`.
+- **Explains itself.** `--explain` shows how many files the index ruled out and
+  how long it took.
 
 ## Install
 
-### Linux
+You need a Rust toolchain (edition 2024, Rust 1.85 or newer).
+
+**Linux, macOS and WSL:**
 
 ```sh
-make release          # target/release/ogrep
-make install          # ~/.cargo/bin/ogrep (put ~/.cargo/bin on PATH)
-make test             # whole test suite
+make install          # builds and installs ~/.cargo/bin/ogrep (put it on PATH)
 ```
 
-### Windows
-
-Use `./x` from Git Bash. It builds `ogrep.exe` with the Windows MSVC toolchain:
+**Windows (Git Bash):**
 
 ```sh
-./x fetch             # download every locked crate (shows the registry serves them all)
-./x install           # release build, then ogrep.exe into ~/bin, already on Git Bash's PATH
+./x install           # builds ogrep.exe and installs it into ~/bin
 hash -r
 ogrep --version
 ```
 
-`./x test` runs the test suite, and `./x help` lists the other commands. The same script runs from WSL, where it drives the Windows `cargo.exe` and keeps the build in `%USERPROFILE%\.ogrep-target`, because the WSL share cannot hold a Windows `target/`. Builds and installs from WSL work. Run the tests from a checkout on a Windows disk, though. Some tests create their fixtures inside the repository, and on the WSL share eight hidden-file tests fail: it has no file locks and no Windows hidden attribute. `./x install` refuses to run while `ogrep.exe` is running, since Windows will not replace a running executable. Stop `ogrep serve` first.
+`./x` also runs from WSL, where it drives the Windows toolchain. Windows will not
+replace a running `ogrep.exe`, so stop any `ogrep serve` before reinstalling.
+`./x help` lists every command.
 
-**On a corporate network**, cargo takes crates from whatever the machine's `~/.cargo/config.toml` substitutes for crates.io, usually an Artifactory Cargo remote. Nothing registry-specific is committed here. `./x doctor` shows which registry cargo will use and checks that every locked crate resolves. If it fails, it prints the config lines to add. To use a registry for one run only, set `OGREP_CARGO_REGISTRY=sparse+https://<host>/artifactory/api/cargo/<repo>/index/`, plus `CARGO_REGISTRIES_OGREP_MIRROR_TOKEN` if it needs a token. `./x vendor` copies every crate into `./vendor` for fully offline builds.
+**On a corporate network (Artifactory):** cargo downloads crates from whatever
+the machine's `~/.cargo/config.toml` substitutes for crates.io, usually an
+Artifactory Cargo remote. Nothing registry-specific is committed here.
 
-The Windows build uses a static C runtime, so `ogrep.exe` does not need the Visual C++ redistributable.
+- `./x doctor` shows which registry cargo will use, checks that every locked
+  crate resolves, and prints the config lines to add if one does not.
+- `./x fetch` downloads every crate up front.
+- To use a registry for a single run, set
+  `OGREP_CARGO_REGISTRY=sparse+https://<host>/artifactory/api/cargo/<repo>/index/`.
+  Add `CARGO_REGISTRIES_OGREP_MIRROR_TOKEN` if the registry needs a token.
+- `./x vendor` copies every crate into `./vendor` for fully offline builds.
 
-## Use
+The Windows build links the C runtime statically, so it does not need the
+Visual C++ redistributable.
+
+## How to use it
+
+### The three commands you need
 
 ```sh
-ogrep index /path/to/repository                   # build the index into ./.ogrep
-ogrep serve /path/to/repository                   # optional: keep it warm and watch for changes
-ogrep -F --explain -- 'some_identifier' /path/to/repository
-ogrep -l --with async --without '#\[cfg\(test' -- Mutex .   # files using Mutex that are async and not test modules
-ogrep -n --ident parseHeader .                    # parse_header, ParseHeader, PARSE_HEADER, parse-header, ...
+cd /path/to/your/repo
+
+ogrep index .            # 1. Build the index into ./.ogrep. Do this once.
+ogrep serve .            # 2. Optional: keep it warm and follow your edits.
+                         #    Leave it running in its own terminal.
+ogrep 'TODO' .           # 3. Search, from any terminal.
 ```
 
-Use `ogrep --help` for flags, [agent guidance](AGENTS.md) for integration semantics, and [operations](docs/OPERATIONS.md) for freshness, recovery and platform limits.
+Add `.ogrep/` to the repository's `.gitignore`.
 
-## Search contracts
+If you skip step 2, searches read the index from disk. That is still fast, but
+the index only knows the files as they were when you ran `ogrep index`. Run
+`ogrep index .` again after big changes, or just keep `ogrep serve` running.
 
-Indexes and service discovery use `.ogrep/`. Ignore rules, supported file types, size limits, and binary/hidden policies determine the searchable corpus. The index is a prefilter; exact matching still verifies candidates.
+With no index at all, ogrep scans every file like ripgrep does, and warns you.
 
-An on-disk index reflects its last publication. The server's watcher is asynchronous. Use `refresh` and wait for success before indexed queries that must see completed edits, or `--no-index` for a direct scan of current eligible files. Refresh requires the running server and does not provide an atomic filesystem snapshot. Indexing-complete status is not a freshness guarantee. Add `.ogrep/` to the searched repository's `.gitignore`.
+### Everyday searches
 
-## Inherited from zgrep 0.3.0
+| I want to... | Command |
+|---|---|
+| find a regex | `ogrep 'fn \w+_config' .` |
+| find exact text (no regex) | `ogrep -F 'Vec<Option<T>>' .` |
+| ignore case | `ogrep -i 'timeout' .` |
+| match whole words only | `ogrep -w 'id' .` |
+| see line numbers | `ogrep -n 'panic!' .` |
+| list matching files only | `ogrep -l 'unsafe' .` |
+| count matches per file | `ogrep -c 'unwrap()' .` |
+| see lines around each match | `ogrep -C 3 'deadlock' .` |
+| search only some file types | `ogrep -t rust -t toml 'serde' .` |
+| search only some paths | `ogrep -g 'src/**' -g '!*_test.rs' 'retry' .` |
+| search several patterns at once | `ogrep -e 'TODO' -e 'FIXME' .` |
+| files using Mutex that are async | `ogrep -l --with async -- Mutex .` |
+| ...but not test modules | `ogrep -l --with async --without '#\[cfg\(test' -- Mutex .` |
+| an identifier in every naming style | `ogrep -n --ident parseHeader .` |
+| lookaround or backreferences | `ogrep -P '\bfoo(?!bar)' .` |
+| JSON output for scripts | `ogrep --json 'pattern' .` |
+| see how the index helped | `ogrep --explain 'pattern' .` |
 
-zgrep's own changes over tgrep, all kept in ogrep:
+Put `--` before a pattern that starts with `-`: `ogrep -- '-v' .`
 
-- **Better regex plans:** retain mandatory alternatives inside concatenations instead of discarding useful constraints. zgrep measured the tested nested-alternation queries **2.9× faster on CPython and 13.5× on Rust** with local indexes.
-- **Less posting work:** order lookups by cardinality, probe common lists for sparse candidates, and use existing position masks to reject impossible literal alignments.
-- **Correct Unicode fixed searches:** indexed `-Fi` retains matches such as `kelvin` against `KELVIN`, which tgrep's planner could incorrectly exclude.
-- **Explain actual work:** `--explain` performs the search and reports posting loads, probes, copies and positional rejections on stderr.
-- **Refresh completion:** `ogrep refresh /path/to/repository` and the agent `refresh_index` tool wait for searchable publication of completed edits. See the [contract and evaluation](docs/REFRESH_EVALUATION.md).
-- **Smaller replies and bounded work:** compact file listings, and four active searches with a bounded queue. See the [admission measurements](docs/SERVICE_ADMISSION.md).
-- **More accurate output:** preserve CRLF bytes and unterminated lines, correct server JSON offsets, and honor positive type selection for hidden files.
+### Keeping results current
 
-zgrep's measurements and history are kept as they were written, under the zgrep name: [benchmark report](BENCHMARKS.md), [0.3.0 evaluation](PRODUCTION_REPORT.md), [tgrep comparison](TGREP_COMPARISON.md), [changes](CHANGELOG.md), [development decisions](DEVELOPMENT.md), [research](docs/RESEARCH.md) and `evidence/`. The [inherited command reference](docs/upstream/README.md) is tgrep's.
+`ogrep serve` watches the repository and updates the index as files change, but
+it does so a moment after each change. If a search must see edits you have just
+made (a script that edits and then searches, or an AI agent), wait for them
+first:
 
-Original copyright and MIT license are retained in [LICENSE](LICENSE). Upstream performance and adoption claims in archived documents are not claims about this fork.
+```sh
+ogrep refresh .          # returns once completed edits are searchable
+ogrep 'new_function' .
+```
+
+To check the files exactly as they are on disk right now, skip the index:
+`ogrep --no-index 'pattern' .`
+
+### Other commands
+
+```sh
+ogrep status .           # is a server running? is indexing complete?
+ogrep --files .          # which files are searchable
+ogrep count-files .      # how many text files a repository has
+```
+
+### What ogrep searches
+
+Like ripgrep, ogrep skips files listed in `.gitignore`, hidden files and binary
+files. Unlike ripgrep, it also skips files over 64 MiB, which are nearly always
+generated.
+
+- `--hidden` includes hidden files.
+- `--no-ignore` includes ignored files.
+- `-u`, `-uu` and `-uuu` relax the rules step by step.
+- `--no-max-filesize` lifts the size limit.
+
+Exit codes are ripgrep's: 0 found a match, 1 found nothing, 2 hit an error.
+
+## Using ogrep from AI agents
+
+**Claude Code:** the repository ships a skill that teaches Claude when and how to
+search with ogrep. Install it for every project:
+
+```sh
+make install-skill       # Linux, macOS, WSL: ~/.claude/skills/ogrep
+./x install-skill        # Windows: %USERPROFILE%\.claude\skills\ogrep
+```
+
+**Codex and pi:** `./install-agent.sh` installs MCP search tools that start and
+share an ogrep server automatically. See
+[scripts/agent/README.md](scripts/agent/README.md).
+
+[AGENTS.md](AGENTS.md) covers what an agent has to get right: freshness,
+fallbacks and output differences from ripgrep.
+
+## Documentation
+
+- [docs/REFERENCE.md](docs/REFERENCE.md): every command and flag, the index,
+  the server, file-size limits, binary files and the on-disk format.
+- [docs/OPERATIONS.md](docs/OPERATIONS.md): running the server, freshness,
+  resource limits and recovery.
+- [docs/RPC.md](docs/RPC.md): the server protocol.
+- [BENCHMARKS.md](BENCHMARKS.md): speed, and how to reproduce it.
+
+## Development
+
+```sh
+make test        # the whole test suite (./x test on Windows)
+make check       # formatting and Clippy
+make benchmark   # scripts/benchmark.sh: ogrep against ripgrep on a real repository
+```
+
+The code is two crates. `ogrep-core` holds the trigram index, on-disk format,
+walker and query planner. `ogrep-cli` holds the command line, output, server and
+file watcher. See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Credits and license
+
+ogrep uses Microsoft's [tgrep](https://github.com/microsoft/tgrep) as its
+reference design and builds on its code. The trigram index, the server and the
+ripgrep-compatible command line come from tgrep. MIT licensed; see
+[LICENSE](LICENSE).

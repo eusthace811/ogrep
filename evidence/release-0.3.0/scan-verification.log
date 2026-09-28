@@ -1,6 +1,0 @@
-rust-broad-local.json: 102 queries agree with fresh scans
-rust-broad-server.json: 102 queries agree with fresh scans
-rust-targeted-local.json: 12 queries agree with fresh scans
-rust-targeted-server.json: 12 queries agree with fresh scans
-cpython-targeted-local.json: 12 queries agree with fresh scans
-cpython-targeted-server.json: 12 queries agree with fresh scans

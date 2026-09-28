@@ -13,7 +13,7 @@
     URL to clone for benchmarking. Overrides the value from QueriesFile.
 .PARAMETER BenchDir
     Working directory for benchmark artifacts (index, results, cloned repo).
-.PARAMETER TgrepBin
+.PARAMETER OgrepBin
     Path to the ogrep binary. Auto-detected from target\release\ogrep.exe if not set.
 .PARAMETER ResultsPath
     Output path for the results markdown file.
@@ -31,7 +31,7 @@ param(
     [string]$RepoPath = '',
     [string]$RepoUrl = '',
     [string]$BenchDir = (Join-Path $env:TEMP 'ogrep-bench'),
-    [string]$TgrepBin = '',
+    [string]$OgrepBin = '',
     [string]$ResultsPath = '',
     [switch]$SkipBuild
 )
@@ -62,8 +62,8 @@ if (-not $RepoUrl) {
     throw "No repo_url specified (set in queries JSON or pass -RepoUrl)"
 }
 
-if (-not $TgrepBin) {
-    $TgrepBin = Join-Path $RepoRoot 'target\release\ogrep.exe'
+if (-not $OgrepBin) {
+    $OgrepBin = Join-Path $RepoRoot 'target\release\ogrep.exe'
 }
 if (-not $ResultsPath) {
     $ResultsPath = Join-Path $BenchDir 'benchmark-results.md'
@@ -91,8 +91,8 @@ if (-not $SkipBuild) {
     }
 }
 
-if (-not (Test-Path $TgrepBin)) {
-    throw "ogrep binary not found at $TgrepBin — run 'make release' first or pass -TgrepBin"
+if (-not (Test-Path $OgrepBin)) {
+    throw "ogrep binary not found at $OgrepBin — run 'make release' first or pass -OgrepBin"
 }
 
 # ── Clone benchmark repo ──
@@ -117,7 +117,7 @@ $FileCount = (git -C $BenchRepoDir ls-files | Measure-Object -Line).Lines
 # ── Build index ──
 Write-Host '==> Building ogrep index...' -ForegroundColor Cyan
 $indexSw = [System.Diagnostics.Stopwatch]::StartNew()
-& $TgrepBin index $BenchRepoDir --index-path $IndexPath
+& $OgrepBin index $BenchRepoDir --index-path $IndexPath
 if ($LASTEXITCODE -ne 0) { throw 'ogrep index failed' }
 $indexSw.Stop()
 $indexMs = $indexSw.ElapsedMilliseconds
@@ -135,7 +135,7 @@ if (Test-Path $LockFile) { Remove-Item $LockFile -Force }
 $serveOut = Join-Path $BenchDir 'serve-stdout.log'
 $serveErr = Join-Path $BenchDir 'serve-stderr.log'
 New-Item -ItemType Directory -Path $BenchDir -Force | Out-Null
-$serveProc = Start-Process -FilePath $TgrepBin `
+$serveProc = Start-Process -FilePath $OgrepBin `
     -ArgumentList "serve `"$BenchRepoDir`" --index-path `"$IndexPath`" --no-watch" `
     -RedirectStandardOutput $serveOut -RedirectStandardError $serveErr `
     -PassThru -WindowStyle Hidden
@@ -165,7 +165,7 @@ try {
     Write-Host "`n==> Benchmarking ogrep (client -> serve)..." -ForegroundColor Cyan
     $ogrepSw = [System.Diagnostics.Stopwatch]::StartNew()
     foreach ($q in $Queries) {
-        & $TgrepBin $q $BenchRepoDir --index-path $IndexPath *>$null
+        & $OgrepBin $q $BenchRepoDir --index-path $IndexPath *>$null
     }
     $ogrepSw.Stop()
     $ogrepMs = $ogrepSw.ElapsedMilliseconds

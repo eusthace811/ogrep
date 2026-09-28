@@ -1,4 +1,0 @@
-MISMATCH: scan/rust-type
-MISMATCH: local/rust-type
-MISMATCH: server/rust-type
-81 checks, 3 mismatches

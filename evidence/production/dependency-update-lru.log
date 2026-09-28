@@ -1,4 +1,0 @@
-    Updating crates.io index
-      Adding allocator-api2 v0.2.21
- Downgrading lru v0.18.5 -> v0.18.2
-note: pass `--verbose` to see 69 unchanged dependencies behind latest

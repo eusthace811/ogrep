@@ -1,6 +1,6 @@
-# Local search RPC extensions
+# Server protocol
 
-The server uses newline-delimited JSON-RPC over loopback TCP. Existing clients remain supported. This document describes extensions added after 0.2.0; see the operations guide for the local-service deployment scope.
+The server speaks newline-delimited JSON-RPC 2.0 over loopback TCP. A client finds it through `serve.json` in the index directory, which records the server's PID and port. This document describes compact file listings, admission limits and refresh; see the [operations guide](OPERATIONS.md) for the deployment scope.
 
 ## Compact file listings
 

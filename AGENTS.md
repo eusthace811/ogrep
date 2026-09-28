@@ -2,8 +2,10 @@
 
 A short guide for AI agents (and the humans who wire them up) that want to
 use `ogrep` as a fast search tool inside a repository. It complements the
-[command reference](docs/upstream/README.md), which documents inherited flags; this file covers the few
-things an agent has to get right.
+[command reference](docs/REFERENCE.md), which documents every flag; this file covers the few
+things an agent has to get right. For Claude Code, install the bundled skill
+with `make install-skill` (or `./x install-skill` on Windows). It carries this
+guidance in a form Claude loads on demand.
 
 ## The mental model
 
@@ -74,7 +76,7 @@ change a later search has to see, including your own edits.
 
 The command line follows ripgrep. The common `rg` flags are supported with the
 same names; an unsupported flag is rejected with an error rather than ignored.
-The full list is in the [command reference](docs/upstream/README.md#cli-flags). Three accepted flags
+The full list is in the [command reference](docs/REFERENCE.md#cli-flags). Three accepted flags
 only take effect on a full scan: `-L`/`--follow`, `--one-file-system` and
 `--ignore-file`. An indexed search ignores them silently, so pair them with
 `--no-index`.
@@ -236,7 +238,8 @@ expected, and ogrep prints a warning saying so. Pass `--no-require-git` to
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | `warning: no index at ... - scanning every file` | No index at the path the search looked in | If a server or index uses `--index-path`, pass the same value to the search; otherwise run `ogrep index .` or `ogrep serve .` |
-| `Server unreachable, falling back to local index` | Server died or `serve.json` is stale | Restart `ogrep serve .` |
+| The same warning when searching a subdirectory | The index is looked up in the first path, so `ogrep x src/` looks for `src/.ogrep` | Search from the root with `-g 'src/**'`, or pass `--index-path .ogrep` |
+| `Server unavailable or index coverage not ready, falling back to local index` | Server died, `serve.json` is stale, or the server is still building | Restart `ogrep serve .` |
 | A new file is not found, no server | On-disk index predates the file | Run `ogrep index .` |
 | A new file is not found, server running | First build still in progress, or the watcher event is still queued | Run `refresh` and wait for success, or pass `--no-index` for this search; re-running `ogrep index .` does not update a running server |
 | Search is slow despite a server | Flag bypasses the index (see above) | Drop the flag or scope with `-g`/`-t` |

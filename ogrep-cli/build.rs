@@ -37,7 +37,7 @@ fn compile_windows_resources() {
     res.set("CompanyName", "ogrep contributors");
     res.set(
         "LegalCopyright",
-        "Copyright (c) Microsoft Corporation. All rights reserved.",
+        "Copyright (c) Microsoft Corporation and ogrep contributors. MIT License.",
     );
     res.set("InternalName", "ogrep");
     res.set("OriginalFilename", "ogrep.exe");

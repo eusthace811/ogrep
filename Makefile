@@ -1,4 +1,4 @@
-.PHONY: build release install package test check fmt lint clean benchmark hooks
+.PHONY: build release install install-skill test check fmt lint clean benchmark hooks
 
 build:
 	cargo build --workspace --locked
@@ -6,12 +6,15 @@ build:
 release:
 	cargo build --workspace --release --locked
 
-package:
-	python3 scripts/package.py
-
 install: release
 	mkdir -p ~/.cargo/bin
 	install -m 755 target/release/ogrep ~/.cargo/bin/ogrep
+
+# Claude Code skill: teaches Claude to search with ogrep in any project.
+install-skill:
+	mkdir -p ~/.claude/skills
+	rm -rf ~/.claude/skills/ogrep
+	cp -r .claude/skills/ogrep ~/.claude/skills/ogrep
 
 test:
 	cargo test --workspace --locked
@@ -31,7 +34,7 @@ clean:
 	rm -rf .ogrep/
 
 benchmark:
-	python3 scripts/evaluate.py $(BENCH_ARGS)
+	./scripts/benchmark.sh $(BENCH_ARGS)
 
 hooks:
 	cp scripts/hooks/pre-commit .git/hooks/pre-commit

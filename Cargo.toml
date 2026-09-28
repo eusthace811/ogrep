@@ -6,7 +6,6 @@ resolver = "2"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
-authors = ["Shengyu Fu"]
 
 [workspace.dependencies]
 ogrep-core = { path = "ogrep-core" }

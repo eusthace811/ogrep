@@ -1,7 +1,0 @@
-   Compiling inotify-sys v0.1.8
-   Compiling bitflags v2.11.0
-   Compiling zgrep-cli v0.1.0 (/home/eusth/projects/Experiments/tgrep/zgrep/zgrep-cli)
-   Compiling notify-types v2.1.0
-   Compiling inotify v0.11.5
-   Compiling notify v8.2.0
-    Finished `release` profile [optimized] target(s) in 5.39s

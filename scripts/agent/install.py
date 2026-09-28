@@ -179,11 +179,11 @@ def binary_help(binary):
     help_text = subprocess.run([str(binary), "--help"], check=True, capture_output=True, text=True, timeout=5).stdout
     for flag in ("--no-index", "--index-path", "--json", "--files"):
         if flag not in help_text:
-            raise ValueError(f"{binary} does not support required flag {flag}; provide this fork's binary")
+            raise ValueError(f"{binary} does not support required flag {flag}; provide a current ogrep binary")
     refresh_help = subprocess.run([str(binary), "refresh", "--help"], check=True,
                                   capture_output=True, text=True, timeout=5).stdout
     if "--timeout-secs" not in refresh_help:
-        raise ValueError(f"{binary} does not support refresh completion; rebuild or provide the updated fork's binary")
+        raise ValueError(f"{binary} does not support refresh completion; rebuild or provide a current ogrep binary")
 
 
 def binary_path(args, base):

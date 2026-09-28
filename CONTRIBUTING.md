@@ -5,12 +5,8 @@ Thanks for your interest in contributing! Here's how to get started.
 ## Development Setup
 
 1. Install [Rust](https://rustup.rs/) (1.85+ required for edition 2024)
-2. Clone and build:
-   ```bash
-   git clone https://github.com/microsoft/tgrep.git
-   cd ogrep
-   cargo build
-   ```
+2. Build from the repository root: `cargo build` on Linux or macOS, `./x build`
+   on Windows (Git Bash)
 
 ## Workflow
 
@@ -47,10 +43,10 @@ make hooks
 
 ## Pull Requests
 
-1. Fork the repo and create a feature branch
+1. Create a feature branch
 2. Make your changes with tests if applicable
-3. Ensure `cargo fmt`, `cargo clippy`, and `cargo test` all pass
-4. Submit a PR with a clear description of the change
+3. Ensure `make check` and `make test` pass
+4. Open a PR with a clear description of the change
 
 ## Reporting Issues
 
