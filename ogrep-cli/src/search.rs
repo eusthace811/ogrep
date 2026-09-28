@@ -1557,15 +1557,8 @@ fn search_local_index(
         || opts.include_zero
     {
         QueryPlan::MatchAll
-    } else if opts.fixed_string {
-        query::build_multi_pattern_plan(&opts.all_patterns(), true, ci)
-            .map_err(|e| anyhow::anyhow!("{e}"))?
-    } else if let Some(compiled) = matcher.compiled_pattern() {
-        // Planned from exactly what the matcher compiled: -x/-w wrap the
-        // patterns, so a raw pattern alone may not parse (`-x 'a)(b'`).
-        query::build_query_plan(compiled, ci).map_err(|e| anyhow::anyhow!("{e}"))?
     } else {
-        query::build_relaxed_multi_pattern_plan(&opts.all_patterns(), ci)
+        matcher.index_plan(&opts.all_patterns(), opts.fixed_string, ci)?
     };
     // A file failing `--with` produces no output in any mode, so every `--with`
     // pattern's trigrams narrow the candidates too.

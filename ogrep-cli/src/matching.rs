@@ -324,14 +324,33 @@ impl Prescan {
 }
 
 impl SearchMatcher {
-    /// The regex the linear-time engine compiled: every pattern combined, with
-    /// any `-x`/`-w` wrapper. The index plan is built from this, so planning
-    /// and matching read the same text.
-    pub fn compiled_pattern(&self) -> Option<&str> {
-        match self {
-            Self::Standard(re, _) => Some(re.as_str()),
-            Self::Fancy { .. } => None,
-        }
+    /// The trigram plan for `patterns`, the ones this matcher was built from.
+    /// Shared by the local and server paths so they pick the same candidates.
+    ///
+    /// Each pattern is planned on its own first: they are grouped separately
+    /// in the matcher, so this is sound, and it keeps each one's trigrams
+    /// (planned as one alternation, `-i` patterns lose those past a shared
+    /// prefix). A pattern that only parses once `-x`/`-w` wraps it (`-x
+    /// 'a)(b'`) is planned from the regex actually compiled instead. A
+    /// PCRE-style pattern is relaxed into one the planner can read.
+    pub fn index_plan(
+        &self,
+        patterns: &[String],
+        fixed_string: bool,
+        case_insensitive: bool,
+    ) -> Result<ogrep_core::query::QueryPlan> {
+        use ogrep_core::query;
+        let plan = match self {
+            Self::Standard(re, _) => {
+                query::build_multi_pattern_plan(patterns, fixed_string, case_insensitive)
+                    .or_else(|_| query::build_query_plan(re.as_str(), case_insensitive))
+            }
+            Self::Fancy { .. } => Ok(query::build_relaxed_multi_pattern_plan(
+                patterns,
+                case_insensitive,
+            )),
+        };
+        plan.map_err(|e| anyhow::anyhow!("{e}"))
     }
 
     /// Whether the prefilter has already ruled this haystack out.
@@ -680,7 +699,12 @@ fn combine_patterns(
     if patterns.len() == 1 {
         wrap(&patterns[0])
     } else {
-        let parts: Vec<String> = patterns.iter().map(wrap).collect();
+        // Each pattern in its own group, as ripgrep does, so an inline flag in
+        // one (`-e '(?i)zzz'`) ends there instead of reaching the ones after.
+        let parts: Vec<String> = patterns
+            .iter()
+            .map(|p| format!("(?:{})", wrap(p)))
+            .collect();
         format!("(?:{})", parts.join("|"))
     }
 }

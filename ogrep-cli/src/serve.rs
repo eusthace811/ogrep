@@ -1881,14 +1881,10 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
     // for the original and the candidate set stays sound.
     let plan = if invert_match || encoding.may_differ_from_index() {
         query::QueryPlan::MatchAll
-    } else if fixed_string {
-        query::build_multi_pattern_plan(&all_patterns, true, case_insensitive)?
-    } else if let Some(compiled) = matcher.compiled_pattern() {
-        // Planned from exactly what the matcher compiled: -x/-w wrap the
-        // patterns, so a raw pattern alone may not parse.
-        query::build_query_plan(compiled, case_insensitive)?
     } else {
-        query::build_relaxed_multi_pattern_plan(&all_patterns, case_insensitive)
+        matcher
+            .index_plan(&all_patterns, fixed_string, case_insensitive)
+            .map_err(|e| e.to_string())?
     };
     // Every `--with` pattern is also necessary, so its trigrams narrow too, even
     // for `-v`: a file failing `--with` produces no output. Re-decoded text is

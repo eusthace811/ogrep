@@ -269,3 +269,50 @@ fn pattern_files_read_like_ripgrep_in_scan_and_index_modes() {
         .code(0)
         .stdout("1:foo\n2: foo\n");
 }
+
+/// Several patterns: each is its own group, so an inline flag stays in the
+/// pattern that sets it (as in rg), and the index plan narrows by each one,
+/// falling back to the compiled regex only for a pattern that parses just
+/// once -x wraps it.
+#[test]
+fn several_patterns_match_and_plan_like_separate_ones() {
+    let temp = TempDir::new().unwrap();
+    let root = temp.path().join("repo");
+    let index = temp.path().join("index");
+    fs::create_dir_all(root.join(".git")).unwrap();
+    fs::write(root.join("a.txt"), "foobar\nFOOBAR\nzzz\n").unwrap();
+    fs::write(root.join("b.txt"), "fooba nope\n").unwrap();
+    fs::write(root.join("c.txt"), "abcdef\n").unwrap();
+    fs::write(root.join("d.txt"), "abc\ndef\n").unwrap();
+    Command::cargo_bin("ogrep")
+        .unwrap()
+        .args(["index", root.to_str().unwrap(), "--index-path"])
+        .arg(&index)
+        .assert()
+        .success();
+    let run = |args: &[&str]| {
+        let mut cmd = Command::cargo_bin("ogrep").unwrap();
+        cmd.current_dir(&root)
+            .args(["--no-config", "--stats", "--sort", "path", "--index-path"])
+            .arg(&index)
+            .args(args)
+            .arg(".");
+        cmd.assert()
+    };
+
+    // (?i) in the first pattern does not reach `foobar`.
+    run(&["-e", "(?i)zzz", "-e", "foobar"])
+        .code(0)
+        .stdout("./a.txt:foobar\n./a.txt:zzz\n");
+    // Each -i pattern keeps all its trigrams: b.txt is not a candidate.
+    run(&["-i", "-e", "foobar", "-e", "foobaz"])
+        .code(0)
+        .stdout("./a.txt:foobar\n./a.txt:FOOBAR\n")
+        .stderr(predicates::str::contains("candidates: 1/4"));
+    // Only the -x-wrapped regex parses; it still narrows (d.txt has both
+    // halves, c.txt the match).
+    run(&["-x", "abc)(def"])
+        .code(0)
+        .stdout("./c.txt:abcdef\n")
+        .stderr(predicates::str::contains("candidates: 2/4"));
+}
