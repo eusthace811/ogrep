@@ -1199,8 +1199,8 @@ mod tests {
             format!("{:?}", plan_alternatives(swallowed, false).unwrap()),
             format!("{:?}", build_query_plan(swallowed, false).unwrap())
         );
-        // A single pattern's own alternation shares flags between branches,
-        // so it is not split.
+        // Branches that are not all groups can share flags (here verbose mode
+        // set in the first), so the regex is not split.
         assert_eq!(
             format!(
                 "{:?}",

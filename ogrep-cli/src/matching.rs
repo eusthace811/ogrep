@@ -324,14 +324,16 @@ impl Prescan {
 }
 
 impl SearchMatcher {
-    /// The trigram plan for `patterns`, the ones this matcher was built from.
-    /// Shared by the local and server paths so they pick the same candidates.
+    /// The trigram plan for this matcher, which must have been built from
+    /// `patterns`. Shared by the local and server paths so they pick the same
+    /// candidates.
     ///
-    /// Fixed strings are planned as literals, whatever the engine. A regex is
-    /// planned from exactly what was compiled (so a pattern completed by a
-    /// `-x`/`-w` wrapper, like `-x 'a)(b'`, still plans), one alternative per
-    /// pattern; see [`ogrep_core::query::plan_alternatives`]. A PCRE-style
-    /// pattern is relaxed into one the planner can read.
+    /// Fixed strings are planned from `patterns` as literals, whatever the
+    /// engine. The linear-time engine ignores `patterns` and plans exactly the
+    /// regex it compiled (so a pattern completed by a `-x`/`-w` wrapper, like
+    /// `-x 'a)(b'`, still plans), one alternative per group; see
+    /// [`ogrep_core::query::plan_alternatives`]. For the PCRE-style engine,
+    /// `patterns` are relaxed into ones the planner can read.
     pub fn index_plan(
         &self,
         patterns: &[String],
