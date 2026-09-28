@@ -419,35 +419,6 @@ pub fn require_patterns(
     }
 }
 
-/// Plan a compiled regex, each top-level alternative on its own when every
-/// one is a group (as `-e p1 -e p2` compiles to `(?:p1)|(?:p2)`).
-///
-/// A group scopes the flags set inside it, so each can be planned alone, and
-/// separately each keeps all its trigrams: as one alternation, `-i` patterns
-/// lose those past a shared prefix. Planning the compiled text rather than
-/// the raw patterns stays exact when a pattern's text reaches past its group,
-/// as a `(?x)` comment does into the next one: the parse then shows fewer
-/// alternatives.
-pub fn plan_alternatives(pattern: &str, case_insensitive: bool) -> Result<QueryPlan, String> {
-    use regex_syntax::ast::Ast;
-
-    let parsed = regex_syntax::ast::parse::Parser::new().parse(pattern);
-    if let Ok(Ast::Alternation(alternation)) = &parsed
-        && alternation
-            .asts
-            .iter()
-            .all(|ast| matches!(ast, Ast::Group(_)))
-    {
-        let branches: Vec<String> = alternation
-            .asts
-            .iter()
-            .map(|ast| pattern[ast.span().start.offset..ast.span().end.offset].to_string())
-            .collect();
-        return build_multi_pattern_plan(&branches, false, case_insensitive);
-    }
-    build_query_plan(pattern, case_insensitive)
-}
-
 /// Build a plan for PCRE-style patterns that `regex-syntax` cannot parse.
 ///
 /// Each pattern is first relaxed (see [`relax_for_indexing`]); anything that
@@ -1169,47 +1140,6 @@ mod tests {
             relax_for_indexing(pattern).as_deref(),
             Some(expected),
             "relaxing {pattern:?}"
-        );
-    }
-
-    #[test]
-    fn plan_alternatives_plans_each_group_of_the_compiled_regex() {
-        // Separately, each -i pattern keeps its trigrams past the shared prefix.
-        let separate = build_multi_pattern_plan(
-            &["(?:foobar)".to_string(), "(?:foobaz)".to_string()],
-            false,
-            true,
-        )
-        .unwrap();
-        assert_eq!(
-            format!(
-                "{:?}",
-                plan_alternatives("(?:foobar)|(?:foobaz)", true).unwrap()
-            ),
-            format!("{separate:?}")
-        );
-        assert!(matches!(
-            plan_alternatives("(?:foobar)|(?:foobaz)", true).unwrap(),
-            QueryPlan::Or(_)
-        ));
-        // A (?x) comment swallows the `|` and the next group's start: the
-        // regex is really one alternative, and is planned as a whole.
-        let swallowed = "(?:(?x)qqq #)|(?:yyy\n?zzz)";
-        assert_eq!(
-            format!("{:?}", plan_alternatives(swallowed, false).unwrap()),
-            format!("{:?}", build_query_plan(swallowed, false).unwrap())
-        );
-        // Branches that are not all groups can share flags (here verbose mode
-        // set in the first), so the regex is not split.
-        assert_eq!(
-            format!(
-                "{:?}",
-                plan_alternatives("(?x) ab c | d e f", false).unwrap()
-            ),
-            format!(
-                "{:?}",
-                build_query_plan("(?x) ab c | d e f", false).unwrap()
-            )
         );
     }
 
