@@ -2,7 +2,7 @@
 ///
 /// If a running server is detected (via serve.json), the search is delegated
 /// over TCP. Otherwise, the on-disk index is loaded directly.
-use std::io::{BufRead, BufReader, ErrorKind, Read, Write};
+use std::io::{BufRead, BufReader, ErrorKind, Read};
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
@@ -802,17 +802,16 @@ fn list_files_via_server(
 ) -> Result<Vec<String>> {
     let mut stream = info.connect(None)?;
     stream.set_read_timeout(Some(std::time::Duration::from_secs(300)))?;
-    writeln!(
-        stream,
-        "{}",
+    crate::serve::write_line(
+        &mut stream,
         serde_json::json!({
             "jsonrpc": "2.0",
             "method": "files",
             "params": { "hidden": opts.hidden, "scope": scope.prefix(), "whitelist_files": !opts.types.is_empty() },
             "id": 1,
         })
+        .to_string(),
     )?;
-    stream.flush()?;
 
     let mut reader = BufReader::new(&stream);
     let mut line = String::new();
@@ -1094,8 +1093,7 @@ fn search_via_server(
     request["params"]["without"] = serde_json::json!(opts.without_patterns);
     request["params"]["scope"] = serde_json::json!(scope.prefix());
     request["params"]["max_depth"] = serde_json::json!(opts.max_depth);
-    writeln!(stream, "{}", request)?;
-    stream.flush()?;
+    crate::serve::write_line(&mut stream, request.to_string())?;
 
     let mut reader = BufReader::new(&stream);
     let mut line = String::new();

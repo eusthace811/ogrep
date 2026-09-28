@@ -231,15 +231,31 @@ impl ServerInfo {
         } else {
             timeout
         };
-        match timeout {
-            Some(timeout) => std::net::TcpStream::connect_timeout(&address, timeout),
-            None => std::net::TcpStream::connect(address),
-        }
+        let stream = match timeout {
+            Some(timeout) => std::net::TcpStream::connect_timeout(&address, timeout)?,
+            None => std::net::TcpStream::connect(address)?,
+        };
+        // Requests are single small lines answered at once; see write_line.
+        stream.set_nodelay(true)?;
+        Ok(stream)
     }
 
     pub fn cleanup(index_dir: &Path) {
         let _ = std::fs::remove_file(index_dir.join("serve.json"));
     }
+}
+
+/// Send one JSON-RPC line in a single write, newline included.
+///
+/// Two writes (the message, then `\n`) let Nagle's algorithm hold the newline
+/// until the peer acknowledges the message, and the peer delays that
+/// acknowledgement (up to ~40 ms on Linux) while it waits for the newline:
+/// measured as random 40 ms stalls on server queries. Sockets also set
+/// `TCP_NODELAY` (see [`ServerInfo::connect`] and the accept loop).
+pub fn write_line(stream: &mut impl Write, mut line: String) -> std::io::Result<()> {
+    line.push('\n');
+    stream.write_all(line.as_bytes())?;
+    stream.flush()
 }
 
 /// How long to try a server whose recorded process seems gone.
@@ -1141,12 +1157,13 @@ pub fn run(root: &Path, index_path: Option<&Path>, options: ServeOptions<'_>) ->
     for stream in listener.incoming() {
         match stream {
             Ok(mut stream) => {
+                // Replies are sent at once, not batched; see write_line.
+                let _ = stream.set_nodelay(true);
                 let Ok(connection) = state.connections.acquire(Duration::ZERO) else {
                     let _ = stream.set_write_timeout(Some(Duration::from_millis(100)));
-                    let _ = writeln!(
-                        stream,
-                        "{}",
-                        json_rpc_error(None, OVERLOADED as i32, "server connection limit reached")
+                    let _ = write_line(
+                        &mut stream,
+                        json_rpc_error(None, OVERLOADED as i32, "server connection limit reached"),
                     );
                     continue;
                 };
@@ -1512,19 +1529,18 @@ fn handle_connection(stream: TcpStream, state: &Arc<ServerState>) -> Result<()> 
         > 0
     {
         if line.len() as u64 > MAX_REQUEST_BYTES {
-            writeln!(
-                writer,
-                "{}",
-                json_rpc_error(None, -32600, "request exceeds 1 MiB limit")
+            write_line(
+                &mut writer,
+                json_rpc_error(None, -32600, "request exceeds 1 MiB limit"),
             )?;
             return Ok(());
         }
         let (response, permit) = process_request(&line, state);
-        let sent = writeln!(writer, "{response}").and_then(|()| writer.flush());
         // Keep admission through transmission and response disposal, including
-        // disconnects. Returning a permit before a blocked write multiplies
-        // the number of retained full response strings under slow clients.
-        drop(response);
+        // disconnects (write_line drops the response once sent). Returning a
+        // permit before a blocked write multiplies the number of retained full
+        // response strings under slow clients.
+        let sent = write_line(&mut writer, response);
         drop(permit);
         sent?;
         line.clear();
@@ -8802,6 +8818,23 @@ mod tests {
             paths: paths.iter().map(PathBuf::from).collect(),
             attrs: Default::default(),
         }
+    }
+
+    #[test]
+    fn write_line_sends_the_message_and_newline_in_one_write() {
+        struct Writes(Vec<Vec<u8>>);
+        impl Write for Writes {
+            fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+                self.0.push(buf.to_vec());
+                Ok(buf.len())
+            }
+            fn flush(&mut self) -> std::io::Result<()> {
+                Ok(())
+            }
+        }
+        let mut writes = Writes(Vec::new());
+        write_line(&mut writes, "{\"jsonrpc\":\"2.0\"}".to_string()).unwrap();
+        assert_eq!(writes.0, [b"{\"jsonrpc\":\"2.0\"}\n".to_vec()]);
     }
 
     #[test]

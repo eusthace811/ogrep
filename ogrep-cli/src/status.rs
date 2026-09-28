@@ -200,8 +200,7 @@ fn query_server_status(info: &ServerInfo) -> Result<StatusResult> {
         "method": "status",
         "id": 1,
     });
-    writeln!(stream, "{}", request)?;
-    stream.flush()?;
+    crate::serve::write_line(&mut stream, request.to_string())?;
 
     let mut reader = BufReader::new(&stream);
     let mut line = String::new();

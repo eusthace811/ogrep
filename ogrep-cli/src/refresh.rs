@@ -1,5 +1,5 @@
 //! A refresh receipt is never replaced with a local scan or a readiness flag.
-use std::io::{Read, Write};
+use std::io::Read;
 use std::net::TcpStream;
 use std::path::Path;
 use std::time::{Duration, Instant};
@@ -26,7 +26,8 @@ pub fn run(root: &Path, index_path: Option<&Path>, timeout: Duration, json: bool
         "jsonrpc": "2.0", "id": 1, "method": "refresh",
         "params": {"root": root_text, "timeout_ms": remaining(deadline)?.as_millis().max(1)},
     });
-    writeln!(stream, "{request}").context("could not send refresh request")?;
+    crate::serve::write_line(&mut stream, request.to_string())
+        .context("could not send refresh request")?;
     let response = read_response(&mut stream, deadline)?;
     if let Some(error) = response.get("error") {
         bail!(
