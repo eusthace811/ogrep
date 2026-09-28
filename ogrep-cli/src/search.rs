@@ -49,7 +49,11 @@ pub struct SearchOptions {
     pub with_patterns: Vec<String>,
     /// `--without`: no file searched may contain a line matching any.
     pub without_patterns: Vec<String>,
-    pub pattern_file: Option<String>,
+    /// The patterns `-f` named, read once when the search starts (see
+    /// [`read_pattern_file`]): the case decision, matcher, index plan, server
+    /// request and every path argument all use them, and `-f` may name a pipe
+    /// that can be read only once.
+    pub file_patterns: Option<Vec<String>>,
     pub case_insensitive: bool,
     pub case_sensitive: bool,
     pub smart_case: bool,
@@ -236,26 +240,25 @@ impl SearchOptions {
     /// `-S`, matching ripgrep. Like ripgrep, smart case looks at every pattern
     /// together (`-e`, `-f`, `--ident`, and the `--with`/`--without` conditions
     /// too) and ignores case only when some pattern matches a literal and none
-    /// of those literals is uppercase; see [`query::LiteralCase`].
-    pub fn effective_case_insensitive(&self) -> Result<bool> {
+    /// of those literals is uppercase; see [`query::LiteralCase`] for what
+    /// counts as a literal under each engine.
+    pub fn effective_case_insensitive(&self) -> bool {
         if self.case_insensitive {
-            return Ok(true);
+            return true;
         }
         if !self.smart_case || self.case_sensitive {
-            return Ok(false);
+            return false;
         }
-        let mut case = query::LiteralCase::default();
-        for pattern in self
-            .all_patterns()?
-            .iter()
-            .chain(&self.with_patterns)
-            .chain(&self.without_patterns)
-        {
-            let one = query::LiteralCase::of(pattern, self.fixed_string);
-            case.any_literal |= one.any_literal;
-            case.any_uppercase |= one.any_uppercase;
-        }
-        Ok(case.any_literal && !case.any_uppercase)
+        let patterns = self.all_patterns();
+        query::LiteralCase::of_all(
+            patterns
+                .iter()
+                .chain(&self.with_patterns)
+                .chain(&self.without_patterns),
+            self.fixed_string,
+            self.engine == crate::matching::RegexEngine::Pcre2,
+        )
+        .ignores_case()
     }
 
     /// Whether `.` should match a newline. ripgrep keeps this separate from
@@ -386,7 +389,7 @@ impl SearchOptions {
     }
 
     fn matcher(&self, ci: bool) -> Result<SearchMatcher> {
-        crate::matching::build_search_matcher(&self.all_patterns()?, &self.matcher_config(ci))
+        crate::matching::build_search_matcher(&self.all_patterns(), &self.matcher_config(ci))
     }
 
     fn file_filter(&self, ci: bool) -> Result<Option<crate::matching::FileFilter>> {
@@ -470,8 +473,8 @@ impl SearchOptions {
     }
 
     /// Collect all patterns (primary + -e extras + -f file patterns).
-    fn all_patterns(&self) -> Result<Vec<String>> {
-        let has_extra = !self.extra_patterns.is_empty() || self.pattern_file.is_some();
+    fn all_patterns(&self) -> Vec<String> {
+        let has_extra = !self.extra_patterns.is_empty() || self.file_patterns.is_some();
         // `-e`/`-f` move the positional argument into the path list, leaving the
         // base pattern empty. Keeping it would contribute an empty alternative
         // that matches every line.
@@ -481,17 +484,19 @@ impl SearchOptions {
             vec![self.pattern.clone()]
         };
         patterns.extend(self.extra_patterns.iter().cloned());
-        if let Some(ref path) = self.pattern_file {
-            let content = std::fs::read_to_string(path)?;
-            for line in content.lines() {
-                let line = line.trim();
-                if !line.is_empty() {
-                    patterns.push(line.to_string());
-                }
-            }
-        }
-        Ok(patterns)
+        patterns.extend(self.file_patterns.iter().flatten().cloned());
+        patterns
     }
+}
+
+/// The non-empty, trimmed lines of a `-f` pattern file.
+pub fn read_pattern_file(path: &str) -> std::io::Result<Vec<String>> {
+    Ok(std::fs::read_to_string(path)?
+        .lines()
+        .map(str::trim)
+        .filter(|line| !line.is_empty())
+        .map(str::to_string)
+        .collect())
 }
 
 /// A regex matching `name` in every common naming convention.
@@ -865,7 +870,7 @@ pub fn run(
         .map(|p| p.to_path_buf())
         .unwrap_or_else(|| builder::default_index_dir(&root));
 
-    let ci = opts.effective_case_insensitive()?;
+    let ci = opts.effective_case_insensitive();
 
     // A non-default `--encoding` re-decodes files into text the index never
     // saw. Worse, a file the indexer classified as binary (BOM-less UTF-16 is
@@ -986,7 +991,7 @@ fn search_via_server(
     // different working directory and no `pattern_file` param, so forwarding
     // only `pattern`/`extra_patterns` would silently drop the file's patterns
     // and make results depend on whether a daemon happens to be running.
-    let patterns = opts.all_patterns()?;
+    let patterns = opts.all_patterns();
     let (primary, extras) = patterns
         .split_first()
         .map(|(p, rest)| (p.clone(), rest.to_vec()))
@@ -1525,10 +1530,10 @@ fn search_local_index(
     {
         QueryPlan::MatchAll
     } else if matcher.is_standard() || opts.fixed_string {
-        query::build_multi_pattern_plan(&opts.all_patterns()?, opts.fixed_string, ci)
+        query::build_multi_pattern_plan(&opts.all_patterns(), opts.fixed_string, ci)
             .map_err(|e| anyhow::anyhow!("{e}"))?
     } else {
-        query::build_relaxed_multi_pattern_plan(&opts.all_patterns()?, ci)
+        query::build_relaxed_multi_pattern_plan(&opts.all_patterns(), ci)
     };
     // A file failing `--with` produces no output in any mode, so every `--with`
     // pattern's trigrams narrow the candidates too.

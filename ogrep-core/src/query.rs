@@ -247,10 +247,12 @@ pub fn build_multi_pattern_plan(
 /// What smart case needs to know about a pattern: whether it matches any
 /// character literally, and whether one of those is uppercase.
 ///
-/// Like ripgrep, only literals count: the letter in an escape (`\S`, `\W`),
-/// a class name (`\p{Lu}`) or a flag group is not text the pattern matches.
-/// A fixed string is all literal. A pattern `regex-syntax` cannot parse
-/// counts every character.
+/// This follows ripgrep. For the linear-time engine only literals count: the
+/// letter in an escape (`\S`, `\W`), a class name (`\p{Lu}`) or a flag group
+/// is not text the pattern matches. A fixed string is all literal. The
+/// PCRE-style engine (`-P`, or a pattern `regex-syntax` cannot parse, which
+/// falls back to it) uses ripgrep's PCRE2 rule instead: every character counts
+/// except the one after a backslash.
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct LiteralCase {
     pub any_literal: bool,
@@ -258,18 +260,59 @@ pub struct LiteralCase {
 }
 
 impl LiteralCase {
-    pub fn of(pattern: &str, fixed_string: bool) -> Self {
+    /// Smart case's verdict over several patterns together: ignore case only
+    /// when some pattern has a literal and none has an uppercase one.
+    pub fn of_all<'a>(
+        patterns: impl IntoIterator<Item = &'a String>,
+        fixed_string: bool,
+        pcre: bool,
+    ) -> Self {
+        let mut all = Self::default();
+        for pattern in patterns {
+            let one = Self::of(pattern, fixed_string, pcre);
+            all.any_literal |= one.any_literal;
+            all.any_uppercase |= one.any_uppercase;
+            if all.any_uppercase {
+                break;
+            }
+        }
+        all
+    }
+
+    pub fn ignores_case(self) -> bool {
+        self.any_literal && !self.any_uppercase
+    }
+
+    pub fn of(pattern: &str, fixed_string: bool, pcre: bool) -> Self {
         use regex_syntax::ast::{self, Ast, ClassSetItem};
 
-        let all_chars = Self {
-            any_literal: !pattern.is_empty(),
-            any_uppercase: pattern.chars().any(char::is_uppercase),
-        };
         if fixed_string {
-            return all_chars;
+            return Self {
+                any_literal: !pattern.is_empty(),
+                any_uppercase: pattern.chars().any(char::is_uppercase),
+            };
+        }
+        // ripgrep's PCRE2 rule has no literal requirement.
+        let pcre_rule = || {
+            let mut chars = pattern.chars();
+            let mut any_uppercase = false;
+            while let Some(c) = chars.next() {
+                if c == '\\' {
+                    chars.next();
+                } else {
+                    any_uppercase |= c.is_uppercase();
+                }
+            }
+            Self {
+                any_literal: true,
+                any_uppercase,
+            }
+        };
+        if pcre {
+            return pcre_rule();
         }
         let Ok(parsed) = ast::parse::Parser::new().parse(pattern) else {
-            return all_chars;
+            return pcre_rule();
         };
 
         struct Literals(LiteralCase);
@@ -1073,7 +1116,7 @@ mod tests {
     #[test]
     fn literal_case_counts_only_literals() {
         let case = |p: &str| {
-            let c = LiteralCase::of(p, false);
+            let c = LiteralCase::of(p, false, false);
             (c.any_literal, c.any_uppercase)
         };
         assert_eq!(case("foo"), (true, false));
@@ -1086,15 +1129,23 @@ mod tests {
         // Literals inside classes and ranges do count.
         assert_eq!(case("[A-C]x"), (true, true));
         assert_eq!(case(r"\x41"), (true, true));
-        // A fixed string, or a pattern regex-syntax rejects, counts every char.
+        // A fixed string counts every character.
         assert_eq!(
-            LiteralCase::of(r"\S", true),
+            LiteralCase::of(r"\S", true, false),
             LiteralCase {
                 any_literal: true,
                 any_uppercase: true
             }
         );
-        assert!(LiteralCase::of("(?<=A)b", false).any_uppercase);
+        // A pattern regex-syntax rejects, and every -P pattern, count every
+        // character except the one after a backslash.
+        assert!(LiteralCase::of("(?<=A)b", false, false).any_uppercase);
+        assert!(!LiteralCase::of(r"(?<!\S)bar", false, false).any_uppercase);
+        assert!(!LiteralCase::of(r"\x41", false, true).any_uppercase);
+        assert!(LiteralCase::of(r"x \p{Lu} y", false, true).any_uppercase);
+        let two = ["foo".to_string(), "Bar".to_string()];
+        assert!(LiteralCase::of_all(&two, false, false).any_uppercase);
+        assert!(!LiteralCase::of(r"\w+", false, false).ignores_case());
     }
 
     #[test]

@@ -60,8 +60,9 @@ struct Cli {
     #[arg(short = 's', long = "case-sensitive", global = true)]
     case_sensitive: bool,
 
-    /// Smart case: case-insensitive unless some pattern has an uppercase letter
-    /// (every pattern counts: -e, --ident, --with and --without included).
+    /// Smart case: case-insensitive when the patterns match some letter literally
+    /// and none of those is uppercase. Every pattern counts (-e, -f, --ident,
+    /// --with and --without included); letters in escapes like \S or \p{Lu} do not.
     #[arg(short = 'S', long = "smart-case", global = true)]
     smart_case: bool,
 
@@ -915,7 +916,7 @@ impl Cli {
                         .map(|name| search::identifier_pattern(name)),
                 )
                 .collect(),
-            pattern_file: self.pattern_file.clone(),
+            file_patterns: None,
             with_patterns: self.with.clone(),
             without_patterns: self.without.clone(),
             case_insensitive: self.ignore_case,
@@ -1404,6 +1405,15 @@ fn run_search(
     resolved: &ResolvedArgs,
 ) -> anyhow::Result<()> {
     let mut opts = cli.build_search_opts(pattern, resolved);
+    if let Some(path) = &cli.pattern_file {
+        match search::read_pattern_file(path) {
+            Ok(patterns) => opts.file_patterns = Some(patterns),
+            Err(e) => {
+                eprintln!("ogrep: {path}: {e}");
+                process::exit(2);
+            }
+        }
+    }
     let mut had_matches = false;
 
     // ripgrep decides these once, from the whole argument list: file names are
