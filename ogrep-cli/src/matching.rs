@@ -1057,8 +1057,10 @@ fn anchors_are_line_relative(pattern: &str) -> bool {
 /// buffer once and verifying only the lines a match touches collapses that to a
 /// single pass.
 ///
-/// Soundness rests on two things. The pattern must be anchor-free, so that a
-/// line and the buffer are interchangeable haystacks. And every line a returned
+/// Soundness rests on two things. The scanning regex must bind every anchor to
+/// lines, so that a line and the buffer are interchangeable haystacks: the
+/// pattern itself when it is anchor-free, or its `^`/`$` form recompiled in
+/// multi-line mode (see [`Prescan`]). And every line a returned
 /// match *spans* is a candidate, not just the line it starts on: `find_iter`
 /// yields leftmost non-overlapping matches, so a match beginning on an earlier
 /// line can be the one that covers this line's match, and a pattern that can

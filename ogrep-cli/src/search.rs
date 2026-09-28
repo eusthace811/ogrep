@@ -241,8 +241,15 @@ impl SearchOptions {
         if self.case_sensitive {
             return false;
         }
+        // Like ripgrep, smart case looks at every pattern together (`-e`,
+        // `--ident`, and the `--with`/`--without` conditions too): one with an
+        // uppercase letter makes the whole search case-sensitive.
         if self.smart_case {
-            return !self.pattern.chars().any(|c| c.is_uppercase());
+            return !std::iter::once(&self.pattern)
+                .chain(&self.extra_patterns)
+                .chain(&self.with_patterns)
+                .chain(&self.without_patterns)
+                .any(|p| p.chars().any(char::is_uppercase));
         }
         false
     }
@@ -1693,17 +1700,32 @@ fn verify_candidates_parallel(
 ) -> Result<bool> {
     use rayon::prelude::*;
 
-    let pool = rayon::ThreadPoolBuilder::new()
-        .num_threads(threads)
-        .build()
-        .map_err(|e| anyhow::anyhow!("failed to start search threads: {e}"))?;
+    // One pool per invocation, reused for every path argument; `threads` comes
+    // from `-j` and does not change between them.
+    static POOL: std::sync::OnceLock<rayon::ThreadPool> = std::sync::OnceLock::new();
+    let pool = match POOL.get() {
+        Some(pool) => pool,
+        None => {
+            let pool = rayon::ThreadPoolBuilder::new()
+                .num_threads(threads)
+                .build()
+                .map_err(|e| anyhow::anyhow!("failed to start search threads: {e}"))?;
+            POOL.get_or_init(|| pool)
+        }
+    };
     let decides = opts.quiet || opts.stops_at_first_line();
+    // `-q` needs a single match: once any worker finds one, the others stop
+    // reading, as the sequential loop stops at its first matching file.
+    let quiet_done = std::sync::atomic::AtomicBool::new(false);
     let mut probe = opts.match_options();
     probe.max_count = Some(1);
     probe.all_spans = false;
     probe.before_context = 0;
     probe.after_context = 0;
     let verify = |rel_path: &String| -> Result<Verified> {
+        if opts.quiet && quiet_done.load(std::sync::atomic::Ordering::Relaxed) {
+            return Ok(Verified::Skipped);
+        }
         let full_path = scope.full_path(index_root, rel_path);
         if exceeds_max_filesize(&full_path, opts, explicit) {
             return Ok(Verified::Skipped);
@@ -1728,6 +1750,9 @@ fn verify_candidates_parallel(
         Ok(if found.is_empty() {
             Verified::NoMatch(searched)
         } else if decides {
+            if opts.quiet {
+                quiet_done.store(true, std::sync::atomic::Ordering::Relaxed);
+            }
             Verified::Matched(searched)
         } else {
             drop(found);

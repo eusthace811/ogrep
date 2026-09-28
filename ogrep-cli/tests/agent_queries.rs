@@ -79,6 +79,8 @@ fn fixture() -> (TempDir, PathBuf, PathBuf) {
         ("src/f.py", "def get_user_id():\n    return GET_USER_ID\n"),
         ("src/g.ts", "const x = get-user-id;\nGetUserID();\n"),
         ("src/h.rs", "get_user_name();\n"),
+        ("src/i.txt", "bar\nFoo\n"),
+        ("src/j.txt", "bar\nfoo\n"),
     ];
     for (path, content) in files {
         fs::write(root.join(path), content).unwrap();
@@ -168,6 +170,12 @@ fn file_conditions_and_identifier_search_agree_in_every_mode() {
             vec!["-l", "--with", "nothing_has_this", "--", "Mutex", "."],
             vec![],
         ),
+        // Smart case looks at every pattern, conditions included.
+        (
+            vec!["-l", "-S", "--with", "Foo", "--", "bar", "."],
+            vec!["src/i.txt"],
+        ),
+        (vec!["-l", "-S", "-e", "Foo", "."], vec!["src/i.txt"]),
         // `-U`: a condition may span lines.
         (
             vec!["-l", "-U", "--with", r"Mutex;\nasync", "--", "run", "."],
