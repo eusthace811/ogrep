@@ -250,11 +250,14 @@ impl SearchOptions {
             return false;
         }
         let patterns = self.all_patterns();
+        let patterns: Vec<&str> = patterns
+            .iter()
+            .chain(&self.with_patterns)
+            .chain(&self.without_patterns)
+            .map(String::as_str)
+            .collect();
         query::LiteralCase::of_all(
-            patterns
-                .iter()
-                .chain(&self.with_patterns)
-                .chain(&self.without_patterns),
+            &patterns,
             self.fixed_string,
             self.engine == crate::matching::RegexEngine::Pcre2,
         )
@@ -473,7 +476,7 @@ impl SearchOptions {
     }
 
     /// Collect all patterns (primary + -e extras + -f file patterns).
-    fn all_patterns(&self) -> Vec<String> {
+    pub fn all_patterns(&self) -> Vec<String> {
         let has_extra = !self.extra_patterns.is_empty() || self.file_patterns.is_some();
         // `-e`/`-f` move the positional argument into the path list, leaving the
         // base pattern empty. Keeping it would contribute an empty alternative
@@ -489,15 +492,21 @@ impl SearchOptions {
     }
 }
 
-/// The non-empty, trimmed lines of a `-f` pattern file.
+/// The patterns in a `-f` file, or standard input for `-`, as ripgrep reads
+/// them: one per line, `\r\n` or `\n` terminated, spaces kept, and a blank
+/// line an empty pattern that matches every line.
 pub fn read_pattern_file(path: &str) -> std::io::Result<Vec<String>> {
-    Ok(std::fs::read_to_string(path)?
-        .lines()
-        .map(str::trim)
-        .filter(|line| !line.is_empty())
-        .map(str::to_string)
-        .collect())
+    let text = if path == "-" {
+        std::io::read_to_string(std::io::stdin())?
+    } else {
+        std::fs::read_to_string(path)?
+    };
+    Ok(text.lines().map(str::to_string).collect())
 }
+
+/// A regex no text matches: what ripgrep searches for when every pattern
+/// source is empty.
+pub const MATCHES_NOTHING: &str = r"[^\s\S]";
 
 /// A regex matching `name` in every common naming convention.
 ///
@@ -987,10 +996,10 @@ fn search_via_server(
     let mut stream = info.connect(None)?;
     stream.set_read_timeout(Some(std::time::Duration::from_secs(300)))?;
 
-    // Resolve `-f/--file` here rather than sending the path: the server has a
-    // different working directory and no `pattern_file` param, so forwarding
-    // only `pattern`/`extra_patterns` would silently drop the file's patterns
-    // and make results depend on whether a daemon happens to be running.
+    // Send every pattern, `-f`'s included (read once by the caller), rather
+    // than a path: the server has a different working directory and no file
+    // parameter, so forwarding only `pattern`/`extra_patterns` would silently
+    // drop them and make results depend on whether a daemon happens to run.
     let patterns = opts.all_patterns();
     let (primary, extras) = patterns
         .split_first()

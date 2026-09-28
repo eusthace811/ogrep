@@ -60,9 +60,11 @@ struct Cli {
     #[arg(short = 's', long = "case-sensitive", global = true)]
     case_sensitive: bool,
 
-    /// Smart case: case-insensitive when the patterns match some letter literally
-    /// and none of those is uppercase. Every pattern counts (-e, -f, --ident,
-    /// --with and --without included); letters in escapes like \S or \p{Lu} do not.
+    /// Smart case: case-insensitive when the patterns match some character
+    /// literally and no such character is uppercase. Every pattern counts (-e,
+    /// -f, --ident, --with and --without included); escapes like \S or \p{Lu}
+    /// are not literals. Under -P, or when lookaround sends the patterns to the
+    /// PCRE-style engine, every character counts except one after a backslash.
     #[arg(short = 'S', long = "smart-case", global = true)]
     smart_case: bool,
 
@@ -82,9 +84,10 @@ struct Cli {
     #[arg(short = 'e', long = "regexp", global = true)]
     regexp: Vec<String>,
 
-    /// Read patterns from a file (one per line).
-    #[arg(short = 'f', long = "file", global = true)]
-    pattern_file: Option<String>,
+    /// Read patterns from FILE, one per line; `-` reads standard input
+    /// (repeatable). A blank line is an empty pattern, which matches every line.
+    #[arg(short = 'f', long = "file", value_name = "FILE", global = true)]
+    pattern_file: Vec<String>,
 
     /// Search for an identifier in any naming convention: `--ident getUserId`
     /// also finds get_user_id, GetUserID, get-user-id and GET_USER_ID
@@ -846,7 +849,7 @@ impl Cli {
     /// Whether a flag (`-e`, `-f`, `--ident`) supplies the pattern, so every
     /// positional argument is a path.
     fn pattern_from_flags(&self) -> bool {
-        !self.regexp.is_empty() || self.pattern_file.is_some() || !self.ident.is_empty()
+        !self.regexp.is_empty() || !self.pattern_file.is_empty() || !self.ident.is_empty()
     }
 
     /// Split the positional arguments into a pattern and a list of paths.
@@ -1405,14 +1408,25 @@ fn run_search(
     resolved: &ResolvedArgs,
 ) -> anyhow::Result<()> {
     let mut opts = cli.build_search_opts(pattern, resolved);
-    if let Some(path) = &cli.pattern_file {
-        match search::read_pattern_file(path) {
-            Ok(patterns) => opts.file_patterns = Some(patterns),
-            Err(e) => {
-                eprintln!("ogrep: {path}: {e}");
-                process::exit(2);
+    if !cli.pattern_file.is_empty() {
+        let mut patterns = Vec::new();
+        for path in &cli.pattern_file {
+            match search::read_pattern_file(path) {
+                Ok(read) => patterns.extend(read),
+                Err(e) => {
+                    eprintln!("ogrep: {path}: {e}");
+                    process::exit(2);
+                }
             }
         }
+        opts.file_patterns = Some(patterns);
+    }
+    // Every pattern source was empty (an empty -f file): like ripgrep, search
+    // for nothing, so no line matches and -v selects them all. The stand-in is
+    // a regex, so it must not be escaped as a fixed string.
+    if opts.all_patterns().is_empty() {
+        opts.extra_patterns = vec![search::MATCHES_NOTHING.to_string()];
+        opts.fixed_string = false;
     }
     let mut had_matches = false;
 

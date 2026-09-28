@@ -262,11 +262,15 @@ pub struct LiteralCase {
 impl LiteralCase {
     /// Smart case's verdict over several patterns together: ignore case only
     /// when some pattern has a literal and none has an uppercase one.
-    pub fn of_all<'a>(
-        patterns: impl IntoIterator<Item = &'a String>,
-        fixed_string: bool,
-        pcre: bool,
-    ) -> Self {
+    ///
+    /// The patterns are matched as one alternation, so when any of them sends
+    /// the set to the PCRE-style engine, ripgrep's PCRE2 rule applies to all.
+    pub fn of_all(patterns: &[&str], fixed_string: bool, pcre: bool) -> Self {
+        let pcre = pcre
+            || (!fixed_string
+                && patterns
+                    .iter()
+                    .any(|p| regex_syntax::ast::parse::Parser::new().parse(p).is_err()));
         let mut all = Self::default();
         for pattern in patterns {
             let one = Self::of(pattern, fixed_string, pcre);
@@ -1143,8 +1147,10 @@ mod tests {
         assert!(!LiteralCase::of(r"(?<!\S)bar", false, false).any_uppercase);
         assert!(!LiteralCase::of(r"\x41", false, true).any_uppercase);
         assert!(LiteralCase::of(r"x \p{Lu} y", false, true).any_uppercase);
-        let two = ["foo".to_string(), "Bar".to_string()];
-        assert!(LiteralCase::of_all(&two, false, false).any_uppercase);
+        assert!(LiteralCase::of_all(&["foo", "Bar"], false, false).any_uppercase);
+        // One pattern that needs the PCRE-style engine takes the set with it:
+        // `\x41` no longer counts as an uppercase literal.
+        assert!(LiteralCase::of_all(&["(?<=a)b", r"\x41"], false, false).ignores_case());
         assert!(!LiteralCase::of(r"\w+", false, false).ignores_case());
     }
 

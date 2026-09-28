@@ -1,15 +1,15 @@
 //! `-f` may name a pipe that can be read only once, so its patterns must be
 //! read once and shared by everything that needs them: the smart-case
 //! decision, the matcher, the index plan and every path argument.
-#![cfg(unix)]
-
 use assert_cmd::Command;
 use std::fs;
-use std::io::Write;
 use tempfile::TempDir;
 
+#[cfg(unix)]
 #[test]
 fn a_pattern_pipe_is_read_once_for_every_use() {
+    use std::io::Write;
+
     let temp = TempDir::new().unwrap();
     let dir = temp.path();
     fs::write(dir.join("a.txt"), "foo\nFOO\nbar\n").unwrap();
@@ -39,6 +39,15 @@ fn a_pattern_pipe_is_read_once_for_every_use() {
         .timeout(std::time::Duration::from_secs(30))
         .output()
         .unwrap();
+    // The writer blocks in open() until something reads the pipe. If ogrep
+    // never did, open it here so the test fails instead of hanging.
+    let started = std::time::Instant::now();
+    while !writer.is_finished() && started.elapsed() < std::time::Duration::from_secs(5) {
+        std::thread::sleep(std::time::Duration::from_millis(10));
+    }
+    if !writer.is_finished() {
+        let _ = fs::read(&fifo);
+    }
     writer.join().unwrap();
     let mut lines: Vec<String> = String::from_utf8(output.stdout)
         .unwrap()
@@ -49,4 +58,73 @@ fn a_pattern_pipe_is_read_once_for_every_use() {
     // Smart case: `foo` is all lowercase, so FOO matches too, and b.txt, the
     // second path, still gets the patterns.
     assert_eq!(lines, ["a.txt:1:foo", "a.txt:2:FOO", "b.txt:1:foo"]);
+}
+
+/// `-f` as ripgrep reads it (expected output taken from rg 15.2): spaces
+/// kept, `\r\n` stripped, a blank line an empty pattern, repeatable, `-` for
+/// standard input, and an empty file searching for nothing.
+#[test]
+fn pattern_files_read_like_ripgrep_in_scan_and_index_modes() {
+    let temp = TempDir::new().unwrap();
+    let root = temp.path().join("repo");
+    let index = temp.path().join("index");
+    fs::create_dir_all(root.join(".git")).unwrap();
+    fs::write(root.join("t.txt"), "foo\n foo\nbar\na  b\nab\n").unwrap();
+    let pats = temp.path();
+    fs::write(pats.join("empty"), "").unwrap();
+    fs::write(pats.join("sp"), " foo\n").unwrap();
+    fs::write(pats.join("blank"), "foo\n\n").unwrap();
+    fs::write(pats.join("crlf"), "foo\r\nbar\r\n").unwrap();
+    Command::cargo_bin("ogrep")
+        .unwrap()
+        .args(["index", root.to_str().unwrap(), "--index-path"])
+        .arg(&index)
+        .assert()
+        .success();
+
+    let all = "1:foo\n2: foo\n3:bar\n4:a  b\n5:ab\n";
+    let cases: &[(&[&str], &str, i32)] = &[
+        (&["-f", "../empty"], "", 1),
+        (&["-v", "-f", "../empty"], all, 0),
+        (&["-f", "../empty", "-e", "bar"], "3:bar\n", 0),
+        (&["-f", "../sp"], "2: foo\n", 0),
+        (&["-f", "../blank"], all, 0),
+        (&["-f", "../crlf"], "1:foo\n2: foo\n3:bar\n", 0),
+        (
+            &["-f", "../sp", "-f", "../crlf"],
+            "1:foo\n2: foo\n3:bar\n",
+            0,
+        ),
+    ];
+    for (args, expected, code) in cases {
+        for indexed in [false, true] {
+            let mut cmd = Command::cargo_bin("ogrep").unwrap();
+            cmd.current_dir(&root)
+                .args(["--no-config", "-n", "--index-path"])
+                .arg(&index);
+            if !indexed {
+                cmd.arg("--no-index");
+            }
+            // A directory, not the file itself: a named file bypasses the index.
+            cmd.args(*args)
+                .args(["--no-filename", "--stats", "."])
+                .assert()
+                .code(*code)
+                .stdout(*expected)
+                .stderr(predicates::str::contains(if indexed {
+                    "Query plan:"
+                } else {
+                    "Brute-force search completed"
+                }));
+        }
+    }
+
+    Command::cargo_bin("ogrep")
+        .unwrap()
+        .current_dir(&root)
+        .args(["--no-config", "--no-index", "-n", "-f", "-", "t.txt"])
+        .write_stdin("foo\n")
+        .assert()
+        .code(0)
+        .stdout("1:foo\n2: foo\n");
 }
