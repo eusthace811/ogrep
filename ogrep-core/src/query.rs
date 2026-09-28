@@ -273,14 +273,20 @@ impl LiteralCase {
                     .any(|p| regex_syntax::ast::parse::Parser::new().parse(p).is_err()));
         let mut all = Self::default();
         for pattern in patterns {
-            let one = Self::of(pattern, fixed_string, pcre);
-            all.any_literal |= one.any_literal;
-            all.any_uppercase |= one.any_uppercase;
+            all = all.merge(Self::of(pattern, fixed_string, pcre));
             if all.any_uppercase {
                 break;
             }
         }
         all
+    }
+
+    /// Both verdicts together, as smart case weighs every pattern at once.
+    pub fn merge(self, other: Self) -> Self {
+        Self {
+            any_literal: self.any_literal || other.any_literal,
+            any_uppercase: self.any_uppercase || other.any_uppercase,
+        }
     }
 
     pub fn ignores_case(self) -> bool {

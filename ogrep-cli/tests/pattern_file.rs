@@ -2,6 +2,7 @@
 //! read once and shared by everything that needs them: the smart-case
 //! decision, the matcher, the index plan and every path argument.
 use assert_cmd::Command;
+use predicates::prelude::*;
 use std::fs;
 use tempfile::TempDir;
 
@@ -83,8 +84,18 @@ fn pattern_files_read_like_ripgrep_in_scan_and_index_modes() {
         .success();
 
     let all = "1:foo\n2: foo\n3:bar\n4:a  b\n5:ab\n";
+    // The empty file is the only pattern source and -v is off.
+    let no_match_possible = |args: &[&str]| {
+        args.contains(&"../empty") && !args.contains(&"-e") && !args.contains(&"-v")
+    };
     let cases: &[(&[&str], &str, i32)] = &[
         (&["-f", "../empty"], "", 1),
+        (&["-L", "-f", "../empty"], "", 1),
+        (&["--passthru", "-f", "../empty"], "", 1),
+        (&["-c", "--include-zero", "-f", "../empty"], "", 1),
+        // -F still applies to --with when -f is empty.
+        (&["-F", "-v", "-f", "../empty", "--with", "a  b"], all, 0),
+        (&["-F", "-v", "-f", "../empty", "--with", "a.b"], "", 1),
         (&["-v", "-f", "../empty"], all, 0),
         (&["-f", "../empty", "-e", "bar"], "3:bar\n", 0),
         (&["-f", "../sp"], "2: foo\n", 0),
@@ -111,13 +122,29 @@ fn pattern_files_read_like_ripgrep_in_scan_and_index_modes() {
                 .assert()
                 .code(*code)
                 .stdout(*expected)
-                .stderr(predicates::str::contains(if indexed {
-                    "Query plan:"
+                .stderr(if no_match_possible(args) {
+                    // No match is possible: like rg, nothing is searched or
+                    // reported, --stats included.
+                    predicates::str::is_empty().boxed()
                 } else {
-                    "Brute-force search completed"
-                }));
+                    predicates::str::contains(if indexed {
+                        "Query plan:"
+                    } else {
+                        "Brute-force search completed"
+                    })
+                    .boxed()
+                });
         }
     }
+
+    // Standard input can supply one -f only, as in rg.
+    Command::cargo_bin("ogrep")
+        .unwrap()
+        .current_dir(&root)
+        .args(["--no-config", "--no-index", "-f", "-", "-f", "-", "t.txt"])
+        .write_stdin("foo\n")
+        .assert()
+        .code(2);
 
     Command::cargo_bin("ogrep")
         .unwrap()

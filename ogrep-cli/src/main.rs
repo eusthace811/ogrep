@@ -63,8 +63,9 @@ struct Cli {
     /// Smart case: case-insensitive when the patterns match some character
     /// literally and no such character is uppercase. Every pattern counts (-e,
     /// -f, --ident, --with and --without included); escapes like \S or \p{Lu}
-    /// are not literals. Under -P, or when lookaround sends the patterns to the
-    /// PCRE-style engine, every character counts except one after a backslash.
+    /// are not literals. Under -P, or when lookaround or backreferences send the
+    /// patterns to the PCRE-style engine, every character counts except one
+    /// after a backslash.
     #[arg(short = 'S', long = "smart-case", global = true)]
     smart_case: bool,
 
@@ -1409,6 +1410,10 @@ fn run_search(
 ) -> anyhow::Result<()> {
     let mut opts = cli.build_search_opts(pattern, resolved);
     if !cli.pattern_file.is_empty() {
+        if cli.pattern_file.iter().filter(|path| *path == "-").count() > 1 {
+            eprintln!("ogrep: -f/--file: standard input can be read only once");
+            process::exit(2);
+        }
         let mut patterns = Vec::new();
         for path in &cli.pattern_file {
             match search::read_pattern_file(path) {
@@ -1421,12 +1426,11 @@ fn run_search(
         }
         opts.file_patterns = Some(patterns);
     }
-    // Every pattern source was empty (an empty -f file): like ripgrep, search
-    // for nothing, so no line matches and -v selects them all. The stand-in is
-    // a regex, so it must not be escaped as a fixed string.
-    if opts.all_patterns().is_empty() {
-        opts.extra_patterns = vec![search::MATCHES_NOTHING.to_string()];
-        opts.fixed_string = false;
+    // Every pattern source was empty (an empty -f file). Like ripgrep: no
+    // match is possible, so without -v there is nothing to search or print.
+    // With -v every line is selected, which the empty matcher provides.
+    if !opts.has_patterns() && !opts.invert_match {
+        process::exit(1);
     }
     let mut had_matches = false;
 

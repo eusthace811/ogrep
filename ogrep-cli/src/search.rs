@@ -249,19 +249,18 @@ impl SearchOptions {
         if !self.smart_case || self.case_sensitive {
             return false;
         }
-        let patterns = self.all_patterns();
-        let patterns: Vec<&str> = patterns
-            .iter()
-            .chain(&self.with_patterns)
-            .chain(&self.without_patterns)
-            .map(String::as_str)
-            .collect();
-        query::LiteralCase::of_all(
-            &patterns,
-            self.fixed_string,
-            self.engine == crate::matching::RegexEngine::Pcre2,
-        )
-        .ignores_case()
+        let pcre = self.engine == crate::matching::RegexEngine::Pcre2;
+        // The main patterns form one alternation and share an engine; each
+        // file condition is compiled on its own.
+        let mut case = query::LiteralCase::of_all(&self.pattern_refs(), self.fixed_string, pcre);
+        for condition in self.with_patterns.iter().chain(&self.without_patterns) {
+            case = case.merge(query::LiteralCase::of_all(
+                &[condition.as_str()],
+                self.fixed_string,
+                pcre,
+            ));
+        }
+        case.ignores_case()
     }
 
     /// Whether `.` should match a newline. ripgrep keeps this separate from
@@ -475,20 +474,33 @@ impl SearchOptions {
         }
     }
 
-    /// Collect all patterns (primary + -e extras + -f file patterns).
-    pub fn all_patterns(&self) -> Vec<String> {
+    /// Every pattern (primary, `-e`/`--ident`, `-f`), borrowed.
+    fn pattern_refs(&self) -> Vec<&str> {
         let has_extra = !self.extra_patterns.is_empty() || self.file_patterns.is_some();
         // `-e`/`-f` move the positional argument into the path list, leaving the
         // base pattern empty. Keeping it would contribute an empty alternative
         // that matches every line.
-        let mut patterns = if has_extra && self.pattern.is_empty() {
-            Vec::new()
-        } else {
-            vec![self.pattern.clone()]
-        };
-        patterns.extend(self.extra_patterns.iter().cloned());
-        patterns.extend(self.file_patterns.iter().flatten().cloned());
-        patterns
+        let primary = (!has_extra || !self.pattern.is_empty()).then_some(self.pattern.as_str());
+        primary
+            .into_iter()
+            .chain(self.extra_patterns.iter().map(String::as_str))
+            .chain(self.file_patterns.iter().flatten().map(String::as_str))
+            .collect()
+    }
+
+    /// Collect all patterns (primary + -e extras + -f file patterns).
+    pub fn all_patterns(&self) -> Vec<String> {
+        self.pattern_refs()
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    }
+
+    /// Whether there is any pattern at all. There is none when every pattern
+    /// source was empty (an empty `-f` file): then nothing can match, and `-v`
+    /// selects every line.
+    pub fn has_patterns(&self) -> bool {
+        !self.pattern_refs().is_empty()
     }
 }
 
@@ -503,10 +515,6 @@ pub fn read_pattern_file(path: &str) -> std::io::Result<Vec<String>> {
     };
     Ok(text.lines().map(str::to_string).collect())
 }
-
-/// A regex no text matches: what ripgrep searches for when every pattern
-/// source is empty.
-pub const MATCHES_NOTHING: &str = r"[^\s\S]";
 
 /// A regex matching `name` in every common naming convention.
 ///
@@ -913,6 +921,7 @@ pub fn run(
         && !opts.effective_passthru()
         && !opts.files_without_match
         && !opts.include_zero
+        && opts.has_patterns()
         && let Ok(info) = ServerInfo::load(&index_dir)
         && let Some((index_root, scope)) = resolve_scope(&index_dir, &root)
     {

@@ -554,6 +554,12 @@ impl FileFilter {
 /// so `-U` alone does not silently turn `.` into a line-crossing wildcard,
 /// matching ripgrep's split between `--multiline` and `--multiline-dotall`.
 pub fn build_search_matcher(patterns: &[String], cfg: &MatcherConfig) -> Result<SearchMatcher> {
+    // No pattern at all (every `-f` file empty) matches nothing, so `-v`
+    // selects every line. An empty class is the regex that never matches.
+    if patterns.is_empty() {
+        let never = regex::Regex::new(r"[^\s\S]").expect("empty class compiles");
+        return Ok(SearchMatcher::Standard(never, Prescan::Direct));
+    }
     let combined = combine_patterns(
         patterns,
         cfg.fixed_string,
