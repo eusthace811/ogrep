@@ -500,7 +500,21 @@ impl SearchOptions {
     /// source was empty (an empty `-f` file): then nothing can match, and `-v`
     /// selects every line.
     pub fn has_patterns(&self) -> bool {
-        !self.pattern_refs().is_empty()
+        // Without -f there is always one: the positional pattern (even empty,
+        // which matches every line) or -e/--ident. Agrees with pattern_refs().
+        self.file_patterns.as_ref().is_none_or(|f| !f.is_empty())
+            || !self.pattern.is_empty()
+            || !self.extra_patterns.is_empty()
+    }
+
+    /// Build the glob, type and `--with`/`--without` filters, reporting the
+    /// first invalid one, without searching. A search that needs no work
+    /// still has to reject a bad argument, as ripgrep does.
+    pub fn check_filters(&self) -> Result<()> {
+        self.glob_filter()?;
+        self.type_filter()?;
+        self.file_filter(self.effective_case_insensitive())?;
+        Ok(())
     }
 }
 
@@ -1010,10 +1024,12 @@ fn search_via_server(
     // parameter, so forwarding only `pattern`/`extra_patterns` would silently
     // drop them and make results depend on whether a daemon happens to run.
     let patterns = opts.all_patterns();
+    // The caller keeps pattern-less searches off the server: an empty list
+    // would reach it as the empty pattern, which matches every line.
     let (primary, extras) = patterns
         .split_first()
         .map(|(p, rest)| (p.clone(), rest.to_vec()))
-        .unwrap_or_else(|| (opts.pattern.clone(), Vec::new()));
+        .expect("server searches always have a pattern");
 
     // Context lines are pure presentation; requesting them while counting would
     // stream rows the count path has to filter back out.
@@ -2607,6 +2623,27 @@ pub(crate) fn plan_summary(plan: &QueryPlan) -> String {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn has_patterns_agrees_with_pattern_refs() {
+        for pattern in ["", "p"] {
+            for extra in [vec![], vec!["e".to_string()]] {
+                for file in [None, Some(vec![]), Some(vec!["f".to_string()])] {
+                    let opts = SearchOptions {
+                        pattern: pattern.to_string(),
+                        extra_patterns: extra.clone(),
+                        file_patterns: file.clone(),
+                        ..SearchOptions::default()
+                    };
+                    assert_eq!(
+                        opts.has_patterns(),
+                        !opts.pattern_refs().is_empty(),
+                        "{pattern:?} {extra:?} {file:?}"
+                    );
+                }
+            }
+        }
+    }
+
     #[test]
     fn identifier_pattern_matches_every_naming_convention() {
         for name in [

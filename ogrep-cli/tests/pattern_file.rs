@@ -137,14 +137,54 @@ fn pattern_files_read_like_ripgrep_in_scan_and_index_modes() {
         }
     }
 
-    // Standard input can supply one -f only, as in rg.
+    // Standard input can supply one -f only, as in rg, and -f files are read
+    // in order, so an earlier missing one is what gets reported.
     Command::cargo_bin("ogrep")
         .unwrap()
         .current_dir(&root)
         .args(["--no-config", "--no-index", "-f", "-", "-f", "-", "t.txt"])
         .write_stdin("foo\n")
         .assert()
-        .code(2);
+        .code(2)
+        .stderr(predicates::str::contains(
+            "standard input can be read only once",
+        ));
+    Command::cargo_bin("ogrep")
+        .unwrap()
+        .current_dir(&root)
+        .args([
+            "--no-config",
+            "--no-index",
+            "-f",
+            "../nope",
+            "-f",
+            "-",
+            "-f",
+            "-",
+        ])
+        .arg("t.txt")
+        .write_stdin("foo\n")
+        .assert()
+        .code(2)
+        .stderr(predicates::str::contains("../nope"));
+
+    // No match is possible, but a bad argument is still an error.
+    for bad in [
+        &["-t", "nosuchtype"][..],
+        &["-g", "["],
+        &["--with", "("],
+        &["--without", "("],
+    ] {
+        Command::cargo_bin("ogrep")
+            .unwrap()
+            .current_dir(&root)
+            .args(["--no-config", "--no-index", "-f", "../empty"])
+            .args(bad)
+            .arg(".")
+            .assert()
+            .code(2)
+            .stderr(predicates::str::is_empty().not());
+    }
 
     Command::cargo_bin("ogrep")
         .unwrap()

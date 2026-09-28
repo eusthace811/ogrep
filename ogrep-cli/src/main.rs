@@ -1410,12 +1410,14 @@ fn run_search(
 ) -> anyhow::Result<()> {
     let mut opts = cli.build_search_opts(pattern, resolved);
     if !cli.pattern_file.is_empty() {
-        if cli.pattern_file.iter().filter(|path| *path == "-").count() > 1 {
-            eprintln!("ogrep: -f/--file: standard input can be read only once");
-            process::exit(2);
-        }
         let mut patterns = Vec::new();
+        let mut read_stdin = false;
         for path in &cli.pattern_file {
+            // In order, like ripgrep, so an earlier bad file is reported first.
+            if path == "-" && std::mem::replace(&mut read_stdin, true) {
+                eprintln!("ogrep: -f/--file: standard input can be read only once");
+                process::exit(2);
+            }
             match search::read_pattern_file(path) {
                 Ok(read) => patterns.extend(read),
                 Err(e) => {
@@ -1430,6 +1432,10 @@ fn run_search(
     // match is possible, so without -v there is nothing to search or print.
     // With -v every line is selected, which the empty matcher provides.
     if !opts.has_patterns() && !opts.invert_match {
+        if let Err(e) = opts.check_filters() {
+            eprintln!("ogrep: {e}");
+            process::exit(2);
+        }
         process::exit(1);
     }
     let mut had_matches = false;
