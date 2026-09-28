@@ -1715,13 +1715,15 @@ fn verify_candidates_parallel(
         if hides_binary(binary_offset, explicit, opts) {
             return Ok(Verified::Skipped);
         }
-        let index = crate::matching::LineIndex::new(read.text.as_str());
-        if let Some(filter) = filter
-            && !filter.passes(&index)?
-        {
+        let Some(found) = crate::matching::FileMatches::find_filtered(
+            read.text.as_str(),
+            filter,
+            matcher,
+            &probe,
+        )?
+        else {
             return Ok(Verified::Skipped);
-        }
-        let found = crate::matching::FileMatches::find(index, matcher, &probe)?;
+        };
         let searched = read.bytes_searched(binary_offset);
         Ok(if found.is_empty() {
             Verified::NoMatch(searched)
@@ -2018,19 +2020,8 @@ struct FileRead {
 }
 
 impl FileRead {
-    /// Where the file turned binary, as an offset in the file on disk, unless
-    /// `--text` asked to treat it as text.
-    ///
-    /// The NUL is located in the repaired text but reported in terms of the
-    /// file on disk, so it goes back through `fixups`: repairing invalid UTF-8
-    /// ahead of the NUL widens every bad byte to three, which would otherwise
-    /// push the reported offset past where the byte actually is.
     fn binary_offset(&self, opts: &SearchOptions) -> Option<usize> {
-        if opts.text {
-            None
-        } else {
-            self.first_nul.map(|off| self.fixups.to_source_offset(off))
-        }
+        binary_source_offset(self.first_nul, &self.fixups, opts.text)
     }
 
     /// Bytes the summary counts as searched. A binary file reports the
@@ -2040,6 +2031,25 @@ impl FileRead {
     fn bytes_searched(&self, binary_offset: Option<usize>) -> u64 {
         binary_offset.unwrap_or_else(|| self.fixups.to_source_offset(self.text.as_str().len()))
             as u64
+    }
+}
+
+/// Where a file turned binary, as an offset in the file on disk, unless
+/// `--text` asked to treat it as text.
+///
+/// The NUL is located in the repaired text but reported in terms of the file
+/// on disk, so it goes back through `fixups`: repairing invalid UTF-8 ahead of
+/// the NUL widens every bad byte to a three-byte U+FFFD, which would otherwise
+/// push the reported offset past where the byte actually is.
+pub(crate) fn binary_source_offset(
+    first_nul: Option<usize>,
+    fixups: &ogrep_core::encoding::LossyFixups,
+    text: bool,
+) -> Option<usize> {
+    if text {
+        None
+    } else {
+        first_nul.map(|off| fixups.to_source_offset(off))
     }
 }
 
@@ -2298,17 +2308,13 @@ fn search_decoded_file(
     // `--with`/`--without` decide which files are searched at all, so a file
     // that fails them is absent from every listing, `--files-without-match`
     // included.
-    let index = crate::matching::LineIndex::new(content);
-    if let Some(filter) = filter
-        && !filter.passes(&index)?
-    {
-        return Ok(FileOutcome::Skipped);
-    }
-
-    writer.note_bytes_searched(read.bytes_searched(binary_offset));
-
     let match_opts = opts.match_options();
-    let found = crate::matching::FileMatches::find(index, matcher, &match_opts)?;
+    let Some(found) =
+        crate::matching::FileMatches::find_filtered(content, filter, matcher, &match_opts)?
+    else {
+        return Ok(FileOutcome::Skipped);
+    };
+    writer.note_bytes_searched(read.bytes_searched(binary_offset));
     if opts.stats {
         let (matches, matched_lines) = found.match_totals();
         writer.note_matches(matches, matched_lines);

@@ -317,27 +317,6 @@ fn try_acquire_server_lock(index_dir: &Path) -> Result<File> {
     }
 }
 
-/// Lock ordering (acquire in this order to avoid deadlocks):
-///
-///   1. `snapshot_gate` — coordinates watcher mutations with publish cycle
-///   2. `gitignore`     — guards the watcher matcher; drop before file/index work
-///   3. `publish_lock`  — serializes on-disk index publication
-///   4. `index`         — guards the in-memory HybridIndex (read-heavy)
-///   5. `visibility`, then `filename_extra_paths` — guards path discovery metadata
-///   6. `cache`         — guards the file content LRU cache
-///   7. `file_evidence` — guards per-file stamps and content identities
-///   8. `recent_reindexes` — guards exact duplicate evidence
-///
-/// `recent_reindexes` is a leaf: it is taken last and, in practice, never held
-/// across another acquisition. `reindex_file` copies the candidate ID out from
-/// under it before touching `index`, and records new evidence only after every
-/// index, filename, cache and stamp lock has been released.
-///
-/// `indexing` and `flushing` coordinate the handoff between bulk indexing and
-/// final flush with the auto-save loop; use sequentially consistent accesses
-/// for those flags so auto-save never observes both as false during handoff.
-/// Searches only acquire `index` (read) and `cache` (read then write);
-/// they never take `snapshot_gate` or `publish_lock`.
 /// A file's searchable text together with the map back to its on-disk byte
 /// offsets, so columns and `--byte-offset` mean the same thing over the server
 /// as they do locally even when lossy decoding widened invalid bytes.
@@ -544,6 +523,27 @@ impl RecentReindexCache {
     }
 }
 
+/// Lock ordering (acquire in this order to avoid deadlocks):
+///
+///   1. `snapshot_gate` — coordinates watcher mutations with publish cycle
+///   2. `gitignore`     — guards the watcher matcher; drop before file/index work
+///   3. `publish_lock`  — serializes on-disk index publication
+///   4. `index`         — guards the in-memory HybridIndex (read-heavy)
+///   5. `visibility`, then `filename_extra_paths` — guards path discovery metadata
+///   6. `cache`         — guards the file content LRU cache
+///   7. `file_evidence` — guards per-file stamps and content identities
+///   8. `recent_reindexes` — guards exact duplicate evidence
+///
+/// `recent_reindexes` is a leaf: it is taken last and, in practice, never held
+/// across another acquisition. `reindex_file` copies the candidate ID out from
+/// under it before touching `index`, and records new evidence only after every
+/// index, filename, cache and stamp lock has been released.
+///
+/// `indexing` and `flushing` coordinate the handoff between bulk indexing and
+/// final flush with the auto-save loop; use sequentially consistent accesses
+/// for those flags so auto-save never observes both as false during handoff.
+/// Searches only acquire `index` (read) and `cache` (read then write);
+/// they never take `snapshot_gate` or `publish_lock`.
 struct ServerState {
     connections: Arc<crate::admission::Gate>,
     searches: Arc<crate::admission::Gate>,
@@ -2343,27 +2343,15 @@ fn search_file_matches(
     // The client applies ripgrep's "only explicitly named binary files are
     // visible" rule, so the offset is reported here and filtered there.
     //
-    // It is mapped back to the file's own bytes first: the NUL is found in the
-    // repaired text, where each byte of invalid UTF-8 ahead of it has grown to
-    // a three-byte U+FFFD. The client has no fixups for a server-side file, so
-    // this is the only place the mapping can happen.
-    let binary_offset = if opts.text {
-        None
-    } else {
-        file.first_nul.map(|off| fixups.to_source_offset(off))
-    };
+    // It is mapped back to the file's own bytes first. The client has no
+    // fixups for a server-side file, so this is the only place it can happen.
+    let binary_offset = crate::search::binary_source_offset(file.first_nul, fixups, opts.text);
 
     // `--with`/`--without` decide which files are searched at all.
-    let index = crate::matching::LineIndex::new(content);
-    if let Some(filter) = file_filter
-        && !filter.passes(&index)?
-    {
-        return Ok(FileSearchResult::default());
-    }
-    let found = FileMatches::find(index, matcher, &match_opts)?;
-    if found.is_empty() {
-        return Ok(FileSearchResult::default());
-    }
+    let found = match FileMatches::find_filtered(content, file_filter, matcher, &match_opts)? {
+        Some(found) if !found.is_empty() => found,
+        _ => return Ok(FileSearchResult::default()),
+    };
     let mut result = FileSearchResult {
         listed: opts.file_list,
         rows: Vec::new(),

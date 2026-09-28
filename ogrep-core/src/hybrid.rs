@@ -347,12 +347,6 @@ impl HybridIndex {
         reader_count.max(live_count)
     }
 
-    /// Full path on disk for a file ID.
-    pub fn full_path(&self, file_id: u32) -> Option<PathBuf> {
-        self.file_path(file_id)
-            .map(|rel| join_indexed_path(&self.root, &rel))
-    }
-
     fn live_has_path(&self, path: &str) -> bool {
         self.live.has_path(path)
     }

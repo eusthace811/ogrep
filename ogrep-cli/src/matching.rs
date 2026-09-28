@@ -749,8 +749,25 @@ pub struct FileMatches<'a> {
 }
 
 impl<'a> FileMatches<'a> {
-    /// Match the text `index` describes. The caller builds the index, so a
-    /// file condition checked first can share it.
+    /// Match `content` if it satisfies `filter` (`--with`/`--without`), or
+    /// `None` when it fails them and so is not searched at all. The conditions
+    /// and the search share one lazily built line index.
+    pub fn find_filtered(
+        content: &'a str,
+        filter: Option<&FileFilter>,
+        matcher: &SearchMatcher,
+        opts: &MatchOptions,
+    ) -> Result<Option<Self>> {
+        let index = LineIndex::new(content);
+        if let Some(filter) = filter
+            && !filter.passes(&index)?
+        {
+            return Ok(None);
+        }
+        Self::find(index, matcher, opts).map(Some)
+    }
+
+    /// Match the text `index` describes.
     pub fn find(
         index: LineIndex<'a>,
         matcher: &SearchMatcher,
