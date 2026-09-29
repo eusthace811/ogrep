@@ -48,6 +48,7 @@ ogrep index /path/to/repo             # index a specific repo
 ogrep index . --index-path /tmp/idx   # custom index location
 ogrep index . --exclude vendor --exclude third_party  # skip directories
 ogrep index . --no-sparse-grams       # trigrams only: smaller index
+ogrep index . --history               # also index commit history (see --history)
 ```
 
 Besides trigrams, the index holds sparse n-grams: longer keys that let a long
@@ -428,6 +429,67 @@ index instead of walking the repository. The local result is an index snapshot;
 use `--no-index` to inspect the filesystem as it exists now. Flags that change
 traversal membership or the file-size policy also fall back to a walk.
 
+### Search history and past versions
+
+```bash
+ogrep index . --history                     # also index what each commit changed
+ogrep --history 'def bulk_update' .         # commits that added or removed a matching line
+ogrep --history -l 'pool exhausted' .       # one line per commit
+ogrep --history --since 2w --author jane 'timeout' .
+ogrep --introduced 'pool exhausted' .       # first added, last removed, present now?
+ogrep --changed-since HEAD~20 'TODO' .      # search only files changed since a commit
+ogrep --changed-since 2h 'panic!' .         # ... or within a time window (with uncommitted changes)
+ogrep --at v2.1.0 'parse_header' .          # search the tree as it was at a tag or commit
+```
+
+**`--history`** answers "which commits changed a line matching this?", the
+question `git log -G PATTERN` answers, from an index instead of by diffing every
+commit. `ogrep index --history` indexes the added and removed lines of each
+non-merge commit reachable from HEAD (the most recent 20,000 by default;
+`--history-depth N`, `0` for all; `--history-since WHEN`). Running it again adds
+only the commits since the last run, and rebuilds if the branch was rewritten.
+
+A search asks the history index which commits can match, has git re-diff just
+those, and matches their changed lines with the same regex engine as a normal
+search, so the commits found are exactly those `git log -G` finds over the same
+commits. Output groups matching lines by commit, newest first:
+
+```
+commit 9cbdb44014c8 2018-09-18 Tom Forbes <tom@tomforb.es>
+    Fixed #23646 -- Added QuerySet.bulk_update() to efficiently update many models.
+django/db/models/query.py:476:+    def bulk_update(self, objs, fields, batch_size=None):
+```
+
+`+` marks an added line (numbered in the new file), `-` a removed one (numbered
+in the old file). `-l` prints one line per commit, `-c` counts per commit, `-m N`
+limits lines per commit, and `--json` prints one `{"type":"commit",...}` message
+per commit. Globs, `-t` types and a path argument restrict which files' changes
+count. `--since`, `--until` and `--author` filter commits.
+
+**`--introduced`** reports the oldest commit that added a matching line, the
+newest that removed one, and how many files match now.
+
+| History | django (34K commits) | rust (20K most recent) |
+|---|---:|---:|
+| Build, from scratch | 16 s | 23 s |
+| Size on disk | 260 MB | 156 MB |
+| Add 100 new commits | 0.2 s | |
+| `--history` median, 30-40 identifiers | 179 ms | 84 ms |
+| `git log -G` median, same identifiers | 12.5 s | 17.1 s |
+
+Commits whose changes exceed 1 MB (mass reformats, vendoring) are indexed in
+chunks of whole files, so a search re-diffs only the files that can match. The
+changes of a single commit beyond 64 MB are not indexed. A shallow clone's
+boundary commits, which git diffs against an empty tree, are skipped.
+
+**`--changed-since REV|WHEN`** restricts an ordinary search to files that differ
+between REV (or the last commit before WHEN) and the working tree, including
+uncommitted edits, plus untracked files that are not ignored.
+
+**`--at REV`** searches the files as they were at a commit, tag or branch,
+reading git's object store directly: no index and no checkout. Globs, types,
+`--max-filesize`, `--rank` and every output format work as usual.
+
 ### Check status
 
 ```bash
@@ -498,6 +560,12 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `--per-file <LINES>` | With `--rank`: at most this many lines per file (default 3) |
 | `--rank-cutoff <auto\|none>` | With `--rank`: also stop where scores fall away (`auto`) |
 | `--explain-rank` | With `--rank`: print each file's score and features |
+| `--history` | Search the lines commits added or removed (needs `ogrep index --history`); see [Search history](#search-history-and-past-versions) |
+| `--introduced` | When a pattern first appeared, was last removed, and whether it is present now |
+| `--since <WHEN>` / `--until <WHEN>` | With `--history`/`--introduced`: commit time window (`2 weeks ago`, `2024-05-01`, `2h`, `3d`) |
+| `--author <PAT>` | With `--history`/`--introduced`: author regex (case-insensitive) |
+| `--changed-since <REV\|WHEN>` | Search only files changed since a commit or time, with uncommitted changes |
+| `--at <REV>` | Search the tree as it was at a git revision |
 | `-U, --multiline` | Enable multiline matching (`.` still excludes `\n`) |
 | `--multiline-dotall` | Make `.` match `\n`; implies `-U` |
 | `-n, --line-number` | Show line numbers (default: on when stdout is a terminal) |

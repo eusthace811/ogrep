@@ -8,6 +8,7 @@
 mod admission;
 mod cpu;
 mod glob_filter;
+mod history_search;
 mod index;
 mod matching;
 mod mem;
@@ -126,6 +127,42 @@ struct Cli {
     /// line starting with `#`. Implies --rank.
     #[arg(long = "explain-rank", global = true)]
     explain_rank: bool,
+
+    /// Search the lines commits added or removed instead of the current files,
+    /// newest commit first (needs `ogrep index --history`). Like
+    /// `git log -G PATTERN`, but answered from an index.
+    #[arg(long = "history", global = true)]
+    history: bool,
+
+    /// Report when PATTERN first appeared in a commit, when it was last
+    /// removed, and whether it is present now (needs `ogrep index --history`).
+    #[arg(long = "introduced", global = true)]
+    introduced: bool,
+
+    /// With --history/--introduced: only commits since WHEN (a date, `2 weeks
+    /// ago`, or 2h, 3d, 2w, 6mo, 1y).
+    #[arg(long = "since", value_name = "WHEN", global = true)]
+    since: Option<String>,
+
+    /// With --history/--introduced: only commits until WHEN.
+    #[arg(long = "until", value_name = "WHEN", global = true)]
+    until: Option<String>,
+
+    /// With --history/--introduced: only commits whose author (`Name <email>`)
+    /// matches this regex, case-insensitively.
+    #[arg(long = "author", value_name = "PATTERN", global = true)]
+    author: Option<String>,
+
+    /// Search only files changed since REV or WHEN (a date, `2 weeks ago`, or
+    /// 2h, 3d, 2w, 6mo, 1y), including uncommitted and untracked files.
+    #[arg(long = "changed-since", value_name = "REV|WHEN", global = true)]
+    changed_since: Option<String>,
+
+    /// Search the files as they were at git revision REV (a commit, tag or
+    /// branch) instead of the working tree. Reads git's object store; needs no
+    /// index.
+    #[arg(long = "at", value_name = "REV", global = true)]
+    at: Option<String>,
 
     /// Skip files that contain any line matching PATTERN (repeatable).
     #[arg(long = "without", value_name = "PATTERN", global = true)]
@@ -670,6 +707,22 @@ enum Command {
         /// A server that later rebuilds the index adds the n-grams back.
         #[arg(long = "no-sparse-grams")]
         no_sparse_grams: bool,
+
+        /// Also index the lines each commit added or removed, for `--history`
+        /// and `--introduced` searches. An existing history index is brought up
+        /// to date with HEAD; `--force` rebuilds it.
+        #[arg(long = "history")]
+        history: bool,
+
+        /// With --history: index at most this many recent commits (default
+        /// 20000; 0 for every commit).
+        #[arg(long = "history-depth", value_name = "N", requires = "history")]
+        history_depth: Option<usize>,
+
+        /// With --history: index only commits since this date (any form
+        /// `git log --since` takes, or 2h, 3d, 2w, 6mo, 1y).
+        #[arg(long = "history-since", value_name = "WHEN", requires = "history")]
+        history_since: Option<String>,
     },
 
     /// Start the persistent search server.
@@ -1066,6 +1119,7 @@ impl Cli {
                 .unwrap_or_else(|| "-".to_string()),
             path_separator: self.path_separator.clone(),
             sort: resolved.sort,
+            at_rev: self.at.clone(),
             max_depth: self.max_depth,
             one_file_system: self.one_file_system,
             ignore_files: if self.no_ignore_files {
@@ -1215,6 +1269,44 @@ fn run_cli() {
         process::exit(2);
     }
 
+    // History searches report commits, not files.
+    let history = cli.history || cli.introduced;
+    if !history && (cli.since.is_some() || cli.until.is_some() || cli.author.is_some()) {
+        eprintln!("ogrep: --since, --until and --author need --history or --introduced");
+        process::exit(2);
+    }
+    if cli.at.is_some() && (history || cli.changed_since.is_some()) {
+        eprintln!("ogrep: --at cannot be combined with --history, --introduced or --changed-since");
+        process::exit(2);
+    }
+    if history {
+        let conflicts = [
+            (cli.history && cli.introduced, "--introduced (pick one)"),
+            (cli.changed_since.is_some(), "--changed-since"),
+            (cli.rank_options().is_some(), "--rank"),
+            (cli.files_without_match, "--files-without-match"),
+            (cli.list_files, "--files"),
+            (cli.passthru, "--passthru"),
+            (cli.include_zero, "--include-zero"),
+            (cli.invert_match, "-v/--invert-match"),
+            (
+                cli.sort.is_some() || cli.sortr.is_some() || cli.sort_files,
+                "--sort",
+            ),
+            (
+                cli.context.is_some()
+                    || cli.after_context.is_some()
+                    || cli.before_context.is_some(),
+                "context lines (-A/-B/-C)",
+            ),
+            (cli.vimgrep, "--vimgrep"),
+        ];
+        if let Some((_, flag)) = conflicts.iter().find(|(set, _)| *set) {
+            eprintln!("ogrep: --history cannot be combined with {flag}");
+            process::exit(2);
+        }
+    }
+
     // Ranking orders the files that matched; these flags ask for something
     // other than matching files, or for an order of their own.
     if cli.rank_options().is_some() {
@@ -1270,8 +1362,19 @@ fn run_cli() {
             strategy,
             index_buffer_mb,
             no_sparse_grams,
-            ..
+            force,
+            history,
+            history_depth,
+            history_since,
         }) => {
+            let history_opts = history.then(|| ogrep_core::history::HistoryOptions {
+                depth: match history_depth {
+                    Some(0) => None,
+                    Some(n) => Some(n),
+                    None => Some(ogrep_core::history::DEFAULT_DEPTH),
+                },
+                since: history_since.clone(),
+            });
             index::run(index::RunOptions {
                 root: &path,
                 index_path: cli.index_path.as_deref(),
@@ -1285,6 +1388,10 @@ fn run_cli() {
                 // named no limit, so indexing and searching cap identically.
                 max_file_size: max_filesize,
                 sparse_grams: !no_sparse_grams,
+            })
+            .and_then(|()| match history_opts {
+                Some(opts) => index::run_history(&path, cli.index_path.as_deref(), &opts, force),
+                None => Ok(()),
             })
         }
         Some(Command::Serve {
@@ -1535,6 +1642,9 @@ fn run_search(
     opts.no_filename = cli.no_filename
         || (!cli.with_filename && !cli.vimgrep && targets.len() == 1 && targets[0].path.is_file());
 
+    if cli.history || cli.introduced {
+        run_history_search(cli, &opts, ci, &targets);
+    }
     if let Some(rank_opts) = cli.rank_options() {
         run_ranked_search(cli, &opts, ci, targets, &rank_opts);
     }
@@ -1551,13 +1661,25 @@ fn run_search(
             continue;
         }
         writer.set_path_display(target.display());
-        match search::run(
+        if let Some(since) = &cli.changed_since {
+            match history_search::changed_paths(&target.path, since) {
+                Ok(paths) => writer.restrict_to(paths),
+                Err(e) => {
+                    eprintln!("ogrep: {e}");
+                    process::exit(2);
+                }
+            }
+        }
+        let result = search::run(
             &target.path,
             cli.index_path.as_deref(),
             &opts,
             ci,
             &mut writer,
-        ) {
+        )
+        // A restricted search matched only if a result survived the filter.
+        .map(|matched| matched && (cli.changed_since.is_none() || writer.emitted_any()));
+        match result {
             Ok(true) => {
                 had_matches = true;
                 if opts.quiet {
@@ -1597,6 +1719,59 @@ fn run_search(
     process::exit(1);
 }
 
+/// `--history`/`--introduced`: search the history index. Never returns.
+fn run_history_search(
+    cli: &Cli,
+    opts: &search::SearchOptions,
+    ci: bool,
+    targets: &[SearchTarget],
+) -> ! {
+    let [target] = targets else {
+        eprintln!("ogrep: --history searches one path at a time");
+        process::exit(2);
+    };
+    let fail = |e: anyhow::Error| -> ! {
+        eprintln!("ogrep: {e}");
+        process::exit(2);
+    };
+    let mut filters = history_search::Filters::default();
+    if let Some(when) = &cli.since {
+        filters.since = Some(
+            history_search::resolve_when(&target.path, when, false).unwrap_or_else(|e| fail(e)),
+        );
+    }
+    if let Some(when) = &cli.until {
+        filters.until = Some(
+            history_search::resolve_when(&target.path, when, true).unwrap_or_else(|e| fail(e)),
+        );
+    }
+    if let Some(author) = &cli.author {
+        filters.author = Some(
+            regex::RegexBuilder::new(author)
+                .case_insensitive(true)
+                .build()
+                .unwrap_or_else(|e| fail(anyhow::anyhow!("--author: {e}"))),
+        );
+    }
+    let mode = if cli.introduced {
+        history_search::Mode::Introduced
+    } else {
+        history_search::Mode::Log
+    };
+    match history_search::run(
+        &target.path,
+        cli.index_path.as_deref(),
+        opts,
+        ci,
+        mode,
+        &filters,
+    ) {
+        Ok(true) => process::exit(0),
+        Ok(false) => process::exit(1),
+        Err(e) => fail(e),
+    }
+}
+
 /// `--rank`: run the ordinary search into a capturing writer, then rank and
 /// print. Never returns.
 fn run_ranked_search(
@@ -1625,6 +1800,15 @@ fn run_ranked_search(
         }
         let display = target.display();
         capture.set_path_display(display.clone());
+        if let Some(since) = &cli.changed_since {
+            match history_search::changed_paths(&target.path, since) {
+                Ok(paths) => capture.restrict_to(paths),
+                Err(e) => {
+                    eprintln!("ogrep: {e}");
+                    process::exit(2);
+                }
+            }
+        }
         if let Err(e) = search::run(
             &target.path,
             cli.index_path.as_deref(),

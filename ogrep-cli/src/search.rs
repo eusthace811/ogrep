@@ -129,6 +129,8 @@ pub struct SearchOptions {
     pub field_context_separator: String,
     pub path_separator: Option<String>,
     pub sort: Option<SortMode>,
+    /// `--at`: search the tree of this revision instead of the working tree.
+    pub at_rev: Option<String>,
     // ── File discovery ──
     pub max_depth: Option<usize>,
     pub one_file_system: bool,
@@ -299,7 +301,7 @@ impl SearchOptions {
         }
     }
 
-    fn glob_filter(&self) -> Result<crate::glob_filter::GlobFilter> {
+    pub(crate) fn glob_filter(&self) -> Result<crate::glob_filter::GlobFilter> {
         crate::glob_filter::GlobFilter::new(&self.glob, &self.iglob, self.glob_case_insensitive)
     }
 
@@ -366,7 +368,7 @@ impl SearchOptions {
             && self.max_count != Some(0)
     }
 
-    fn match_options(&self) -> crate::matching::MatchOptions {
+    pub(crate) fn match_options(&self) -> crate::matching::MatchOptions {
         crate::matching::MatchOptions {
             invert_match: self.invert_match,
             multiline: self.multiline,
@@ -391,11 +393,11 @@ impl SearchOptions {
         }
     }
 
-    fn matcher(&self, ci: bool) -> Result<SearchMatcher> {
+    pub(crate) fn matcher(&self, ci: bool) -> Result<SearchMatcher> {
         crate::matching::build_search_matcher(&self.all_patterns(), &self.matcher_config(ci))
     }
 
-    fn file_filter(&self, ci: bool) -> Result<Option<crate::matching::FileFilter>> {
+    pub(crate) fn file_filter(&self, ci: bool) -> Result<Option<crate::matching::FileFilter>> {
         crate::matching::FileFilter::build(
             &self.with_patterns,
             &self.without_patterns,
@@ -900,6 +902,10 @@ pub fn run(
     let index_dir = index_path
         .map(|p| p.to_path_buf())
         .unwrap_or_else(|| builder::default_index_dir(&root));
+
+    if let Some(rev) = &opts.at_rev {
+        return crate::history_search::search_at(&root, rev, opts, ci, writer);
+    }
 
     // A non-default `--encoding` re-decodes files into text the index never
     // saw. Worse, a file the indexer classified as binary (BOM-less UTF-16 is
@@ -2237,6 +2243,26 @@ fn read_text_lossy(
         fixups,
         first_nul,
     })
+}
+
+/// Search text that did not come from a file on disk (a blob at `--at REV`),
+/// exactly as if it had been read from `rel_path`.
+pub(crate) fn search_bytes(
+    bytes: Vec<u8>,
+    rel_path: &str,
+    matcher: &SearchMatcher,
+    filter: Option<&crate::matching::FileFilter>,
+    opts: &SearchOptions,
+    writer: &mut OutputWriter,
+) -> Result<bool> {
+    let (text, fixups) = ogrep_core::encoding::decode_owned_with_fixups(bytes, opts.encoding);
+    let first_nul = memchr::memchr(0, text.as_bytes());
+    let read = FileRead {
+        text: FileText::Owned(text),
+        fixups,
+        first_nul,
+    };
+    search_file(&read, matcher, filter, rel_path, opts, writer, false)
 }
 
 /// Whether `--max-filesize` excludes this file.

@@ -110,3 +110,41 @@ pub fn run(opts: RunOptions<'_>) -> Result<()> {
     }
     Ok(())
 }
+
+/// Build or update the history index next to the file index (`index --history`).
+pub fn run_history(
+    root: &Path,
+    index_path: Option<&Path>,
+    opts: &ogrep_core::history::HistoryOptions,
+    force: bool,
+) -> Result<()> {
+    let repo = ogrep_core::history::repo_root(root)
+        .map_err(|e| anyhow::anyhow!("--history needs a git repository: {e}"))?;
+    let index_dir = match index_path {
+        Some(path) => path.to_path_buf(),
+        None => builder::default_index_dir(&std::fs::canonicalize(root)?),
+    };
+    let started = Instant::now();
+    let outcome = ogrep_core::history::build_or_update(&repo, &index_dir, opts, force)?;
+    let what = if outcome.rebuilt {
+        format!("indexed {} commits", outcome.total)
+    } else if outcome.added == 0 {
+        format!("up to date ({} commits)", outcome.total)
+    } else {
+        format!("added {} commits ({} in all)", outcome.added, outcome.total)
+    };
+    let truncated = if outcome.truncated > 0 {
+        format!(
+            "; {} huge commits indexed in part (first {} MiB of changes)",
+            outcome.truncated,
+            ogrep_core::history::DOC_CAP_BYTES >> 20
+        )
+    } else {
+        String::new()
+    };
+    eprintln!(
+        "History {what} in {:.1}s{truncated}",
+        started.elapsed().as_secs_f64()
+    );
+    Ok(())
+}

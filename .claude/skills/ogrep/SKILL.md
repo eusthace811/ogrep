@@ -133,6 +133,19 @@ ogrep -n --explain-rank --budget 5 -F bulk_update .   # with each file's score
 Ranking only reorders and trims real matches, and its order is deterministic.
 Drop `--rank` when you need every occurrence.
 
+### What changed, and when: history
+
+```bash
+ogrep index . --history                  # once; rerun to add new commits (fast)
+ogrep --history -n 'pool exhausted' .    # commits that added/removed a matching line
+ogrep --introduced 'pool exhausted' .    # first added, last removed, present now?
+ogrep --changed-since 2h -n 'panic' .    # only files changed recently (incl. uncommitted)
+ogrep --at v1.4.0 -n parse_header .      # the tree as it was at a revision
+```
+
+`--history` finds exactly the commits `git log -G` finds, in milliseconds
+instead of seconds to minutes.
+
 ## What is and is not searched
 
 It skips the same things ripgrep does: `.gitignore`d files, hidden files and

@@ -1063,6 +1063,65 @@ pub fn build_index_for_files(
 }
 
 /// Return the default index directory for a given repo root.
+/// Build an index over in-memory documents rather than files on disk.
+///
+/// For derived corpora such as the commit history ([`crate::history`]): each
+/// document has a name, stored in `files.bin` like a path, and text. Documents
+/// get file IDs in the order given. Keys are extracted in parallel a batch at a
+/// time and streamed through the external sorter, so memory stays bounded
+/// however many documents there are. `prune_grams` applies a full build's
+/// common-gram pruning; a delta that will be merged into a larger index must
+/// keep every gram (see [`build_index_for_files`]).
+pub fn build_index_from_documents(
+    root: &Path,
+    index_dir: &Path,
+    documents: impl Iterator<Item = (String, String)>,
+    prune_grams: bool,
+) -> Result<usize> {
+    const BATCH_DOCS: usize = 512;
+    const BATCH_BYTES: usize = 64 << 20;
+    std::fs::create_dir_all(index_dir)?;
+    let mut sorter = ExternalSorter::new(index_dir, DEFAULT_INDEX_BUFFER_BYTES);
+    let mut names: Vec<String> = Vec::new();
+    let mut batch: Vec<(String, String)> = Vec::new();
+    let mut batch_bytes = 0usize;
+    let mut flush = |batch: &mut Vec<(String, String)>, names: &mut Vec<String>| -> Result<()> {
+        let keys: Vec<trigram::TrigramMaskMap> = batch
+            .par_iter()
+            .map(|(_, text)| trigram::extract_index_masks(text.as_bytes()))
+            .collect();
+        for ((name, _), keys) in batch.drain(..).zip(keys) {
+            let file_id = u32::try_from(names.len()).map_err(|_| {
+                Error::IndexCorrupted("document count exceeds the u32 file-id limit".into())
+            })?;
+            names.push(name);
+            sorter.push_file(file_id, keys)?;
+        }
+        Ok(())
+    };
+    for document in documents {
+        batch_bytes += document.1.len();
+        batch.push(document);
+        if batch.len() >= BATCH_DOCS || batch_bytes >= BATCH_BYTES {
+            flush(&mut batch, &mut names)?;
+            batch_bytes = 0;
+        }
+    }
+    flush(&mut batch, &mut names)?;
+    let prune = prune_grams.then(|| crate::sparse::prune_threshold(names.len()));
+    let (key_count, _) = sorter.write_postings(index_dir, prune)?;
+    write_files_and_meta(
+        index_dir,
+        root,
+        names.len(),
+        names.iter().map(String::as_str),
+        key_count,
+        Some(true),
+        true,
+    )?;
+    Ok(names.len())
+}
+
 pub fn default_index_dir(root: &Path) -> std::path::PathBuf {
     root.join(INDEX_DIR_NAME)
 }

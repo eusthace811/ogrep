@@ -5,6 +5,7 @@ pub(crate) mod external;
 pub mod filetypes;
 pub mod git_index;
 pub mod gitignore;
+pub mod history;
 pub mod hybrid;
 pub mod live;
 pub mod meta;
