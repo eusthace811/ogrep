@@ -88,6 +88,41 @@ fn accepts_multiple_path_arguments() {
 }
 
 #[test]
+fn flag_values_may_start_with_a_dash() {
+    // ripgrep takes the next argument as the value of -e, -r and -g even
+    // when it starts with `-`.
+    let dir = setup_fixture();
+    let root = dir.path().join("testdata");
+    fs::write(root.join("-dash.txt"), "run with -v here\n").unwrap();
+    let root = root.to_str().unwrap();
+
+    ogrep()
+        .args(["--no-index", "--no-heading", "-e", "-v", root])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("run with -v here"));
+    ogrep()
+        .args([
+            "--no-index",
+            "--no-heading",
+            "--regexp",
+            "-v",
+            "-r",
+            "-q",
+            root,
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("run with -q here"));
+    ogrep()
+        .args(["--no-index", "-l", "-g", "-dash.txt", "-e", "run", root])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("-dash.txt"))
+        .stdout(predicate::str::contains("notes.txt").not());
+}
+
+#[test]
 fn strips_extra_quotes_from_path_argument() {
     let dir = setup_fixture();
     let quoted = format!("\"{}\"", fixture_path(&dir));

@@ -87,8 +87,14 @@ struct Cli {
     #[arg(short = 'v', long = "invert-match", global = true)]
     invert_match: bool,
 
-    /// Additional patterns (can be specified multiple times).
-    #[arg(short = 'e', long = "regexp", global = true)]
+    /// Additional patterns (can be specified multiple times). As in ripgrep,
+    /// the value may start with `-`: `-e -x` searches for "-x".
+    #[arg(
+        short = 'e',
+        long = "regexp",
+        global = true,
+        allow_hyphen_values = true
+    )]
     regexp: Vec<String>,
 
     /// Read patterns from FILE, one per line; `-` reads standard input
@@ -327,11 +333,11 @@ struct Cli {
     ///
     /// With an index, globs filter the indexed corpus. Use --no-index to let
     /// positive globs reinclude ignored files.
-    #[arg(short = 'g', long = "glob", global = true, action = clap::ArgAction::Append)]
+    #[arg(short = 'g', long = "glob", global = true, action = clap::ArgAction::Append, allow_hyphen_values = true)]
     glob: Vec<String>,
 
     /// Like --glob, but case-insensitive.
-    #[arg(long = "iglob", global = true, action = clap::ArgAction::Append)]
+    #[arg(long = "iglob", global = true, action = clap::ArgAction::Append, allow_hyphen_values = true)]
     iglob: Vec<String>,
 
     /// Treat all --glob patterns as case-insensitive.
@@ -525,7 +531,13 @@ struct Cli {
     dfa_size_limit: Option<String>,
 
     /// Replace each match with TEXT. Capture groups are available as $1, ${name}.
-    #[arg(short = 'r', long = "replace", value_name = "TEXT", global = true)]
+    #[arg(
+        short = 'r',
+        long = "replace",
+        value_name = "TEXT",
+        global = true,
+        allow_hyphen_values = true
+    )]
     replace: Option<String>,
 
     /// Print both matching and non-matching lines.
