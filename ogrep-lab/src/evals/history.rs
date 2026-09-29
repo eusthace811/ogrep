@@ -72,7 +72,7 @@ fn run(ws: &Workspace, params: &Value, progress: &Progress) -> Result<Outcome> {
     }
     args.push(&meta.head);
     let listing = git(&ws.root, &args)?;
-    let rows: Vec<(&str, i64)> = listing
+    let listed: Vec<(&str, i64)> = listing
         .lines()
         .filter_map(|l| {
             let (sha, t) = l.split_once(' ')?;
@@ -80,7 +80,7 @@ fn run(ws: &Workspace, params: &Value, progress: &Progress) -> Result<Outcome> {
         })
         .collect();
     let boundary: HashSet<String> = ogrep_core::history::shallow_boundary(&ws.root);
-    let covered: HashSet<&str> = rows
+    let covered: HashSet<&str> = listed
         .iter()
         .map(|r| r.0)
         .filter(|s| !boundary.contains(*s))
@@ -88,7 +88,7 @@ fn run(ws: &Workspace, params: &Value, progress: &Progress) -> Result<Outcome> {
     // Bound git's walk to the covered period, plus a day of slack.
     let since = meta
         .depth
-        .and_then(|_| rows.iter().map(|r| r.1).min())
+        .and_then(|_| listed.iter().map(|r| r.1).min())
         .map(|t| format!("--since={}", t - 86_400));
 
     let patterns: Vec<String> = sample::identifiers(ws, n);

@@ -100,6 +100,19 @@ fn overview_counts_files_and_storage() {
 }
 
 #[test]
+fn an_unreadable_graph_is_reported_not_hidden() {
+    let f = fixture();
+    std::fs::create_dir_all(f.index.join("graph")).unwrap();
+    std::fs::write(f.index.join("graph/graph.bin"), b"not a graph").unwrap();
+    let ws = open(&f);
+    let o = crate::overview::overview(&ws).unwrap();
+    assert!(o["graph"].is_null());
+    let errors = o["load_errors"].as_array().unwrap();
+    assert_eq!(errors.len(), 1, "{errors:?}");
+    assert!(errors[0].as_str().unwrap().contains("graph"));
+}
+
+#[test]
 fn plan_explain_narrows_to_the_matching_files() {
     let f = fixture();
     let ws = open(&f);

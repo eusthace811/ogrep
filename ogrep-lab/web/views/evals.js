@@ -1,7 +1,7 @@
 // Evals: run the suites, follow a run, read saved runs, chart them over time
 // and compare two.
 
-import { h, clear, api, aborted, n, ms, metric, datetime, ago, short, href, go, loading, errorBox, empty, table, segmented, toast } from "../lib.js";
+import { h, clear, api, aborted, n, ms, metric, datetime, ago, short, href, go, parseHash, loading, errorBox, empty, table, segmented, toast } from "../lib.js";
 import { lines, legend } from "../charts.js";
 
 const PARAMS = {
@@ -138,7 +138,10 @@ function watch() {
         poll = null;
         if (wasRunning) {
           await refresh();
-          if (job.run) go("evals", { run: job.run });
+          // Open the new run, but only if the evals list is still what is on
+          // screen: finishing must not pull anyone out of another view.
+          const here = parseHash();
+          if (job.run && here.view === "evals" && !here.params.run && !here.params.a) go("evals", { run: job.run });
         }
       }
     } catch { /* keep polling */ }

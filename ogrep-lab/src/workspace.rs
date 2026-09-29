@@ -72,10 +72,14 @@ impl GraphView {
 }
 
 /// A value loaded from files, reloaded when the modification time of its
-/// marker file changes.
+/// marker file changes. A failed load is remembered too, so a broken file is
+/// reported once rather than re-read on every request.
 struct Cached<T> {
-    slot: Mutex<Option<(Option<SystemTime>, Arc<T>)>>,
+    /// The marker's modification time when loaded, and what the load gave.
+    slot: Mutex<Option<(Option<SystemTime>, Loaded<T>)>>,
 }
+
+type Loaded<T> = Result<Arc<T>, String>;
 
 impl<T> Cached<T> {
     fn new() -> Self {
@@ -90,11 +94,21 @@ impl<T> Cached<T> {
         if let Some((s, value)) = slot.as_ref()
             && *s == stamp
         {
-            return Ok(value.clone());
+            return value.clone().map_err(|e| anyhow!(e));
         }
-        let value = Arc::new(load()?);
+        let value = load().map(Arc::new).map_err(|e| {
+            let msg = format!("{e:#}");
+            eprintln!("ogrep-lab: {msg}");
+            msg
+        });
         *slot = Some((stamp, value.clone()));
-        Ok(value)
+        value.map_err(|e| anyhow!(e))
+    }
+
+    /// Why the last load failed, if it did.
+    fn error(&self) -> Option<String> {
+        let slot = self.slot.lock().unwrap_or_else(|e| e.into_inner());
+        slot.as_ref().and_then(|(_, v)| v.as_ref().err().cloned())
     }
 }
 
@@ -182,6 +196,15 @@ impl Workspace {
                 HistoryIndex::open(&self.index_dir).map_err(|e| anyhow!("{e}"))
             })
             .ok()
+    }
+
+    /// Parts of the index that exist but could not be read, such as a graph
+    /// written by a newer ogrep. Without this they would look unbuilt.
+    pub fn load_errors(&self) -> Vec<String> {
+        [self.graph.error(), self.history.error()]
+            .into_iter()
+            .flatten()
+            .collect()
     }
 
     /// Where evaluation runs are kept: inside the index, which ogrep's own

@@ -27,7 +27,7 @@ function sync() {
 async function loadEntities() {
   clear(els.list, loading());
   try {
-    const r = await api("feature", { mode: "entities", q: "." , limit: 5000 });
+    const r = await api("feature", { mode: "entities", q: ".", limit: 5000 });
     entities = r.records.filter((x) => x.type === "entity").map((x) => x.data);
     if (!entities.length) {
       clear(els.list, empty(
@@ -45,7 +45,7 @@ function drawList(filter) {
   const f = filter.toLowerCase();
   const rows = entities.filter((e) => !f || e.entity.id.toLowerCase().includes(f) || e.entity.kind.includes(f)).map((e) => {
     const deps = [...new Set(e.edges.filter((x) => x.relation !== "telemetry").map((x) => x.to))].sort();
-    return { id: e.entity.id, kind: e.entity.kind, where: e.entity.locations?.[0], deps, raw: e };
+    return { id: e.entity.id, kind: e.entity.kind, deps };
   });
   clear(els.list, table([
     { key: "id", label: "Entity", render: (r) => h("span", { class: "mono", style: { whiteSpace: "nowrap" } }, r.id) },
@@ -157,7 +157,8 @@ function mount(root) {
 }
 
 function route(p) {
-  if (!Object.keys(p).length && (st.entity || st.failing)) { sync(); }
+  // A bare tab link returns to the view as it was left.
+  if (!Object.keys(p).length && (st.entity || st.failing)) sync();
   else st = { entity: p.entity || "", failing: p.failing || "", since: p.since || "24h" };
   els.failing.value = st.failing;
   // A period not in the list (from a hand-edited URL) is added so it shows.

@@ -108,6 +108,7 @@ pub fn overview(ws: &Workspace) -> Result<Value> {
         "storage": storage,
         "history": history,
         "graph": graph,
+        "load_errors": ws.load_errors(),
         "file_types": top_counts(types, 14),
         "directories": top_counts(dirs, 16),
     }))

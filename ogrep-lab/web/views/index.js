@@ -58,6 +58,7 @@ function render(o) {
       stat(bytes(total / Math.max(1, m.files)), "per file"),
       stat(ago(m.updated_at), `updated ${datetime(m.updated_at)}`),
     ),
+    (o.load_errors || []).map((e) => h("div", { class: "error" }, e)),
     !m.complete ? h("div", { class: "note" }, "This index is partial: the server stopped during background indexing. Searches are still correct but scan what the index lacks.") : null,
     !m.sparse_grams ? h("div", { class: "note" }, "Built without sparse grams (or merged onto an index without them). Queries fall back to trigrams. A full ", h("code", null, "ogrep index"), " adds them.") : null,
 

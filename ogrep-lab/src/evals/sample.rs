@@ -62,7 +62,7 @@ pub fn identifiers(ws: &Workspace, n: usize) -> Vec<String> {
         && let Ok(index) = ws.index()
     {
         let mut paths: Vec<&str> = index.sorted.iter().map(|(p, _)| p.as_str()).collect();
-        paths.sort_by_key(|p| stable_hash(p));
+        paths.sort_by_cached_key(|p| stable_hash(p));
         for p in paths.into_iter().filter(|p| !is_test(p)).take(400) {
             let Ok(full) = ws.indexed_file(p) else {
                 continue;
@@ -81,8 +81,9 @@ pub fn identifiers(ws: &Workspace, n: usize) -> Vec<String> {
             }
         }
     }
+    // A stable sort of the set's alphabetical order breaks hash ties by name.
     let mut words: Vec<String> = words.into_iter().collect();
-    words.sort_by_key(|w| (stable_hash(w), w.clone()));
+    words.sort_by_cached_key(|w| stable_hash(w));
     words.truncate(n);
     words
 }
