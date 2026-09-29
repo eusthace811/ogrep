@@ -7,12 +7,14 @@
 ///   ogrep status [path]          Show index/server status
 mod admission;
 mod cpu;
+mod extras;
 mod glob_filter;
 mod graph_search;
 mod history_search;
 mod index;
 mod matching;
 mod mem;
+mod ops_search;
 mod output;
 mod post;
 mod profile;
@@ -125,6 +127,13 @@ struct Cli {
     #[arg(long = "rank-cutoff", value_name = "MODE", global = true, value_parser = ["auto", "none"])]
     rank_cutoff: Option<String>,
 
+    /// Fit --rank's weights to this repository from FILE: a JSON array (or
+    /// JSON lines) of `{"query": ..., "relevant": [paths]}`, the files each
+    /// query should rank first. Writes `rank-weights.json` beside the index,
+    /// which --rank then uses; delete it to return to the defaults.
+    #[arg(long = "rank-fit", value_name = "FILE")]
+    rank_fit: Option<PathBuf>,
+
     /// With --rank: print each file's score and the features behind it, on a
     /// line starting with `#`. Implies --rank.
     #[arg(long = "explain-rank", global = true)]
@@ -169,6 +178,72 @@ struct Cli {
     /// defined in the repository, and where. Needs `ogrep index --graph`.
     #[arg(long = "callees", global = true)]
     callees: bool,
+
+    /// List services, alerts and other entities found in the repository's
+    /// operations files (Compose, Kubernetes, Backstage, Prometheus rules),
+    /// with what each depends on. PATTERN filters entity names (`.` for all).
+    #[arg(long = "entities", global = true)]
+    entities: bool,
+
+    /// Show every service that depends on the service PATTERN, directly or not,
+    /// by distance, with the file and line each dependency comes from.
+    #[arg(long = "blast", global = true)]
+    blast: bool,
+
+    /// Rank likely causes for failing services (PATTERN: comma-separated
+    /// names): services they depend on, weighted by how many failing services
+    /// each explains and by commits since --since (default 24 hours).
+    #[arg(long = "suspects", global = true)]
+    suspects: bool,
+
+    /// Commits to the service PATTERN and to what it directly depends on, since
+    /// --since (default 7 days), newest first.
+    #[arg(long = "timeline", global = true)]
+    timeline: bool,
+
+    /// Read a stack trace from the file PATTERN (`-` for standard input) and
+    /// show each frame found in the repository, with its enclosing definition.
+    #[arg(long = "stack-trace", global = true)]
+    stack_trace: bool,
+
+    /// Group the log lines PATTERN matches into templates (variable parts as
+    /// `<*>`), most frequent first, with first and last timestamps.
+    #[arg(long = "log-templates", global = true)]
+    log_templates: bool,
+
+    /// With --log-templates: only templates first seen since WHEN.
+    #[arg(long = "new-since", value_name = "WHEN", global = true)]
+    new_since: Option<String>,
+
+    /// With --log-templates: show the code that writes each message.
+    #[arg(long = "template-to-code", global = true)]
+    template_to_code: bool,
+
+    /// Rank incident write-ups (files under postmortem, incident, rca, retro or
+    /// outage paths) by similarity to PATTERN: text, or a file with the
+    /// description (`-` for standard input).
+    #[arg(long = "similar-incidents", global = true)]
+    similar_incidents: bool,
+
+    /// List the tests most related to the file PATTERN: named after it, using
+    /// its definitions (with `ogrep index --graph`), or changed with it.
+    #[arg(long = "related-tests", global = true)]
+    related_tests: bool,
+
+    /// Find code similar to the definition at PATTERN (`path:line`), ranked by
+    /// token-shingle overlap: copies, near-duplicates and variants.
+    #[arg(long = "similar", global = true)]
+    similar: bool,
+
+    /// Files changed both here (committed since the fork, or uncommitted) and
+    /// on other local branches, and whether the changed lines overlap.
+    #[arg(long = "conflicts", global = true)]
+    conflicts: bool,
+
+    /// Code names quoted in documentation (`like_this`) that no longer appear
+    /// in any code file. PATTERN filters names (`.` for all).
+    #[arg(long = "doc-drift", global = true)]
+    doc_drift: bool,
 
     /// Search the lines commits added or removed instead of the current files,
     /// newest commit first (needs `ogrep index --history`). Like
@@ -1046,6 +1121,7 @@ impl Cli {
                 _ => rank::Cutoff::None,
             },
             explain: self.explain_rank,
+            weights: rank::Weights::default(),
         })
     }
 
@@ -1339,8 +1415,16 @@ fn run_cli() {
 
     // History searches report commits, not files.
     let history = cli.history || cli.introduced;
-    if !history && (cli.since.is_some() || cli.until.is_some() || cli.author.is_some()) {
-        eprintln!("ogrep: --since, --until and --author need --history or --introduced");
+    if !history && (cli.until.is_some() || cli.author.is_some()) {
+        eprintln!("ogrep: --until and --author need --history or --introduced");
+        process::exit(2);
+    }
+    if !(history || cli.suspects || cli.timeline) && cli.since.is_some() {
+        eprintln!("ogrep: --since needs --history, --introduced, --suspects or --timeline");
+        process::exit(2);
+    }
+    if (cli.new_since.is_some() || cli.template_to_code) && !cli.log_templates {
+        eprintln!("ogrep: --new-since and --template-to-code need --log-templates");
         process::exit(2);
     }
     if cli.at.is_some() && (history || cli.changed_since.is_some()) {
@@ -1533,7 +1617,9 @@ fn run_cli() {
         ),
         Some(Command::CountFiles { path }) => walkcount::run(&path, cli.hidden, no_ignore),
         None => {
-            if cli.list_files {
+            if let Some(file) = &cli.rank_fit {
+                run_rank_fit(&cli, file, &resolved)
+            } else if cli.list_files {
                 let opts = cli.build_search_opts(String::new(), &resolved);
                 let paths = list_files_paths(&cli);
                 list_files(&paths, cli.index_path.as_deref(), &opts)
@@ -1725,6 +1811,72 @@ fn run_search(
     if cli.history || cli.introduced {
         run_history_search(cli, &opts, ci, &targets);
     }
+    let extras_mode = if cli.related_tests {
+        Some(extras::Mode::RelatedTests)
+    } else if cli.similar {
+        Some(extras::Mode::Similar)
+    } else if cli.conflicts {
+        Some(extras::Mode::Conflicts)
+    } else if cli.doc_drift {
+        Some(extras::Mode::DocDrift)
+    } else {
+        None
+    };
+    if let Some(mode) = extras_mode {
+        let root = targets
+            .first()
+            .map_or_else(|| PathBuf::from("."), |t| t.path.clone());
+        match extras::run(&root, cli.index_path.as_deref(), &opts, mode) {
+            Ok(true) => process::exit(0),
+            Ok(false) => process::exit(1),
+            Err(e) => {
+                eprintln!("ogrep: {e}");
+                process::exit(2);
+            }
+        }
+    }
+    let ops_mode = if cli.entities {
+        Some(ops_search::Mode::Entities)
+    } else if cli.blast {
+        Some(ops_search::Mode::Blast)
+    } else if cli.suspects {
+        Some(ops_search::Mode::Suspects)
+    } else if cli.timeline {
+        Some(ops_search::Mode::Timeline)
+    } else if cli.stack_trace {
+        Some(ops_search::Mode::Trace)
+    } else if cli.log_templates {
+        Some(ops_search::Mode::LogTemplates {
+            new_since: cli.new_since.clone(),
+            to_code: cli.template_to_code,
+        })
+    } else if cli.similar_incidents {
+        Some(ops_search::Mode::SimilarIncidents)
+    } else {
+        None
+    };
+    if let Some(mode) = ops_mode {
+        // --log-templates searches its path arguments; the others work on the
+        // repository around the first one.
+        let root = targets
+            .first()
+            .map_or_else(|| PathBuf::from("."), |t| t.path.clone());
+        match ops_search::run(
+            &root,
+            cli.index_path.as_deref(),
+            &opts,
+            ci,
+            &mode,
+            cli.since.as_deref(),
+        ) {
+            Ok(true) => process::exit(0),
+            Ok(false) => process::exit(1),
+            Err(e) => {
+                eprintln!("ogrep: {e}");
+                process::exit(2);
+            }
+        }
+    }
     if cli.near || cli.map.is_some() || cli.callees {
         let [target] = targets.as_slice() else {
             eprintln!("ogrep: --near, --map and --callees search one path at a time");
@@ -1821,6 +1973,56 @@ fn run_search(
         process::exit(2);
     }
     process::exit(1);
+}
+
+/// `--rank-fit`: learn --rank weights from examples and store them.
+fn run_rank_fit(cli: &Cli, file: &std::path::Path, resolved: &ResolvedArgs) -> anyhow::Result<()> {
+    #[derive(serde::Deserialize)]
+    struct Item {
+        query: String,
+        relevant: Vec<String>,
+    }
+    let text = std::fs::read_to_string(file)?;
+    let items: Vec<Item> = serde_json::from_str(&text).or_else(|_| {
+        text.lines()
+            .filter(|l| !l.trim().is_empty())
+            .map(serde_json::from_str)
+            .collect::<Result<Vec<Item>, _>>()
+    })?;
+    let root = PathBuf::from(cli.pattern.as_deref().unwrap_or("."));
+    let index_dir = cli.index_path.clone().unwrap_or_else(|| {
+        builder::default_index_dir(&std::fs::canonicalize(&root).unwrap_or(root.clone()))
+    });
+    let base = cli.build_search_opts(String::new(), resolved);
+    let mut examples = Vec::new();
+    for item in items {
+        let mut opts = base.clone();
+        opts.pattern = item.query.clone();
+        opts.fixed_string = true;
+        opts.extra_patterns.clear();
+        let mut capture = search::new_capturing_writer(&opts);
+        capture.set_path_display(output::PathDisplay::Bare);
+        search::run(&root, cli.index_path.as_deref(), &opts, false, &mut capture)?;
+        examples.push(rank::Example {
+            files: rank::group(vec![(output::PathDisplay::Bare, capture.take_captured())]),
+            patterns: vec![item.query],
+            fixed: true,
+            ci: false,
+            relevant: item.relevant.into_iter().collect(),
+        });
+    }
+    let (weights, before, after) = rank::fit(&examples);
+    std::fs::write(
+        index_dir.join(rank::WEIGHTS_FILE),
+        serde_json::to_vec_pretty(&weights)?,
+    )?;
+    eprintln!(
+        "Fitted on {} examples: MRR {before:.3} with the defaults, {after:.3} with {}",
+        examples.len(),
+        serde_json::to_string(&weights)?
+    );
+    eprintln!("Wrote {}", index_dir.join(rank::WEIGHTS_FILE).display());
+    Ok(())
 }
 
 /// `--history`/`--introduced`: search the history index. Never returns.

@@ -46,13 +46,44 @@ use crate::output::{Captured, ContextLine, Match, OutputWriter, PathDisplay};
 /// - File-graph centrality (PageRank) is not used: as a multiplier
 ///   `1 + λ·centrality` it lowered MRR at every λ tried (0.5 to 8), because the
 ///   file a change is about is rarely the most central one.
-const K1: f64 = 1.0;
-const W_DEF: f64 = 10.0;
-const W_BODY: f64 = 1.0;
-const W_PATH: f64 = 5.0;
-const PRIOR_TEST: f64 = 0.3;
-const PRIOR_VENDORED: f64 = 0.3;
-const PRIOR_PROSE: f64 = 0.8;
+#[derive(Clone, Copy, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+pub struct Weights {
+    pub k1: f64,
+    pub def: f64,
+    pub body: f64,
+    pub path: f64,
+    pub test: f64,
+    pub vendored: f64,
+    pub prose: f64,
+}
+
+impl Default for Weights {
+    fn default() -> Self {
+        Self {
+            k1: 1.0,
+            def: 10.0,
+            body: 1.0,
+            path: 5.0,
+            test: 0.3,
+            vendored: 0.3,
+            prose: 0.8,
+        }
+    }
+}
+
+/// File, beside the index, holding a repository's own weights (`--rank-fit`).
+pub const WEIGHTS_FILE: &str = "rank-weights.json";
+
+impl Weights {
+    /// The repository's fitted weights, or the defaults.
+    pub fn for_index(index_dir: Option<&std::path::Path>) -> Self {
+        index_dir
+            .and_then(|d| std::fs::read(d.join(WEIGHTS_FILE)).ok())
+            .and_then(|b| serde_json::from_slice(&b).ok())
+            .unwrap_or_default()
+    }
+}
 
 /// How many files to keep after ranking.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -73,6 +104,7 @@ pub struct RankOptions {
     pub cutoff: Cutoff,
     /// Print each file's score and features.
     pub explain: bool,
+    pub weights: Weights,
 }
 
 impl Default for RankOptions {
@@ -82,6 +114,7 @@ impl Default for RankOptions {
             per_file: 3,
             cutoff: Cutoff::None,
             explain: false,
+            weights: Weights::default(),
         }
     }
 }
@@ -205,7 +238,7 @@ pub fn is_definition(line: &str, start: usize) -> bool {
     KEYWORDS.contains(&word)
 }
 
-fn is_test_path(path: &str) -> bool {
+pub(crate) fn is_test_path(path: &str) -> bool {
     let p = path.to_ascii_lowercase();
     let name = p.rsplit('/').next().unwrap_or(&p);
     p.starts_with("test/")
@@ -251,13 +284,13 @@ fn is_prose_path(path: &str) -> bool {
         .any(|e| p.ends_with(e))
 }
 
-fn prior(path: &str) -> f64 {
+fn prior(path: &str, w: &Weights) -> f64 {
     if is_vendored_path(path) {
-        PRIOR_VENDORED
+        w.vendored
     } else if is_test_path(path) {
-        PRIOR_TEST
+        w.test
     } else if is_prose_path(path) {
-        PRIOR_PROSE
+        w.prose
     } else {
         1.0
     }
@@ -267,8 +300,8 @@ fn round(score: f64) -> i64 {
     (score * 1e6).round() as i64
 }
 
-fn saturate(tf: f64) -> f64 {
-    tf * (K1 + 1.0) / (tf + K1)
+fn saturate(tf: f64, k1: f64) -> f64 {
+    tf * (k1 + 1.0) / (tf + k1)
 }
 
 /// Which pattern produced a match text. With one pattern it is always 0.
@@ -308,7 +341,7 @@ impl PatternSet {
 }
 
 /// Score and order grouped files.
-fn score_files(files: &[(String, FileHits)], patterns: &PatternSet) -> Vec<Ranked> {
+fn score_files(files: &[(String, FileHits)], patterns: &PatternSet, w: &Weights) -> Vec<Ranked> {
     let n = patterns.len();
     // Per file, per pattern: (def lines, body lines); plus matched texts.
     struct Tally {
@@ -386,10 +419,10 @@ fn score_files(files: &[(String, FileHits)], patterns: &PatternSet) -> Vec<Ranke
                 if d + b == 0 {
                     continue;
                 }
-                let tf = W_DEF * d as f64 + W_BODY * b as f64 + W_PATH * path;
-                score += weight * saturate(tf);
+                let tf = w.def * d as f64 + w.body * b as f64 + w.path * path;
+                score += weight * saturate(tf, w.k1);
             }
-            let prior = prior(rel);
+            let prior = prior(rel, w);
             let features = Features {
                 def_lines: tally.lines.iter().map(|l| l.0).sum(),
                 body_lines: tally.lines.iter().map(|l| l.1).sum(),
@@ -479,7 +512,7 @@ pub fn emit(
         return Ok(false);
     }
     let pattern_set = PatternSet::new(patterns, fixed, ci);
-    let ranked = score_files(&files, &pattern_set);
+    let ranked = score_files(&files, &pattern_set, &opts.weights);
     let keep = keep_count(&ranked, opts);
     let by_path: BTreeMap<&str, &FileHits> = files
         .iter()
@@ -530,6 +563,62 @@ pub fn emit(
         writer.flush_file()?;
     }
     Ok(keep > 0)
+}
+
+/// One `--rank-fit` example: a query's grouped results and the files that
+/// should rank first.
+pub struct Example {
+    pub files: Vec<(String, FileHits)>,
+    pub patterns: Vec<String>,
+    pub fixed: bool,
+    pub ci: bool,
+    pub relevant: std::collections::HashSet<String>,
+}
+
+fn mrr(examples: &[Example], w: &Weights) -> f64 {
+    let total: f64 = examples
+        .iter()
+        .map(|e| {
+            let ranked = score_files(&e.files, &PatternSet::new(&e.patterns, e.fixed, e.ci), w);
+            ranked
+                .iter()
+                .position(|r| e.relevant.contains(&r.path))
+                .map_or(0.0, |p| 1.0 / (p + 1) as f64)
+        })
+        .sum();
+    total / examples.len().max(1) as f64
+}
+
+/// Grid-search weights for the best mean reciprocal rank on `examples`.
+/// Returns `(weights, default MRR, fitted MRR)`. Deterministic: ties keep the
+/// earlier grid point, and the grid includes the defaults.
+pub fn fit(examples: &[Example]) -> (Weights, f64, f64) {
+    let base = Weights::default();
+    let base_mrr = mrr(examples, &base);
+    let mut best = (base, base_mrr);
+    for def in [3.0, 6.0, 10.0, 20.0] {
+        for path in [0.0, 2.0, 5.0, 10.0] {
+            for test in [0.1, 0.3, 0.6, 1.0] {
+                for prose in [0.5, 0.8, 1.0] {
+                    for k1 in [0.6, 1.0, 1.6] {
+                        let w = Weights {
+                            def,
+                            path,
+                            test,
+                            prose,
+                            k1,
+                            ..base
+                        };
+                        let m = mrr(examples, &w);
+                        if m > best.1 + 1e-12 {
+                            best = (w, m);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    (best.0, base_mrr, best.1)
 }
 
 #[cfg(test)]
@@ -587,6 +676,7 @@ mod tests {
         let ranked = score_files(
             &files,
             &PatternSet::new(&["bulk_update".into()], true, false),
+            &Weights::default(),
         );
         assert_eq!(ranked[0].path, "a/query.py");
         // Equal scores fall back to path order.

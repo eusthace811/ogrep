@@ -21,6 +21,9 @@ ignore = "0.4"
 globset = "0.4.18"
 encoding_rs = "0.8"
 fs2 = "0.4.3"
+# Operations files (compose, Kubernetes, Backstage, Prometheus rules) for the
+# incident features.
+serde_yaml = "0.9"
 # Source structure (--scope, --kind, --in, ranking): parsers for the languages
 # below, compiled in. Build with `--no-default-features` to leave them out.
 tree-sitter = { version = "0.26", optional = true }

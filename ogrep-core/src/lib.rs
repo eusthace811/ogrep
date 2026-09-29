@@ -10,14 +10,17 @@ pub mod graph;
 pub mod history;
 pub mod hybrid;
 pub mod live;
+pub mod logs;
 pub mod meta;
 pub(crate) mod ondisk;
+pub mod ops;
 pub mod path_index;
 pub mod query;
 pub mod reader;
 pub mod sparse;
 #[cfg(feature = "structure")]
 pub mod structure;
+pub mod trace;
 pub mod trigram;
 pub mod visibility;
 pub mod walker;

@@ -505,6 +505,106 @@ about 160 ms, mostly loading the graph; `--callers` takes about 10 ms. The graph
 is not used for `--rank`: adding file centrality lowered ranking accuracy at
 every weight tried.
 
+### Tests, near-duplicates, conflicts, stale docs
+
+```bash
+ogrep --related-tests django/db/models/query.py .   # tests to run after changing a file
+ogrep --similar django/db/backends/mysql/operations.py:60 .   # code like this definition
+ogrep --conflicts .                                 # overlap with other local branches
+ogrep --doc-drift .                                 # names in docs missing from the code
+ogrep --rank-fit feedback.json .                    # tune --rank for this repository
+```
+
+- **`--related-tests FILE`** ranks test files by three signals: named after the
+  file (`test_query.py`, `query_test.go`), using its definitions (with
+  `ogrep index --graph`), and changed in the same commits (the last 400 commits
+  touching the file).
+- **`--similar PATH:LINE`** takes the definition around that line (or 30 lines)
+  and ranks other definitions by the overlap of their 5-token shingles
+  (Jaccard). Candidates are files that contain two of the region's longest
+  identifiers, found through the index.
+- **`--conflicts`** compares, for each other local branch, the lines changed
+  on it since the common ancestor with the lines changed here (committed or
+  not), and reports files changed on both sides and whether the lines overlap.
+- **`--doc-drift`** lists names quoted as code in documentation (`` `like_this` ``
+  or ``` ``LikeThis`` ```) that appear in no code file, skipping release notes and
+  changelogs, which name removed things on purpose, and names the docs define in
+  their own examples.
+- **`--rank-fit FILE`** reads `{"query": ..., "relevant": [paths]}` examples (a
+  JSON array or JSON lines), grid-searches the ranking weights for the best mean
+  reciprocal rank, and writes them to `rank-weights.json` beside the index;
+  `--rank` then uses them. The output stays deterministic: it depends only on
+  that file. Trained on half of the django localization set, fitted weights
+  raised the other half's MRR from 0.676 to 0.681 and Acc@5 from 0.833 to 0.873.
+
+### Operations and incidents
+
+```bash
+ogrep --entities .                         # services, alerts, ... and their dependencies
+ogrep --blast cart .                       # who depends on cart, by distance, with evidence
+ogrep --suspects checkout,frontend --since 2h .   # likely causes, newest changes weighted
+ogrep --timeline checkout --since 3d .     # commits to checkout and what it depends on
+ogrep --stack-trace crash.txt .            # frames of a stack trace, in this repository
+ogrep --log-templates . logs/app.log       # a log reduced to its message templates
+ogrep --log-templates --new-since 2h . logs/   # messages that only started recently
+ogrep --log-templates --template-to-code ERROR logs/   # and the code writing each one
+ogrep --similar-incidents "checkout timeouts, redis pool" .   # related postmortems
+```
+
+**Entities and dependencies** come from the operations files a repository
+already has: Docker Compose files (services, `depends_on`, `environment`),
+Kubernetes manifests (workloads and container environment), Backstage
+`catalog-info.yaml` (`dependsOn`, `consumesApis`), Prometheus alert rules (the
+services an alert's labels name) and `.env` files, whose `${VAR}` references
+are expanded. Every edge is marked **declared** (the file states it) or
+**inferred** (a service's configuration points at another, such as
+`CART_ADDR=cart:7070`), with the file and line it comes from. Where a service
+sends telemetry (`OTEL_*` variables) and what a telemetry collector scrapes are
+kept apart as `telemetry` and `observes` edges: they are not dependencies, and
+counting them would put every service in every blast radius.
+
+**`--blast SERVICE`** walks dependency edges backwards: everything that depends
+on SERVICE, directly or not, grouped by distance. **`--suspects A,B,...`** ranks
+the services the failing ones depend on (and the failing ones themselves) by the
+share of failing services each explains, tripled when it changed since `--since`
+(default 24 hours), and discounted by distance: a recently changed shared
+dependency comes first, and a hub everything uses does not win without evidence.
+Commits are attributed to a service through its code directory (`src/<name>`,
+or the Compose build context). On 30 incidents injected into the OpenTelemetry
+demo (a change to the root cause plus two noise commits; 1-3 failing dependents;
+`scripts/eval/suspects_eval.py`) the root cause ranked first in 67% of cases and
+in the top three in all of them, against 27% and 57% for ranking by shared
+dependency alone.
+
+**`--timeline SERVICE`** lists commits to SERVICE and to the services it depends
+on directly, newest first (default: the last 7 days).
+
+**`--stack-trace FILE`** (`-` for standard input) reads Python, Java/Kotlin, Go,
+Rust and JavaScript/TypeScript frames, or any `path:line`, resolves each path to
+the tracked file with the longest matching path suffix (so frames from
+`site-packages`, containers or CI machines still land), and shows the line and
+its enclosing definition.
+
+**`--log-templates PATTERN PATH...`** groups the log lines PATTERN matches
+(`.` for all) into templates, masking numbers, ids, hex, IPs and durations as
+`<*>` and merging lines that agree in at least half of their positions (Drain).
+Each template shows its count and, when lines start with an ISO 8601 timestamp,
+when it was first and last seen. `--new-since WHEN` keeps templates first seen
+after WHEN, the classic signal that something new started happening.
+`--template-to-code` finds the code that writes each message (its constant text,
+without the level word, in a tracked code file). Log files are read directly,
+not through the index.
+
+**`--similar-incidents TEXT`** (or a file, or `-`) ranks write-ups under paths
+containing `postmortem`, `incident`, `rca`, `retro` or `outage` by BM25 over the
+description, doubling the weight of shared service names.
+
+A decision journal needs no flag: record hypotheses, evidence and verdicts as
+JSON lines in a committed file (for example `ogrep-journal.jsonl`, one object
+per line with `time`, `author`, `hypothesis`, `evidence` as `path:line` or the
+query run, `verdict`, and `valid_to` when it stopped being true). Git keeps its
+history, merges it line by line, and ogrep searches it like any other file.
+
 ### Search history and past versions
 
 ```bash
@@ -643,6 +743,18 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `--map[=TOKENS]` | Outline of related code within a token budget (needs the graph) |
 | `--callers` | Definitions that use PATTERN, once each, with use counts |
 | `--callees` | Names used by the definitions of PATTERN, and where they are defined (needs the graph) |
+| `--entities` | Services, alerts and dependencies from operations files; PATTERN filters names |
+| `--blast` | Everything that depends on the service PATTERN, by distance |
+| `--suspects` | Likely causes for failing services PATTERN (comma-separated), with `--since` |
+| `--timeline` | Commits to the service PATTERN and its dependencies, with `--since` |
+| `--stack-trace` | Frames of the stack trace in file PATTERN (`-`: stdin), resolved to this repository |
+| `--log-templates` | Group matching log lines into templates; `--new-since WHEN`, `--template-to-code` |
+| `--similar-incidents` | Postmortems most similar to the description PATTERN |
+| `--related-tests` | Tests most related to the file PATTERN |
+| `--similar` | Code similar to the definition at PATTERN (`path:line`) |
+| `--conflicts` | Files and lines changed both here and on other local branches |
+| `--doc-drift` | Code names in docs that are missing from the code |
+| `--rank-fit <FILE>` | Fit `--rank` weights to this repository from examples |
 | `--history` | Search the lines commits added or removed (needs `ogrep index --history`); see [Search history](#search-history-and-past-versions) |
 | `--introduced` | When a pattern first appeared, was last removed, and whether it is present now |
 | `--since <WHEN>` / `--until <WHEN>` | With `--history`/`--introduced`: commit time window (`2 weeks ago`, `2024-05-01`, `2h`, `3d`) |
@@ -1038,6 +1150,7 @@ exit code determined by the search alone. Suppress the message with
 | `files.bin` | Version 3 header, then `file_id(u32) + path_len(u16) + path_bytes`; legacy headerless tables remain readable |
 | `files-extra.bin` | Version 2 filename-only paths, visibility, and file-table identity |
 | `facts/structure-v1/` | Cache of parsed file structure: `index.bin` (sorted content id, offset, length) and `data.bin` (payloads) |
+| `rank-weights.json` | Weights fitted by `--rank-fit`, used by `--rank` |
 | `graph/graph.bin` | File graph (`ogrep index --graph`): files, links, PageRank, definitions |
 | `history/` | History index (`ogrep index --history`): an index of commit diffs, `history.json` and `chunks.json` |
 | `meta.json` | Version, file/trigram counts, timestamps, coverage, visibility, file-table identity, and the sparse n-gram version and key count (`sparse_grams`, `sparse_gram_keys`; absent when the index has none) |

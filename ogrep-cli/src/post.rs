@@ -528,6 +528,11 @@ pub fn emit(
     drop(new_facts);
     match &post.rank {
         Some(rank_opts) => {
+            // A repository's fitted weights (`--rank-fit`) replace the defaults.
+            let mut rank_opts = rank_opts.clone();
+            rank_opts.weights =
+                rank::Weights::for_index(caches.iter().find_map(|(d, _)| d.as_deref()));
+            let rank_opts = &rank_opts;
             let files: Vec<(String, FileHits)> =
                 prepared.into_iter().map(|p| (p.rel, p.hits)).collect();
             rank::emit(

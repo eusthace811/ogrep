@@ -152,6 +152,16 @@ ogrep --callers -w -F bulk_update .      # functions/methods that use it
 ogrep --callees bulk_update .            # what its definition uses, and where that lives
 ```
 
+### Incidents: blast radius, suspects, traces, logs
+
+```bash
+ogrep --blast cart .                               # who depends on cart (with evidence lines)
+ogrep --suspects checkout,frontend --since 2h .    # likely root causes, recent changes weighted
+ogrep --stack-trace trace.txt .                    # where each frame of a trace is in this repo
+ogrep --log-templates --new-since 1h . logs/       # log messages that only started recently
+ogrep --log-templates --template-to-code ERROR logs/   # and the code that writes them
+```
+
 ### What changed, and when: history
 
 ```bash
