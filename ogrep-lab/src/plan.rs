@@ -49,7 +49,9 @@ impl Pattern<'_> {
     }
 
     /// The regex the verifier runs, with ripgrep's `-w` rule: the match must
-    /// start and end at a non-word character or the line's edge.
+    /// start and end at a non-word character or the line's edge. The edge
+    /// characters exclude newlines, so a match never starts on the line before
+    /// its own, which would merge two matching lines into one count.
     fn regex(&self) -> Result<regex::bytes::Regex, String> {
         let body = if self.fixed {
             regex::escape(self.text)
@@ -57,7 +59,7 @@ impl Pattern<'_> {
             self.text.to_string()
         };
         let body = if self.word {
-            format!(r"(?:^|\W)(?:{body})(?:$|\W)")
+            format!(r"(?:^|[^\w\n])(?:{body})(?:$|[^\w\n])")
         } else {
             body
         };
@@ -354,5 +356,6 @@ mod tests {
         let re = pat.regex().unwrap();
         assert!(re.is_match(b"a cat."));
         assert!(!re.is_match(b"concat"));
+        assert_eq!(count_matching_lines(&re, b"cat\ncat\n"), 2);
     }
 }

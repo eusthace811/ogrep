@@ -12,7 +12,6 @@
 
 use std::collections::HashSet;
 use std::path::Path;
-use std::process::Command;
 use std::time::Duration;
 
 use anyhow::{Result, anyhow};
@@ -20,7 +19,7 @@ use rayon::prelude::*;
 use serde_json::{Map, Value, json};
 
 use super::sample::is_test;
-use super::{Metric, Outcome, Progress, Suite, median, ogrep_for, param_usize, pool};
+use super::{Metric, Outcome, Progress, Suite, git, median, ogrep_for, param_usize, pool};
 use crate::cli;
 use crate::workspace::Workspace;
 
@@ -135,23 +134,6 @@ fn specific_identifiers(subject: &str) -> Vec<String> {
     out
 }
 
-fn git(root: &Path, args: &[&str]) -> Result<String> {
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(root)
-        .args(["-c", "core.quotepath=off"])
-        .args(args)
-        .output()?;
-    if !out.status.success() {
-        return Err(anyhow!(
-            "git {}: {}",
-            args.join(" "),
-            String::from_utf8_lossy(&out.stderr).trim()
-        ));
-    }
-    Ok(String::from_utf8_lossy(&out.stdout).into_owned())
-}
-
 fn mine(ws: &Workspace, n: usize, all_parents: bool, progress: &Progress) -> Result<Vec<Value>> {
     progress.phase("mining commits from git history", 0);
     let mut args = vec![
@@ -191,7 +173,7 @@ fn mine(ws: &Workspace, n: usize, all_parents: bool, progress: &Progress) -> Res
             continue;
         }
         for ident in specific_identifiers(subject) {
-            let relevant: Vec<&str> = src
+            let mut relevant: Vec<&str> = src
                 .iter()
                 .copied()
                 .filter(|f| {
@@ -200,7 +182,6 @@ fn mine(ws: &Workspace, n: usize, all_parents: bool, progress: &Progress) -> Res
                 })
                 .collect();
             if !relevant.is_empty() {
-                let mut relevant = relevant;
                 relevant.sort_unstable();
                 items.push(json!({ "commit": sha, "subject": subject, "query": ident, "relevant": relevant }));
                 break;
@@ -223,8 +204,9 @@ fn order(bin: &Path, ws: &Workspace, variant: &str, q: &str) -> Result<Vec<Strin
         "rank" => s(&["-l", "-F", "--rank", "--budget", "100000", "--", q]),
         _ => return Err(format!("unknown variant {variant}")),
     };
-    let (lines, ..) = cli::run_with(bin, ws, &args, 1_000_000, Duration::from_secs(120))?;
-    let lines = lines
+    let run = cli::run(bin, ws, &args, 1_000_000, Duration::from_secs(120))?;
+    let lines = run
+        .lines
         .into_iter()
         .filter(|l| !l.is_empty() && !l.starts_with('#'));
     if variant == "count" {

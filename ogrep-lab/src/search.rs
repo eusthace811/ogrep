@@ -25,7 +25,8 @@ pub fn pattern(req: &Request) -> Result<Pattern<'_>, String> {
     })
 }
 
-/// The ogrep flags for a pattern's matching options, ending with the pattern.
+/// The ogrep flags for a pattern's matching options (the pattern itself goes
+/// last, through `pattern_arg`).
 fn matching_args(p: &Pattern) -> Vec<String> {
     let mut args = Vec::new();
     if p.fixed {
@@ -85,12 +86,12 @@ pub fn search(ws: &Workspace, req: &Request) -> Result<Value, String> {
         args.push(format!("--glob={g}"));
     }
     pattern_arg(&p, &mut args);
-    let out = cli::json(ws, &args, 20_000)?;
+    let (records, run) = cli::json(ws, &args, 20_000)?;
 
     let mut files: Vec<Value> = Vec::new();
     let mut ranks: std::collections::HashMap<String, Value> = Default::default();
     let mut summary = Value::Null;
-    for rec in out.records {
+    for rec in records {
         let data = &rec["data"];
         match rec["type"].as_str() {
             Some("rank") => {
@@ -134,9 +135,9 @@ pub fn search(ws: &Workspace, req: &Request) -> Result<Value, String> {
     Ok(json!({
         "files": files,
         "summary": summary,
-        "truncated": out.truncated,
-        "elapsed_ms": out.elapsed.as_secs_f64() * 1000.0,
-        "notes": out.notes,
+        "truncated": run.truncated,
+        "elapsed_ms": run.elapsed.as_secs_f64() * 1000.0,
+        "notes": run.notes,
         "command": command_line(&args),
     }))
 }
@@ -216,13 +217,13 @@ pub fn feature(ws: &Workspace, req: &Request) -> Result<Value, String> {
             pattern_arg(&p, &mut args);
         }
     }
-    let out = cli::json(ws, &args, req.number("limit", 2000, 20_000))?;
+    let (records, run) = cli::json(ws, &args, req.number("limit", 2000, 20_000))?;
     Ok(json!({
         "mode": mode,
-        "records": out.records,
-        "truncated": out.truncated,
-        "elapsed_ms": out.elapsed.as_secs_f64() * 1000.0,
-        "notes": out.notes,
+        "records": records,
+        "truncated": run.truncated,
+        "elapsed_ms": run.elapsed.as_secs_f64() * 1000.0,
+        "notes": run.notes,
         "command": command_line(&args),
     }))
 }

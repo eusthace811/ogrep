@@ -11,15 +11,21 @@ mod latency;
 mod localize;
 pub mod sample;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{Result, anyhow};
 use serde_json::{Map, Value, json};
 
-use crate::workspace::Workspace;
+use crate::workspace::{Workspace, ogrep_version};
+
+/// A lock that survives a panicked holder: the data here is progress and
+/// results, still worth showing.
+fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
+    m.lock().unwrap_or_else(|e| e.into_inner())
+}
 
 /// How a suite's metrics read: for charts and for colouring differences.
 pub struct Metric {
@@ -86,7 +92,7 @@ pub struct Progress {
 
 impl Progress {
     pub fn phase(&self, phase: &str, total: usize) {
-        *self.phase.lock().unwrap_or_else(|e| e.into_inner()) = phase.to_string();
+        *lock(&self.phase) = phase.to_string();
         self.total.store(total, Ordering::Relaxed);
         self.done.store(0, Ordering::Relaxed);
         self.log(phase);
@@ -97,7 +103,7 @@ impl Progress {
     }
 
     pub fn log(&self, line: &str) {
-        let mut log = self.log.lock().unwrap_or_else(|e| e.into_inner());
+        let mut log = lock(&self.log);
         log.push(line.to_string());
         if log.len() > 400 {
             log.drain(..100);
@@ -118,10 +124,14 @@ struct Job {
     suite: &'static str,
     started: Instant,
     progress: Arc<Progress>,
-    /// `None` while running; the saved run id or the error when finished.
-    result: Arc<Mutex<Option<Result<String, String>>>>,
-    /// Seconds the job took, once finished.
-    took: Arc<Mutex<Option<f64>>>,
+    /// `None` while running.
+    finished: Arc<Mutex<Option<Finished>>>,
+}
+
+struct Finished {
+    /// The saved run's id, or the error.
+    result: Result<String, String>,
+    took_s: f64,
 }
 
 /// One evaluation at a time: they time processes, and two at once would skew
@@ -140,34 +150,29 @@ impl Jobs {
     ) -> Result<Value, String> {
         let suite = suite(suite_id).ok_or_else(|| format!("unknown suite `{suite_id}`"))?;
         (suite.ready)(&ws)?;
-        let mut current = self.current.lock().unwrap_or_else(|e| e.into_inner());
+        let mut current = lock(&self.current);
         if let Some(job) = current.as_ref()
-            && job
-                .result
-                .lock()
-                .unwrap_or_else(|e| e.into_inner())
-                .is_none()
+            && lock(&job.finished).is_none()
         {
             return Err(format!("{} is still running", job.suite));
         }
         let id = run_id(suite.id);
         let progress = Arc::new(Progress::default());
-        let result = Arc::new(Mutex::new(None));
-        let took = Arc::new(Mutex::new(None));
+        let finished = Arc::new(Mutex::new(None));
         let started = Instant::now();
         let job = Job {
             id: id.clone(),
             suite: suite.id,
             started,
             progress: progress.clone(),
-            result: result.clone(),
-            took: took.clone(),
+            finished: finished.clone(),
         };
         std::thread::spawn(move || {
-            let outcome = execute(&ws, suite, &id, &params, &progress);
-            *took.lock().unwrap_or_else(|e| e.into_inner()) = Some(started.elapsed().as_secs_f64());
-            *result.lock().unwrap_or_else(|e| e.into_inner()) =
-                Some(outcome.map_err(|e| e.to_string()));
+            let result = execute(&ws, suite, &id, &params, &progress).map_err(|e| e.to_string());
+            *lock(&finished) = Some(Finished {
+                result,
+                took_s: started.elapsed().as_secs_f64(),
+            });
         });
         let status = job_status(&job);
         *current = Some(job);
@@ -175,24 +180,11 @@ impl Jobs {
     }
 
     pub fn status(&self) -> Value {
-        match self
-            .current
-            .lock()
-            .unwrap_or_else(|e| e.into_inner())
-            .as_ref()
-        {
-            Some(job) => job_status(job),
-            None => Value::Null,
-        }
+        lock(&self.current).as_ref().map_or(Value::Null, job_status)
     }
 
     pub fn cancel(&self) {
-        if let Some(job) = self
-            .current
-            .lock()
-            .unwrap_or_else(|e| e.into_inner())
-            .as_ref()
-        {
+        if let Some(job) = lock(&self.current).as_ref() {
             job.progress.cancel.store(true, Ordering::Relaxed);
         }
     }
@@ -200,23 +192,22 @@ impl Jobs {
 
 fn job_status(job: &Job) -> Value {
     let p = &job.progress;
-    let result = job.result.lock().unwrap_or_else(|e| e.into_inner());
-    let log = p.log.lock().unwrap_or_else(|e| e.into_inner());
+    let finished = lock(&job.finished);
+    let log = lock(&p.log);
+    let result = finished.as_ref().map(|f| &f.result);
     json!({
         "id": job.id,
         "suite": job.suite,
-        "elapsed_s": job
-            .took
-            .lock()
-            .unwrap_or_else(|e| e.into_inner())
-            .unwrap_or_else(|| job.started.elapsed().as_secs_f64()),
-        "phase": *p.phase.lock().unwrap_or_else(|e| e.into_inner()),
+        "elapsed_s": finished
+            .as_ref()
+            .map_or_else(|| job.started.elapsed().as_secs_f64(), |f| f.took_s),
+        "phase": *lock(&p.phase),
         "done": p.done.load(Ordering::Relaxed),
         "total": p.total.load(Ordering::Relaxed),
         "log": log.iter().rev().take(12).rev().collect::<Vec<_>>(),
-        "running": result.is_none(),
-        "run": result.as_ref().and_then(|r| r.as_ref().ok()),
-        "error": result.as_ref().and_then(|r| r.as_ref().err()),
+        "running": finished.is_none(),
+        "run": result.and_then(|r| r.as_ref().ok()),
+        "error": result.and_then(|r| r.as_ref().err()),
     })
 }
 
@@ -255,19 +246,9 @@ fn execute(
 fn environment(ws: &Workspace, params: &Value) -> Result<Value> {
     let index = ws.index()?;
     let bin = ogrep_for(ws, params)?;
-    let version = std::process::Command::new(&bin)
-        .arg("--version")
-        .output()
-        .ok()
-        .map(|o| {
-            String::from_utf8_lossy(&o.stdout)
-                .trim()
-                .trim_start_matches("ogrep ")
-                .to_string()
-        });
     Ok(json!({
+        "ogrep_version": ogrep_version(&bin),
         "ogrep": bin,
-        "ogrep_version": version,
         "head": git_head(ws),
         "index_updated_at": index.meta.updated_at,
         "files": index.meta.num_files,
@@ -295,16 +276,29 @@ pub fn ogrep_for(ws: &Workspace, params: &Value) -> Result<PathBuf> {
     }
 }
 
-pub fn git_head(ws: &Workspace) -> Option<String> {
+/// `git -C ROOT ARGS`, with paths printed unquoted; its output, or its
+/// complaint as the error.
+pub fn git(root: &Path, args: &[&str]) -> Result<String> {
     let out = std::process::Command::new("git")
         .arg("-C")
-        .arg(&ws.root)
-        .args(["rev-parse", "HEAD"])
-        .output()
-        .ok()?;
-    out.status
-        .success()
-        .then(|| String::from_utf8_lossy(&out.stdout).trim().to_string())
+        .arg(root)
+        .args(["-c", "core.quotepath=off"])
+        .args(args)
+        .output()?;
+    if !out.status.success() {
+        return Err(anyhow!(
+            "git {}: {}",
+            args.first().unwrap_or(&""),
+            String::from_utf8_lossy(&out.stderr).trim()
+        ));
+    }
+    Ok(String::from_utf8_lossy(&out.stdout).into_owned())
+}
+
+fn git_head(ws: &Workspace) -> Option<String> {
+    git(&ws.root, &["rev-parse", "HEAD"])
+        .ok()
+        .map(|s| s.trim().to_string())
 }
 
 fn now() -> u64 {

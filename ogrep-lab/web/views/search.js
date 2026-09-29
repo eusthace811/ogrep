@@ -3,15 +3,15 @@
 
 import {
   h, clear, api, aborted, n, ms, pct, compact, pathLabel, marked, href, replace, debounce, copy,
-  segmented, toggle, loading, errorBox, empty,
+  segmented, toggle, errorBox, empty,
 } from "../lib.js";
 
 const LENSES = [
   { id: "matches", label: "Matches" },
-  { id: "near", label: "Related files", needsGraph: true },
-  { id: "map", label: "Map", needsGraph: true },
+  { id: "near", label: "Related files" },
+  { id: "map", label: "Map" },
   { id: "callers", label: "Callers" },
-  { id: "callees", label: "Callees", needsGraph: true },
+  { id: "callees", label: "Callees" },
 ];
 
 const DEFAULTS = { q: "", lens: "matches", fixed: "", case: "smart", word: "", rank: "", scope: "", kind: "", in: "", glob: "", context: "0" };
@@ -19,10 +19,11 @@ const DEFAULTS = { q: "", lens: "matches", fixed: "", case: "smart", word: "", r
 let st = { ...DEFAULTS };
 let els = {};
 let lastKey = null;
+let lastPlanKey = null;
 
-function params(extra = {}) {
-  const p = { q: st.q, fixed: st.fixed === "1", case: st.case, word: st.word === "1", ...extra };
-  return p;
+/// The matching options, which are all the query plan depends on.
+function params() {
+  return { q: st.q, fixed: st.fixed === "1", case: st.case, word: st.word === "1" };
 }
 
 function syncUrl() {
@@ -229,6 +230,7 @@ async function run() {
     clear(els.results, empty("Type a pattern. ", h("kbd", null, "/"), " focuses the search box from anywhere."));
     clear(els.status);
     clear(els.plan, h("p", { class: "faint small" }, "The query plan appears here."));
+    lastPlanKey = null;
     return;
   }
   clear(els.status, h("span", { class: "loading" }, "Searching"));
@@ -265,32 +267,40 @@ function cmd(command) {
 }
 
 async function loadPlan() {
+  // Ranking, scope, filters and lenses do not change the plan; verifying it
+  // can read thousands of files, so only a new pattern or option re-plans.
+  const key = JSON.stringify(params());
+  if (key === lastPlanKey) return;
+  lastPlanKey = key;
   clear(els.plan, h("div", { class: "loading small" }, "Planning"));
   try {
     const p = await api("plan", params(), { slot: "plan" });
     clear(els.plan, renderPlan(p));
   } catch (e) {
-    if (!aborted(e)) clear(els.plan, errorBox(e));
+    if (aborted(e)) return;
+    lastPlanKey = null;
+    clear(els.plan, errorBox(e));
   }
 }
 
 const runSoon = debounce(run, 300);
 
-function set(k, v, now = true) {
+function set(k, v) {
   st[k] = v;
-  if (now) run();
+  run();
 }
 
 function mount(root) {
   const input = h("input", {
     class: "field query", placeholder: "Pattern (regex)", "aria-label": "Search pattern", "data-primary": "", spellcheck: "false", autocomplete: "off",
     oninput: () => { st.q = input.value; runSoon(); },
-    onkeydown: (e) => { if (e.key === "Enter") { st.q = input.value; lastKey = null; run(); } },
+    onkeydown: (e) => { if (e.key === "Enter") { st.q = input.value; lastKey = lastPlanKey = null; run(); } },
   });
+  const placeholder = () => { input.placeholder = st.fixed ? "Pattern (fixed string)" : "Pattern (regex)"; };
   const mode = segmented([
     { value: "", label: ".*", title: "Regular expression", mono: true },
     { value: "1", label: "abc", title: "Fixed string", mono: true },
-  ], st.fixed, (v) => { set("fixed", v); input.placeholder = v ? "Pattern (fixed string)" : "Pattern (regex)"; });
+  ], st.fixed, (v) => { set("fixed", v); placeholder(); });
   const cs = segmented([
     { value: "smart", label: "Smart", title: "Ignore case unless the pattern has uppercase (-S)" },
     { value: "sensitive", label: "Aa", title: "Case-sensitive (-s)" },
@@ -316,7 +326,7 @@ function mount(root) {
   drawLenses();
 
   els = {
-    input, mode, cs, word, rank, scope, kind, zone, ctx, glob, drawLenses,
+    input, mode, cs, word, rank, scope, kind, zone, ctx, glob, drawLenses, placeholder,
     status: h("div", { class: "statusline", "aria-live": "polite" }),
     results: h("div"),
     plan: h("div"),
@@ -338,6 +348,7 @@ function route(p) {
   st = next;
   els.input.value = st.q;
   els.mode.set(st.fixed);
+  els.placeholder();
   els.cs.set(st.case);
   els.word.set(st.word === "1");
   els.rank.set(st.rank === "1");

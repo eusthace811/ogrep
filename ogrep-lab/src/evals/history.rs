@@ -7,14 +7,13 @@
 //! shallow clone's boundary commits.
 
 use std::collections::HashSet;
-use std::process::Command;
 use std::time::{Duration, Instant};
 
 use anyhow::{Result, anyhow};
 use rayon::prelude::*;
 use serde_json::{Map, Value, json};
 
-use super::{Metric, Outcome, Progress, Suite, median, ogrep_for, param_usize, pool, sample};
+use super::{Metric, Outcome, Progress, Suite, git, median, ogrep_for, param_usize, pool, sample};
 use crate::cli;
 use crate::workspace::Workspace;
 
@@ -59,21 +58,6 @@ fn ready(ws: &Workspace) -> Result<(), String> {
     Ok(())
 }
 
-fn git(ws: &Workspace, args: &[&str]) -> Result<String> {
-    let out = Command::new("git")
-        .arg("-C")
-        .arg(&ws.root)
-        .args(args)
-        .output()?;
-    if !out.status.success() {
-        return Err(anyhow!(
-            "git: {}",
-            String::from_utf8_lossy(&out.stderr).trim()
-        ));
-    }
-    Ok(String::from_utf8_lossy(&out.stdout).into_owned())
-}
-
 fn run(ws: &Workspace, params: &Value, progress: &Progress) -> Result<Outcome> {
     let n = param_usize(params, "patterns", 20, 500);
     let bin = ogrep_for(ws, params)?;
@@ -87,7 +71,7 @@ fn run(ws: &Workspace, params: &Value, progress: &Progress) -> Result<Outcome> {
         args.push(d);
     }
     args.push(&meta.head);
-    let listing = git(ws, &args)?;
+    let listing = git(&ws.root, &args)?;
     let rows: Vec<(&str, i64)> = listing
         .lines()
         .filter_map(|l| {
@@ -127,8 +111,7 @@ fn run(ws: &Workspace, params: &Value, progress: &Progress) -> Result<Outcome> {
                     .iter()
                     .map(|s| s.to_string())
                     .collect();
-                let (lines, ..) =
-                    cli::run_with(&bin, ws, &args, 1_000_000, Duration::from_secs(300))?;
+                let lines = cli::run(&bin, ws, &args, 1_000_000, Duration::from_secs(300))?.lines;
                 let ogrep_ms = t0.elapsed().as_secs_f64() * 1000.0;
                 let ours: HashSet<String> = lines
                     .iter()
@@ -141,7 +124,7 @@ fn run(ws: &Workspace, params: &Value, progress: &Progress) -> Result<Outcome> {
                     gargs.push(s);
                 }
                 gargs.extend(["-G", q.as_str(), meta.head.as_str()]);
-                let theirs: HashSet<String> = git(ws, &gargs)
+                let theirs: HashSet<String> = git(&ws.root, &gargs)
                     .map_err(|e| e.to_string())?
                     .split_whitespace()
                     .filter(|s| covered.contains(s))

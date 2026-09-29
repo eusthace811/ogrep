@@ -75,17 +75,15 @@ function palette() {
   const close = () => { back.remove(); document.removeEventListener("keydown", onKey, true); };
   const pick = (it) => {
     close();
-    if (it.symbol) go("files", { path: it.path, line: it.line });
-    else go("files", { path: it.path });
+    go("files", { path: it.path, line: it.line });
   };
   const draw = () => {
     clear(list, items.map((it, i) => {
       const slash = it.path.lastIndexOf("/");
-      const li = h("li", { role: "option", "aria-selected": String(i === sel), onclick: () => pick(it) },
+      return h("li", { role: "option", "aria-selected": String(i === sel), onclick: () => pick(it) },
         it.symbol
           ? [h("b", null, it.symbol), h("span", { class: "dir" }, `${it.path}:${it.line}`), h("span", { class: "side" }, it.kind)]
           : [h("span", null, h("span", { class: "dir" }, it.path.slice(0, slash + 1)), it.path.slice(slash + 1))]);
-      return li;
     }));
     list.children[sel]?.scrollIntoView({ block: "nearest" });
   };
@@ -128,7 +126,7 @@ document.addEventListener("keydown", (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); palette(); return; }
   if (typing(document.activeElement) || e.ctrlKey || e.metaKey || e.altKey) return;
   if (e.key === "/") {
-    const input = [...main.querySelectorAll(".view:not([hidden]) [data-primary]")][0];
+    const input = main.querySelector(".view:not([hidden]) [data-primary]");
     if (input) { e.preventDefault(); input.focus(); input.select?.(); }
   } else if (/^[1-7]$/.test(e.key)) {
     go(VIEWS[Number(e.key) - 1].id);

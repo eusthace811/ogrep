@@ -11,6 +11,11 @@ use serde_json::{Value, json};
 
 use crate::workspace::{GraphView, Workspace};
 
+fn require_graph(ws: &Workspace) -> Result<std::sync::Arc<GraphView>> {
+    ws.graph()
+        .ok_or_else(|| anyhow!("no file graph; build it with `ogrep index --graph`"))
+}
+
 /// Files larger than this are shown truncated.
 const MAX_SHOWN: usize = 2 << 20;
 
@@ -110,7 +115,7 @@ pub fn file(ws: &Workspace, path: &str) -> Result<Value> {
     let graph = ws.graph();
     let (outline, uses, used_by, pagerank) = match graph
         .as_deref()
-        .zip(graph.as_ref().and_then(|g| g.graph.file(path)))
+        .and_then(|g| Some((g, g.graph.file(path)?)))
     {
         Some((g, id)) => {
             let outline: Vec<Value> = g.graph.defs_in(id).into_iter().map(def_json).collect();
@@ -157,15 +162,15 @@ fn identifier_set(text: &str) -> HashSet<&str> {
 }
 
 /// Names `target` defines that appear in `words`: why a link exists.
-fn linking_names(g: &GraphView, target: u32, words: &HashSet<&str>) -> Vec<String> {
-    let mut names: Vec<String> = g
+fn linking_names<'g>(g: &'g GraphView, target: u32, words: &HashSet<&str>) -> Vec<&'g str> {
+    let mut names: Vec<&str> = g
         .graph
         .defs_in(target)
         .into_iter()
         .filter(|d| d.linkable && words.contains(d.name.as_str()))
-        .map(|d| d.name.clone())
+        .map(|d| d.name.as_str())
         .collect();
-    names.sort();
+    names.sort_unstable();
     names.dedup();
     names.truncate(6);
     names
@@ -176,12 +181,6 @@ fn linking_names(g: &GraphView, target: u32, words: &HashSet<&str>) -> Vec<Strin
 /// the evidence, since the graph stores weights, not names.
 fn incoming_with_evidence(ws: &Workspace, g: &GraphView, id: u32, n: usize) -> Vec<Value> {
     let links = strongest(g.incoming[id as usize].clone(), n);
-    let defs: Vec<&Def> = g
-        .graph
-        .defs_in(id)
-        .into_iter()
-        .filter(|d| d.linkable)
-        .collect();
     links
         .par_iter()
         .map(|&(from, w)| {
@@ -192,15 +191,7 @@ fn incoming_with_evidence(ws: &Workspace, g: &GraphView, id: u32, n: usize) -> V
                 .and_then(|f| std::fs::read(f).ok())
                 .map(|b| String::from_utf8_lossy(&b).into_owned())
                 .unwrap_or_default();
-            let words = identifier_set(&text);
-            let mut via: Vec<&str> = defs
-                .iter()
-                .filter(|d| words.contains(d.name.as_str()))
-                .map(|d| d.name.as_str())
-                .collect();
-            via.sort_unstable();
-            via.dedup();
-            via.truncate(6);
+            let via = linking_names(g, id, &identifier_set(&text));
             json!({ "path": path, "weight": w, "via": via })
         })
         .collect()
@@ -210,9 +201,7 @@ fn incoming_with_evidence(ws: &Workspace, g: &GraphView, id: u32, n: usize) -> V
 /// both directions, optionally their strongest links, and every link among the
 /// chosen files.
 pub fn neighbourhood(ws: &Workspace, path: &str, per_side: usize, hops: usize) -> Result<Value> {
-    let g = ws
-        .graph()
-        .ok_or_else(|| anyhow!("no file graph; build it with `ogrep index --graph`"))?;
+    let g = require_graph(ws)?;
     let center = g
         .graph
         .file(path)
@@ -267,9 +256,7 @@ pub fn neighbourhood(ws: &Workspace, path: &str, per_side: usize, hops: usize) -
 
 /// Files by global PageRank: the ones everything else leans on.
 pub fn central(ws: &Workspace, limit: usize) -> Result<Value> {
-    let g = ws
-        .graph()
-        .ok_or_else(|| anyhow!("no file graph; build it with `ogrep index --graph`"))?;
+    let g = require_graph(ws)?;
     let mut order: Vec<u32> = (0..g.graph.files.len() as u32).collect();
     order.sort_by(|&a, &b| {
         g.graph.pagerank[b as usize]
@@ -296,9 +283,7 @@ pub fn central(ws: &Workspace, limit: usize) -> Result<Value> {
 /// Definitions whose name contains `query` (case-insensitive), exact matches
 /// first.
 pub fn symbols(ws: &Workspace, query: &str, limit: usize) -> Result<Value> {
-    let g = ws
-        .graph()
-        .ok_or_else(|| anyhow!("no file graph; build it with `ogrep index --graph`"))?;
+    let g = require_graph(ws)?;
     let q = query.to_lowercase();
     let mut hits: Vec<(u8, usize, &Def)> = g
         .graph

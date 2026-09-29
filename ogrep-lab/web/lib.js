@@ -40,34 +40,34 @@ export function clear(el, ...children) {
   return el;
 }
 
-export const svgNS = "http://www.w3.org/2000/svg";
 export function s(tag, attrs, ...children) {
-  const el = document.createElementNS(svgNS, tag);
+  const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
   for (const [k, v] of Object.entries(attrs || {})) {
     if (v === undefined || v === null) continue;
     if (k.startsWith("on") && typeof v === "function") el.addEventListener(k.slice(2), v);
     else el.setAttribute(k, v);
   }
-  for (const c of children.flat()) {
-    if (c === undefined || c === null || c === false) continue;
-    el.appendChild(c instanceof Node ? c : document.createTextNode(String(c)));
-  }
+  append(el, children);
   return el;
 }
 
 // ── API ──────────────────────────────────────────────────
 
-export class ApiError extends Error {}
-
-/// GET /api/<path>?params, or POST with a JSON body. Requests for the same
-/// slot cancel the previous one, so typing never shows stale results.
-const inflight = new Map();
-export async function api(path, params = {}, { slot, body } = {}) {
+/// `?k=v` for the set values: empty, false and missing ones are left out, and
+/// true is sent as 1.
+function query(params) {
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
     if (v === undefined || v === null || v === false || v === "") continue;
     qs.set(k, v === true ? "1" : String(v));
   }
+  return qs.size ? `?${qs}` : "";
+}
+
+/// GET /api/<path>?params, or POST with a JSON body. Requests for the same
+/// slot cancel the previous one, so typing never shows stale results.
+const inflight = new Map();
+export async function api(path, params = {}, { slot, body } = {}) {
   let signal;
   if (slot) {
     inflight.get(slot)?.abort();
@@ -75,7 +75,7 @@ export async function api(path, params = {}, { slot, body } = {}) {
     inflight.set(slot, ctl);
     signal = ctl.signal;
   }
-  const url = `/api/${path}${qs.size ? "?" + qs : ""}`;
+  const url = `/api/${path}${query(params)}`;
   const init = body === undefined
     ? { signal }
     : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal };
@@ -84,11 +84,11 @@ export async function api(path, params = {}, { slot, body } = {}) {
     res = await fetch(url, init);
   } catch (e) {
     if (e.name === "AbortError") throw e;
-    throw new ApiError("ogrep-lab is not responding; is it still running?");
+    throw new Error("ogrep-lab is not responding; is it still running?");
   }
-  if (res.status === 403) throw new ApiError("Access expired: open the URL ogrep-lab printed at start.");
+  if (res.status === 403) throw new Error("Access expired: open the URL ogrep-lab printed at start.");
   const data = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
-  if (!res.ok || data.error) throw new ApiError(data.error || `HTTP ${res.status}`);
+  if (!res.ok || data.error) throw new Error(data.error || `HTTP ${res.status}`);
   return data;
 }
 
@@ -205,12 +205,7 @@ export function parseHash(hash = location.hash) {
 }
 
 export function href(view, params = {}) {
-  const qs = new URLSearchParams();
-  for (const [k, v] of Object.entries(params)) {
-    if (v === undefined || v === null || v === false || v === "") continue;
-    qs.set(k, v === true ? "1" : String(v));
-  }
-  return `#/${view}${qs.size ? "?" + qs : ""}`;
+  return `#/${view}${query(params)}`;
 }
 
 export function go(view, params) {

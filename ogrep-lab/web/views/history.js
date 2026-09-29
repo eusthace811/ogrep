@@ -19,22 +19,25 @@ function sync() {
   replace("history", p);
 }
 
+/// "Name <email>" → "Name".
+const who = (author) => author.replace(/\s*<.*>$/, "");
+
 function where(x) {
   return h("a", { class: "mono small", href: href("files", { path: x.path }) }, `${x.path}:${x.line_number}`);
 }
 
 function introduced(rec) {
   if (!rec) return empty("No commit in the indexed history added or removed a matching line.");
-  const commitLink = (c) => h("a", { href: "#", class: "mono", onclick: (e) => { e.preventDefault(); openCommit(c.sha); } }, short(c.sha));
+  const event = (c) => [
+    h("b", null, date(c.time)), " in ",
+    h("a", { href: "#", class: "mono", onclick: (e) => { e.preventDefault(); openCommit(c.sha); } }, short(c.sha)),
+    " by ", who(c.author), h("div", { class: "muted" }, c.subject), where(c),
+  ];
   return h("dl", { class: "intro" },
     h("dt", null, "First added"),
-    h("dd", null, rec.first_added
-      ? [h("b", null, date(rec.first_added.time)), " in ", commitLink(rec.first_added), " by ", rec.first_added.author.replace(/\s*<.*>$/, ""), h("div", { class: "muted" }, rec.first_added.subject), where(rec.first_added)]
-      : "–"),
+    h("dd", null, rec.first_added ? event(rec.first_added) : "–"),
     h("dt", null, "Last removed"),
-    h("dd", null, rec.last_removed
-      ? [h("b", null, date(rec.last_removed.time)), " in ", commitLink(rec.last_removed), " by ", rec.last_removed.author.replace(/\s*<.*>$/, ""), h("div", { class: "muted" }, rec.last_removed.subject), where(rec.last_removed)]
-      : h("span", { class: "faint" }, "never removed")),
+    h("dd", null, rec.last_removed ? event(rec.last_removed) : h("span", { class: "faint" }, "never removed")),
     h("dt", null, "At HEAD"),
     h("dd", null, rec.files_at_head ? `in ${n(rec.files_at_head)} files` : h("span", { class: "accent" }, "gone: no file matches at HEAD")),
     h("dt", null, "Changed by"),
@@ -83,7 +86,7 @@ async function openCommit(sha, into) {
     }
     clear(target,
       into ? null : h("h2", null, "Commit ", h("span", { class: "mono" }, short(c.sha))),
-      h("div", { class: "small muted" }, `${c.author.replace(/\s*<.*>$/, "")} · ${date(c.time)} · `, h("a", { href: "#", onclick: (e) => { e.preventDefault(); copy(c.sha); } }, "copy id")),
+      h("div", { class: "small muted" }, `${who(c.author)} · ${date(c.time)} · `, h("a", { href: "#", onclick: (e) => { e.preventDefault(); copy(c.sha); } }, "copy id")),
       h("div", { class: "message" }, c.message),
       h("div", { class: "diff" }, rows),
       c.truncated ? h("div", { class: "note" }, "Diff cut at 600 KB.") : null);
@@ -109,7 +112,7 @@ function commitRow(c) {
     filled = true;
     const diff = h("div");
     clear(body,
-      h("div", { class: "author" }, c.author.replace(/\s*<.*>$/, "")),
+      h("div", { class: "author" }, who(c.author)),
       c.matches.slice(0, 60).map((m) => h("div", { class: `change ${m.change}` },
         h("span", { class: "sign" }, m.change === "added" ? "+" : "−"),
         h("span", null,
@@ -148,7 +151,7 @@ async function run() {
       intro.notes || hist.notes ? h("div", { class: "note" }, intro.notes || hist.notes) : null,
       introduced(rec),
       bs.length > 1 ? [
-        h("h2", null, "Matching lines per ", bs.length && bs[0].label.startsWith("Q") ? "quarter" : "month"),
+        h("h2", null, "Matching lines per ", bs[0].label.startsWith("Q") ? "quarter" : "month"),
         mirrored(bs, { onPick: (b) => {
           const c = commits.find((x) => x.time >= b.t0 && x.time < b.t1);
           if (c) document.getElementById(`c-${c.sha}`)?.scrollIntoView({ block: "center" });
@@ -167,10 +170,8 @@ function mount(root) {
     onkeydown: (e) => { if (e.key === "Enter") { st.q = input.value; run(); } } });
   const mode = segmented([{ value: "", label: ".*", mono: true, title: "Regular expression" }, { value: "1", label: "abc", mono: true, title: "Fixed string" }], st.fixed, (v) => { st.fixed = v; run(); });
   const cs = segmented([{ value: "smart", label: "Smart" }, { value: "sensitive", label: "Aa" }, { value: "insensitive", label: "aa" }], st.case, (v) => { st.case = v; run(); });
-  const field = (key, placeholder, label) => {
-    const el = h("input", { class: "field narrow", placeholder, "aria-label": label, onchange: () => { st[key] = el.value.trim(); run(); } });
-    return el;
-  };
+  const field = (key, placeholder, label) =>
+    h("input", { class: "field narrow", placeholder, "aria-label": label, onchange: (e) => { st[key] = e.target.value.trim(); run(); } });
   els = {
     input, mode, cs,
     since: field("since", "since: 2y, 2024-01-01", "Since"),

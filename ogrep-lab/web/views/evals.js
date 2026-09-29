@@ -1,7 +1,7 @@
 // Evals: run the suites, follow a run, read saved runs, chart them over time
 // and compare two.
 
-import { h, clear, api, aborted, n, ms, pct, metric, datetime, ago, short, href, go, loading, errorBox, empty, table, segmented, toast } from "../lib.js";
+import { h, clear, api, aborted, n, ms, metric, datetime, ago, short, href, go, loading, errorBox, empty, table, segmented, toast } from "../lib.js";
 import { lines, legend } from "../charts.js";
 
 const PARAMS = {
@@ -326,7 +326,8 @@ function deltaCell(a, b, m) {
   if (a === undefined || b === undefined) return h("td", { class: "num faint" }, "–");
   const d = b - a;
   const better = m.higher_is_better ? d > 0 : d < 0;
-  const rel = a ? d / Math.abs(a) : 0;
+  // From zero, any change is a real one (0 mismatches to 3 is not noise).
+  const rel = a ? d / Math.abs(a) : d ? Infinity : 0;
   // Timings move a few percent between identical runs; do not colour noise.
   const tiny = Math.abs(rel) < (m.unit === "ms" ? 0.03 : 0.005);
   const sign = d > 0 ? "+" : d < 0 ? "\u2212" : "\u00b1";
@@ -342,28 +343,23 @@ async function showCompare(a, b) {
     if (A.suite !== B.suite) throw new Error("These runs are of different suites.");
     const suite = suiteOf(A.suite);
     const variants = variantsOf(A).filter((v) => v in B.summary);
-    const itemDiff = [];
-    if (A.suite === "localize") {
-      const key = (r) => `${r.commit}:${r.query}`;
-      const byKey = new Map(B.items.map((r) => [key(r), r]));
-      for (const r of A.items) {
-        const o = byKey.get(key(r));
-        if (!o) continue;
-        for (const v of variants) if (r.positions[v] !== o.positions[v]) itemDiff.push({ query: r.query, subject: r.subject, variant: v, a: r.positions[v], b: o.positions[v] });
-      }
-    } else if (A.suite === "latency") {
-      const byQ = new Map(B.items.map((r) => [r.query, r]));
-      for (const r of A.items) {
-        const o = byQ.get(r.query);
-        if (o) for (const v of variants) itemDiff.push({ query: r.query, variant: v, a: r.ms[v], b: o.ms[v], ratio: o.ms[v] / r.ms[v] });
-      }
-    } else {
-      const byQ = new Map(B.items.map((r) => [r.query, r]));
-      for (const r of A.items) { const o = byQ.get(r.query); if (o && o.agree !== r.agree) itemDiff.push({ query: r.query, a: r.agree, b: o.agree }); }
-    }
+    // Items pair up by task (a query can come from two commits) or by query.
     const key = (r) => (A.suite === "localize" ? `${r.commit}:${r.query}` : r.query);
-    const inB = new Set(B.items.map(key));
-    const shared = A.items.filter((r) => inB.has(key(r))).length;
+    const inB = new Map(B.items.map((r) => [key(r), r]));
+    const itemDiff = [];
+    let shared = 0;
+    for (const r of A.items) {
+      const o = inB.get(key(r));
+      if (!o) continue;
+      shared++;
+      if (A.suite === "localize") {
+        for (const v of variants) if (r.positions[v] !== o.positions[v]) itemDiff.push({ query: r.query, subject: r.subject, variant: v, a: r.positions[v], b: o.positions[v] });
+      } else if (A.suite === "latency") {
+        for (const v of variants) itemDiff.push({ query: r.query, variant: v, a: r.ms[v], b: o.ms[v], ratio: o.ms[v] / r.ms[v] });
+      } else if (o.agree !== r.agree) {
+        itemDiff.push({ query: r.query, a: r.agree, b: o.agree });
+      }
+    }
     const sameQueries = shared === A.items.length && shared === B.items.length;
     clear(els.detail,
       h("p", null, h("a", { href: href("evals") }, "All runs")),

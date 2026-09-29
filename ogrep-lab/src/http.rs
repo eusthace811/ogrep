@@ -171,7 +171,7 @@ impl Response {
 pub type Handler = dyn Fn(&Request) -> Response + Send + Sync;
 
 pub struct Server {
-    pub listener: TcpListener,
+    listener: TcpListener,
     pub port: u16,
     pub token: String,
 }
@@ -214,6 +214,7 @@ impl Server {
 
 fn connection(stream: TcpStream, port: u16, token: &str, handler: &Handler) -> std::io::Result<()> {
     stream.set_read_timeout(Some(Duration::from_secs(15)))?;
+    stream.set_write_timeout(Some(Duration::from_secs(60)))?;
     let mut reader = BufReader::new(&stream);
     let response = match read_request(&mut reader) {
         Ok(req) => respond(&req, port, token, handler),
@@ -252,7 +253,10 @@ fn respond(req: &Request, port: u16, token: &str, handler: &Handler) -> Response
                 .to_vec(),
         );
     }
-    if req.method == "POST" && req.header("content-type") != Some("application/json") {
+    let json_body = req
+        .header("content-type")
+        .is_some_and(|t| t.split(';').next().unwrap_or("").trim() == "application/json");
+    if req.method == "POST" && !json_body {
         return Response::error(400, "POST bodies must be application/json");
     }
     handler(req)
@@ -352,9 +356,9 @@ fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
     a.len() == b.len() && a.iter().zip(b).fold(0u8, |acc, (x, y)| acc | (x ^ y)) == 0
 }
 
-/// 128 random bits as hex. `RandomState` is seeded from the operating system's
-/// random source on every platform std supports, and each instance draws new
-/// keys, so two of them give 128 bits without a dependency.
+/// 128 random bits as hex, without a dependency. `RandomState` keys SipHash
+/// with 128 bits from the operating system's random source (drawn once per
+/// thread, then varied per instance), so two of its hashes carry those bits.
 fn random_token() -> String {
     use std::hash::{BuildHasher, Hasher};
     let mut out = String::new();
@@ -417,6 +421,22 @@ mod tests {
         );
         assert_eq!(get("localhost:9", None, "/?token=t0k"), 303);
         assert_eq!(get("localhost:9", None, "/?token=bad"), 403);
+    }
+
+    #[test]
+    fn posts_must_be_json() {
+        let handler = |_: &Request| Response::json(&serde_json::json!({}));
+        let post = |ty: &str| {
+            let raw = format!(
+                "POST /api/x HTTP/1.1\r\nHost: 127.0.0.1:9\r\nCookie: ogrep_lab=t\r\n\
+                 Content-Type: {ty}\r\nContent-Length: 2\r\n\r\n{{}}"
+            );
+            let req = read_request(&mut raw.as_bytes()).ok().unwrap();
+            respond(&req, 9, "t", &handler).status
+        };
+        assert_eq!(post("application/json"), 200);
+        assert_eq!(post("application/json; charset=utf-8"), 200);
+        assert_eq!(post("text/plain"), 400);
     }
 
     #[test]

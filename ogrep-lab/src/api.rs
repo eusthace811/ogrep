@@ -9,83 +9,30 @@ use crate::http::{Request, Response};
 use crate::workspace::Workspace;
 use crate::{files, overview, plan, search};
 
-/// The web client, compiled in: no files to install, nothing fetched.
-const ASSETS: &[(&str, &str, &str)] = &[
-    (
-        "/",
-        "text/html; charset=utf-8",
-        include_str!("../web/index.html"),
-    ),
-    (
-        "/app.css",
-        "text/css; charset=utf-8",
-        include_str!("../web/app.css"),
-    ),
-    (
-        "/app.js",
-        "text/javascript; charset=utf-8",
-        include_str!("../web/app.js"),
-    ),
-    (
-        "/lib.js",
-        "text/javascript; charset=utf-8",
-        include_str!("../web/lib.js"),
-    ),
-    (
-        "/charts.js",
-        "text/javascript; charset=utf-8",
-        include_str!("../web/charts.js"),
-    ),
-    (
-        "/graph.js",
-        "text/javascript; charset=utf-8",
-        include_str!("../web/graph.js"),
-    ),
-    (
-        "/code.js",
-        "text/javascript; charset=utf-8",
-        include_str!("../web/code.js"),
-    ),
-    (
-        "/views/index.js",
-        "text/javascript; charset=utf-8",
-        include_str!("../web/views/index.js"),
-    ),
-    (
-        "/views/search.js",
-        "text/javascript; charset=utf-8",
-        include_str!("../web/views/search.js"),
-    ),
-    (
-        "/views/files.js",
-        "text/javascript; charset=utf-8",
-        include_str!("../web/views/files.js"),
-    ),
-    (
-        "/views/graph.js",
-        "text/javascript; charset=utf-8",
-        include_str!("../web/views/graph.js"),
-    ),
-    (
-        "/views/history.js",
-        "text/javascript; charset=utf-8",
-        include_str!("../web/views/history.js"),
-    ),
-    (
-        "/views/ops.js",
-        "text/javascript; charset=utf-8",
-        include_str!("../web/views/ops.js"),
-    ),
-    (
-        "/views/evals.js",
-        "text/javascript; charset=utf-8",
-        include_str!("../web/views/evals.js"),
-    ),
-    (
-        "/favicon.svg",
-        "image/svg+xml",
-        include_str!("../web/favicon.svg"),
-    ),
+/// The web client, compiled in: no files to install, nothing fetched. Each
+/// entry is `(path, content type, body)`; `/` serves `/index.html`.
+macro_rules! assets {
+    ($($file:literal: $ty:expr),* $(,)?) => {
+        &[$((concat!("/", $file), $ty, include_str!(concat!("../web/", $file)))),*]
+    };
+}
+const JS: &str = "text/javascript; charset=utf-8";
+const ASSETS: &[(&str, &str, &str)] = assets![
+    "index.html": "text/html; charset=utf-8",
+    "app.css": "text/css; charset=utf-8",
+    "favicon.svg": "image/svg+xml",
+    "app.js": JS,
+    "lib.js": JS,
+    "charts.js": JS,
+    "graph.js": JS,
+    "code.js": JS,
+    "views/index.js": JS,
+    "views/search.js": JS,
+    "views/files.js": JS,
+    "views/graph.js": JS,
+    "views/history.js": JS,
+    "views/ops.js": JS,
+    "views/evals.js": JS,
 ];
 
 pub struct App {
@@ -96,24 +43,20 @@ pub struct App {
 impl App {
     pub fn handle(&self, req: &Request) -> Response {
         if !req.path.starts_with("/api/") {
-            return match (req.method.as_str(), ASSETS.iter().find(|a| a.0 == req.path)) {
-                ("GET", Some((path, ty, body))) => {
+            let path = if req.path == "/" {
+                "/index.html"
+            } else {
+                &req.path
+            };
+            return match (req.method.as_str(), ASSETS.iter().find(|a| a.0 == path)) {
+                ("GET", Some(&(path, ty, body))) => {
                     // For working on the client: serve the files from disk so
                     // a reload shows an edit without rebuilding. Only the
                     // listed paths are served, so nothing else is reachable.
                     let from_disk = std::env::var_os("OGREP_LAB_WEB_DIR").and_then(|dir| {
-                        let file = if *path == "/" {
-                            "index.html"
-                        } else {
-                            &path[1..]
-                        };
-                        std::fs::read(std::path::Path::new(&dir).join(file)).ok()
+                        std::fs::read(std::path::Path::new(&dir).join(&path[1..])).ok()
                     });
-                    Response::bytes(
-                        200,
-                        ty,
-                        from_disk.unwrap_or_else(|| body.as_bytes().to_vec()),
-                    )
+                    Response::bytes(200, ty, from_disk.unwrap_or_else(|| body.into()))
                 }
                 ("GET", None) => Response::error(404, "not found"),
                 _ => Response::error(405, "method not allowed"),

@@ -124,14 +124,7 @@ impl Workspace {
             .map_err(|e| anyhow!("cannot read the index in {}: {e}", index_dir.display()))?;
         let root = PathBuf::from(&meta.root_path);
         let ogrep = ogrep.or_else(find_ogrep);
-        let ogrep_version = ogrep.as_deref().and_then(|bin| {
-            let out = std::process::Command::new(bin)
-                .arg("--version")
-                .output()
-                .ok()?;
-            let text = String::from_utf8_lossy(&out.stdout);
-            Some(text.trim().trim_start_matches("ogrep ").to_string())
-        });
+        let ogrep_version = ogrep.as_deref().and_then(ogrep_version);
         Ok(Self {
             root,
             index_dir,
@@ -206,6 +199,16 @@ impl Workspace {
         }
         Ok(ogrep_core::hybrid::join_indexed_path(&self.root, path))
     }
+}
+
+/// What `BIN --version` reports, without the program name.
+pub fn ogrep_version(bin: &Path) -> Option<String> {
+    let out = std::process::Command::new(bin)
+        .arg("--version")
+        .output()
+        .ok()?;
+    let text = String::from_utf8_lossy(&out.stdout);
+    Some(text.trim().trim_start_matches("ogrep ").to_string())
 }
 
 /// `ogrep` next to this binary (they are installed together), else on `PATH`.

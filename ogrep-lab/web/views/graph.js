@@ -1,7 +1,7 @@
 // Graph: the neighbourhood of a file in the file graph, entered from the most
 // central files or a definition search.
 
-import { h, clear, api, aborted, n, href, pathLink, go, replace, loading, errorBox, empty, segmented, debounce, state } from "../lib.js";
+import { h, clear, api, aborted, n, href, pathLink, go, replace, errorBox, empty, segmented, debounce, state } from "../lib.js";
 import { ForceGraph } from "../graph.js";
 
 let els = {};
@@ -115,7 +115,6 @@ function mount(root) {
     symbols: h("div", { hidden: true }),
     detail: h("div"),
     status: h("div", { class: "statusline", style: { margin: 0 } }),
-    wrap: null,
   };
   const legend = h("div", { class: "canvas-legend" },
     h("span", null, h("i", { style: { background: "var(--accent)" } }), "this file"),
@@ -128,7 +127,7 @@ function mount(root) {
   clear(root, h("div", { class: "split three" },
     h("nav", { class: "rail left", "aria-label": "Entry points" },
       search, els.symbols,
-      h("div", { hidden: false }, h("h2", { style: { marginTop: "14px" } }, "Most central files"),
+      h("div", null, h("h2", { style: { marginTop: "14px" } }, "Most central files"),
         h("p", { class: "faint small" }, "By PageRank over the links: what the rest of the code leans on."), els.central)),
     els.wrap,
     h("aside", { class: "rail", "aria-label": "Selected file" }, els.detail)));

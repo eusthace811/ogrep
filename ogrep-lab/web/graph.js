@@ -23,8 +23,18 @@ export class ForceGraph {
     this.bind();
     this.resize = this.resize.bind(this);
     new ResizeObserver(this.resize).observe(canvas);
-    window.addEventListener("themechange", () => this.draw());
-    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => this.draw());
+    // Colours come from the theme's custom properties; read them once per
+    // theme rather than on every animation frame.
+    const retheme = () => { this.col = null; this.draw(); };
+    window.addEventListener("themechange", retheme);
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", retheme);
+  }
+
+  colors() {
+    return (this.col ||= {
+      edge: css("--ink-3"), ink: css("--ink"), ink2: css("--ink-2"), accent: css("--accent"),
+      surface: css("--surface"), font: css("--ui"),
+    });
   }
 
   /// nodes: [{id, label, r, kind}], edges: [{from, to, weight}] by index.
@@ -36,7 +46,7 @@ export class ForceGraph {
       const a = i * 2.399963, rad = i === 0 ? 0 : 30 + 22 * Math.sqrt(i);
       return { ...n, x: Math.cos(a) * rad, y: Math.sin(a) * rad, vx: 0, vy: 0 };
     });
-    this.nodes[0] && (this.nodes[0].fixed = true);
+    if (this.nodes[0]) this.nodes[0].fixed = true;
     const maxW = Math.max(1e-9, ...edges.map((e) => e.weight));
     this.edges = edges.filter((e) => e.from !== e.to).map((e) => ({ ...e, w: e.weight / maxW }));
     this.adj = this.nodes.map(() => new Set());
@@ -187,10 +197,7 @@ export class ForceGraph {
     const w = canvas.clientWidth, hgt = canvas.clientHeight;
     ctx.clearRect(0, 0, w, hgt);
     if (!this.nodes.length) return;
-    const col = {
-      edge: css("--ink-3"), ink: css("--ink"), ink2: css("--ink-2"), accent: css("--accent"),
-      surface: css("--surface"), rule: css("--rule-strong"), font: css("--ui"),
-    };
+    const col = this.colors();
     const focus = this.hover;
     const near = focus ? this.adj[this.nodes.indexOf(focus)] : null;
     ctx.save();
@@ -227,14 +234,13 @@ export class ForceGraph {
       if (n.selected) { ctx.lineWidth = 2 / this.view.k; ctx.strokeStyle = col.accent; ctx.beginPath(); ctx.arc(n.x, n.y, n.r + 3 / this.view.k, 0, Math.PI * 2); ctx.stroke(); }
     });
 
-    // Labels: every first-ring node, plus whatever is hovered.
-    const fs = 11 / this.view.k;
-    ctx.font = `${n2(fs)}px ${col.font}`;
+    // Labels: every first-ring node, or the hovered one and its neighbours.
+    ctx.globalAlpha = 1;
+    ctx.font = `${Math.round(1100 / this.view.k) / 100}px ${col.font}`;
     ctx.textBaseline = "middle";
     this.nodes.forEach((n, i) => {
       const show = n === focus || (focus ? near.has(i) : n.depth <= 1 || this.nodes.length < 40);
       if (!show) return;
-      ctx.globalAlpha = focus && n !== focus && !near.has(i) ? 0.25 : 1;
       const x = n.x + n.r + 4 / this.view.k;
       const text = n.label;
       ctx.lineWidth = 3 / this.view.k;
@@ -244,7 +250,6 @@ export class ForceGraph {
       ctx.fillText(text, x, n.y);
     });
     ctx.restore();
-    ctx.globalAlpha = 1;
   }
 
   arrow(p, q, col, lit) {
@@ -262,8 +267,4 @@ export class ForceGraph {
     ctx.closePath();
     ctx.fill();
   }
-}
-
-function n2(x) {
-  return Math.round(x * 100) / 100;
 }

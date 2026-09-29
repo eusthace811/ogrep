@@ -13,37 +13,21 @@ const KW = {
   sh: "if then else elif fi for while until do done case esac function in return local export readonly",
 };
 
-const LANGS = {
-  py: { kw: "py", line: ["#"], triple: true },
-  pyi: { kw: "py", line: ["#"], triple: true },
-  rs: { kw: "rs", line: ["//"], block: ["/*", "*/"] },
-  js: { kw: "js", line: ["//"], block: ["/*", "*/"], backtick: true },
-  mjs: { kw: "js", line: ["//"], block: ["/*", "*/"], backtick: true },
-  cjs: { kw: "js", line: ["//"], block: ["/*", "*/"], backtick: true },
-  jsx: { kw: "js", line: ["//"], block: ["/*", "*/"], backtick: true },
-  ts: { kw: "js", line: ["//"], block: ["/*", "*/"], backtick: true },
-  tsx: { kw: "js", line: ["//"], block: ["/*", "*/"], backtick: true },
-  go: { kw: "go", line: ["//"], block: ["/*", "*/"], backtick: true },
-  c: { kw: "c", line: ["//"], block: ["/*", "*/"] },
-  h: { kw: "c", line: ["//"], block: ["/*", "*/"] },
-  cc: { kw: "c", line: ["//"], block: ["/*", "*/"] },
-  cpp: { kw: "c", line: ["//"], block: ["/*", "*/"] },
-  hpp: { kw: "c", line: ["//"], block: ["/*", "*/"] },
-  cs: { kw: "c", line: ["//"], block: ["/*", "*/"] },
-  java: { kw: "c", line: ["//"], block: ["/*", "*/"] },
-  kt: { kw: "c", line: ["//"], block: ["/*", "*/"] },
-  scala: { kw: "c", line: ["//"], block: ["/*", "*/"] },
-  swift: { kw: "c", line: ["//"], block: ["/*", "*/"] },
-  rb: { kw: "rb", line: ["#"] },
-  php: { kw: "php", line: ["//", "#"], block: ["/*", "*/"] },
-  sh: { kw: "sh", line: ["#"] },
-  bash: { kw: "sh", line: ["#"] },
-  yaml: { line: ["#"] },
-  yml: { line: ["#"] },
-  toml: { line: ["#"] },
-  css: { block: ["/*", "*/"] },
-  sql: { line: ["--"], block: ["/*", "*/"] },
-};
+const C_LIKE = { line: ["//"], block: ["/*", "*/"] };
+const FAMILIES = [
+  ["py pyi", { kw: "py", line: ["#"], triple: true }],
+  ["rs", { kw: "rs", ...C_LIKE }],
+  ["js mjs cjs jsx ts tsx", { kw: "js", ...C_LIKE, backtick: true }],
+  ["go", { kw: "go", ...C_LIKE, backtick: true }],
+  ["c h cc cpp hpp cs java kt scala swift", { kw: "c", ...C_LIKE }],
+  ["rb", { kw: "rb", line: ["#"] }],
+  ["php", { kw: "php", line: ["//", "#"], block: C_LIKE.block }],
+  ["sh bash", { kw: "sh", line: ["#"] }],
+  ["yaml yml toml", { line: ["#"] }],
+  ["css", { block: C_LIKE.block }],
+  ["sql", { line: ["--"], block: C_LIKE.block }],
+];
+const LANGS = Object.fromEntries(FAMILIES.flatMap(([exts, lang]) => exts.split(" ").map((e) => [e, lang])));
 
 const kwSets = {};
 function keywords(name) {

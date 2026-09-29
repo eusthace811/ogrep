@@ -11,33 +11,32 @@ use serde_json::Value;
 
 use crate::workspace::Workspace;
 
-pub struct Output {
-    pub records: Vec<Value>,
-    /// Stopped at the record limit; the rest was not read.
+/// What one ogrep run printed.
+pub struct Run {
+    pub lines: Vec<String>,
+    /// Stopped at the line limit; the rest was not read.
     pub truncated: bool,
     pub elapsed: Duration,
     /// Standard error, for notes such as a stale graph.
     pub notes: String,
 }
 
-/// Run `ogrep --index-path IDX --json ARGS` in the repository root and parse
-/// its JSON lines, reading at most `limit` records.
-///
-/// Exit status 1 means no match, as with grep; only 2 and above are errors.
-pub fn json(ws: &Workspace, args: &[String], limit: usize) -> Result<Output, String> {
+/// Run `ogrep --index-path IDX --json ARGS` in the repository root with the
+/// lab's own binary, and parse its JSON lines, reading at most `limit`.
+pub fn json(ws: &Workspace, args: &[String], limit: usize) -> Result<(Vec<Value>, Run), String> {
+    let bin = ws
+        .ogrep
+        .as_deref()
+        .ok_or("the ogrep binary was not found next to ogrep-lab or on PATH; pass --ogrep")?;
     let mut all = vec!["--json".to_string()];
     all.extend_from_slice(args);
-    let (lines, truncated, elapsed, notes) = run(ws, &all, limit, Duration::from_secs(120))?;
-    let records = lines
+    let run = run(bin, ws, &all, limit, Duration::from_secs(120))?;
+    let records = run
+        .lines
         .iter()
         .filter_map(|l| serde_json::from_str(l).ok())
         .collect();
-    Ok(Output {
-        records,
-        truncated,
-        elapsed,
-        notes,
-    })
+    Ok((records, run))
 }
 
 /// Wall time of one ogrep invocation with its output discarded, as a caller
@@ -67,28 +66,16 @@ fn base(bin: &Path, ws: &Workspace) -> Command {
     cmd
 }
 
-type RunResult = (Vec<String>, bool, Duration, String);
-
-fn run(
-    ws: &Workspace,
-    args: &[String],
-    limit: usize,
-    timeout: Duration,
-) -> Result<RunResult, String> {
-    let bin = ws
-        .ogrep
-        .as_deref()
-        .ok_or("the ogrep binary was not found next to ogrep-lab or on PATH; pass --ogrep")?;
-    run_with(bin, ws, args, limit, timeout)
-}
-
-pub fn run_with(
+/// Run `bin` with `args`, reading at most `limit` lines of its output.
+///
+/// Exit status 1 means no match, as with grep; only 2 and above are errors.
+pub fn run(
     bin: &Path,
     ws: &Workspace,
     args: &[String],
     limit: usize,
     timeout: Duration,
-) -> Result<RunResult, String> {
+) -> Result<Run, String> {
     let start = Instant::now();
     let mut child = base(bin, ws)
         .args(args)
@@ -101,6 +88,9 @@ pub fn run_with(
     let err_reader = std::thread::spawn(move || {
         let mut s = String::new();
         let _ = stderr.by_ref().take(64 * 1024).read_to_string(&mut s);
+        // Keep draining past the cap, or a chatty child would block on a
+        // full pipe and never finish its standard output.
+        let _ = std::io::copy(&mut stderr, &mut std::io::sink());
         s
     });
     let deadline = start + timeout;
@@ -144,5 +134,10 @@ pub fn run_with(
             msg.to_string()
         });
     }
-    Ok((lines, truncated, elapsed, notes.trim().to_string()))
+    Ok(Run {
+        lines,
+        truncated,
+        elapsed,
+        notes: notes.trim().to_string(),
+    })
 }
