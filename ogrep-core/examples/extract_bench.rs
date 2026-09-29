@@ -13,7 +13,10 @@ fn main() {
         .stdout
         .split(|&b| b == 0)
         .filter(|s| !s.is_empty())
-        .filter_map(|n| std::fs::read(std::path::Path::new(&root).join(String::from_utf8_lossy(n).as_ref())).ok())
+        .filter_map(|n| {
+            std::fs::read(std::path::Path::new(&root).join(String::from_utf8_lossy(n).as_ref()))
+                .ok()
+        })
         .filter(|d| d.len() < 4 << 20 && !ogrep_core::trigram::is_binary(d))
         .collect();
     let mb = files.iter().map(Vec::len).sum::<usize>() as f64 / 1e6;
@@ -33,9 +36,13 @@ fn main() {
         let t = Instant::now();
         let mut g = 0usize;
         for f in &files {
-            ogrep_core::sparse::for_each_gram(f.len(), |i| f[i].to_ascii_lowercase(), |s, e| {
-                g += ogrep_core::sparse::key_folding(&f[s..e]) as usize & 1;
-            });
+            ogrep_core::sparse::for_each_gram(
+                f.len(),
+                |i| f[i].to_ascii_lowercase(),
+                |s, e| {
+                    g += ogrep_core::sparse::key_folding(&f[s..e]) as usize & 1;
+                },
+            );
         }
         let grams_only = t.elapsed();
         println!(

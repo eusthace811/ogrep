@@ -130,9 +130,9 @@ pub fn execute_plan_indexed(
             }
             let mut candidates = entries;
             let narrow = |q: &TrigramQuery,
-                              count: usize,
-                              candidates: &mut Vec<PostingEntry>,
-                              work: &mut QueryWork| {
+                          count: usize,
+                          candidates: &mut Vec<PostingEntry>,
+                          work: &mut QueryWork| {
                 let mut entries = if candidates.len().saturating_mul(16) < count {
                     work.lists_probed += 1;
                     work.candidate_probes += candidates.len();
@@ -872,9 +872,10 @@ fn cover(len: usize, grams: &[(usize, usize, u32)]) -> Vec<(usize, usize, Option
         // pick's start, so progress is monotone), take the one reaching furthest.
         let mut choice: Option<(usize, usize, Option<u32>)> = None;
         let first = picked.last().map_or(0, |&(s, _, _)| s + 1);
-        for start in first..=covered.min(len.saturating_sub(3)) {
+        let last = covered.min(len.saturating_sub(3));
+        for (start, longest) in best.iter().enumerate().take(last + 1).skip(first) {
             let tri_end = start + 3;
-            let (end, key) = match best[start] {
+            let (end, key) = match *longest {
                 Some((end, key)) if end > tri_end => (end, Some(key)),
                 _ => (tri_end, None),
             };
@@ -1604,7 +1605,10 @@ mod tests {
             }
             assert!(covered.iter().all(|&c| c), "{literal:?} not covered");
             let used = queries.iter().filter(|q| q.used_with(true)).count();
-            assert!(used <= without.len(), "{literal:?}: cover larger than trigrams");
+            assert!(
+                used <= without.len(),
+                "{literal:?}: cover larger than trigrams"
+            );
         }
     }
 

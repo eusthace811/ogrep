@@ -78,11 +78,13 @@ def main():
     ap.add_argument("--json-out")
     args = ap.parse_args()
 
-    variants, envs = [], {}
+    variants, envs, vflags = [], {}, {}
     for v in args.variant:
         name, rest = v.split("=", 1)
-        # Optional environment: NAME=BIN:INDEX@KEY=VAL,KEY=VAL
+        # Optional extra flags and environment: NAME=BIN:INDEX#--flag --flag@KEY=VAL,KEY=VAL
         rest, _, env = rest.partition("@")
+        rest, _, flags = rest.partition("#")
+        vflags[name] = flags.split()
         binary, index = rest.rsplit(":", 1)
         variants.append((name, str(Path(binary).resolve()), str(Path(index).resolve())))
         envs[name] = dict(kv.split("=", 1) for kv in env.split(",") if kv)
@@ -92,7 +94,7 @@ def main():
     rng = random.Random(args.seed)
 
     def argv(v, q):
-        return [v[1], "--index-path", v[2], *extra, "--", q]
+        return [v[1], "--index-path", v[2], *extra, *vflags[v[0]], "--", q]
 
     times = {v[0]: {q: [] for q in queries} for v in variants}
     # Warm the page cache for every index once.

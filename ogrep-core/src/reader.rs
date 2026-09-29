@@ -405,7 +405,9 @@ impl IndexReader {
             .get_or_init(|| {
                 let bytes = self.posting_bytes(crate::sparse::DROPPED_KEY);
                 bytes
-                    .chunks_exact(POSTING_ENTRY_SIZE)
+                    .as_chunks::<POSTING_ENTRY_SIZE>()
+                    .0
+                    .iter()
                     .map(|raw| u32::from_le_bytes(raw[0..4].try_into().unwrap()))
                     .collect()
             })

@@ -247,7 +247,11 @@ mod tests {
 
     fn grams_by_stack(s: &[u8]) -> Vec<(usize, usize)> {
         let mut out = Vec::new();
-        for_each_gram(s.len(), |i| s[i].to_ascii_lowercase(), |a, b| out.push((a, b)));
+        for_each_gram(
+            s.len(),
+            |i| s[i].to_ascii_lowercase(),
+            |a, b| out.push((a, b)),
+        );
         out.sort_unstable();
         out
     }
@@ -274,7 +278,12 @@ mod tests {
             b"",
         ];
         for s in samples {
-            assert_eq!(grams_by_stack(s), grams_by_definition(s), "{:?}", String::from_utf8_lossy(s));
+            assert_eq!(
+                grams_by_stack(s),
+                grams_by_definition(s),
+                "{:?}",
+                String::from_utf8_lossy(s)
+            );
         }
         let mut state = 0x1234_5678_9abc_def1u64;
         let alphabet = b"abcde _(){}ABZ01\n";
@@ -283,7 +292,12 @@ mod tests {
             let s: Vec<u8> = (0..len)
                 .map(|_| alphabet[(xorshift(&mut state) % alphabet.len() as u64) as usize])
                 .collect();
-            assert_eq!(grams_by_stack(&s), grams_by_definition(&s), "{:?}", String::from_utf8_lossy(&s));
+            assert_eq!(
+                grams_by_stack(&s),
+                grams_by_definition(&s),
+                "{:?}",
+                String::from_utf8_lossy(&s)
+            );
         }
     }
 
@@ -302,14 +316,22 @@ mod tests {
             // Uppercase the literal: grams are case-insensitive by construction.
             let literal = text[start..end].to_ascii_uppercase();
             for (_, _, k) in literal_grams(&literal) {
-                assert!(keys.binary_search(&k).is_ok(), "missing gram key for literal");
+                assert!(
+                    keys.binary_search(&k).is_ok(),
+                    "missing gram key for literal"
+                );
             }
         }
     }
 
     #[test]
     fn keys_live_above_the_trigram_range_and_are_stable() {
-        for gram in [&b"pool"[..], &b"exhausted"[..8], &b"_header"[..], &b"abcd"[..]] {
+        for gram in [
+            &b"pool"[..],
+            &b"exhausted"[..8],
+            &b"_header"[..],
+            &b"abcd"[..],
+        ] {
             let k = key(gram);
             assert!(is_gram_key(k));
         }
@@ -323,7 +345,16 @@ mod tests {
     fn word_lowercasing_matches_bytewise_lowercasing() {
         for x in 0..=255u8 {
             for &fill in &[0u8, b'A', b'z', 0xC3, 0x7F, 0x80, b'@', b'['] {
-                let bytes = [x, fill, x.wrapping_add(1), fill, x.wrapping_sub(1), 0xFF, x, b'Q'];
+                let bytes = [
+                    x,
+                    fill,
+                    x.wrapping_add(1),
+                    fill,
+                    x.wrapping_sub(1),
+                    0xFF,
+                    x,
+                    b'Q',
+                ];
                 let expected: Vec<u8> = bytes.iter().map(u8::to_ascii_lowercase).collect();
                 let got = ascii_lowercase_word(u64::from_le_bytes(bytes)).to_le_bytes();
                 assert_eq!(got.to_vec(), expected, "{bytes:?}");

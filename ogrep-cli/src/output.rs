@@ -7,6 +7,7 @@ use std::io::{self, Write};
 use std::time::Instant;
 
 /// A single match result.
+#[derive(Clone, Debug)]
 pub struct Match {
     pub file: String,
     pub line_number: usize,
@@ -31,6 +32,7 @@ impl Match {
 }
 
 /// A context (non-matching) line surrounding a match.
+#[derive(Clone, Debug)]
 pub struct ContextLine {
     pub file: String,
     pub line_number: usize,
@@ -260,9 +262,105 @@ pub struct OutputWriter {
     all_searches: u64,
     total_matches: u64,
     total_matched_lines: u64,
+    /// When set, results are recorded here instead of printed (`--rank`).
+    capture: Option<Vec<Captured>>,
+}
+
+/// A result recorded by a capturing writer, in the order it was reported.
+#[derive(Clone, Debug)]
+pub enum Captured {
+    Match(Match),
+    Context(ContextLine),
+    Binary { file: String, offset: usize },
 }
 
 impl OutputWriter {
+    /// A writer that records results for later reordering instead of printing
+    /// them. Its format is always the per-line one, whatever `config` says.
+    pub fn capturing(mut config: OutputConfig) -> Self {
+        config.format = OutputFormat::Flat;
+        config.line_buffered = false;
+        let mut writer = Self::new(config);
+        writer.capture = Some(Vec::new());
+        writer
+    }
+
+    /// The results recorded so far by a capturing writer.
+    pub fn take_captured(&mut self) -> Vec<Captured> {
+        self.capture
+            .as_mut()
+            .map(std::mem::take)
+            .unwrap_or_default()
+    }
+
+    /// Take over the searched-file counters of a capturing writer, so the
+    /// JSON summary of a ranked search reports the search that ran.
+    pub fn absorb_search_totals(&mut self, capture: &OutputWriter) {
+        self.all_searches += capture.all_searches;
+        self.all_bytes_searched += capture.all_bytes_searched;
+    }
+
+    pub fn is_files_only(&self) -> bool {
+        self.config.format == OutputFormat::FilesOnly
+    }
+
+    pub fn is_count(&self) -> bool {
+        self.config.format == OutputFormat::Count
+    }
+
+    /// Close the current file's JSON block, if one is open.
+    pub fn flush_file(&mut self) -> io::Result<()> {
+        if self.is_json() {
+            self.finish_json_file()?;
+        }
+        Ok(())
+    }
+
+    /// Announce a ranked file before its results (`--rank`).
+    ///
+    /// JSON output always carries a `rank` message, which ripgrep consumers
+    /// skip as an unknown type; text output shows the score only when
+    /// `--explain-rank` asked for it, on a line starting with `#`.
+    pub fn write_rank_record(
+        &mut self,
+        file: &str,
+        rank: usize,
+        score: f64,
+        features: &impl serde::Serialize,
+        explain: bool,
+    ) -> io::Result<()> {
+        if self.is_json() {
+            self.finish_json_file()?;
+            let msg = serde_json::json!({
+                "type": "rank",
+                "data": {
+                    "path": { "text": self.display_path(file) },
+                    "rank": rank,
+                    "score": (score * 1e6).round() / 1e6,
+                    "features": features,
+                },
+            });
+            return writeln!(self.stdout, "{msg}");
+        }
+        if !explain {
+            return Ok(());
+        }
+        let features = serde_json::to_value(features).unwrap_or_default();
+        let detail = features
+            .as_object()
+            .map(|o| {
+                o.iter()
+                    .map(|(k, v)| format!("{k}={v}"))
+                    .collect::<Vec<_>>()
+                    .join(" ")
+            })
+            .unwrap_or_default();
+        writeln!(
+            self.stdout,
+            "# rank {rank} score {score:.3} {} {detail}",
+            self.display_path(file)
+        )
+    }
     pub fn new(config: OutputConfig) -> Self {
         let is_tty = atty_check();
         let use_color = match config.color {
@@ -296,6 +394,7 @@ impl OutputWriter {
             all_searches: 0,
             total_matches: 0,
             total_matched_lines: 0,
+            capture: None,
         }
     }
 
@@ -343,6 +442,13 @@ impl OutputWriter {
     /// records the offset on the `end` message instead, so record it here and
     /// let the caller go on to print the matches.
     pub fn write_binary_note(&mut self, file: &str, offset: usize) -> io::Result<()> {
+        if let Some(capture) = self.capture.as_mut() {
+            capture.push(Captured::Binary {
+                file: file.to_string(),
+                offset,
+            });
+            return Ok(());
+        }
         if self.is_json() {
             self.ensure_json_begin(file)?;
             self.current_binary_offset = Some(offset as u64);
@@ -424,7 +530,7 @@ impl OutputWriter {
     /// Substrate-sized tree. In heading mode there is no separator, because the
     /// blank line before the next heading already does that job.
     pub fn write_context_separator(&mut self, file: &str, line_num: usize) -> io::Result<()> {
-        if self.is_json() || !self.config.context {
+        if self.capture.is_some() || self.is_json() || !self.config.context {
             return Ok(());
         }
         let Some(sep) = self.config.context_separator.clone() else {
@@ -532,6 +638,10 @@ impl OutputWriter {
 
     /// Write a context (non-matching) line.
     pub fn write_context_line(&mut self, ctx: &ContextLine) -> io::Result<()> {
+        if let Some(capture) = self.capture.as_mut() {
+            capture.push(Captured::Context(ctx.clone()));
+            return Ok(());
+        }
         if self.is_json() {
             self.ensure_json_begin(&ctx.file)?;
             let (content, _) = self.trim_adjust(&ctx.content, &[]);
@@ -565,6 +675,10 @@ impl OutputWriter {
     }
 
     pub fn write_match(&mut self, m: &Match) -> io::Result<()> {
+        if let Some(capture) = self.capture.as_mut() {
+            capture.push(Captured::Match(m.clone()));
+            return Ok(());
+        }
         let (content, spans) = self.trim_adjust(&m.content, &m.spans);
         let content = content.to_string();
         match self.config.format {
@@ -680,6 +794,9 @@ impl OutputWriter {
     /// Called once per searched path. The JSON `summary` covers the whole
     /// invocation, so it is emitted by [`OutputWriter::finish`] instead.
     pub fn flush(&mut self) -> io::Result<()> {
+        if self.capture.is_some() {
+            return Ok(());
+        }
         if self.is_json() {
             self.finish_json_file()?;
         }
@@ -691,6 +808,9 @@ impl OutputWriter {
     /// ripgrep emits exactly one summary no matter how many paths were named,
     /// so this runs after the last path rather than after each one.
     pub fn finish(&mut self) -> io::Result<()> {
+        if self.capture.is_some() {
+            return Ok(());
+        }
         if self.is_json() {
             self.finish_json_file()?;
             let elapsed = self.started.elapsed();

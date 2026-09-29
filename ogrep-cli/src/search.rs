@@ -489,7 +489,7 @@ impl SearchOptions {
     }
 
     /// Collect all patterns (primary + -e extras + -f file patterns).
-    fn all_patterns(&self) -> Vec<String> {
+    pub(crate) fn all_patterns(&self) -> Vec<String> {
         self.pattern_refs().map(str::to_string).collect()
     }
 
@@ -575,6 +575,11 @@ fn identifier_words(name: &str) -> Vec<String> {
 /// Kept here so `make_output_config` stays private to this module.
 pub fn new_writer(opts: &SearchOptions) -> OutputWriter {
     OutputWriter::new(opts.make_output_config())
+}
+
+/// A writer that records results instead of printing them (`--rank`).
+pub fn new_capturing_writer(opts: &SearchOptions) -> OutputWriter {
+    OutputWriter::capturing(opts.make_output_config())
 }
 
 /// List files that would be searched (`--files` mode).

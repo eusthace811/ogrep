@@ -9,7 +9,9 @@ fn main() {
     let reader = ogrep_core::reader::IndexReader::open(std::path::Path::new(&dir)).unwrap();
     println!("has_sparse_grams {}", reader.has_sparse_grams());
     let plan = query::build_literal_plan(&literal, false);
-    let QueryPlan::And(queries) = plan else { panic!("not And") };
+    let QueryPlan::And(queries) = plan else {
+        panic!("not And")
+    };
     for q in &queries {
         println!(
             "key {:#010x} gram {} fallback {} len {} dropped {} pos {:?}",

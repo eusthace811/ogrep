@@ -297,7 +297,12 @@ impl ExternalSorter {
         let segments = self.segments.len();
         eprintln!("Merging {segments} spill segment(s) into the index...");
         Ok((
-            merge_segments(index_dir, &self.segments, self.budget_bytes, prune_grams_above)?,
+            merge_segments(
+                index_dir,
+                &self.segments,
+                self.budget_bytes,
+                prune_grams_above,
+            )?,
             segments,
         ))
     }
@@ -759,7 +764,8 @@ mod tests {
             sorter.push(*posting).unwrap();
         }
         let spilled = sorter.spilled_segments();
-        let (actual_trigrams, merged_segments) = sorter.write_postings(external.path(), None).unwrap();
+        let (actual_trigrams, merged_segments) =
+            sorter.write_postings(external.path(), None).unwrap();
 
         assert_eq!(expected_trigrams, actual_trigrams, "trigram count mismatch");
         assert!(

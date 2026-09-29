@@ -24,6 +24,7 @@ fn and_plan(hashes: &[u32]) -> QueryPlan {
                 hash,
                 expected_next: None,
                 position: None,
+                fallback: false,
             })
             .collect(),
     )

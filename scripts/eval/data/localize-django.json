@@ -1,0 +1,2459 @@
+[
+ {
+  "commit": "446d9cf602a5c42862da118b714a5679bb61cf27",
+  "subject": "Fixed #37114 -- Dropped support for PostgreSQL 15 and PostGIS 3.2.",
+  "query": "PostgreSQL",
+  "relevant": [
+   "django/contrib/gis/db/backends/postgis/operations.py",
+   "django/db/backends/postgresql/features.py",
+   "django/db/models/functions/json.py"
+  ]
+ },
+ {
+  "commit": "935edaa91b756325352ca70d5eba49a64b70d28c",
+  "subject": "Fixed #37357 -- Handled out-of-range year in admin date_hierarchy.",
+  "query": "date_hierarchy",
+  "relevant": [
+   "django/contrib/admin/views/main.py"
+  ]
+ },
+ {
+  "commit": "581deb9402edc70f85b63c170c199a393f0f2183",
+  "subject": "Fixed #37339 -- Allowed ipaddress objects in GenericIPAddressField.",
+  "query": "GenericIPAddressField",
+  "relevant": [
+   "django/db/models/fields/__init__.py"
+  ]
+ },
+ {
+  "commit": "6ade6258480fba84a7e895b4b1e1716dfc954778",
+  "subject": "Fixed #37344 -- Enabled FETCH_PEERS batching for instances loaded by select_related.",
+  "query": "select_related",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "fb32a564ccc6f91d4b7594f5707c62fab0c11c04",
+  "subject": "Fixed #37348 -- Reverted \"Fixed #36806 -- Added system check for null kwarg in GeneratedField.\".",
+  "query": "GeneratedField",
+  "relevant": [
+   "django/db/models/fields/generated.py"
+  ]
+ },
+ {
+  "commit": "8cbdd4a814397f81adf0129288f32b615bd1f94f",
+  "subject": "Fixed #37286 -- Preserved unique constraints when removing db_index.",
+  "query": "db_index",
+  "relevant": [
+   "django/db/backends/base/schema.py"
+  ]
+ },
+ {
+  "commit": "64edef37e7b419dd584307d84650a192fb47dc4c",
+  "subject": "Fixed #36947 -- Avoided altering column type when only db_comment changes.",
+  "query": "db_comment",
+  "relevant": [
+   "django/db/backends/base/schema.py"
+  ]
+ },
+ {
+  "commit": "97c38590a2396c8bb123d0782dbe96ddfd760a9a",
+  "subject": "Fixed false positive in func_supports_parameter() for non-keyword args.",
+  "query": "func_supports_parameter",
+  "relevant": [
+   "django/utils/inspect.py"
+  ]
+ },
+ {
+  "commit": "850e026cbfbe65944a5e0dc50e47c7ac64143708",
+  "subject": "Fixed #36809 -- Allowed customizing EmailValidator per-part validation.",
+  "query": "EmailValidator",
+  "relevant": [
+   "django/core/validators.py"
+  ]
+ },
+ {
+  "commit": "be6a149de8f85fb8f858680f721dbaadd182f1d8",
+  "subject": "Fixed #37145 -- Made ModelFormSet respect custom Form.add_prefix().",
+  "query": "ModelFormSet",
+  "relevant": [
+   "django/forms/models.py"
+  ]
+ },
+ {
+  "commit": "b3f4d83aad7f589f165a6d8b020b7acba4936f35",
+  "subject": "Fixed #37013 -- Deprecated Trunc/Extract in migrations with USE_TZ=True and no tzinfo.",
+  "query": "USE_TZ",
+  "relevant": [
+   "django/db/models/functions/datetime.py"
+  ]
+ },
+ {
+  "commit": "cc933385e75172cabacb49cfb9fe3571845cb216",
+  "subject": "Fixed #37271 -- Added calendar version support to django.utils.version.",
+  "query": "version",
+  "relevant": [
+   "django/__init__.py",
+   "django/utils/version.py"
+  ]
+ },
+ {
+  "commit": "aca5b3f694cdabaee8d9accbb0c6fcd01839e9f3",
+  "subject": "Refs #37178 -- Deferred django.middleware import in django.utils.deprecation.",
+  "query": "deprecation",
+  "relevant": [
+   "django/utils/deprecation.py"
+  ]
+ },
+ {
+  "commit": "52abe52bec23df6523aff492364f4f1b049c9572",
+  "subject": "Fixed #37293 -- Renamed RemovedInDjango71Warning to RemovedInDjango2029Warning.",
+  "query": "RemovedInDjango2029Warning",
+  "relevant": [
+   "django/db/models/query.py",
+   "django/http/response.py",
+   "django/utils/deprecation.py"
+  ]
+ },
+ {
+  "commit": "00dca6f097f443de7a24c04bc133f98c83c632aa",
+  "subject": "Fixed #37222 -- Fixed QuerySet.distinct() crash on duplicated selections.",
+  "query": "distinct",
+  "relevant": [
+   "django/db/models/sql/compiler.py"
+  ]
+ },
+ {
+  "commit": "f14e293cd7444e064b9c9ba471fd5aa7e6132ea6",
+  "subject": "Fixed #37312, Refs #36605 -- Fixed annotation preservation and key selection in in_bulk().",
+  "query": "in_bulk",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "6126f5d2fe0f22c0d2d4888de8c94b91a9795bb6",
+  "subject": "Refs #37309 -- Used _is_pk_set() in the XML serializer.",
+  "query": "_is_pk_set",
+  "relevant": [
+   "django/core/serializers/xml_serializer.py"
+  ]
+ },
+ {
+  "commit": "8d1c673466bcabff500edc6c7724e5a20f6df3de",
+  "subject": "Fixed #37309 -- Used _is_pk_set() in Model.__eq__.",
+  "query": "_is_pk_set",
+  "relevant": [
+   "django/db/models/base.py"
+  ]
+ },
+ {
+  "commit": "5babd2e21ac0877d66c5452da17b97608b337fba",
+  "subject": "Fixed #37237 -- Improved RelatedIn lookup preparation performance.",
+  "query": "RelatedIn",
+  "relevant": [
+   "django/db/models/fields/related_lookups.py"
+  ]
+ },
+ {
+  "commit": "73cc09f14f13fedddc14d6ba5b287cb33c24e4a4",
+  "subject": "Fixed #36945 -- Made .values() and .order_by() resolve FilteredRelation aliases correctly.",
+  "query": "FilteredRelation",
+  "relevant": [
+   "django/db/models/sql/query.py"
+  ]
+ },
+ {
+  "commit": "fdfbb711e3dd52683ae633f568761efe2735d5f0",
+  "subject": "Fixed #37296 -- Included the invalid view type in path()/re_path() error.",
+  "query": "re_path",
+  "relevant": [
+   "django/urls/conf.py"
+  ]
+ },
+ {
+  "commit": "d992705f9eb56199dc474b77af16474e5ce3d2ab",
+  "subject": "Fixed #37259 -- Restored support for old-signature Model.from_db() overrides.",
+  "query": "from_db",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "be6cf832293779d8aeaeddca8c47a37ba1530898",
+  "subject": "Fixed #37274 -- Allowed transforms in order_by() after alias().",
+  "query": "order_by",
+  "relevant": [
+   "django/db/models/sql/compiler.py",
+   "django/db/models/sql/query.py"
+  ]
+ },
+ {
+  "commit": "f7610bda78afb13ee395dfee2445805d8c7ad0f6",
+  "subject": "Fixed #37250 -- Allowed nesting GEOS GeometryCollection objects.",
+  "query": "GeometryCollection",
+  "relevant": [
+   "django/contrib/gis/geos/collections.py"
+  ]
+ },
+ {
+  "commit": "a3e6e7d3aa6e2aa793ba1d122a76cb007727197c",
+  "subject": "Fixed #37275, Refs #24920 -- Fixed SQLite DecimalField conversion without precision.",
+  "query": "DecimalField",
+  "relevant": [
+   "django/db/backends/sqlite3/operations.py"
+  ]
+ },
+ {
+  "commit": "1a001208b0b9d79b15b27ca04d94f31f3d55d5ea",
+  "subject": "Fixed #37278 -- Made QuerySet.totally_ordered understand aliases to pure Col/ColPairs.",
+  "query": "totally_ordered",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "07d4f69c94a0e32c583b3aee5daf48fd81b4cd69",
+  "subject": "Fixed #37260 -- Made alterations between Python on_delete options noops.",
+  "query": "on_delete",
+  "relevant": [
+   "django/db/models/fields/related.py"
+  ]
+ },
+ {
+  "commit": "febefb175e03352e5aeb2ed827024bacab96cf16",
+  "subject": "Fixed #37248 -- Skipped unique validation of a dynamic DatabaseDefault expression.",
+  "query": "DatabaseDefault",
+  "relevant": [
+   "django/db/models/base.py",
+   "django/db/models/constraints.py"
+  ]
+ },
+ {
+  "commit": "c6be0bf3bb744d234947cefd6def9f31d9655800",
+  "subject": "Fixed #37254 -- Added fields.E323 for models referenced by ManyToManyFields.",
+  "query": "ManyToManyFields",
+  "relevant": [
+   "django/db/models/fields/related.py"
+  ]
+ },
+ {
+  "commit": "082b3df4067c3899dd4d57e8c2eca5baea9d07bb",
+  "subject": "Fixed #37270 -- Fixed incorrect values for second-degree relations in ModelAdmin.list_display.",
+  "query": "list_display",
+  "relevant": [
+   "django/contrib/admin/templatetags/admin_list.py"
+  ]
+ },
+ {
+  "commit": "616e8c52ded7f4c7b00cae5a95f5a5d12a6a39b9",
+  "subject": "Fixed #37264 -- Handled further malformed _source_model values in admin popups.",
+  "query": "_source_model",
+  "relevant": [
+   "django/contrib/admin/options.py"
+  ]
+ },
+ {
+  "commit": "cef2346abf8d6e9e61a5a3599fbcf72163e6a6e5",
+  "subject": "Fixed #37239 -- Cleared stale db_default when pk comes from related object.",
+  "query": "db_default",
+  "relevant": [
+   "django/db/models/base.py"
+  ]
+ },
+ {
+  "commit": "47511a21026cdd721d8fbf8571cc079bc38bb46d",
+  "subject": "Fixed CVE-2026-15920 -- Made display_for_field() validate URLs before rendering admin links.",
+  "query": "display_for_field",
+  "relevant": [
+   "django/contrib/admin/utils.py"
+  ]
+ },
+ {
+  "commit": "27137e655e442e81095f1f8f77ff3870d9fdf169",
+  "subject": "Fixed CVE-2026-15337 -- Mitigated potential DoS in check_for_language().",
+  "query": "check_for_language",
+  "relevant": [
+   "django/utils/translation/trans_real.py"
+  ]
+ },
+ {
+  "commit": "7dee35f5eea131ddf807788c533da1264e571c61",
+  "subject": "Refs #28586 -- Renamed RAISE fetch mode to FETCH_RAISE.",
+  "query": "FETCH_RAISE",
+  "relevant": [
+   "django/db/models/__init__.py",
+   "django/db/models/fetch_modes.py"
+  ]
+ },
+ {
+  "commit": "60121939f6b225c7a719dd561e372e1d8e5e2c4a",
+  "subject": "Fixed #36626 -- Preserved milliseconds in DataSource time fields.",
+  "query": "DataSource",
+  "relevant": [
+   "django/contrib/gis/gdal/prototypes/ds.py"
+  ]
+ },
+ {
+  "commit": "9465349120ef8a0b0689e12bcbfd05f3d173ebdf",
+  "subject": "Fixed #37238 -- Prevented fallback to python default for a pk with a db_default.",
+  "query": "db_default",
+  "relevant": [
+   "django/db/models/base.py"
+  ]
+ },
+ {
+  "commit": "ca14173f968cf36115f22d6c6785f738de4391ed",
+  "subject": "Fixed #37240 -- Fixed simplify_regex() with multiple unnamed groups.",
+  "query": "simplify_regex",
+  "relevant": [
+   "django/urls/utils.py"
+  ]
+ },
+ {
+  "commit": "c9ff757a55392b1f50968eb89fe775f6155168d8",
+  "subject": "Fixed #37234 -- Fixed bulk_create() for late-saved related primary keys.",
+  "query": "bulk_create",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "2936a0a99719e3c3777039a0d6968deecb55c752",
+  "subject": "Fixed #27752 -- Fixed ordering by Model.__str__ in the admin.",
+  "query": "__str__",
+  "relevant": [
+   "django/contrib/admin/utils.py",
+   "django/contrib/admin/views/main.py"
+  ]
+ },
+ {
+  "commit": "92470ad3742524902b29769d2c822dbe791630db",
+  "subject": "Fixed #37230 -- Fixed a crash for second-degree relations in ModelAdmin.list_display.",
+  "query": "list_display",
+  "relevant": [
+   "django/contrib/admin/templatetags/admin_list.py"
+  ]
+ },
+ {
+  "commit": "c2517faff335f683e1cbe55d9844910b3fb40670",
+  "subject": "Fixed #37198 -- Fixed content_disposition_header() quoting of filenames ending with newlines.",
+  "query": "content_disposition_header",
+  "relevant": [
+   "django/utils/http.py"
+  ]
+ },
+ {
+  "commit": "4ea38d54c10e0f44e189605c217a55cdfe9fdde8",
+  "subject": "Fixed #37160 -- Made admin views raise PermissionDenied consistently.",
+  "query": "PermissionDenied",
+  "relevant": [
+   "django/contrib/admin/options.py",
+   "django/contrib/admin/sites.py"
+  ]
+ },
+ {
+  "commit": "e0d64a5adaaad1cec22a0f909602ea4127c04ad3",
+  "subject": "Fixed subject/verb agreement in DecimalValidator messages.",
+  "query": "DecimalValidator",
+  "relevant": [
+   "django/core/validators.py"
+  ]
+ },
+ {
+  "commit": "76e1bca1311ae7073a1fa4add6f9d19d709f0f09",
+  "subject": "Fixed #36694 -- Restored missing Index options in PostGISSchemaEditor._create_spatial_index_sql().",
+  "query": "_create_spatial_index_sql",
+  "relevant": [
+   "django/contrib/gis/db/backends/postgis/schema.py"
+  ]
+ },
+ {
+  "commit": "a486b48d4ea0d34babe58cae215b2123748aacbd",
+  "subject": "Fixed #37210 -- Logged cached_db session cache delete failures.",
+  "query": "cached_db",
+  "relevant": [
+   "django/contrib/sessions/backends/cached_db.py"
+  ]
+ },
+ {
+  "commit": "2e48636c54910e435eb31e1b7d8a8089c84233ad",
+  "subject": "Fixed #37187, #37190 -- Pointed ModelAdmin warnings to the deprecated code.",
+  "query": "ModelAdmin",
+  "relevant": [
+   "django/contrib/admin/options.py"
+  ]
+ },
+ {
+  "commit": "260d136920acf27dbd3cae9bc80eba2a43b44bba",
+  "subject": "Refs #37187 -- Implemented warn_about_implementation() deprecation utility.",
+  "query": "warn_about_implementation",
+  "relevant": [
+   "django/utils/deprecation.py"
+  ]
+ },
+ {
+  "commit": "bdbda29c3e126754c3ae04ceb5c5d35d49aae01c",
+  "subject": "Fixed #29303 -- Avoided mutating original view in non_atomic_requests().",
+  "query": "non_atomic_requests",
+  "relevant": [
+   "django/db/transaction.py"
+  ]
+ },
+ {
+  "commit": "65a9f14196c338d70889bd54753370606b3fb4eb",
+  "subject": "Fixed #36864 -- Supported modules and submodules in import_string().",
+  "query": "import_string",
+  "relevant": [
+   "django/contrib/auth/password_validation.py",
+   "django/db/backends/base/creation.py",
+   "django/utils/module_loading.py"
+  ]
+ },
+ {
+  "commit": "3a720d0d8bf2529253b98968f10ca73daf6d693c",
+  "subject": "Fixed CVE-2026-53878 -- Prevented newlines from being accepted in DomainNameValidator.",
+  "query": "DomainNameValidator",
+  "relevant": [
+   "django/core/validators.py"
+  ]
+ },
+ {
+  "commit": "e26cdc556eabd8ea443401c38e8b2f9c7f7f046c",
+  "subject": "Fixed #37122 -- Updated JSONField has_changed method to check for disabled status.",
+  "query": "has_changed",
+  "relevant": [
+   "django/forms/fields.py"
+  ]
+ },
+ {
+  "commit": "99672c672a1537aeb0d1fd5911ca6f04154cc091",
+  "subject": "Refs #36593, #37187 -- Avoided spurious select_related() warning in ModelAdmin.",
+  "query": "select_related",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "01c3cceca1ac80796e5448295e294cbc01948185",
+  "subject": "Replaced the defunct pgp.mit.edu keyserver with GitHub for key import.",
+  "query": "GitHub",
+  "relevant": [
+   "scripts/do_django_release.py"
+  ]
+ },
+ {
+  "commit": "56050acb96abc7ac2079d83ffdd232056732bb47",
+  "subject": "Fixed #37170 -- Applied the no-argument form of sensitive_post_parameters to MultiValueDict.",
+  "query": "sensitive_post_parameters",
+  "relevant": [
+   "django/views/debug.py"
+  ]
+ },
+ {
+  "commit": "189c2d2ce58482db5c09d8b1e1464d1456dc9bab",
+  "subject": "Fixed #37164 -- Supported subclasses\u2019 _get_lines() in jsonl Deserializer.",
+  "query": "_get_lines",
+  "relevant": [
+   "django/core/serializers/jsonl.py"
+  ]
+ },
+ {
+  "commit": "ca5746b8680a5e7e14014d365c0610f825df1dae",
+  "subject": "Fixed #37143 -- Added missing chunk_size=None check to QuerySet.aiterator().",
+  "query": "chunk_size",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "f3e66a32a3bdbf3c362b70e06c16393639dd36f3",
+  "subject": "Refs #37139 -- Renamed helper inside _is_pk_set().",
+  "query": "_is_pk_set",
+  "relevant": [
+   "django/db/models/base.py"
+  ]
+ },
+ {
+  "commit": "09434486302078c3649e034dfa74cf3f102db20b",
+  "subject": "Fixed #37152 -- Raised ValueError when Bcc is used in EmailMessage headers.",
+  "query": "EmailMessage",
+  "relevant": [
+   "django/core/mail/message.py"
+  ]
+ },
+ {
+  "commit": "f89101088a149d8c9eca4e4796723a3f0de5b129",
+  "subject": "Fixed #37163 -- Optimized @user_passes_test async checking.",
+  "query": "user_passes_test",
+  "relevant": [
+   "django/contrib/auth/decorators.py"
+  ]
+ },
+ {
+  "commit": "cd385e6b8c16b51f68c1f220ff09a4cfd679af0c",
+  "subject": "Fixed #31317 -- Avoided crash in CreateModel with unique_together and AlterUniqueTogether.",
+  "query": "AlterUniqueTogether",
+  "relevant": [
+   "django/db/backends/base/schema.py"
+  ]
+ },
+ {
+  "commit": "e1df3950b2a3a852dfa9eb70738b7bac28cb0a0e",
+  "subject": "Fixed #36979 -- Made GenericInlineModelAdmin.get_formset() use get_exclude().",
+  "query": "get_exclude",
+  "relevant": [
+   "django/contrib/contenttypes/admin.py"
+  ]
+ },
+ {
+  "commit": "e8cff2921ba169d806a15de18304f431f12700f4",
+  "subject": "Fixed #37102 -- Used **kwargs instead of *kwargs in CountsDict.__init__().",
+  "query": "__init__",
+  "relevant": [
+   "django/utils/html.py"
+  ]
+ },
+ {
+  "commit": "a2f8a4a6f9ac094edde937e56a3ecbd112ee448c",
+  "subject": "Fixed #36104 -- Returned NotImplemented in Media.__add__ for non-Media RHS.",
+  "query": "NotImplemented",
+  "relevant": [
+   "django/forms/widgets.py"
+  ]
+ },
+ {
+  "commit": "17a56cd6e600cfb02972657e8958b5ee2e0f936e",
+  "subject": "Removed obsolete Sphinx < 1.8 fallback in `VersionDirective` from djangodocs extension.",
+  "query": "VersionDirective",
+  "relevant": [
+   "docs/_ext/djangodocs.py"
+  ]
+ },
+ {
+  "commit": "46c5e76f0bcc76bfce19ad7ba07f716fc653a822",
+  "subject": "Fixed #36900 -- Used safe_join() on downloaded template archive.",
+  "query": "safe_join",
+  "relevant": [
+   "django/core/management/templates.py"
+  ]
+ },
+ {
+  "commit": "142b881cecaddc334cabec139e701c0e4b9798da",
+  "subject": "Refs #36560, CVE-2026-35193 -- Replaced substring check on cache-control directives in UpdateCacheMiddleware.",
+  "query": "UpdateCacheMiddleware",
+  "relevant": [
+   "django/middleware/cache.py"
+  ]
+ },
+ {
+  "commit": "71af23d1f4678c4bf052e051d72e8928e1697de3",
+  "subject": "Fixed #37147 -- Fixed rendering empty values for models with db_default on primary key.",
+  "query": "db_default",
+  "relevant": [
+   "django/forms/widgets.py"
+  ]
+ },
+ {
+  "commit": "57c8c8b107248a3358dd26276ac497c577454011",
+  "subject": "Fixed #36984 -- Made inline formset error messages respect delete_confirmation_max_display.",
+  "query": "delete_confirmation_max_display",
+  "relevant": [
+   "django/contrib/admin/checks.py",
+   "django/contrib/admin/options.py"
+  ]
+ },
+ {
+  "commit": "a2348c85fc6c20087935c74cd99340dd4ef2dcdc",
+  "subject": "Fixed #37139 -- Fixed inlines crash on parent models with db_default on primary key.",
+  "query": "db_default",
+  "relevant": [
+   "django/db/models/base.py"
+  ]
+ },
+ {
+  "commit": "3328078a01f5268f9b8659f56fd28c5a2ed083dc",
+  "subject": "Refs CVE-2026-6873 -- Defaulted SIGNED_COOKIE_LEGACY_SALT_FALLBACK transitional setting to False.",
+  "query": "SIGNED_COOKIE_LEGACY_SALT_FALLBACK",
+  "relevant": [
+   "django/conf/__init__.py",
+   "django/conf/global_settings.py",
+   "django/core/signing.py"
+  ]
+ },
+ {
+  "commit": "d618d7ae4fec727d5b582bd24f803c28d17bf7cd",
+  "subject": "Fixed CVE-2026-8404 -- Used Cache-Control directives case-insensitively in UpdateCacheMiddleware.",
+  "query": "UpdateCacheMiddleware",
+  "relevant": [
+   "django/middleware/cache.py"
+  ]
+ },
+ {
+  "commit": "48e0a64e6491b464249086d6052a00c8d2be418e",
+  "subject": "Refs #36439 -- Added missing thread_sensitive=False to dummy password hasher path.",
+  "query": "thread_sensitive",
+  "relevant": [
+   "django/contrib/auth/__init__.py"
+  ]
+ },
+ {
+  "commit": "ba70e1bcdd8dc879c7d5fc7a3d12b5831eb08540",
+  "subject": "Fixed #37103 -- Made HttpRequest.body handle malformed CONTENT_LENGTH.",
+  "query": "CONTENT_LENGTH",
+  "relevant": [
+   "django/http/request.py"
+  ]
+ },
+ {
+  "commit": "22d25eff1510eb157be3ef02984869b1309ec15d",
+  "subject": "Refs #28800 -- Handled escaped literals in simplify_regex().",
+  "query": "simplify_regex",
+  "relevant": [
+   "django/urls/utils.py"
+  ]
+ },
+ {
+  "commit": "5890d443e6e1ea454f1e76cc7c9239c0b5ccb5be",
+  "subject": "Fixed #36436 -- Made CookieStorage.signer attribute private.",
+  "query": "signer",
+  "relevant": [
+   "django/contrib/messages/storage/cookie.py"
+  ]
+ },
+ {
+  "commit": "ea9742c6d02edf64fc0969f21506f2048c976051",
+  "subject": "Fixed #37108 -- Made DjangoJSONEncoder consistently omit .000 microseconds.",
+  "query": "DjangoJSONEncoder",
+  "relevant": [
+   "django/core/serializers/json.py"
+  ]
+ },
+ {
+  "commit": "2c8c0ca0a0b73b167c29db506f810c318f915587",
+  "subject": "Fixed #36225 -- Coped with lack of get_by_natural_key() in createsuperuser.",
+  "query": "get_by_natural_key",
+  "relevant": [
+   "django/contrib/auth/management/commands/createsuperuser.py"
+  ]
+ },
+ {
+  "commit": "a53e02af6d7a07d0367b534f7107a0e2a37e3d34",
+  "subject": "Fixed #37117 -- Used ModelAdmin.get_queryset() for change form actions.",
+  "query": "get_queryset",
+  "relevant": [
+   "django/contrib/admin/options.py"
+  ]
+ },
+ {
+  "commit": "53645750412efa1e9013004040db328bd515e0f1",
+  "subject": "Fixed #37100 -- Prevented control characters in HttpResponse reason_phrase.",
+  "query": "reason_phrase",
+  "relevant": [
+   "django/http/response.py"
+  ]
+ },
+ {
+  "commit": "20960df455fffd73d556a5ed92cdf6832c23e65f",
+  "subject": "Fixed #37045 -- Renamed savepoint() to savepoint_create().",
+  "query": "savepoint_create",
+  "relevant": [
+   "django/db/transaction.py"
+  ]
+ },
+ {
+  "commit": "0e1d950fbb44878f6972a0e5730f69f98caf468e",
+  "subject": "Fixed #37097 -- Made Query.clear_ordering() clear ordering on combined queries also.",
+  "query": "clear_ordering",
+  "relevant": [
+   "django/db/models/sql/query.py"
+  ]
+ },
+ {
+  "commit": "da6567da7ea0e844c9a880e02c7b34e1a184edf8",
+  "subject": "Fixed #37062 -- Added preserve_request support to RedirectView.",
+  "query": "preserve_request",
+  "relevant": [
+   "django/views/generic/base.py"
+  ]
+ },
+ {
+  "commit": "25cf1cbb1cb92c6c57b76cc43d697cfdc61f568f",
+  "subject": "Refs #36664 -- Updated SMTP EmailBackend tests for Python 3.15.",
+  "query": "EmailBackend",
+  "relevant": [
+   "django/core/mail/backends/smtp.py"
+  ]
+ },
+ {
+  "commit": "ed5486376989c08b34cc62e7c8ba4a07bd60047d",
+  "subject": "Fixed #37092, Refs #35870 -- Added missing deprecation warnings for USE_BLANK_CHOICE_DASH.",
+  "query": "USE_BLANK_CHOICE_DASH",
+  "relevant": [
+   "django/conf/__init__.py"
+  ]
+ },
+ {
+  "commit": "05a5244b8924c47cc5b1332dd15aaa1be6abbe1e",
+  "subject": "Fixed #37094 -- Replaced \"Go\" with \"Run\" in list_editable alert message.",
+  "query": "list_editable",
+  "relevant": [
+   "django/contrib/admin/static/admin/js/actions.js"
+  ]
+ },
+ {
+  "commit": "122f0b62a1effa558aad67a62e5b0d84a49cdc23",
+  "subject": "Refs #36593 -- Deprecated setting ModelAdmin.list_select_related to True.",
+  "query": "list_select_related",
+  "relevant": [
+   "django/contrib/admin/checks.py",
+   "django/contrib/admin/options.py"
+  ]
+ },
+ {
+  "commit": "f386d8ec7cbf42b350f5958b552cd3492a493d5b",
+  "subject": "Fixed #36593 -- Deprecated QuerySet.select_related() with no arguments.",
+  "query": "select_related",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "a1ead0a580bc69035b768e9fae7f92f7f0b7bf01",
+  "subject": "Refs #36593 -- Used explicit select_related() in admin history_view().",
+  "query": "select_related",
+  "relevant": [
+   "django/contrib/admin/options.py"
+  ]
+ },
+ {
+  "commit": "0c634de4e6950ec6fb83ab420b4af9c645b28acd",
+  "subject": "Refs #36593 -- Made ModelAdmin.list_select_related = False more efficient.",
+  "query": "list_select_related",
+  "relevant": [
+   "django/contrib/admin/views/main.py"
+  ]
+ },
+ {
+  "commit": "e7f539f813bd56a71ca3c1fbf379f47691002086",
+  "subject": "Refs #36712, #36664 -- Used annotation_format parameter of getfullargspec() on Python 3.15.",
+  "query": "annotation_format",
+  "relevant": [
+   "django/utils/inspect.py"
+  ]
+ },
+ {
+  "commit": "21c51c2623a966ba1ad8fd10e36bc8bbec93b70e",
+  "subject": "Fixed #37060 -- Propagated AlterField through attname-based to_field references.",
+  "query": "AlterField",
+  "relevant": [
+   "django/db/backends/sqlite3/schema.py"
+  ]
+ },
+ {
+  "commit": "f25ad7c086eb694372a8ef08cb713556bcb366a2",
+  "subject": "Refs #35514 -- Added error for missing EMAIL_FILE_PATH setting.",
+  "query": "EMAIL_FILE_PATH",
+  "relevant": [
+   "django/core/mail/backends/filebased.py"
+  ]
+ },
+ {
+  "commit": "5686ce41958b21f0ae5bfa290e8d4420a6349c1b",
+  "subject": "Fixed #36784 -- Added csp_nonce_attr template tag for CSP nonce inclusion.",
+  "query": "csp_nonce_attr",
+  "relevant": [
+   "django/template/defaulttags.py",
+   "django/utils/csp.py"
+  ]
+ },
+ {
+  "commit": "7f66c3b41f0fb0fb938d7b96e20a28dccdaa2ecd",
+  "subject": "Refs #36439 -- Added sync_to_async() to dummy password hasher path.",
+  "query": "sync_to_async",
+  "relevant": [
+   "django/contrib/auth/__init__.py"
+  ]
+ },
+ {
+  "commit": "1085e5e17b7403b15c4eff397f3c98c15660f46d",
+  "subject": "Fixed #36300 -- Restored the semantic where RemoteUserMiddleware.header corresponds to request.META under ASGI.",
+  "query": "header",
+  "relevant": [
+   "django/contrib/auth/middleware.py"
+  ]
+ },
+ {
+  "commit": "57b23d15259c32dba80bb093645242f1b3b25365",
+  "subject": "Fixed #37053 -- Added validate=True to base64.b64decode() calls.",
+  "query": "b64decode",
+  "relevant": [
+   "django/contrib/auth/hashers.py",
+   "django/core/cache/backends/db.py",
+   "django/db/models/fields/__init__.py",
+   "django/http/multipartparser.py"
+  ]
+ },
+ {
+  "commit": "7f6e9b55130d5158804c0acbc0b24ccb7422ed82",
+  "subject": "Fixed CVE-2026-35192 -- Ensured Vary header is sent when setting session cookie with SESSION_SAVE_EVERY_REQUEST=True.",
+  "query": "SESSION_SAVE_EVERY_REQUEST",
+  "relevant": [
+   "django/contrib/sessions/middleware.py"
+  ]
+ },
+ {
+  "commit": "5a89e341bfc77dd67b7fd57b7091b6430558e1f4",
+  "subject": "Fixed CVE-2026-5766 -- Enforced DATA_UPLOAD_MAX_MEMORY_SIZE in MemoryFileUploadHandler on ASGI.",
+  "query": "MemoryFileUploadHandler",
+  "relevant": [
+   "django/core/files/uploadhandler.py"
+  ]
+ },
+ {
+  "commit": "d75d57c2c06934a65feabd206129b9d1a230a1da",
+  "subject": "Fixed #36767 -- Allowed max redirect URL length to be set on HttpResponseRedirect.",
+  "query": "HttpResponseRedirect",
+  "relevant": [
+   "django/http/response.py",
+   "django/shortcuts.py"
+  ]
+ },
+ {
+  "commit": "c9b65e278103efb49c5bde65662b7f9849e1e0e7",
+  "subject": "Fixed #35971 -- Added RemoteUserMiddleware.get_username() helper.",
+  "query": "get_username",
+  "relevant": [
+   "django/contrib/auth/middleware.py"
+  ]
+ },
+ {
+  "commit": "0147222691db284f87c8c2a64ac6b1eded034c49",
+  "subject": "Fixed #37079 -- Fixed specialization of header lookups in RemoteUserMiddleware.",
+  "query": "RemoteUserMiddleware",
+  "relevant": [
+   "django/contrib/auth/middleware.py"
+  ]
+ },
+ {
+  "commit": "0f4fff79d33b7cc84822e66bd1fc16caf8222e3a",
+  "subject": "Fixed #37078 -- Deprecated SHA-1 default for salted_hmac() and base64_hmac() algorithm.",
+  "query": "base64_hmac",
+  "relevant": [
+   "django/core/signing.py"
+  ]
+ },
+ {
+  "commit": "5dfb6586f7be213d68d9f82510028660cfaed916",
+  "subject": "Refs #35303 -- Improved use of async methods in RemoteUserMiddleware.",
+  "query": "RemoteUserMiddleware",
+  "relevant": [
+   "django/contrib/auth/middleware.py"
+  ]
+ },
+ {
+  "commit": "5bd7a66c2c2c224c56ed1e92a3cb325f401c93ed",
+  "subject": "Refs #689, #4015 -- Removed RemoteUserMiddleware updates to request.user/auser as handled by login().",
+  "query": "RemoteUserMiddleware",
+  "relevant": [
+   "django/contrib/auth/middleware.py"
+  ]
+ },
+ {
+  "commit": "12dcba45cb0d3bcf735621c3b2175fdee08308d8",
+  "subject": "Refs #689 -- Made RemoteUserMiddleware ImproperlyConfigured error message handle subclasses.",
+  "query": "ImproperlyConfigured",
+  "relevant": [
+   "django/contrib/auth/middleware.py"
+  ]
+ },
+ {
+  "commit": "9f790ef1a0f356cf6342b5d57bbaeac35aed0d9f",
+  "subject": "Fixed #37075 -- Allowed overriding the PostgreSQL pool's \"check\" callable.",
+  "query": "PostgreSQL",
+  "relevant": [
+   "django/db/backends/postgresql/base.py"
+  ]
+ },
+ {
+  "commit": "8c8b833d32c02d3ae6f43b04bb1e45968796b402",
+  "subject": "Fixed #36919 -- Allowed Task and TaskResult to be pickled.",
+  "query": "TaskResult",
+  "relevant": [
+   "django/tasks/base.py"
+  ]
+ },
+ {
+  "commit": "3f912ee4189602b4df121c0dc0428673fda5c253",
+  "subject": "Fixed #16429 -- Extracted set_choices() method from FilePathField.__init__().",
+  "query": "set_choices",
+  "relevant": [
+   "django/forms/fields.py"
+  ]
+ },
+ {
+  "commit": "60a9c70496e5d7b971928ce3da5b47c8836a4def",
+  "subject": "Fixed #37067 -- Added trailing slash in django_file_prefixes().",
+  "query": "django_file_prefixes",
+  "relevant": [
+   "django/utils/deprecation.py"
+  ]
+ },
+ {
+  "commit": "61941b6fc172933f425e8ba76bab444ab9b313e4",
+  "subject": "Fixed #35951 -- Mentioned server timezone in admin DateTime widgets.",
+  "query": "DateTime",
+  "relevant": [
+   "django/contrib/admin/static/admin/js/admin/DateTimeShortcuts.js",
+   "js_tests/admin/DateTimeShortcuts.test.js"
+  ]
+ },
+ {
+  "commit": "5b3cfce51770f46c6dc100e9be7f199a37176762",
+  "subject": "Refs #15759 -- Fixed ModelAdmin.list_editable form submission for non-editable instances.",
+  "query": "list_editable",
+  "relevant": [
+   "django/contrib/admin/options.py"
+  ]
+ },
+ {
+  "commit": "f3ff680c768a313d34eb2e15eb7322edec60920c",
+  "subject": "Fixed #36990 -- Bumped OpenLayers to 10.9.0.",
+  "query": "OpenLayers",
+  "relevant": [
+   "django/contrib/gis/forms/widgets.py"
+  ]
+ },
+ {
+  "commit": "fb292a549371a7c011c25b1a10fe5d25c579814a",
+  "subject": "Fixed #36912 -- Added connector validation to Q.create().",
+  "query": "create",
+  "relevant": [
+   "django/db/models/query_utils.py"
+  ]
+ },
+ {
+  "commit": "32a3b4aa695e76ced1b2829b178e630b9ac62dce",
+  "subject": "Refs #35514 -- Added warn_about_external_use() deprecation utility.",
+  "query": "warn_about_external_use",
+  "relevant": [
+   "django/conf/__init__.py",
+   "django/utils/deprecation.py"
+  ]
+ },
+ {
+  "commit": "526b548cfb9c8a02ea2b7ae064ef3b795305d51a",
+  "subject": "Fixed #36542 -- Marked authenticate() with @sensitive_variables() decorator.",
+  "query": "sensitive_variables",
+  "relevant": [
+   "django/contrib/auth/backends.py"
+  ]
+ },
+ {
+  "commit": "fa2a3de6ede10b005fc2c1d23f4cffb53eaec425",
+  "subject": "Fixed #10919 -- Added delete_confirmation_max_display to ModelAdmin.",
+  "query": "delete_confirmation_max_display",
+  "relevant": [
+   "django/contrib/admin/actions.py",
+   "django/contrib/admin/checks.py",
+   "django/contrib/admin/options.py"
+  ]
+ },
+ {
+  "commit": "a586f03f36f511064f171c0e30f4ca2ebfd60085",
+  "subject": "Refs #10919 -- Refactored walk_items as module-level _walk_items and added truncated_unordered_list filter.",
+  "query": "truncated_unordered_list",
+  "relevant": [
+   "django/contrib/admin/templatetags/admin_filters.py"
+  ]
+ },
+ {
+  "commit": "61a62be313e395ce1265132bfc99f51476fb3c95",
+  "subject": "Fixed #37057 -- Adjusted UniqueConstraint handling of UNKNOWN condition.",
+  "query": "UniqueConstraint",
+  "relevant": [
+   "django/db/models/constraints.py"
+  ]
+ },
+ {
+  "commit": "dc467fdc3b5744cec71fab876c23a14013e2510b",
+  "subject": "Fixed #36991 -- Raised BadRequest for invalid encodings in Content-Type headers.",
+  "query": "BadRequest",
+  "relevant": [
+   "django/http/request.py"
+  ]
+ },
+ {
+  "commit": "84db026228413dda4cd195464554d51c0b208e32",
+  "subject": "Fixed #15759 -- Excluded fields by per-object permissions for ModelAdmin.list_editable.",
+  "query": "list_editable",
+  "relevant": [
+   "django/contrib/admin/options.py"
+  ]
+ },
+ {
+  "commit": "512e348bb271878a1e4f1ab6ae187a22dd16222b",
+  "subject": "Refs #15759 -- Factored out _save_formset() in ModelAdmin.",
+  "query": "_save_formset",
+  "relevant": [
+   "django/contrib/admin/options.py"
+  ]
+ },
+ {
+  "commit": "a77be30a4346d111beaf366dcee4934734458a48",
+  "subject": "Refs #36005 -- Made OperationCategory subclass StrEnum.",
+  "query": "OperationCategory",
+  "relevant": [
+   "django/db/migrations/operations/base.py"
+  ]
+ },
+ {
+  "commit": "5cf9c7fde7cf18c1ab4d529d187f45fb0225bb58",
+  "subject": "Refs #28586 -- Added DEFAULT_FETCH_MODE module constant.",
+  "query": "DEFAULT_FETCH_MODE",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "a284a49153f005f2a7af087025e5112ba06cbd5f",
+  "subject": "Fixed #37047 -- Fixed crash in Query.orderby_issubset_groupby for descending and random order_by strings.",
+  "query": "orderby_issubset_groupby",
+  "relevant": [
+   "django/db/models/sql/query.py"
+  ]
+ },
+ {
+  "commit": "179aa21b6dfeb9a0560a8c2bbfcf056301fc619f",
+  "subject": "Fixed #37024 -- Made SITE_ID system check validation use Site._meta.pk.",
+  "query": "SITE_ID",
+  "relevant": [
+   "django/contrib/sites/checks.py"
+  ]
+ },
+ {
+  "commit": "7142667340f78403cbbcaa8f33703c494282b7b7",
+  "subject": "Replaced yaml serializer workaround to preserve dict order with PyYAML's sort_keys=False.",
+  "query": "sort_keys",
+  "relevant": [
+   "django/core/serializers/pyyaml.py"
+  ]
+ },
+ {
+  "commit": "820c7d3248af6afbdf3390c97b29e41ba126a421",
+  "subject": "Fixed #37036 -- Added missing flat=True arg in DeferredAttribute.fetch_many().",
+  "query": "fetch_many",
+  "relevant": [
+   "django/db/models/query_utils.py"
+  ]
+ },
+ {
+  "commit": "4593ae93ae39d0c33ef9edc667fe3425fcf61b28",
+  "subject": "Added automated quality checks for PRs as a GitHub Actions workflow.",
+  "query": "GitHub",
+  "relevant": [
+   "scripts/pr_quality/check_pr.py",
+   "scripts/pr_quality/errors.py"
+  ]
+ },
+ {
+  "commit": "82a2465f71a1f5cbfe3811952c0d07482dea71c6",
+  "subject": "Added DatabaseFeatures.disallowed_simple_test_case_connection_methods.",
+  "query": "disallowed_simple_test_case_connection_methods",
+  "relevant": [
+   "django/db/backends/base/features.py"
+  ]
+ },
+ {
+  "commit": "09f27cc373eb1e6e5e8b286204809a79b61d55c3",
+  "subject": "Refs #35440 -- Optimized parse_header_parameters() for the simplest case.",
+  "query": "parse_header_parameters",
+  "relevant": [
+   "django/utils/http.py"
+  ]
+ },
+ {
+  "commit": "e2abe321a6f1370e05c1a89a742125c9eafcac8c",
+  "subject": "Fixed #37021 -- Added Permission.user_perm_str property.",
+  "query": "user_perm_str",
+  "relevant": [
+   "django/contrib/auth/models.py"
+  ]
+ },
+ {
+  "commit": "953c238058c0ce387a1a41cb491bfc1875d73ad0",
+  "subject": "Fixed CVE-2026-33034 -- Enforced DATA_UPLOAD_MAX_MEMORY_SIZE on body size in ASGI requests.",
+  "query": "DATA_UPLOAD_MAX_MEMORY_SIZE",
+  "relevant": [
+   "django/http/request.py"
+  ]
+ },
+ {
+  "commit": "7e9885f99cee771b51692fadc5592bdbf19641aa",
+  "subject": "Fixed CVE-2026-33033 -- Mitigated potential DoS in MultiPartParser.",
+  "query": "MultiPartParser",
+  "relevant": [
+   "django/http/multipartparser.py"
+  ]
+ },
+ {
+  "commit": "6afe7ce93964f56e33a29d477c269436f9b60cbf",
+  "subject": "Fixed CVE-2026-4292 -- Disallowed instance creation via ModelAdmin.list_editable.",
+  "query": "list_editable",
+  "relevant": [
+   "django/contrib/admin/options.py"
+  ]
+ },
+ {
+  "commit": "ef8b25dcc06d158683a5623ce406d561638f4073",
+  "subject": "Fixed CVE-2026-4277 -- Checked add permissions in GenericInlineModelAdmin.",
+  "query": "GenericInlineModelAdmin",
+  "relevant": [
+   "django/contrib/contenttypes/admin.py"
+  ]
+ },
+ {
+  "commit": "33bfc66add643f49d466c5a646989ad91677753d",
+  "subject": "Fixed #37023 -- Made XML serializer put each ManyToManyField object on its own line.",
+  "query": "ManyToManyField",
+  "relevant": [
+   "django/core/serializers/xml_serializer.py"
+  ]
+ },
+ {
+  "commit": "253f552c5809fa096116b601bd842ca4f3504860",
+  "subject": "Fixed #36949 -- Improved RelatedFieldWidgetWrapper <label>s.",
+  "query": "RelatedFieldWidgetWrapper",
+  "relevant": [
+   "django/contrib/admin/widgets.py"
+  ]
+ },
+ {
+  "commit": "856c915326768962806705ca7733e4abbb8f794f",
+  "subject": "Fixed #37004 -- Used QuerySet.totally_ordered in BaseModelFormSet.get_queryset() for stable ordering.",
+  "query": "totally_ordered",
+  "relevant": [
+   "django/forms/models.py"
+  ]
+ },
+ {
+  "commit": "8b7ea2bcdd7297941ca6beb72d93b9568e187349",
+  "subject": "Refs #36913 -- Maintained error message determinism in MultipleChoiceField.validate().",
+  "query": "validate",
+  "relevant": [
+   "django/forms/fields.py"
+  ]
+ },
+ {
+  "commit": "26f8929f16c514bd9967cd78d8dcd7760b82cc92",
+  "subject": "Fixed #36913 -- Optimized MultipleChoiceField.validate().",
+  "query": "validate",
+  "relevant": [
+   "django/forms/fields.py"
+  ]
+ },
+ {
+  "commit": "b38cddf8f9d9dfe7a80e8d05c2295c69bdee68f0",
+  "subject": "Fixed #36985 -- Skipped CreateExtension backwards operation on non-PostgreSQL databases.",
+  "query": "CreateExtension",
+  "relevant": [
+   "django/contrib/postgres/operations.py"
+  ]
+ },
+ {
+  "commit": "1786cd881ff4ad9458d56180ae555d92c14e5af8",
+  "subject": "Refs #36795 -- Deprecated SQLCompiler.quote_name_unless_alias().",
+  "query": "quote_name_unless_alias",
+  "relevant": [
+   "django/db/models/sql/compiler.py"
+  ]
+ },
+ {
+  "commit": "2e33abe57c37dce6ce5eff9e6cbaf47cdddcf1e3",
+  "subject": "Fixed #36987 -- Observed prepared argument in UUIDField.get_db_prep_value().",
+  "query": "get_db_prep_value",
+  "relevant": [
+   "django/db/models/fields/__init__.py"
+  ]
+ },
+ {
+  "commit": "ba4751e0ca558dd8f0d9e6153bec4280289ca2f4",
+  "subject": "Fixed #36939 -- Avoided weakref.finalize in Signal.connect().",
+  "query": "connect",
+  "relevant": [
+   "django/dispatch/dispatcher.py"
+  ]
+ },
+ {
+  "commit": "2333d56696141303000986a16553205ece993c67",
+  "subject": "Fixed #36894 -- Added TypeError for conflicting arguments in mail APIs.",
+  "query": "TypeError",
+  "relevant": [
+   "django/core/mail/__init__.py",
+   "django/core/mail/message.py"
+  ]
+ },
+ {
+  "commit": "e779bc7d78cbcadd395d48e5b6b00acea07ce503",
+  "subject": "Fixed #36927 -- Optimized Field.deconstruct().",
+  "query": "deconstruct",
+  "relevant": [
+   "django/db/models/fields/__init__.py"
+  ]
+ },
+ {
+  "commit": "d43bd466e93aad7df13bb94fda4d01bc63b76a45",
+  "subject": "Refs #36727 -- Factored out _must_transform_value() in BaseSpatialOperations.",
+  "query": "BaseSpatialOperations",
+  "relevant": [
+   "django/contrib/gis/db/backends/base/operations.py"
+  ]
+ },
+ {
+  "commit": "b7c9c88111ddd4cc033355780398e2a24e156e38",
+  "subject": "Refs #28455 -- Avoided QuerySet cloning for Prefetch() when queryset is not provided.",
+  "query": "QuerySet",
+  "relevant": [
+   "django/contrib/contenttypes/fields.py",
+   "django/db/models/fields/related_descriptors.py"
+  ]
+ },
+ {
+  "commit": "804607df0e174c524a3ea880b8ecbb555ecb4abb",
+  "subject": "Refs #28455 -- Avoided QuerySet cloning in simple prefetch_related() usages.",
+  "query": "prefetch_related",
+  "relevant": [
+   "django/contrib/contenttypes/fields.py",
+   "django/db/models/fields/related_descriptors.py",
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "8d8a8713432a88737c4400610eef11c5c8457b86",
+  "subject": "Refs #28455 -- Implemented private API methods for preventing QuerySet cloning.",
+  "query": "QuerySet",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "476e5def5fcbcf637945985a23675db0e1f59354",
+  "subject": "Refactored PatternLookup to improve readability.",
+  "query": "PatternLookup",
+  "relevant": [
+   "django/db/models/lookups.py"
+  ]
+ },
+ {
+  "commit": "787166fe27b0e7c7f97505da5766cfa72e76ae25",
+  "subject": "Added DatabaseFeatures.pattern_lookup_needs_param_pattern.",
+  "query": "pattern_lookup_needs_param_pattern",
+  "relevant": [
+   "django/db/backends/base/features.py",
+   "django/db/models/lookups.py"
+  ]
+ },
+ {
+  "commit": "a5c49174b96302f39682cce48f82da67b3b08351",
+  "subject": "Fixed #12529 -- Fixed migrate --run-syncdb crash for existing model with truncated db_table names.",
+  "query": "db_table",
+  "relevant": [
+   "django/core/management/commands/migrate.py"
+  ]
+ },
+ {
+  "commit": "b33c31d992591bc8e8d20ac156809e4ae5b45375",
+  "subject": "Fixed #36940 -- Fixed script name edge case in ASGIRequest.path_info.",
+  "query": "path_info",
+  "relevant": [
+   "django/core/handlers/asgi.py"
+  ]
+ },
+ {
+  "commit": "c1d8646ec219b8b90ebdd463f40e5767876658a0",
+  "subject": "Fixed #36961 -- Fixed TypeError in deprecation warnings if Django is imported by namespace.",
+  "query": "TypeError",
+  "relevant": [
+   "django/utils/deprecation.py"
+  ]
+ },
+ {
+  "commit": "ffa1dad378927396a5593cd9865c3f751fa59059",
+  "subject": "Refs #35381 -- Moved JSONNull to django.db.models.expressions.",
+  "query": "expressions",
+  "relevant": [
+   "django/db/models/__init__.py",
+   "django/db/models/expressions.py",
+   "django/db/models/fields/json.py"
+  ]
+ },
+ {
+  "commit": "202eca7795710c82cd64a248650afc64f905a17e",
+  "subject": "Added DatabaseOperations.convert_trunc_expression() hook.",
+  "query": "convert_trunc_expression",
+  "relevant": [
+   "django/db/backends/base/operations.py",
+   "django/db/models/functions/datetime.py"
+  ]
+ },
+ {
+  "commit": "497d9cdc67f0bdae929fcde677b5f441e94a6c8b",
+  "subject": "Fixed #36951 -- Removed empty exc_info from log_task_finished signal handler.",
+  "query": "log_task_finished",
+  "relevant": [
+   "django/tasks/signals.py"
+  ]
+ },
+ {
+  "commit": "e84dc8715e91d51364ba6bda2b2fb07e7a8b750e",
+  "subject": "Fixed #36931 -- Handled LookupError in multipart parser for invalid RFC 2231 encoding.",
+  "query": "LookupError",
+  "relevant": [
+   "django/http/multipartparser.py"
+  ]
+ },
+ {
+  "commit": "158fd81ef5a5647d27eb3065063284f9ee0a3ca4",
+  "subject": "Fixed #36899 -- Implemented SessionBase.__bool__.",
+  "query": "__bool__",
+  "relevant": [
+   "django/contrib/sessions/backends/base.py"
+  ]
+ },
+ {
+  "commit": "f45bfa5e2801545c1c8787f59bee3867c9928871",
+  "subject": "Fixed #36935 -- Added fallback in ContentType.app_labeled_name when model_class() is None.",
+  "query": "app_labeled_name",
+  "relevant": [
+   "django/contrib/contenttypes/models.py"
+  ]
+ },
+ {
+  "commit": "08b4dfc5734f5d2fce685eabcd65385a6656db2f",
+  "subject": "Fixed #36857 -- Added QuerySet.totally_ordered property.",
+  "query": "totally_ordered",
+  "relevant": [
+   "django/contrib/admin/views/main.py",
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "055d7a682f4923fc5a50d7c1a12fd7f52675f7e8",
+  "subject": "Improved error message in SQLite `DatabaseOperations.check_expression_support()`.",
+  "query": "check_expression_support",
+  "relevant": [
+   "django/db/backends/sqlite3/operations.py"
+  ]
+ },
+ {
+  "commit": "0dd9d5ee5c30e51754d93e926e24ff92654ecf5d",
+  "subject": "Optimized SQLite `DatabaseOperations.check_expression_support()`.",
+  "query": "check_expression_support",
+  "relevant": [
+   "django/db/backends/sqlite3/operations.py"
+  ]
+ },
+ {
+  "commit": "380d77cccefbe185ddb3f9368d8fdeb7b7cf7108",
+  "subject": "Fixed #36921 -- Fixed KeyError in inline form for model not registered with admin.",
+  "query": "KeyError",
+  "relevant": [
+   "django/contrib/admin/options.py"
+  ]
+ },
+ {
+  "commit": "7732f942a98a709750fc1fed2c69741183844a3c",
+  "subject": "Fixed #36841 -- Made multipart parser class pluggable on HttpRequest.",
+  "query": "HttpRequest",
+  "relevant": [
+   "django/http/request.py"
+  ]
+ },
+ {
+  "commit": "3282d9f4edbe5d341a0fa2a8c62b435b3885ab64",
+  "subject": "Fixed #36890 -- Supported StringAgg(distinct=True) on SQLite with the default delimiter.",
+  "query": "StringAgg",
+  "relevant": [
+   "django/db/models/aggregates.py"
+  ]
+ },
+ {
+  "commit": "226ca7b5ce283e1f891dbbbefb0afaebdaa09f28",
+  "subject": "Added DatabaseFeatures.supports_inspectdb.",
+  "query": "supports_inspectdb",
+  "relevant": [
+   "django/core/management/commands/inspectdb.py",
+   "django/db/backends/base/features.py"
+  ]
+ },
+ {
+  "commit": "ec2ccff9a512adc715c5fc620bbe80790857b147",
+  "subject": "Refs #36036 -- Added note about z argument in GEOSCoordSeq.__init__().",
+  "query": "__init__",
+  "relevant": [
+   "django/contrib/gis/geos/coordseq.py"
+  ]
+ },
+ {
+  "commit": "218077d944e5e57a560f256034f5c4f13e77ab14",
+  "subject": "Refs #36036 -- Added m dimension to GEOSCoordSeq.",
+  "query": "GEOSCoordSeq",
+  "relevant": [
+   "django/contrib/gis/geos/coordseq.py",
+   "django/contrib/gis/geos/prototypes/coordseq.py"
+  ]
+ },
+ {
+  "commit": "7c54fee7760b1c61fd7f9cb7cc6a2965f4236137",
+  "subject": "Fixed #36246 -- Caught GDALException in BaseGeometryWidget.deserialize.",
+  "query": "deserialize",
+  "relevant": [
+   "django/contrib/gis/forms/fields.py",
+   "django/contrib/gis/forms/widgets.py"
+  ]
+ },
+ {
+  "commit": "6380e3f01e10f815de8c0223e3fd4bacb69f3808",
+  "subject": "Fixed #36644 -- Enabled empty order_by() to avoid pk ordering by first()/last().",
+  "query": "order_by",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "005d60d97c4dfb117503bdb6f2facfcaf9315d84",
+  "subject": "Refs CVE-2026-1312 -- Raised ValueError when FilteredRelation aliases contain periods.",
+  "query": "FilteredRelation",
+  "relevant": [
+   "django/db/models/sql/query.py"
+  ]
+ },
+ {
+  "commit": "69065ca869b0970dff8fdd8fafb390bf8b3bf222",
+  "subject": "Fixed CVE-2026-1312 -- Protected order_by() from SQL injection via aliases with periods.",
+  "query": "order_by",
+  "relevant": [
+   "django/db/models/sql/compiler.py"
+  ]
+ },
+ {
+  "commit": "a33540b3e20b5d759aa8b2e4b9ca0e8edd285344",
+  "subject": "Fixed CVE-2026-1285 -- Mitigated potential DoS in django.utils.text.Truncator for HTML input.",
+  "query": "Truncator",
+  "relevant": [
+   "django/utils/text.py"
+  ]
+ },
+ {
+  "commit": "81aa5292967cd09319c45fe2c1a525ce7b6684d8",
+  "subject": "Fixed CVE-2026-1207 -- Prevented SQL injections in RasterField lookups via band index.",
+  "query": "RasterField",
+  "relevant": [
+   "django/contrib/gis/db/backends/postgis/operations.py"
+  ]
+ },
+ {
+  "commit": "3eb814e02a4c336866d4189fa0c24fd1875863ed",
+  "subject": "Fixed CVE-2025-13473 -- Standardized timing of check_password() in mod_wsgi auth handler.",
+  "query": "check_password",
+  "relevant": [
+   "django/contrib/auth/handlers/modwsgi.py"
+  ]
+ },
+ {
+  "commit": "1d4c52c8bf62cc912e5099e86ff229b69ce9d227",
+  "subject": "Fixed #36893 -- Serialized elidable kwarg for RunSQL and RunPython operations.",
+  "query": "RunPython",
+  "relevant": [
+   "django/db/migrations/operations/special.py"
+  ]
+ },
+ {
+  "commit": "fe189dc43ab3eddbbceefb6834893b73ca60d5ed",
+  "subject": "Fixed #36847 -- Ensured auto_now_add fields are set on pre_save().",
+  "query": "pre_save",
+  "relevant": [
+   "django/db/models/base.py"
+  ]
+ },
+ {
+  "commit": "2831eaed797627e6e6410b06f74dadeb63316e09",
+  "subject": "Fixed #36233 -- Avoided quantizing integers stored in DecimalField on SQLite.",
+  "query": "DecimalField",
+  "relevant": [
+   "django/db/backends/sqlite3/operations.py"
+  ]
+ },
+ {
+  "commit": "83622b824b7014977dfc7086bbc2628ea53f4cd0",
+  "subject": "Fixed #36878 -- Unified data type for *_together options in ModelState.",
+  "query": "ModelState",
+  "relevant": [
+   "django/db/migrations/state.py"
+  ]
+ },
+ {
+  "commit": "c3c9f1908e62eea528377e3788e78594a8361189",
+  "subject": "Fixed #36812 -- Dropped support for MariaDB < 10.11.",
+  "query": "MariaDB",
+  "relevant": [
+   "django/db/backends/mysql/features.py"
+  ]
+ },
+ {
+  "commit": "59fcd2a1990775d9e893a44a45222d8a54112570",
+  "subject": "Fixed #36869 -- Optimized MigrationGraph._generate_plan membership checks.",
+  "query": "_generate_plan",
+  "relevant": [
+   "django/db/migrations/graph.py"
+  ]
+ },
+ {
+  "commit": "0239e86f387127dace7273208c300b33a065e021",
+  "subject": "Fixed #36352 -- Improved error message for fields excluded by prior values()/values_list() calls.",
+  "query": "values_list",
+  "relevant": [
+   "django/db/models/sql/query.py"
+  ]
+ },
+ {
+  "commit": "a77e541d1d8766b0e7d2c4143076ef07973f5bd9",
+  "subject": "Fixed #36801 -- Avoided unnecessary calculation in construct_change_message().",
+  "query": "construct_change_message",
+  "relevant": [
+   "django/contrib/admin/utils.py"
+  ]
+ },
+ {
+  "commit": "211b63142786ea77953de4f2850961e259c5b335",
+  "subject": "Fixed #36822 -- Added parameter limit for PostgreSQL with server-side binding.",
+  "query": "PostgreSQL",
+  "relevant": [
+   "django/db/backends/postgresql/features.py"
+  ]
+ },
+ {
+  "commit": "b98075dc6205374746cf1ad6d3533b9a1d9cf22e",
+  "subject": "Refs #36822 -- Hoisted bulk_batch_size() implementations to base backend.",
+  "query": "bulk_batch_size",
+  "relevant": [
+   "django/db/backends/base/operations.py"
+  ]
+ },
+ {
+  "commit": "6a596373d464d1d8e9014d952286ab5f6d2a9983",
+  "subject": "Fixed #35402 -- Fixed crash in DatabaseFeatures.django_test_skips when running a subset of tests.",
+  "query": "django_test_skips",
+  "relevant": [
+   "django/db/backends/base/creation.py"
+  ]
+ },
+ {
+  "commit": "73c5e94521c5b97e27cd2fe2d5b5c2e65f402755",
+  "subject": "Refs #36769 -- Raised SuspiciousOperation for unexpected nested tags in XML Deserializer.",
+  "query": "SuspiciousOperation",
+  "relevant": [
+   "django/core/serializers/xml_serializer.py"
+  ]
+ },
+ {
+  "commit": "2b192bff26cf956c168790fce6a637cbd814250b",
+  "subject": "Fixed #36858 -- Optimized `Field._get_default()` for `db_default` case.",
+  "query": "_get_default",
+  "relevant": [
+   "django/db/models/fields/__init__.py"
+  ]
+ },
+ {
+  "commit": "21ceaf2fd75bb994b7a0e3b691171d6b34ffc913",
+  "subject": "Fixed #36708 -- Initialized formset to None in ChangeList.__init__().",
+  "query": "__init__",
+  "relevant": [
+   "django/contrib/admin/options.py",
+   "django/contrib/admin/views/main.py"
+  ]
+ },
+ {
+  "commit": "9247410b4ba3b1f855567b8d84422d36345c690a",
+  "subject": "Fixed #36815 -- Optimized insertion of db_default fields in bulk_create().",
+  "query": "db_default",
+  "relevant": [
+   "django/db/models/sql/compiler.py"
+  ]
+ },
+ {
+  "commit": "459a3d17b973df23fc45328d4e976a270f0edd7f",
+  "subject": "Fixed #36852 -- Ignored index_type case in ExclusionConstraint equality check.",
+  "query": "ExclusionConstraint",
+  "relevant": [
+   "django/contrib/postgres/constraints.py"
+  ]
+ },
+ {
+  "commit": "c68e4adea0703354508d51895b091771b1f6ac45",
+  "subject": "Fixed #29257 -- Caught DatabaseError when attempting to close a possibly already-closed cursor.",
+  "query": "DatabaseError",
+  "relevant": [
+   "django/db/models/sql/compiler.py"
+  ]
+ },
+ {
+  "commit": "3201a895cba335000827b28768a7b7105c81b415",
+  "subject": "Added DatabaseCreation.destroy_test_db_connection_close_method hook.",
+  "query": "destroy_test_db_connection_close_method",
+  "relevant": [
+   "django/db/backends/base/creation.py",
+   "django/db/backends/oracle/creation.py"
+  ]
+ },
+ {
+  "commit": "79ab0993d0f2253e10ea638bcefc98ec2d890a47",
+  "subject": "Fixed #36829 -- Reverted value of ClearableFileInput.use_fieldset to True.",
+  "query": "use_fieldset",
+  "relevant": [
+   "django/contrib/admin/widgets.py",
+   "django/forms/widgets.py"
+  ]
+ },
+ {
+  "commit": "1c34b8716afde049f95ad1c72c2f8e148f826662",
+  "subject": "Refs #24920 -- Made DecimalField system checks database dependent.",
+  "query": "DecimalField",
+  "relevant": [
+   "django/db/models/fields/__init__.py"
+  ]
+ },
+ {
+  "commit": "da19b3897dc7c2e99b120d40322b36b4f1a09fe8",
+  "subject": "Fixed #36112 -- Added fallback in last_executed_query() on Oracle and PostgreSQL.",
+  "query": "last_executed_query",
+  "relevant": [
+   "django/db/backends/oracle/operations.py",
+   "django/db/backends/postgresql/operations.py"
+  ]
+ },
+ {
+  "commit": "8e4b531111ddd3256c45eee601947e475651e8e7",
+  "subject": "Fixed #36810 -- Avoided infinite recursion in SimpleLazyObject.__repr__().",
+  "query": "__repr__",
+  "relevant": [
+   "django/utils/functional.py"
+  ]
+ },
+ {
+  "commit": "84bae9c22a8ae7663c56cce5e0c611ea7c17fce1",
+  "subject": "Fixed #36818 -- Ensured SQLite connection before accessing max_query_params.",
+  "query": "max_query_params",
+  "relevant": [
+   "django/db/backends/sqlite3/features.py"
+  ]
+ },
+ {
+  "commit": "6025eab3c509b4de922117e16866bbfe0ee99aa6",
+  "subject": "Fixed #36806 -- Added system check for null kwarg in GeneratedField.",
+  "query": "GeneratedField",
+  "relevant": [
+   "django/db/models/fields/generated.py"
+  ]
+ },
+ {
+  "commit": "e49e14fd9032feb7a8cf254658ac4e74a4ffb712",
+  "subject": "Fixed #36618 -- Corrected error message in BaseForm.add_error().",
+  "query": "add_error",
+  "relevant": [
+   "django/forms/forms.py"
+  ]
+ },
+ {
+  "commit": "33a0a6f033b9243e0cc98e76bd494de73cf144eb",
+  "subject": "Fixed #36791 -- Made MigrationAutodetector recreate through table when m2m target model changes.",
+  "query": "MigrationAutodetector",
+  "relevant": [
+   "django/db/migrations/autodetector.py"
+  ]
+ },
+ {
+  "commit": "b172cbdf33c3eaea6a5c4a53da2ed0e46306a625",
+  "subject": "Fixed #36808 -- Required name argument in UniqueConstraint signature.",
+  "query": "UniqueConstraint",
+  "relevant": [
+   "django/db/models/constraints.py"
+  ]
+ },
+ {
+  "commit": "73c987eb3b6a96300f7238dff32caf53cafe2098",
+  "subject": "Fixed #36701 -- Fixed memory leak in ModelState.",
+  "query": "ModelState",
+  "relevant": [
+   "django/db/models/base.py"
+  ]
+ },
+ {
+  "commit": "4702b36120ea4c736d3f6b5595496f96e0021e46",
+  "subject": "Fixed #27380 -- Added \"raw\" argument to m2m_changed signals.",
+  "query": "m2m_changed",
+  "relevant": [
+   "django/core/serializers/base.py",
+   "django/db/models/fields/related_descriptors.py"
+  ]
+ },
+ {
+  "commit": "12d574407c466c7929e455cfcfef4c0ff564e465",
+  "subject": "Refs #27380 -- Added ManyRelatedManager.set_base() hook.",
+  "query": "set_base",
+  "relevant": [
+   "django/db/models/fields/related_descriptors.py"
+  ]
+ },
+ {
+  "commit": "4774adfaa18391854bb5449b4bcb0e9ab5e66b73",
+  "subject": "Fixed #32568 -- Replaced mark_safe() with SafeString for literal values.",
+  "query": "SafeString",
+  "relevant": [
+   "django/contrib/admin/templatetags/admin_list.py",
+   "django/utils/html.py"
+  ]
+ },
+ {
+  "commit": "0d8548e5831bc610102d5e4b8a2366f26818a28a",
+  "subject": "Fixed #36747 -- Parsed weeks from ISO 8601 format in parse_duration().",
+  "query": "parse_duration",
+  "relevant": [
+   "django/utils/dateparse.py"
+  ]
+ },
+ {
+  "commit": "6cc1231285a20b11058143f8cb0a6b4b3999b23a",
+  "subject": "Fixed #36800 -- Restored ManyToManyField renaming in BaseDatabaseSchemaEditor.alter_field().",
+  "query": "alter_field",
+  "relevant": [
+   "django/db/backends/base/schema.py"
+  ]
+ },
+ {
+  "commit": "d1a4979fa55071581411b7d62eb1ee20f2380ae3",
+  "subject": "Fixed #36594 -- Improved UniqueConstraint's nulls_distinct system check message.",
+  "query": "UniqueConstraint",
+  "relevant": [
+   "django/db/models/constraints.py"
+  ]
+ },
+ {
+  "commit": "0174a85770356fd12e4c8daa42a4f1c752ae00e6",
+  "subject": "Fixed #36765 -- Added support for stored GeneratedFields on Oracle 23ai/26ai (23.7+).",
+  "query": "GeneratedFields",
+  "relevant": [
+   "django/db/backends/base/schema.py"
+  ]
+ },
+ {
+  "commit": "e95468ed97b1c250939da316218c39dad577ba32",
+  "subject": "Refs #36735 -- Supported shift parameter for UUID7 on PostgreSQL.",
+  "query": "PostgreSQL",
+  "relevant": [
+   "django/db/backends/base/features.py",
+   "django/db/backends/postgresql/features.py",
+   "django/db/models/functions/uuid.py"
+  ]
+ },
+ {
+  "commit": "7b54ddd5e64c96c641b70bb5f0e958a9e2035fb2",
+  "subject": "Refs #36025 -- Made get_prep_lookup() pass output_field when wrapping direct values in Value.",
+  "query": "get_prep_lookup",
+  "relevant": [
+   "django/db/models/lookups.py"
+  ]
+ },
+ {
+  "commit": "3ccef1d669de942b9f3280a35ad4d4422b0b46d2",
+  "subject": "Fixed #36768 -- Optimized string concatenation in File.__iter__().",
+  "query": "__iter__",
+  "relevant": [
+   "django/core/files/base.py"
+  ]
+ },
+ {
+  "commit": "55888655a269f41025405b9a1bff14117ae58e2a",
+  "subject": "Fixed #36722 -- Moved AutoFieldMixin validate_autopk_value() check to get_db_prep_save.",
+  "query": "validate_autopk_value",
+  "relevant": [
+   "django/db/models/fields/__init__.py"
+  ]
+ },
+ {
+  "commit": "16252e690720edace3e0e220b99d9141fe091fb4",
+  "subject": "Fixed #36367 -- Added a label to the date_hierarchy in admin changelist.",
+  "query": "date_hierarchy",
+  "relevant": [
+   "django/contrib/admin/templatetags/admin_list.py"
+  ]
+ },
+ {
+  "commit": "cb1d2854ed2b13799f2b0cc6e04019df181bacd4",
+  "subject": "Refs #35444 -- Fixed typo in PostgreSQL StringAgg deprecation warning.",
+  "query": "PostgreSQL",
+  "relevant": [
+   "django/contrib/postgres/aggregates/general.py"
+  ]
+ },
+ {
+  "commit": "ce36c35e76f82f76cdfa5777456e794d481e5afc",
+  "subject": "Refs #36743 -- Corrected docstring for DisallowedRedirect.",
+  "query": "DisallowedRedirect",
+  "relevant": [
+   "django/core/exceptions.py"
+  ]
+ },
+ {
+  "commit": "a8cf8c292cfee98fe6cc873ca5221935f1d02271",
+  "subject": "Fixed #36743 -- Increased URL max length enforced in HttpResponseRedirectBase.",
+  "query": "HttpResponseRedirectBase",
+  "relevant": [
+   "django/http/response.py"
+  ]
+ },
+ {
+  "commit": "57c50d8c1996733cef45204ea069a2c01b2860cc",
+  "subject": "Refs #21961 -- Added DatabaseFeatures.supports_on_delete_db_(cascade/null) feature flags.",
+  "query": "supports_on_delete_db_",
+  "relevant": [
+   "django/db/backends/base/features.py",
+   "django/db/models/fields/related.py"
+  ]
+ },
+ {
+  "commit": "b1a65eac7c09250d36e12464fc8fff2a401246b6",
+  "subject": "Fixed #36321 -- Defaulted suggest_on_error=True in management commands.",
+  "query": "suggest_on_error",
+  "relevant": [
+   "django/core/management/base.py"
+  ]
+ },
+ {
+  "commit": "e05f2a75695b5f5faa7682d4053db4776d4d6f93",
+  "subject": "Fixed #36733 -- Escaped attributes in Stylesheet.__str__().",
+  "query": "__str__",
+  "relevant": [
+   "django/utils/feedgenerator.py"
+  ]
+ },
+ {
+  "commit": "35f86b641a4eb26fa2b7c3842b6d374834a4ea6b",
+  "subject": "Refs #24928 -- Added introspection support for PostgreSQL HStoreField.",
+  "query": "HStoreField",
+  "relevant": [
+   "django/contrib/postgres/apps.py"
+  ]
+ },
+ {
+  "commit": "96ee097bd68a93e0f360326271ebe78553fae15b",
+  "subject": "Refs #31055 -- Adjusted passing of Field.check kwargs to ArrayField.base_field.",
+  "query": "base_field",
+  "relevant": [
+   "django/contrib/postgres/fields/array.py"
+  ]
+ },
+ {
+  "commit": "c4e07f94ebc1f9eaa3dae7b3dc6a2b9832182a10",
+  "subject": "Fixed #36420 -- Used actual SQLite limits in last_executed_query() quoting.",
+  "query": "last_executed_query",
+  "relevant": [
+   "django/db/backends/sqlite3/operations.py"
+  ]
+ },
+ {
+  "commit": "27687475265f88bc0a0bcbfe2ba26da306bbfc20",
+  "subject": "Fixed #36315 -- Used TaskGroup instead of asyncio.gather().",
+  "query": "TaskGroup",
+  "relevant": [
+   "django/dispatch/dispatcher.py"
+  ]
+ },
+ {
+  "commit": "2501958b5127020411df6271445ccfd0906df70e",
+  "subject": "Refs #36315 -- Replaced manual task and cancellation handling with TaskGroup in ASGIHandler.",
+  "query": "TaskGroup",
+  "relevant": [
+   "django/core/handlers/asgi.py"
+  ]
+ },
+ {
+  "commit": "796cf3d325b4a1b9d9b5361c2c8c28a5edcfe89b",
+  "subject": "Refs #36315 -- Used contextlib.closing() in ASGIHandler.handle().",
+  "query": "closing",
+  "relevant": [
+   "django/core/handlers/asgi.py"
+  ]
+ },
+ {
+  "commit": "6d4d99b3cef4a6d931de02f89a493fb345dc438e",
+  "subject": "Fixed #36702 -- Made bulk_create() return pk values set by an expression.",
+  "query": "bulk_create",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "dfcc662cf8fd7f897ddcdfeaf5cb4ae6c963ebf8",
+  "subject": "Fixed #36709 -- Included static methods in system check for UserModel.is_anonymous/is_authenticated methods.",
+  "query": "is_authenticated",
+  "relevant": [
+   "django/contrib/auth/checks.py"
+  ]
+ },
+ {
+  "commit": "c880530ddd4fabd5939bab0e148bebe36699432a",
+  "subject": "Fixed CVE-2025-64458 -- Mitigated potential DoS in HttpResponseRedirect/HttpResponsePermanentRedirect on Windows.",
+  "query": "HttpResponsePermanentRedirect",
+  "relevant": [
+   "django/http/response.py"
+  ]
+ },
+ {
+  "commit": "be7f68422d4c6ae568a17f1fa91aac67d284df82",
+  "subject": "Refs #35381 -- Delegated ArrayField element prepping to base_field.get_db_prep_save.",
+  "query": "get_db_prep_save",
+  "relevant": [
+   "django/contrib/postgres/fields/array.py"
+  ]
+ },
+ {
+  "commit": "4744e9939b65d168c531e5e23d1ac8a4445ac7f9",
+  "subject": "Fixed #36683 -- Added error message on QuerySet.update() following distinct(*fields).",
+  "query": "update",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "3ff32c50d143d8a498f9a5dfef1a31b16a7456fe",
+  "subject": "Fixed #36674 -- Fixed memory leak in select_related().",
+  "query": "select_related",
+  "relevant": [
+   "django/db/models/sql/compiler.py"
+  ]
+ },
+ {
+  "commit": "a0323a0c44135c28134672e6e633e5f4a7a68d5d",
+  "subject": "Fixed #36656 -- Avoided truncating async streaming responses in GZipMiddleware.",
+  "query": "GZipMiddleware",
+  "relevant": [
+   "django/middleware/gzip.py"
+  ]
+ },
+ {
+  "commit": "e244d8bbb743eec413eb241139b6345885db39d9",
+  "subject": "Refs #28586 - Copied fetch mode in QuerySet.create().",
+  "query": "create",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "821619aa8771ef211c4c4922001efdf914201ca3",
+  "subject": "Refs #28586 -- Simplified related descriptor get_queryset() methods.",
+  "query": "get_queryset",
+  "relevant": [
+   "django/db/models/fields/related_descriptors.py"
+  ]
+ },
+ {
+  "commit": "6862d46dd96d71d80d6d2fa9873a93d811b39562",
+  "subject": "Fixed 36622 -- Prevented LazyObject FileField storages from evaluating at boot time.",
+  "query": "FileField",
+  "relevant": [
+   "django/db/models/fields/files.py"
+  ]
+ },
+ {
+  "commit": "5d6c36d8349be277bbfab282a1b4aa98296d4842",
+  "subject": "Fixed #36654 -- Corrected Model._do_update()'s docstring.",
+  "query": "_do_update",
+  "relevant": [
+   "django/db/models/base.py"
+  ]
+ },
+ {
+  "commit": "d0c8f89c942d1379724bdd37127076d13452f71d",
+  "subject": "Refs #31223 -- Added __class_getitem__() to SetPasswordMixin.",
+  "query": "__class_getitem__",
+  "relevant": [
+   "django/contrib/auth/forms.py"
+  ]
+ },
+ {
+  "commit": "5b51e6f759f2ba993219347435149173c756c478",
+  "subject": "Fixed #36611, Refs #36580 -- Added system check for multicolumn ForeignObject in Meta.indexes/constraints/unique_together.",
+  "query": "unique_together",
+  "relevant": [
+   "django/db/models/base.py"
+  ]
+ },
+ {
+  "commit": "0f75f8f1ff2078cde3c1701851c754b91c6baf44",
+  "subject": "Optimized View.dispatch() a bit.",
+  "query": "dispatch",
+  "relevant": [
+   "django/views/generic/base.py"
+  ]
+ },
+ {
+  "commit": "5bd775703c361d05458f1d81684500705d0f51ea",
+  "subject": "Fixed #36623 -- Dropped support for PostgreSQL 14 and PostGIS 3.1.",
+  "query": "PostgreSQL",
+  "relevant": [
+   "django/contrib/gis/db/backends/postgis/operations.py",
+   "django/db/backends/postgresql/features.py"
+  ]
+ },
+ {
+  "commit": "2514857e3fae831106832cca8823237801cf2cad",
+  "subject": "Fixed #36636, Refs #15902 -- Removed session-based storage reference from set_language() docs.",
+  "query": "set_language",
+  "relevant": [
+   "django/views/i18n.py"
+  ]
+ },
+ {
+  "commit": "924a0c092e65fa2d0953fd1855d2dc8786d94de2",
+  "subject": "Fixed CVE-2025-59682 -- Fixed potential partial directory-traversal via archive.extract().",
+  "query": "extract",
+  "relevant": [
+   "django/utils/archive.py"
+  ]
+ },
+ {
+  "commit": "41b43c74bda19753c757036673ea9db74acf494a",
+  "subject": "Fixed CVE-2025-59681 -- Protected QuerySet.annotate(), alias(), aggregate(), and extra() against SQL injection in column aliases on MySQL/MariaDB.",
+  "query": "annotate",
+  "relevant": [
+   "django/db/models/sql/query.py"
+  ]
+ },
+ {
+  "commit": "8b241f84e25f679c459393dab2947c8354eb01a9",
+  "subject": "Fixed #36614 -- Deprecated QuerySet.values_list(flat=True) without a field.",
+  "query": "values_list",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "906a51e125c3007f86d42b81072a1dad7149af05",
+  "subject": "Skipped NOT NULL constraints on PostgreSQL 18+.",
+  "query": "PostgreSQL",
+  "relevant": [
+   "django/db/backends/postgresql/introspection.py"
+  ]
+ },
+ {
+  "commit": "e8190b370e508648b0f0ee9b86876f97d3997e14",
+  "subject": "Fixed #36277 -- Fixed DatabaseFeatures.supports_virtual_generated_columns on PostgreSQL 18+.",
+  "query": "supports_virtual_generated_columns",
+  "relevant": [
+   "django/db/backends/postgresql/features.py"
+  ]
+ },
+ {
+  "commit": "1cb76b90e844308ae21d24115311bc354efe56e6",
+  "subject": "Fixed #36142 -- Made Http404 messages in *_or_404() shortcuts translatable.",
+  "query": "_or_404",
+  "relevant": [
+   "django/shortcuts.py"
+  ]
+ },
+ {
+  "commit": "46bd92274c57fd6f138c067562696092732cec59",
+  "subject": "Refs #36605 -- Optimized QuerySet.in_bulk() for the empty id_list case.",
+  "query": "id_list",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "1820d35b17f0a95f4ce888971b9ca0c7a3697c83",
+  "subject": "Fixed #36605 -- Added support for QuerySet.in_bulk() after .values() or .values_list().",
+  "query": "values_list",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "1acb00b26da13165e967bf2354fc917e38c382e4",
+  "subject": "Fixed #36616 -- Added DatabaseOperations.adapt_durationfield_value().",
+  "query": "adapt_durationfield_value",
+  "relevant": [
+   "django/db/backends/base/operations.py",
+   "django/db/backends/oracle/operations.py",
+   "django/db/backends/postgresql/operations.py",
+   "django/db/models/fields/__init__.py"
+  ]
+ },
+ {
+  "commit": "748551fea0b4e37231203a063356572a47e09efb",
+  "subject": "Fixed #36264 -- Excluded proxy neighbors of parents from deletion collection when keep_parents=True.",
+  "query": "keep_parents",
+  "relevant": [
+   "django/db/models/deletion.py"
+  ]
+ },
+ {
+  "commit": "e20e1890450011693df845394e0a133a202b5466",
+  "subject": "Refs #33783 -- Added IsEmpty GIS database function and __isempty lookup on SpatiaLite.",
+  "query": "SpatiaLite",
+  "relevant": [
+   "django/contrib/gis/db/backends/spatialite/operations.py",
+   "django/contrib/gis/db/models/functions.py"
+  ]
+ },
+ {
+  "commit": "af84cfba5970fda8306860b650937701c7c03c6f",
+  "subject": "Fixed #36612 -- Fixed a KeyTextTransform crash on MySQL against annotations.",
+  "query": "KeyTextTransform",
+  "relevant": [
+   "django/db/models/fields/json.py"
+  ]
+ },
+ {
+  "commit": "a36df6890d8995480f2e95ba556b77cef975d4f6",
+  "subject": "Fixed #36488 -- Fixed merging of query strings in RedirectView.",
+  "query": "RedirectView",
+  "relevant": [
+   "django/views/generic/base.py"
+  ]
+ },
+ {
+  "commit": "fd705912fff168d10c806568a222dfa25e3bb6a0",
+  "subject": "Refs #36152, #35667 -- Used skip_file_prefixes in alias deprecation warning.",
+  "query": "skip_file_prefixes",
+  "relevant": [
+   "django/db/models/sql/query.py"
+  ]
+ },
+ {
+  "commit": "74a9c2711cd81708ae754c4d92432511efa96149",
+  "subject": "Refs #28586 -- Split descriptor from GenericForeignKey.",
+  "query": "GenericForeignKey",
+  "relevant": [
+   "django/contrib/contenttypes/checks.py",
+   "django/contrib/contenttypes/fields.py"
+  ]
+ },
+ {
+  "commit": "0655d958bd7a4be7c47df3469f7cfa9af46e7a35",
+  "subject": "Refs #36390 -- Removed support for RemoteUserMiddleware subclasses missing aprocess_request().",
+  "query": "RemoteUserMiddleware",
+  "relevant": [
+   "django/contrib/auth/middleware.py"
+  ]
+ },
+ {
+  "commit": "7d7e5cd0554aab03d3e2732a67a2680d48fa48f7",
+  "subject": "Refs #35444 -- Removed contrib.postgres aggregates ordering kwarg per deprecation timeline.",
+  "query": "postgres",
+  "relevant": [
+   "django/contrib/postgres/aggregates/general.py"
+  ]
+ },
+ {
+  "commit": "32e266dc5b756b52e6db4f4f453f51274aa9234e",
+  "subject": "Refs #35530 -- Removed request.user or auser() fallback in auth.login and auth.alogin.",
+  "query": "alogin",
+  "relevant": [
+   "django/contrib/auth/__init__.py"
+  ]
+ },
+ {
+  "commit": "4fcc2883faa8e33152d9e45744354cff35636975",
+  "subject": "Refs #27222 -- Restored Model.save()'s refreshing of db_returning fields even if a value is set.",
+  "query": "db_returning",
+  "relevant": [
+   "django/db/models/base.py"
+  ]
+ },
+ {
+  "commit": "2063c88c34566f46ad120c5b37c9926ffd3f10a6",
+  "subject": "Fixed #36606 -- Optimized QuerySet.values_list(flat=True) without fields.",
+  "query": "values_list",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "218f69f05eb51da1ea17d62a914a67ceff5bfd55",
+  "subject": "Fixed #28041 -- Added Lexeme expression to contrib.postgres.search.",
+  "query": "search",
+  "relevant": [
+   "django/contrib/postgres/search.py"
+  ]
+ },
+ {
+  "commit": "e08fa42fa6d0e9f2a74e8fcdc5a47f5c3b825877",
+  "subject": "Fixed #36426 -- Added support for further iterables in prefetch_related_objects().",
+  "query": "prefetch_related_objects",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "e059bbec96ed85d5f4d63893d687c8af966430c8",
+  "subject": "Refs #27222 -- Deduplicated db_returning fields in Model.save().",
+  "query": "db_returning",
+  "relevant": [
+   "django/db/models/base.py"
+  ]
+ },
+ {
+  "commit": "8c621e96422e037c3997c8c9515bc050620852f6",
+  "subject": "Fixed #36580 -- Fixed constraint validation crash when condition uses a ForeignObject.",
+  "query": "ForeignObject",
+  "relevant": [
+   "django/db/models/base.py"
+  ]
+ },
+ {
+  "commit": "424e0d86973d88b402b55f20884938715aad740b",
+  "subject": "Fixed #36520 -- Reverted \"Fixed #35440 -- Simplified parse_header_parameters by leveraging stdlid's Message.\"",
+  "query": "parse_header_parameters",
+  "relevant": [
+   "django/utils/http.py"
+  ]
+ },
+ {
+  "commit": "e7740780d0a5cc3123e351d955cc9d9d44dcbd20",
+  "subject": "Renamed local variables in CsrfViewMiddleware._origin_verified() for clarity.",
+  "query": "_origin_verified",
+  "relevant": [
+   "django/middleware/csrf.py"
+  ]
+ },
+ {
+  "commit": "41bc48ac1ed1d515977ebe965993b1ef83eafd02",
+  "subject": "Fixed #36603 -- Optimized check order in LoginRequiredMiddleware.",
+  "query": "LoginRequiredMiddleware",
+  "relevant": [
+   "django/contrib/auth/middleware.py"
+  ]
+ },
+ {
+  "commit": "2a636118dacdcda074c99ebd50311d64a8cca367",
+  "subject": "Fixed #36564 -- Changed DEFAULT_AUTO_FIELD from AutoField to BigAutoField.",
+  "query": "DEFAULT_AUTO_FIELD",
+  "relevant": [
+   "django/conf/global_settings.py"
+  ]
+ },
+ {
+  "commit": "bad03eb108b029dad70cbd997f1fef221da3e415",
+  "subject": "Fixed #36481 -- Fixed QuerySet.update concrete fields check.",
+  "query": "update",
+  "relevant": [
+   "django/db/models/sql/subqueries.py"
+  ]
+ },
+ {
+  "commit": "34bd3ed944bf38792c631b55e581963d44d52284",
+  "subject": "Refs #36559, #35667 -- Used skip_file_prefixes in PartialTemplate.source warning.",
+  "query": "skip_file_prefixes",
+  "relevant": [
+   "django/template/base.py"
+  ]
+ },
+ {
+  "commit": "e197953f11a7726746bd7c80664cc38d5ea85588",
+  "subject": "Refs #34989 -- Ensured the Content-Length header is set when redirect with APPEND_SLASH.",
+  "query": "APPEND_SLASH",
+  "relevant": [
+   "django/middleware/common.py"
+  ]
+ },
+ {
+  "commit": "d82f25d3f0f4eb7be721a72d0e79a8d13d394d32",
+  "subject": "Fixed #36559 -- Respected verbatim and comment blocks in PartialTemplate.source.",
+  "query": "source",
+  "relevant": [
+   "django/template/base.py",
+   "django/template/defaulttags.py"
+  ]
+ },
+ {
+  "commit": "51711717098d3f469f795dfa6bc3758b24f69ef7",
+  "subject": "Fixed CVE-2025-57833 -- Protected FilteredRelation against SQL injection in column aliases.",
+  "query": "FilteredRelation",
+  "relevant": [
+   "django/db/models/sql/query.py"
+  ]
+ },
+ {
+  "commit": "bb7a7701b1a0e8fffe14dcebf5d5bac7f176c02a",
+  "subject": "Fixed #36431 -- Returned tuples for multi-column ForeignObject in values()/values_list().",
+  "query": "values_list",
+  "relevant": [
+   "django/db/models/sql/query.py"
+  ]
+ },
+ {
+  "commit": "eaaf01c96a44354c5b0a0450ee49c3031848b489",
+  "subject": "Refs #34624 -- Changed RedirectAdmin to use a Select widget for the site field.",
+  "query": "RedirectAdmin",
+  "relevant": [
+   "django/contrib/redirects/admin.py"
+  ]
+ },
+ {
+  "commit": "0be1c4575b03b9f7ac91ec9aabe0bedb542d20bc",
+  "subject": "Fixed #34624 -- Removed change, delete, and view buttons for non-Select widgets in RelatedFieldWidgetWrapper.",
+  "query": "RelatedFieldWidgetWrapper",
+  "relevant": [
+   "django/contrib/admin/widgets.py"
+  ]
+ },
+ {
+  "commit": "41ff30f6f9d072036be1f74db8f0c8b21565299f",
+  "subject": "Refs #36520 -- Ensured only the header value is passed to parse_header_parameters for multipart requests.",
+  "query": "parse_header_parameters",
+  "relevant": [
+   "django/http/multipartparser.py"
+  ]
+ },
+ {
+  "commit": "3ba24c18e70dd242ae237fd955fb8be30f99bc4d",
+  "subject": "Fixed #36251 -- Avoided mutating form Meta.fields in BaseInlineFormSet.",
+  "query": "BaseInlineFormSet",
+  "relevant": [
+   "django/forms/models.py"
+  ]
+ },
+ {
+  "commit": "836894f27a0e2c32dbbecbe8392ba7d4d0d17d8a",
+  "subject": "Refs #470 -- Adjusted Field.db_returning to be backend agnostic.",
+  "query": "db_returning",
+  "relevant": [
+   "django/db/models/fields/__init__.py"
+  ]
+ },
+ {
+  "commit": "b3166e1e15824aedb7a609dfda18ef36ea023d06",
+  "subject": "Refs #35530 -- Corrected deprecation message in auth.alogin().",
+  "query": "alogin",
+  "relevant": [
+   "django/contrib/auth/__init__.py"
+  ]
+ },
+ {
+  "commit": "ed7c1a56400d64f109f30df3ce697984cdad7c75",
+  "subject": "Fixed #36560 -- Prevented UpdateCacheMiddleware from caching responses with Cache-Control 'no-cache' or 'no-store'.",
+  "query": "UpdateCacheMiddleware",
+  "relevant": [
+   "django/middleware/cache.py"
+  ]
+ },
+ {
+  "commit": "d3cf24e9b415b41f570c9f426b2cd113b5fdb4de",
+  "subject": "Refs #36430, #36416, #34378 -- Simplified batch size calculation in QuerySet.in_bulk().",
+  "query": "in_bulk",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "7063d31cc37028e0f945faa43030ce23dc1a5c23",
+  "subject": "Refs #35303 -- Made small optimizations in alogout() and aget_user().",
+  "query": "aget_user",
+  "relevant": [
+   "django/contrib/auth/__init__.py"
+  ]
+ },
+ {
+  "commit": "cd7554e5517992d5ca2594ffc936cb193daab26c",
+  "subject": "Fixed #36561 -- Used request.auser() in contrib.auth.aupdate_session_auth_hash().",
+  "query": "aupdate_session_auth_hash",
+  "relevant": [
+   "django/contrib/auth/__init__.py"
+  ]
+ },
+ {
+  "commit": "5eca562ac3cbfd3b0c6522f3d7ad4be034e1cb8c",
+  "subject": "Refs #36490 -- Simplified QuerySet._batched_insert returning fields handling.",
+  "query": "_batched_insert",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "e1671278e88265e64811657b8b939b5d786295cb",
+  "subject": "Fixed #36490 -- Avoided unnecessary transaction in bulk_create.",
+  "query": "bulk_create",
+  "relevant": [
+   "django/db/models/query.py"
+  ]
+ },
+ {
+  "commit": "2c99fbcf95f07eaff0bf9673af7c82d07353df8f",
+  "subject": "Fixed #36368 -- Prevented duplicate locale paths and write_po_file calls in makemessages.",
+  "query": "write_po_file",
+  "relevant": [
+   "django/core/management/commands/makemessages.py"
+  ]
+ },
+ {
+  "commit": "80cc9994d178d4afff0c85f9be8393bcedfd2687",
+  "subject": "Remove unused OneToOneField from DatabaseWrapper.data_types.",
+  "query": "data_types",
+  "relevant": [
+   "django/db/backends/mysql/base.py",
+   "django/db/backends/oracle/base.py",
+   "django/db/backends/postgresql/base.py",
+   "django/db/backends/sqlite3/base.py"
+  ]
+ },
+ {
+  "commit": "181e3bd71c0f578a1214523be1f7969393d98892",
+  "subject": "Refs #36210 -- Corrected output_field comparison in Subquery.resolve_expression().",
+  "query": "resolve_expression",
+  "relevant": [
+   "django/db/models/expressions.py"
+  ]
+ },
+ {
+  "commit": "31a43c571f4d036827d4fd7a5f615591637dc1be",
+  "subject": "Fixed #36540 -- Updated request.auser() in contrib.auth.alogin() and contrib.auth.alogout().",
+  "query": "alogout",
+  "relevant": [
+   "django/contrib/auth/__init__.py"
+  ]
+ },
+ {
+  "commit": "2013092b693be0ebdf36f41dc61615a2de1bbe31",
+  "subject": "Fixed #36530 -- Extended fields.E347 to check for ManyToManyField involving CompositePrimaryKey on either side.",
+  "query": "CompositePrimaryKey",
+  "relevant": [
+   "django/db/models/fields/related.py"
+  ]
+ },
+ {
+  "commit": "748ca0a146175c4868ece87f5e845a75416c30e3",
+  "subject": "Fixed #36439 -- Optimized acheck_password by using sync_to_async on verify_password.",
+  "query": "acheck_password",
+  "relevant": [
+   "django/contrib/auth/hashers.py"
+  ]
+ },
+ {
+  "commit": "45ba7683a6e399815731a13cceb3acb518a2f1f2",
+  "subject": "Refs #36438 -- Made FieldOperation.references_field() detect references in GeneratedField.expression.",
+  "query": "references_field",
+  "relevant": [
+   "django/db/migrations/operations/fields.py"
+  ]
+ },
+ {
+  "commit": "1a7fc0f65d5b2ef56625a8b5897496e28a5834ff",
+  "subject": "Fixed #36438 -- Made MigrationAutodetector remove generated fields before their base fields.",
+  "query": "MigrationAutodetector",
+  "relevant": [
+   "django/db/migrations/autodetector.py"
+  ]
+ }
+]

@@ -7380,6 +7380,7 @@ fn bootstrap_index_build(state: &Arc<ServerState>, root: &Path, index_dir: &Path
             collect_gitignore_files: true,
             strategy: builder::IndexStrategy::External,
             buffer_bytes: builder::DEFAULT_INDEX_BUFFER_BYTES,
+            sparse_grams: true,
         },
         ignorecase.clone(),
     ) {
@@ -8092,7 +8093,12 @@ fn flush_append_only_overlay_locked(
     let (overlay_paths, overlay_inverted, reader, overlay_has_grams) = {
         let index = state.index.read().unwrap();
         let (paths, inverted) = index.live.snapshot_for_disk();
-        (paths, inverted, index.reader_arc(), index.live.grams_complete())
+        (
+            paths,
+            inverted,
+            index.reader_arc(),
+            index.live.grams_complete(),
+        )
     };
     if overlay_paths.is_empty() && !complete && evidence.is_none() {
         return false;

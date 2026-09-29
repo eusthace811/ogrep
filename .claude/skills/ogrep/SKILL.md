@@ -117,6 +117,22 @@ ogrep --explain -F 'parse_header' . > /dev/null   # how much the index narrowed 
 `--with` and `--without` are file-level conditions. They are checked anywhere in
 the file, not on the matching line. `--with` also narrows the index lookup.
 
+### Finding where something lives: `--rank`
+
+When you need the place a name is defined or mainly used, not every mention,
+rank the results. The best files come first, each with a few telling lines
+(definitions first); tests, vendored code and docs weigh less.
+
+```bash
+ogrep -n --rank -F bulk_update .                  # best 20 files, 3 lines each
+ogrep -n --rank --budget 5 --per-file 1 -F bulk_update .
+ogrep -l --rank -F bulk_update .                  # ranked file names only
+ogrep -n --explain-rank --budget 5 -F bulk_update .   # with each file's score
+```
+
+Ranking only reorders and trims real matches, and its order is deterministic.
+Drop `--rank` when you need every occurrence.
+
 ## What is and is not searched
 
 It skips the same things ripgrep does: `.gitignore`d files, hidden files and

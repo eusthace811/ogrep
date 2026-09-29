@@ -1,0 +1,2534 @@
+[
+ {
+  "commit": "980e0f01b82c028766868159eab37628bd277b8c",
+  "subject": "moving div_ceil() to associated items macro",
+  "query": "div_ceil",
+  "relevant": [
+   "library/core/src/num/nonzero.rs"
+  ]
+ },
+ {
+  "commit": "876f7a0c297de344e33b7d85c86d20a24731322a",
+  "subject": "Tweak Layout::from_size_align_unchecked safety comment",
+  "query": "from_size_align_unchecked",
+  "relevant": [
+   "library/core/src/alloc/layout.rs"
+  ]
+ },
+ {
+  "commit": "a391456e06ca69e27fed704e3c597a608109aea1",
+  "subject": "Split out RegionInferenceContext into an UnsolvedRegionInferenceContext",
+  "query": "UnsolvedRegionInferenceContext",
+  "relevant": [
+   "compiler/rustc_borrowck/src/nll.rs",
+   "compiler/rustc_borrowck/src/region_infer/region_context.rs"
+  ]
+ },
+ {
+  "commit": "fc538ecc32511eb73230edf12960ca4f8f977be7",
+  "subject": "Add PermittedDeps type",
+  "query": "PermittedDeps",
+  "relevant": [
+   "src/tools/tidy/src/deps.rs"
+  ]
+ },
+ {
+  "commit": "983c56db1bbbd2111cbe3761bb039e007d706a1d",
+  "subject": "`rustc_dump_symbol_name`: add demangling information as a note instead",
+  "query": "rustc_dump_symbol_name",
+  "relevant": [
+   "compiler/rustc_symbol_mangling/src/test.rs"
+  ]
+ },
+ {
+  "commit": "327639df5e32f0e33d40ff25e578aea74307ebe7",
+  "subject": "use `Self` instead of `type_ident` once more",
+  "query": "type_ident",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/deriving/generic/mod.rs"
+  ]
+ },
+ {
+  "commit": "b5c30bea730f1e84e24a8d71e0a306116e38495c",
+  "subject": "inline `expand_struct/enum_def`",
+  "query": "expand_struct",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/deriving/generic/mod.rs"
+  ]
+ },
+ {
+  "commit": "42bc8afbffe5600113b77988cff6df84237aa0c2",
+  "subject": "move helper methods away from `TraitDef`",
+  "query": "TraitDef",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/deriving/generic/mod.rs"
+  ]
+ },
+ {
+  "commit": "976fcac712d75fc7d9d32e8278a77eae96a07f67",
+  "subject": "inline `discriminant_value` calls",
+  "query": "discriminant_value",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/deriving/generic/mod.rs"
+  ]
+ },
+ {
+  "commit": "e9824e4145a1be3aa78354393bb7351f5d656d98",
+  "subject": "properly decrement available_depth on cycles and provisional cache hits",
+  "query": "available_depth",
+  "relevant": [
+   "compiler/rustc_type_ir/src/search_graph/mod.rs"
+  ]
+ },
+ {
+  "commit": "b81ddc962702e4b908fed61282c607d2150c3a56",
+  "subject": "Revert \"remove no-longer-needed MaybeDangling from thread spawning\"",
+  "query": "MaybeDangling",
+  "relevant": [
+   "library/std/src/thread/lifecycle.rs"
+  ]
+ },
+ {
+  "commit": "2b022a3d4bf8142d7faeaf9c4ebce160d0722a57",
+  "subject": "Export `std_or_core`",
+  "query": "std_or_core",
+  "relevant": [
+   "compiler/rustc_lint/src/lib.rs",
+   "compiler/rustc_lint/src/utils.rs"
+  ]
+ },
+ {
+  "commit": "9f208cb493f605226853d6015c2df8d4f6a983af",
+  "subject": "std::thread::available_parallelism merging linux/android/freebsd version",
+  "query": "available_parallelism",
+  "relevant": [
+   "library/std/src/sys/thread/unix.rs"
+  ]
+ },
+ {
+  "commit": "6cc4e7e2788cb8f7c71454efb074e2f114b84898",
+  "subject": "Add `inline` attribute to `NonZero::from_str`",
+  "query": "from_str",
+  "relevant": [
+   "library/core/src/num/nonzero.rs"
+  ]
+ },
+ {
+  "commit": "ffb56b9fa7f6129639c69b0a19ef54606ca4856d",
+  "subject": "merge `Ord` and `PartialOrd` code",
+  "query": "PartialOrd",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/deriving/partial_ord.rs"
+  ]
+ },
+ {
+  "commit": "3ca6e6cf2033c561330e813e571edd490a72396e",
+  "subject": "fix `test_mm_srav_epi64` shift direction",
+  "query": "test_mm_srav_epi64",
+  "relevant": [
+   "library/stdarch/crates/core_arch/src/x86_64/avx512f.rs"
+  ]
+ },
+ {
+  "commit": "e31fb47c9fff9832cd74ec1e7de43e8c88d4586e",
+  "subject": "Skip `panic_any` rustfix in `non_fmt_panics` when it is unavailable",
+  "query": "non_fmt_panics",
+  "relevant": [
+   "compiler/rustc_lint/src/non_fmt_panic.rs"
+  ]
+ },
+ {
+  "commit": "ed84aded9c6f4c8d40e2bb15e5178109bada68bc",
+  "subject": "Use `std_or_core` in `unpredictable_function_pointer_comparisons` rustfix",
+  "query": "unpredictable_function_pointer_comparisons",
+  "relevant": [
+   "compiler/rustc_lint/src/types.rs"
+  ]
+ },
+ {
+  "commit": "711d8619a0f38466e7c84f02acf699fb7b25a88b",
+  "subject": "Use `std_or_core` in `ambiguous_wide_pointer_comparisons` rustfix",
+  "query": "ambiguous_wide_pointer_comparisons",
+  "relevant": [
+   "compiler/rustc_lint/src/diagnostics.rs",
+   "compiler/rustc_lint/src/types.rs"
+  ]
+ },
+ {
+  "commit": "4858117c582c8a3b530a923862f4981c47399092",
+  "subject": "Use `std_or_core` in `integer_to_ptr_transmutes` rustfix",
+  "query": "integer_to_ptr_transmutes",
+  "relevant": [
+   "compiler/rustc_lint/src/transmute.rs"
+  ]
+ },
+ {
+  "commit": "71d4ef88c61ab0f4673589bb4d19e96c76f89560",
+  "subject": "Remove unused `StashKey::UnderscoreForArrayLengths`",
+  "query": "StashKey",
+  "relevant": [
+   "compiler/rustc_errors/src/lib.rs",
+   "compiler/rustc_hir_typeck/src/expr.rs"
+  ]
+ },
+ {
+  "commit": "e5e0b1057f9579198f4c536dcd2c2f7ad933cf75",
+  "subject": "Fix typo in std::sys::process::unix::unsupported::wait_status documentation",
+  "query": "wait_status",
+  "relevant": [
+   "library/std/src/sys/process/unix/unsupported/wait_status.rs"
+  ]
+ },
+ {
+  "commit": "87e95d69da85bc2c54432240cff00fb56c439eb2",
+  "subject": "Enhance mutable closure suggestions with as_mut() support",
+  "query": "as_mut",
+  "relevant": [
+   "compiler/rustc_hir_typeck/src/fn_ctxt/suggestions.rs"
+  ]
+ },
+ {
+  "commit": "df8fb0f5ad45c474597fa579988ccfb53aff855a",
+  "subject": "Use SmallVec in LocalizedConstraintGraph",
+  "query": "LocalizedConstraintGraph",
+  "relevant": [
+   "compiler/rustc_borrowck/src/polonius/constraints.rs"
+  ]
+ },
+ {
+  "commit": "85110fbf422e438ba8ff23e3e76c85da3b5a50b7",
+  "subject": "implement LazyLock::(get_unchecked, get_unchecked_mut) and make counterparts on OnceLock public",
+  "query": "get_unchecked_mut",
+  "relevant": [
+   "library/std/src/sync/lazy_lock.rs",
+   "library/std/src/sync/once_lock.rs"
+  ]
+ },
+ {
+  "commit": "76c850e82b7ac6c81fefc4c1a82374f67ff02599",
+  "subject": "document `#[rustc_dyn_incompatible_trait]`",
+  "query": "rustc_dyn_incompatible_trait",
+  "relevant": [
+   "compiler/rustc_attr_ir/src/attribute_docs.rs",
+   "compiler/rustc_attr_ir/src/data_structures.rs"
+  ]
+ },
+ {
+  "commit": "84a341bb5cf6e6e371b0b1ecf80521f5408b5ac7",
+  "subject": "Use wrapping arithmetic in `from_str_radix`",
+  "query": "from_str_radix",
+  "relevant": [
+   "library/core/src/num/mod.rs"
+  ]
+ },
+ {
+  "commit": "6c0f3aacde12d32f4393e5d577c70ce76e7075eb",
+  "subject": "macro_metavar_expr_concat: support concatenating into string literals",
+  "query": "macro_metavar_expr_concat",
+  "relevant": [
+   "compiler/rustc_expand/src/mbe/quoted.rs",
+   "compiler/rustc_span/src/symbol.rs"
+  ]
+ },
+ {
+  "commit": "0c27f4b00ddbc342c183ff640f44ab21ae819fa9",
+  "subject": "Remove flounder from merge_trait_candidates",
+  "query": "merge_trait_candidates",
+  "relevant": [
+   "compiler/rustc_next_trait_solver/src/solve/trait_goals.rs"
+  ]
+ },
+ {
+  "commit": "b49ec626c4925328eb6ab0668d5aaea76b551b82",
+  "subject": "add merge_candidates_or_bail_with_ambiguity and merge_impl_candidates_or_flounder helpers",
+  "query": "merge_candidates_or_bail_with_ambiguity",
+  "relevant": [
+   "compiler/rustc_next_trait_solver/src/solve/trait_goals.rs"
+  ]
+ },
+ {
+  "commit": "781bc2b42b8e7cd1583affb2d002dadab2567d78",
+  "subject": "replace has_distinct_impl_candidates with try_merge_impl_candidates and add docs",
+  "query": "try_merge_impl_candidates",
+  "relevant": [
+   "compiler/rustc_next_trait_solver/src/solve/trait_goals.rs"
+  ]
+ },
+ {
+  "commit": "3438e6f4ffa42fff4eea95681d53ba66173fea08",
+  "subject": "clarify some names in `record_legacy_polonius_drop_facts`",
+  "query": "record_legacy_polonius_drop_facts",
+  "relevant": [
+   "compiler/rustc_borrowck/src/type_check/liveness/trace.rs"
+  ]
+ },
+ {
+  "commit": "ec908e68c4be4e99b362739801c8f29424a38ff9",
+  "subject": "remove unneeded `BorrowckInferCtxt` from `defer_local`",
+  "query": "BorrowckInferCtxt",
+  "relevant": [
+   "compiler/rustc_borrowck/src/type_check/liveness/trace.rs"
+  ]
+ },
+ {
+  "commit": "4a461d05962ab505bb149237381017e61bca7fd2",
+  "subject": "move `LivenessSource` to liveness module",
+  "query": "LivenessSource",
+  "relevant": [
+   "compiler/rustc_borrowck/src/polonius/constraints.rs",
+   "compiler/rustc_borrowck/src/polonius/liveness.rs",
+   "compiler/rustc_borrowck/src/polonius/mod.rs"
+  ]
+ },
+ {
+  "commit": "87e35b58c732dc5d0b0dbed23597051a39318a00",
+  "subject": "assorted cleanups in `LivenessComputation::compute`",
+  "query": "LivenessComputation",
+  "relevant": [
+   "compiler/rustc_borrowck/src/type_check/liveness/trace.rs"
+  ]
+ },
+ {
+  "commit": "7dc9aeebf8cfb84a25fe896fecf5ff34d5a22e71",
+  "subject": "remove incorrect cfg_abi check from asm/powerpc; that makes CfgAbi::VecExtAbi basically unused so remove it",
+  "query": "cfg_abi",
+  "relevant": [
+   "compiler/rustc_target/src/spec/base/aix.rs",
+   "compiler/rustc_target/src/spec/consistency.rs",
+   "compiler/rustc_target/src/spec/mod.rs"
+  ]
+ },
+ {
+  "commit": "d86652ace45f8373fc6ae2b1122458b85162dadf",
+  "subject": "Contraint the var_values to not contain type and const inference variable during PostTypeckUntilBorrowck for auto trait opaque ty",
+  "query": "PostTypeckUntilBorrowck",
+  "relevant": [
+   "compiler/rustc_next_trait_solver/src/solve/trait_goals.rs"
+  ]
+ },
+ {
+  "commit": "b3d3ab1cae40e53a66fb3894c02b9581e6a61c7d",
+  "subject": "Add opaque mayleak to bail out PostTypeckUntilBorrowck from opaque constraint",
+  "query": "PostTypeckUntilBorrowck",
+  "relevant": [
+   "compiler/rustc_next_trait_solver/src/solve/trait_goals.rs"
+  ]
+ },
+ {
+  "commit": "b39898fa70f1f72ce47a81b493d5d44f5168ceef",
+  "subject": "Pass liveness/variances through a separate LivenessSource trait",
+  "query": "LivenessSource",
+  "relevant": [
+   "compiler/rustc_borrowck/src/polonius/constraints.rs",
+   "compiler/rustc_borrowck/src/polonius/dump.rs",
+   "compiler/rustc_borrowck/src/polonius/mod.rs"
+  ]
+ },
+ {
+  "commit": "796ee3b852d8a01cd01dd321fd7e5e86f2655935",
+  "subject": "Make CovariantUnsafeCell actually covariant",
+  "query": "CovariantUnsafeCell",
+  "relevant": [
+   "library/core/src/cell/covariant_unsafe_cell.rs"
+  ]
+ },
+ {
+  "commit": "28b5293debd90e0ad9b8ccb937c03e499cfc2170",
+  "subject": "add field_projections fixme",
+  "query": "field_projections",
+  "relevant": [
+   "compiler/rustc_trait_selection/src/traits/select/candidate_assembly.rs"
+  ]
+ },
+ {
+  "commit": "db6e110a114382fd2f1912354272c2f51d01ddca",
+  "subject": "visit_nested_body and visit_fn for LateLint should return earlier if typeck is tainted",
+  "query": "visit_nested_body",
+  "relevant": [
+   "compiler/rustc_lint/src/late.rs"
+  ]
+ },
+ {
+  "commit": "286e3c339ee874b2549825fb10caa21fcfe51422",
+  "subject": "Expand docs on `rustc_abi::Variants`",
+  "query": "rustc_abi",
+  "relevant": [
+   "compiler/rustc_abi/src/lib.rs"
+  ]
+ },
+ {
+  "commit": "1875276f5ced891a5975dd70658226d0574e0c2e",
+  "subject": "simplify get_next_url to a single counter map",
+  "query": "get_next_url",
+  "relevant": [
+   "src/librustdoc/html/render/sidebar.rs"
+  ]
+ },
+ {
+  "commit": "2f86c2408a441039abaa39092c70ff7fb1c71b11",
+  "subject": "remove `substr.type_ident`",
+  "query": "type_ident",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/deriving/debug.rs",
+   "compiler/rustc_builtin_macros/src/deriving/generic/mod.rs"
+  ]
+ },
+ {
+  "commit": "32e1cf827d2a7880bb40efbe35e6391d9ba6225d",
+  "subject": "remove old solver use of `SolverRelating`",
+  "query": "SolverRelating",
+  "relevant": [
+   "compiler/rustc_type_ir/src/relate/solver_relating.rs"
+  ]
+ },
+ {
+  "commit": "3285cce3dad8e74b1ecaf98675cc8b218c900758",
+  "subject": "fix `va_arg` on `f128` on `x86`",
+  "query": "va_arg",
+  "relevant": [
+   "compiler/rustc_codegen_llvm/src/va_arg.rs"
+  ]
+ },
+ {
+  "commit": "fe048b622eced56ae3e415191192f159d79342f8",
+  "subject": "Only AArch64 `has_reliable_f16b` presently due to an LLVM codegen issue, also updated test",
+  "query": "has_reliable_f16b",
+  "relevant": [
+   "compiler/rustc_codegen_llvm/src/llvm_util.rs"
+  ]
+ },
+ {
+  "commit": "4238ee37539902839218f60a63b0e8fe21b06f48",
+  "subject": "Use `std_or_core` in `undropped_manually_drops` rustfix",
+  "query": "undropped_manually_drops",
+  "relevant": [
+   "compiler/rustc_lint/src/drop_forget_useless.rs"
+  ]
+ },
+ {
+  "commit": "dfd1a7d44cba8d209845ee9188206a3c956cac49",
+  "subject": "Streamline `write_node_label`",
+  "query": "write_node_label",
+  "relevant": [
+   "compiler/rustc_mir_dataflow/src/framework/graphviz.rs"
+  ]
+ },
+ {
+  "commit": "8955f779f27dfbd70839d62935150b629f77b0bb",
+  "subject": "Add `std_or_core` helper for crate-qualified rustfix paths",
+  "query": "std_or_core",
+  "relevant": [
+   "compiler/rustc_lint/src/utils.rs"
+  ]
+ },
+ {
+  "commit": "93c896682f0e10209676dfb67e52a2b042b2adc8",
+  "subject": "Remove `TypeChecker::root_cx`",
+  "query": "TypeChecker",
+  "relevant": [
+   "compiler/rustc_borrowck/src/type_check/mod.rs"
+  ]
+ },
+ {
+  "commit": "3e96d2dfc9f0636873cae70c2fab5e6929ba262b",
+  "subject": "macos seems to return pthread_setname_np errors via errno...?",
+  "query": "pthread_setname_np",
+  "relevant": [
+   "src/tools/miri/src/shims/unix/macos/foreign_items.rs"
+  ]
+ },
+ {
+  "commit": "39f76c99e23e90e3769578b991da300fe1cb7e90",
+  "subject": "Refactor access_mode case out of match",
+  "query": "access_mode",
+  "relevant": [
+   "library/std/src/sys/fs/windows.rs"
+  ]
+ },
+ {
+  "commit": "ac5ff4527453af4f260e3c1972afd6dfc08d9ee0",
+  "subject": "Windows: don't error if `access_mode` is set",
+  "query": "access_mode",
+  "relevant": [
+   "library/std/src/sys/fs/windows.rs"
+  ]
+ },
+ {
+  "commit": "21d6920351a9264b2398c5821b4aef4b2a39a8fe",
+  "subject": "Test windows `access_mode` override",
+  "query": "access_mode",
+  "relevant": [
+   "library/std/src/fs/tests.rs"
+  ]
+ },
+ {
+  "commit": "dded7e6f261b5a7c76b1507ab29c5334af44d5e6",
+  "subject": "windows: reject some FILE_FLAG_OPEN_REPARSE_POINT uses we do not support",
+  "query": "FILE_FLAG_OPEN_REPARSE_POINT",
+  "relevant": [
+   "src/tools/miri/src/shims/windows/fs.rs"
+  ]
+ },
+ {
+  "commit": "a94b19e393ffbb56115ac71d4b77faace8d29ad2",
+  "subject": "simplify FileMetadata handling a bit",
+  "query": "FileMetadata",
+  "relevant": [
+   "src/tools/miri/src/shims/unix/fs.rs"
+  ]
+ },
+ {
+  "commit": "16337b6cfdee6888adf182c2dbcf77bf7d055776",
+  "subject": "Remove usages of `Unique` from `RawVec`",
+  "query": "RawVec",
+  "relevant": [
+   "library/alloc/src/raw_vec/mod.rs",
+   "library/alloc/src/raw_vec/tests.rs",
+   "src/etc/lldb_providers.py"
+  ]
+ },
+ {
+  "commit": "8a2e879b5da50b5f99e48652ee19844d29d5acd9",
+  "subject": "windows Dir::rename: remove incorrect is_dir query",
+  "query": "is_dir",
+  "relevant": [
+   "library/std/src/fs/tests.rs"
+  ]
+ },
+ {
+  "commit": "d61037d90f15e64c2b0e5dc7ca0692702add89bd",
+  "subject": "`va_arg`: pass in `TyAndLayout`",
+  "query": "TyAndLayout",
+  "relevant": [
+   "compiler/rustc_codegen_llvm/src/intrinsic.rs",
+   "compiler/rustc_codegen_llvm/src/va_arg.rs"
+  ]
+ },
+ {
+  "commit": "428aeee7d9dc358d1c611cbb8e59bf25d6af5307",
+  "subject": "Restore `Send` and `Sync` for `BorrowedCursor`",
+  "query": "BorrowedCursor",
+  "relevant": [
+   "library/core/src/io/borrowed_buf.rs"
+  ]
+ },
+ {
+  "commit": "07f15ab580e5632b9dcd4ca5e660730c60b6d3bf",
+  "subject": "Use the full path of `bug_impl` to avoid bogus errors in rust-analyzer",
+  "query": "bug_impl",
+  "relevant": [
+   "compiler/rustc_span/src/macros.rs"
+  ]
+ },
+ {
+  "commit": "76fa1f2dca71137da079b3a0b33f833f91ad3271",
+  "subject": "Add some docs for each non-query DepKind",
+  "query": "DepKind",
+  "relevant": [
+   "compiler/rustc_middle/src/queries.rs",
+   "compiler/rustc_query_impl/src/dep_kind_vtables.rs"
+  ]
+ },
+ {
+  "commit": "837ce844f9b85ef4f2094907aee4fc6edfa694c5",
+  "subject": "Add .seek_read_exact(), .seek_write_all() to std::os::windows::fs::FileExt",
+  "query": "seek_read_exact",
+  "relevant": [
+   "library/std/src/fs/tests.rs",
+   "library/std/src/os/windows/fs.rs"
+  ]
+ },
+ {
+  "commit": "5e741954380afd1218d1a840a629ab87366db61e",
+  "subject": "Use IndexVec for logical_edges and switch visited.contains for visited.insert",
+  "query": "logical_edges",
+  "relevant": [
+   "compiler/rustc_borrowck/src/polonius/constraints.rs"
+  ]
+ },
+ {
+  "commit": "e224f8f81ef41b3e7aa64d9a309365768408af36",
+  "subject": "Further simplify `parse_assoc_op_cast`",
+  "query": "parse_assoc_op_cast",
+  "relevant": [
+   "compiler/rustc_parse/src/parser/expr.rs"
+  ]
+ },
+ {
+  "commit": "bc5fd06c341bb75e473de55455d0b09d6268e234",
+  "subject": "Dir: fix fallback impl for remove_dir",
+  "query": "remove_dir",
+  "relevant": [
+   "library/std/src/sys/fs/common.rs"
+  ]
+ },
+ {
+  "commit": "d79631f00f1fe0adfebd2420413767d5b4b61d73",
+  "subject": "Add safety section for transmute_neo",
+  "query": "transmute_neo",
+  "relevant": [
+   "library/core/src/mem/mod.rs"
+  ]
+ },
+ {
+  "commit": "ca8ee2fc334407b3ae084ec23526ed4546ba7d57",
+  "subject": "Set target-abi module flag for LoongArch targets",
+  "query": "LoongArch",
+  "relevant": [
+   "compiler/rustc_codegen_llvm/src/context.rs"
+  ]
+ },
+ {
+  "commit": "ae2ecf58fe7242904b475df9a4c58a91126d3b95",
+  "subject": "Avoid integer underflow in CStr::count_bytes()",
+  "query": "count_bytes",
+  "relevant": [
+   "library/core/src/ffi/c_str.rs"
+  ]
+ },
+ {
+  "commit": "c30f2a421f4a835a04476d4c71e16e8f7fe90c34",
+  "subject": "Use `end_point` for trailing brace in `let...else` diagnostics",
+  "query": "end_point",
+  "relevant": [
+   "compiler/rustc_parse/src/parser/stmt.rs"
+  ]
+ },
+ {
+  "commit": "b2c6d2d7b45f0b0f1894d05d6590a8b0250c8303",
+  "subject": "Refactor LivenessResults into LivenessComputation, without typeck",
+  "query": "LivenessComputation",
+  "relevant": [
+   "compiler/rustc_borrowck/src/type_check/liveness/mod.rs",
+   "compiler/rustc_borrowck/src/type_check/liveness/trace.rs"
+  ]
+ },
+ {
+  "commit": "75b444d1ad334617718f331b210fb88a6ff77c4b",
+  "subject": "Constify `impl FromStr for NonZero<T>`",
+  "query": "FromStr",
+  "relevant": [
+   "library/core/src/num/nonzero.rs"
+  ]
+ },
+ {
+  "commit": "3d281d48815e6213ad9911e97d5d8d59d2348b1a",
+  "subject": "implement `VaArgSafe` for `f128`",
+  "query": "VaArgSafe",
+  "relevant": [
+   "library/core/src/ffi/va_list.rs"
+  ]
+ },
+ {
+  "commit": "f0ae097b364ffd9b30f908aeddc0b9eb040464dc",
+  "subject": "Refactor `check_assoc_op` to make it more legible",
+  "query": "check_assoc_op",
+  "relevant": [
+   "compiler/rustc_parse/src/parser/expr.rs"
+  ]
+ },
+ {
+  "commit": "27ed2eda1298d9986a77c751ce6fa7adcaf09650",
+  "subject": "Introduce LockedDir type",
+  "query": "LockedDir",
+  "relevant": [
+   "compiler/rustc_data_structures/src/flock.rs",
+   "compiler/rustc_incremental/src/persist/fs.rs",
+   "compiler/rustc_session/src/session.rs"
+  ]
+ },
+ {
+  "commit": "9b817c55d6e7cd0bc232952bbc4661b833a9b601",
+  "subject": "Rename `LoweringContext::current_item`",
+  "query": "LoweringContext",
+  "relevant": [
+   "compiler/rustc_ast_lowering/src/expr.rs",
+   "compiler/rustc_ast_lowering/src/lib.rs"
+  ]
+ },
+ {
+  "commit": "172ae8c9af667212edb97a90e3bb55be3a5417a5",
+  "subject": "Declare multi-kind constants for MacroKinds",
+  "query": "MacroKinds",
+  "relevant": [
+   "compiler/rustc_hir/src/def.rs",
+   "compiler/rustc_metadata/src/rmeta/table.rs"
+  ]
+ },
+ {
+  "commit": "0e617d448a6b06792f642e636a7fc7f38c46eb76",
+  "subject": "Adjust `bug!`/`span_bug!` emission",
+  "query": "span_bug",
+  "relevant": [
+   "compiler/rustc_errors/src/lib.rs",
+   "compiler/rustc_span/src/macros.rs"
+  ]
+ },
+ {
+  "commit": "b5df62e46bdd8a301d84b7e7ec97b97be44f6079",
+  "subject": "Update unicode_data to Unicode version 18.0.0",
+  "query": "unicode_data",
+  "relevant": [
+   "src/tools/unicode-table-generator/src/main.rs"
+  ]
+ },
+ {
+  "commit": "8a699c74c88df4ff32424508038946bc91098ee6",
+  "subject": "simplify `make_all_regions_live`",
+  "query": "make_all_regions_live",
+  "relevant": [
+   "compiler/rustc_borrowck/src/type_check/liveness/trace.rs"
+  ]
+ },
+ {
+  "commit": "5e3ad0017d8b3e193c10ab6230369aead2e9ea69",
+  "subject": "Claw back `VaArgSafe`",
+  "query": "VaArgSafe",
+  "relevant": [
+   "library/core/src/ffi/va_list.rs",
+   "library/std/src/ffi/mod.rs"
+  ]
+ },
+ {
+  "commit": "96009489074f6df7d84cd41502826c143ad8dfea",
+  "subject": "Error on invalid uses of the `cfi_encoding` attribute.",
+  "query": "cfi_encoding",
+  "relevant": [
+   "compiler/rustc_attr_parsing/src/attributes/cfi_encoding.rs"
+  ]
+ },
+ {
+  "commit": "8ca7a1c20c1f068a3189757240fc9ad06ab3fa07",
+  "subject": "stop passing `explicit_self` around",
+  "query": "explicit_self",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/deriving/generic/mod.rs"
+  ]
+ },
+ {
+  "commit": "0db4e5593107a9681f8faa1033b3f92ebbb6b8de",
+  "subject": "offload: add libLLVM rpath for libomptarget",
+  "query": "libLLVM",
+  "relevant": [
+   "src/bootstrap/src/core/build_steps/llvm.rs"
+  ]
+ },
+ {
+  "commit": "c6c7dfd27c2dfcfba28372a3612e5169d61834ee",
+  "subject": "fix: normalize non-rigid aliases in ty_known_to_outlive",
+  "query": "ty_known_to_outlive",
+  "relevant": [
+   "compiler/rustc_hir_analysis/src/check/wfcheck.rs",
+   "compiler/rustc_trait_selection/src/regions.rs",
+   "compiler/rustc_trait_selection/src/traits/outlives_for_liveness.rs"
+  ]
+ },
+ {
+  "commit": "2be177e4a2b01471d86b31bc9d0c35fc65f42e79",
+  "subject": "Use HashMap::entry",
+  "query": "HashMap",
+  "relevant": [
+   "compiler/rustc_data_structures/src/flock/unix.rs"
+  ]
+ },
+ {
+  "commit": "8a1e154b9aa20c15e1948d70d58e991daaf707bb",
+  "subject": "Add safety section for atomic_load/store",
+  "query": "atomic_load",
+  "relevant": [
+   "library/core/src/intrinsics/mod.rs"
+  ]
+ },
+ {
+  "commit": "f438cf83aa99ca29c8229594b8f28c63bee786ac",
+  "subject": "put the check for empty `assert_fields_are_eq` at the right spot",
+  "query": "assert_fields_are_eq",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/deriving/generic/mod.rs"
+  ]
+ },
+ {
+  "commit": "6d008f38f8529cc7bc5c9dc0787a90544f43c9a8",
+  "subject": "libm: Avoid `debug_assert_eq!` if `feature = \"compiler-builtins\"`",
+  "query": "debug_assert_eq",
+  "relevant": [
+   "library/compiler-builtins/libm/src/math/fmaf16.rs"
+  ]
+ },
+ {
+  "commit": "31fafe3aedff09387c0d6791b586e76ff66ef912",
+  "subject": "Clarify `Level::{Help,Note,FailureNote}` details",
+  "query": "FailureNote",
+  "relevant": [
+   "compiler/rustc_errors/src/lib.rs"
+  ]
+ },
+ {
+  "commit": "c095b617463b3d97bd4b67cde5c5459276615366",
+  "subject": "Remove Deref/DerefMut from MetadataDecodeContext",
+  "query": "MetadataDecodeContext",
+  "relevant": [
+   "compiler/rustc_metadata/src/rmeta/decoder.rs"
+  ]
+ },
+ {
+  "commit": "005aa4525614598ccedbc01768ccfb59c8fb833e",
+  "subject": "Mini optimization in `restrict_precision_for_drop_types`",
+  "query": "restrict_precision_for_drop_types",
+  "relevant": [
+   "compiler/rustc_hir_typeck/src/upvar.rs"
+  ]
+ },
+ {
+  "commit": "79d24a06790a961b7edf426bb5991c70e809daa9",
+  "subject": "Move operations out of `rustc_middle::query::job`",
+  "query": "rustc_middle",
+  "relevant": [
+   "compiler/rustc_query_impl/src/execution.rs",
+   "compiler/rustc_query_impl/src/job.rs"
+  ]
+ },
+ {
+  "commit": "5981733bfdb17574c66e4b8d4c46680a672b9a2b",
+  "subject": "Use `span_context` in more places",
+  "query": "span_context",
+  "relevant": [
+   "compiler/rustc_borrowck/src/diagnostics/mutability_errors.rs",
+   "compiler/rustc_mir_build/src/thir/pattern/check_match.rs",
+   "compiler/rustc_mir_build/src/thir/pattern/const_to_pat.rs"
+  ]
+ },
+ {
+  "commit": "d38f60bd45bb222901ec8b0be52325535373b134",
+  "subject": "Add support for `annotate_snippets::snippet::AnnotationKind::Visible`",
+  "query": "annotate_snippets",
+  "relevant": [
+   "compiler/rustc_errors/src/annotate_snippet_emitter_writer.rs"
+  ]
+ },
+ {
+  "commit": "99261fb06c5d11b0f83ee5ccdb1cd1bd041d5345",
+  "subject": "Add must_use lint to ExitCode",
+  "query": "ExitCode",
+  "relevant": [
+   "library/std/src/process.rs"
+  ]
+ },
+ {
+  "commit": "bbfef750a9ce4e462ccb7885104e5c1fa141b0d8",
+  "subject": "Cache block seeking results for initialized_at_terminator and _exit",
+  "query": "initialized_at_terminator",
+  "relevant": [
+   "compiler/rustc_borrowck/src/type_check/liveness/trace.rs"
+  ]
+ },
+ {
+  "commit": "94cc692336e38072771f469ef57afd29b1a491e9",
+  "subject": "Stabilize CommandExt::show_window",
+  "query": "show_window",
+  "relevant": [
+   "library/std/src/os/windows/process.rs"
+  ]
+ },
+ {
+  "commit": "9dce1fcdc944e5550c991796dba03cbf8b4a702a",
+  "subject": "reintroduce check for ConstParamTy in direct consts",
+  "query": "ConstParamTy",
+  "relevant": [
+   "compiler/rustc_hir_analysis/src/check/wfcheck.rs"
+  ]
+ },
+ {
+  "commit": "26e7e774b191c43e96beb27840d613400fd5b8db",
+  "subject": "Gate finalize_session_directory rename fallbacks to windows",
+  "query": "finalize_session_directory",
+  "relevant": [
+   "compiler/rustc_incremental/src/persist/fs.rs"
+  ]
+ },
+ {
+  "commit": "a3db66c97fbbe30e22f0d934ddc7798ac7780534",
+  "subject": "Remove the decoder type-param from RefDecodable",
+  "query": "RefDecodable",
+  "relevant": [
+   "compiler/rustc_middle/src/arena.rs",
+   "compiler/rustc_middle/src/ty/codec/ref_decodable.rs"
+  ]
+ },
+ {
+  "commit": "e8c03abc73a94b10afa1773be790a61f69a92aa5",
+  "subject": "Add a `#[diagnostic::on_unimplemented(..)]` hint to RefDecodable",
+  "query": "on_unimplemented",
+  "relevant": [
+   "compiler/rustc_middle/src/ty/codec/ref_decodable.rs"
+  ]
+ },
+ {
+  "commit": "a87b21352a9038be2b5833529d1f6db049f556c9",
+  "subject": "Consolidate the via-RefDecodable impls in `on_disk_cache`",
+  "query": "RefDecodable",
+  "relevant": [
+   "compiler/rustc_middle/src/query/on_disk_cache.rs",
+   "compiler/rustc_middle/src/ty/codec/ref_decodable.rs"
+  ]
+ },
+ {
+  "commit": "b993427bfdcdbc9b2b66504a3dd240ad47fd2b97",
+  "subject": "Miscellaneous tidying in `ref_decodable`",
+  "query": "ref_decodable",
+  "relevant": [
+   "compiler/rustc_middle/src/ty/codec/ref_decodable.rs"
+  ]
+ },
+ {
+  "commit": "82a24f236657f81e8992aad808b33cfddcd323fc",
+  "subject": "Move RefDecodable and related impls into a submodule",
+  "query": "RefDecodable",
+  "relevant": [
+   "compiler/rustc_middle/src/ty/codec.rs",
+   "compiler/rustc_middle/src/ty/codec/ref_decodable.rs"
+  ]
+ },
+ {
+  "commit": "8838b56460b3d241ce0e1f4452f4b3a06f7200e8",
+  "subject": "Migrate some RefDecodable impls to `impl_ref_decodable_into_arena!`",
+  "query": "impl_ref_decodable_into_arena",
+  "relevant": [
+   "compiler/rustc_middle/src/arena.rs"
+  ]
+ },
+ {
+  "commit": "3c74470db46ae8c3776c72bd2fc53c89a7f3a0b3",
+  "subject": "Remove some unused Decodable and RefDecodable impls",
+  "query": "RefDecodable",
+  "relevant": [
+   "compiler/rustc_middle/src/ty/codec.rs"
+  ]
+ },
+ {
+  "commit": "bd13c1d29132e3508068372e8d942824c1a78906",
+  "subject": "Rename ValueAbi to ValueRepr and fix abi docs",
+  "query": "ValueRepr",
+  "relevant": [
+   "compiler/rustc_public/src/abi.rs",
+   "compiler/rustc_public/src/unstable/convert/stable/abi.rs"
+  ]
+ },
+ {
+  "commit": "7b0c2f267389bdd8811b319a4fb71637a6759bed",
+  "subject": "Make `PerOwnerLoweringState::owner_id` a method",
+  "query": "PerOwnerLoweringState",
+  "relevant": [
+   "compiler/rustc_ast_lowering/src/lib.rs"
+  ]
+ },
+ {
+  "commit": "5a1bf7f9bcf73f2e336d56ab53e0b0d080858aac",
+  "subject": "Replace Opaque with ArgAttributes in PassMode",
+  "query": "ArgAttributes",
+  "relevant": [
+   "compiler/rustc_public/src/abi.rs",
+   "compiler/rustc_public/src/unstable/convert/stable/abi.rs"
+  ]
+ },
+ {
+  "commit": "8420bbd952066b85af23163c6749a3211b5f6c68",
+  "subject": "[rustc_pub] Expand PassMode::Cast with CastTarget",
+  "query": "CastTarget",
+  "relevant": [
+   "compiler/rustc_public/src/abi.rs",
+   "compiler/rustc_public/src/unstable/convert/stable/abi.rs"
+  ]
+ },
+ {
+  "commit": "2b7282088d773a82cd1870ac310dfce38883e468",
+  "subject": "add `TyAbiInterface::is_enum`",
+  "query": "TyAbiInterface",
+  "relevant": [
+   "compiler/rustc_abi/src/layout/ty.rs",
+   "compiler/rustc_middle/src/ty/layout.rs"
+  ]
+ },
+ {
+  "commit": "9dcbee96b3adc9923e4675f01bd0c5d426a640be",
+  "subject": "add `RegKind::from_primitive`",
+  "query": "from_primitive",
+  "relevant": [
+   "compiler/rustc_abi/src/callconv/reg.rs",
+   "compiler/rustc_target/src/callconv/wasm.rs"
+  ]
+ },
+ {
+  "commit": "9d60f8642ce0dc217254aebb3d9bddcc19eeebe5",
+  "subject": "rename `unwrap_trivial_aggregate` -> `is_aggregate_for_abi`",
+  "query": "is_aggregate_for_abi",
+  "relevant": [
+   "compiler/rustc_target/src/callconv/wasm.rs"
+  ]
+ },
+ {
+  "commit": "6b96623d34cd93e00fc1f77ca534950e65d367c7",
+  "subject": "core: Add examples for `debug_closure_helpers`",
+  "query": "debug_closure_helpers",
+  "relevant": [
+   "library/core/src/fmt/builders.rs"
+  ]
+ },
+ {
+  "commit": "5dd46310416da1074f652d3935956d6b1f03df4e",
+  "subject": "rustc_{codegen_,}llvm: adapt to new ThreadModel API",
+  "query": "ThreadModel",
+  "relevant": [
+   "compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp"
+  ]
+ },
+ {
+  "commit": "575aae65597d592dc71fcd6b12c462c84453e9cc",
+  "subject": "fix span_delayed_bug doc links",
+  "query": "span_delayed_bug",
+  "relevant": [
+   "compiler/rustc_span/src/macros.rs"
+  ]
+ },
+ {
+  "commit": "7cf2239e147d02db0c85d4d4dca8075c27c30536",
+  "subject": "use span_bug in Ident::new",
+  "query": "span_bug",
+  "relevant": [
+   "compiler/rustc_span/src/symbol.rs"
+  ]
+ },
+ {
+  "commit": "6d505c673b7f1a6cecb9d929c3c96b557c391fee",
+  "subject": "check_unused_attribute: handle crate level only attrs via config, and drop dead default_method_body_is_const lint",
+  "query": "check_unused_attribute",
+  "relevant": [
+   "compiler/rustc_passes/src/check_attr.rs"
+  ]
+ },
+ {
+  "commit": "2cfd6c5a7d8918f79f5145038c2dd79e5ed1166e",
+  "subject": "Update docs for `intern_const_alloc_for_constprop`",
+  "query": "intern_const_alloc_for_constprop",
+  "relevant": [
+   "compiler/rustc_const_eval/src/interpret/intern.rs"
+  ]
+ },
+ {
+  "commit": "8c7d8ed8cf8dc84d26ac6c7eb5b8fbc100b1b126",
+  "subject": "docs(num): add documentation for `NonZero::from_str`",
+  "query": "from_str",
+  "relevant": [
+   "library/core/src/num/nonzero.rs"
+  ]
+ },
+ {
+  "commit": "521c4ebd93663eb0683cb26159fb9fee6d4d0cb3",
+  "subject": "Improve `build_reduced_graph_for_use_tree` arguments",
+  "query": "build_reduced_graph_for_use_tree",
+  "relevant": [
+   "compiler/rustc_resolve/src/build_reduced_graph.rs"
+  ]
+ },
+ {
+  "commit": "324f136401b4edc1500fc2dfca75ca0de8d511f6",
+  "subject": "Fix a bug in MatchBranchSimplification",
+  "query": "MatchBranchSimplification",
+  "relevant": [
+   "compiler/rustc_mir_transform/src/match_branches.rs"
+  ]
+ },
+ {
+  "commit": "56aed553a063f918388af3a4f32147a7e4ae20a3",
+  "subject": "Respect do_not_recommend for a single impl candidate",
+  "query": "do_not_recommend",
+  "relevant": [
+   "compiler/rustc_trait_selection/src/error_reporting/traits/fulfillment_errors.rs"
+  ]
+ },
+ {
+  "commit": "58c9d2ff397941f13095a2d5a20d92e6de238348",
+  "subject": "core: Rewrite docs for try_as_dyn",
+  "query": "try_as_dyn",
+  "relevant": [
+   "library/core/src/any.rs"
+  ]
+ },
+ {
+  "commit": "1a218186bece99518f0b9d0e2a79469504cba152",
+  "subject": "Remove `Box::into_unique`, add a test for `into_raw_with_allocator`",
+  "query": "into_raw_with_allocator",
+  "relevant": [
+   "library/alloc/src/boxed.rs"
+  ]
+ },
+ {
+  "commit": "99bb4bb2573e40c90acd61a36f8fd0d2dcc1061a",
+  "subject": "Improve docs for `GenericArgs::Parenthesized`",
+  "query": "GenericArgs",
+  "relevant": [
+   "compiler/rustc_ast/src/ast.rs"
+  ]
+ },
+ {
+  "commit": "d5e94f259e3a573e0fe4a327276525d672e57142",
+  "subject": "Remove `parse_param_general`",
+  "query": "parse_param_general",
+  "relevant": [
+   "compiler/rustc_parse/src/parser/function.rs",
+   "compiler/rustc_parse/src/parser/path.rs"
+  ]
+ },
+ {
+  "commit": "d3d4a643b95748ceeb9b3a3a212c2ce3800421cc",
+  "subject": "only run `f16` tests when `target_has_reliable_f16`",
+  "query": "target_has_reliable_f16",
+  "relevant": [
+   "library/stdarch/crates/core_arch/src/lib.rs",
+   "library/stdarch/crates/core_arch/src/x86/avx512fp16.rs",
+   "library/stdarch/crates/core_arch/src/x86_64/avx512fp16.rs"
+  ]
+ },
+ {
+  "commit": "712e3221f53f645af1eafaf9d7cb3de343941e43",
+  "subject": "Inline `visit`/`visit_mut` in `impl_visitable`",
+  "query": "impl_visitable",
+  "relevant": [
+   "compiler/rustc_ast/src/mut_visit.rs",
+   "compiler/rustc_ast/src/visit.rs"
+  ]
+ },
+ {
+  "commit": "72410d17b2b61410c047a35dcb53151412c99a56",
+  "subject": "Use `impl_visitable!` for the `generate_*_fns` macros",
+  "query": "impl_visitable",
+  "relevant": [
+   "compiler/rustc_ast/src/mut_visit.rs",
+   "compiler/rustc_ast/src/visit.rs"
+  ]
+ },
+ {
+  "commit": "230a513c205dcc3c3a3e40dc617af29081fcc017",
+  "subject": "Introduce `for_each_ast_visit_hook`",
+  "query": "for_each_ast_visit_hook",
+  "relevant": [
+   "compiler/rustc_ast/src/visit.rs"
+  ]
+ },
+ {
+  "commit": "53ed560f1902d6f249771eef4bccc51c79059d24",
+  "subject": "Add missing `walk_test_binder_constraints` method",
+  "query": "walk_test_binder_constraints",
+  "relevant": [
+   "compiler/rustc_ast/src/visit.rs"
+  ]
+ },
+ {
+  "commit": "31922ed41070ba6872e31ba6ad1599a20f26265a",
+  "subject": "Constify more Iterator and DoubleEndedIterator methods",
+  "query": "DoubleEndedIterator",
+  "relevant": [
+   "library/core/src/iter/traits/double_ended.rs",
+   "library/core/src/iter/traits/iterator.rs"
+  ]
+ },
+ {
+  "commit": "aadf13c861a431da65d58c3f5cc98c89ea92b7df",
+  "subject": "add `non_zst_field` helper",
+  "query": "non_zst_field",
+  "relevant": [
+   "compiler/rustc_abi/src/layout/ty.rs"
+  ]
+ },
+ {
+  "commit": "4c3c97f5aa4a628944df6ff3aa65be6c36c4a639",
+  "subject": "std: fix unix socket address panic on a full sun_path",
+  "query": "sun_path",
+  "relevant": [
+   "library/std/src/os/unix/net/addr.rs",
+   "library/std/src/os/unix/net/tests.rs"
+  ]
+ },
+ {
+  "commit": "df4f90d6771fda3a3962a5f9f84d6ee76f5305bb",
+  "subject": "panic when we call impls_trait for types associated with builtin derive impls",
+  "query": "impls_trait",
+  "relevant": [
+   "src/tools/rust-analyzer/crates/hir/src/lib.rs"
+  ]
+ },
+ {
+  "commit": "a3038b6b2deb1e027c9a63a014712536ebb42bf0",
+  "subject": "Improve into_slice_range inlining",
+  "query": "into_slice_range",
+  "relevant": [
+   "library/core/src/slice/index.rs",
+   "library/core/src/str/traits.rs"
+  ]
+ },
+ {
+  "commit": "fa072150f9412ec64739407db81a23a27077307d",
+  "subject": "dont early-exit inside test_main",
+  "query": "test_main",
+  "relevant": [
+   "src/librustdoc/doctest.rs",
+   "src/librustdoc/doctest/runner.rs"
+  ]
+ },
+ {
+  "commit": "f8de0af4fe98495084d988e8e032be52f14505d9",
+  "subject": "use static instead of const for TestDescAndFn",
+  "query": "TestDescAndFn",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/test.rs",
+   "src/librustdoc/doctest/runner.rs",
+   "src/tools/clippy/clippy_utils/src/lib.rs"
+  ]
+ },
+ {
+  "commit": "d774bfa4431ec472544071521732f1c2df5938b4",
+  "subject": "Stabilize `Vec::from_fn`",
+  "query": "from_fn",
+  "relevant": [
+   "library/alloc/src/vec/mod.rs"
+  ]
+ },
+ {
+  "commit": "16cd82578a35713e314857f3a5f724f1dd48927b",
+  "subject": "Use `GrowableBitSet` in the main loop of `rustc_mir_transform::sroa`",
+  "query": "GrowableBitSet",
+  "relevant": [
+   "compiler/rustc_index/src/bit_set.rs",
+   "compiler/rustc_index/src/bit_set/tests.rs",
+   "compiler/rustc_mir_dataflow/src/value_analysis.rs",
+   "compiler/rustc_mir_transform/src/sroa.rs"
+  ]
+ },
+ {
+  "commit": "0a612a2a4f87ba9ee8279535f97977bdf013e48b",
+  "subject": "Remove `domain_size` from `GrowableBitSet`",
+  "query": "GrowableBitSet",
+  "relevant": [
+   "compiler/rustc_index/src/bit_set.rs"
+  ]
+ },
+ {
+  "commit": "f14e358b42f6a67b10b18cfdcd82876c47a34768",
+  "subject": "utilize `cx.pat_ident`",
+  "query": "pat_ident",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/deriving/generic/mod.rs"
+  ]
+ },
+ {
+  "commit": "7cd11a0e91997e9466420a676047ced407f92f4b",
+  "subject": "less clones in `cs_clone`",
+  "query": "cs_clone",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/deriving/clone.rs"
+  ]
+ },
+ {
+  "commit": "de8eec941325f09f299707e55ff81e367592b3a7",
+  "subject": "Remove unused argument of `try_match_macro`",
+  "query": "try_match_macro",
+  "relevant": [
+   "compiler/rustc_expand/src/mbe/diagnostics.rs",
+   "compiler/rustc_expand/src/mbe/macro_rules.rs"
+  ]
+ },
+ {
+  "commit": "c690933f6ce13b8bf460ddb769728118c5a1e559",
+  "subject": "Remove unused argument of `try_match_macro_attr`",
+  "query": "try_match_macro_attr",
+  "relevant": [
+   "compiler/rustc_expand/src/mbe/diagnostics.rs",
+   "compiler/rustc_expand/src/mbe/macro_rules.rs"
+  ]
+ },
+ {
+  "commit": "338b24b4b0183f5872293d218a44714fbe6120b0",
+  "subject": "Remove unused argument of `try_match_macro_derive`",
+  "query": "try_match_macro_derive",
+  "relevant": [
+   "compiler/rustc_expand/src/mbe/diagnostics.rs",
+   "compiler/rustc_expand/src/mbe/macro_rules.rs"
+  ]
+ },
+ {
+  "commit": "e1a4c770c4fae1a85719cc73a8f4cfef5ce6134e",
+  "subject": "Remove unused argument of `lower_fn_decl`",
+  "query": "lower_fn_decl",
+  "relevant": [
+   "compiler/rustc_ast_lowering/src/expr/closure.rs",
+   "compiler/rustc_ast_lowering/src/item.rs",
+   "compiler/rustc_ast_lowering/src/lib.rs"
+  ]
+ },
+ {
+  "commit": "bb89d6f5f0e0979e1faae2502774fe3e0fa7b227",
+  "subject": "Remove unused argument of `process_registered_region_obligations`",
+  "query": "process_registered_region_obligations",
+  "relevant": [
+   "compiler/rustc_infer/src/infer/outlives/mod.rs",
+   "compiler/rustc_infer/src/infer/outlives/obligations.rs",
+   "compiler/rustc_trait_selection/src/traits/auto_trait.rs"
+  ]
+ },
+ {
+  "commit": "86f0a13082227832ddc904bee786810245fa6e14",
+  "subject": "Remove unused argument of `check_let`",
+  "query": "check_let",
+  "relevant": [
+   "compiler/rustc_mir_build/src/thir/pattern/check_match.rs"
+  ]
+ },
+ {
+  "commit": "0957d026bb502e7bc145dcbc05e6702f36dd15a0",
+  "subject": "Remove unused argument of `simplify_rvalue`",
+  "query": "simplify_rvalue",
+  "relevant": [
+   "compiler/rustc_mir_transform/src/gvn.rs"
+  ]
+ },
+ {
+  "commit": "fcec25cb61b8a037e09342a0b0a0b8a9eead90d8",
+  "subject": "Remove unused argument of `write_splatted_call`",
+  "query": "write_splatted_call",
+  "relevant": [
+   "compiler/rustc_hir_typeck/src/fn_ctxt/_impl.rs",
+   "compiler/rustc_hir_typeck/src/fn_ctxt/checks.rs"
+  ]
+ },
+ {
+  "commit": "396d60358fd2ed02791b8f1115c6fe52ffd15b1a",
+  "subject": "Remove `EarlyDiagCtxt::early_{note,help}`",
+  "query": "EarlyDiagCtxt",
+  "relevant": [
+   "compiler/rustc_session/src/session.rs"
+  ]
+ },
+ {
+  "commit": "07d0a06a880376c816500303e052fc23badd5a3b",
+  "subject": "make `expr_for_field` a closure",
+  "query": "expr_for_field",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/deriving/debug.rs"
+  ]
+ },
+ {
+  "commit": "b4361c91eab43264f000d7c6785ee7a541db521f",
+  "subject": "Move guard into is_old_enough_to_be_collected branch",
+  "query": "is_old_enough_to_be_collected",
+  "relevant": [
+   "compiler/rustc_incremental/src/persist/fs.rs"
+  ]
+ },
+ {
+  "commit": "4750ec7ba03a5499e9777a06172d00378a5649a5",
+  "subject": "Fix `*_trailing_sep` for Windows verbatim paths",
+  "query": "_trailing_sep",
+  "relevant": [
+   "library/std/src/path.rs"
+  ]
+ },
+ {
+  "commit": "930507ec764c9bb7cfc1756c5bb0458947586ef3",
+  "subject": "No longer mark `named_fn_trait_parameters` as incomplete",
+  "query": "named_fn_trait_parameters",
+  "relevant": [
+   "compiler/rustc_feature/src/unstable.rs"
+  ]
+ },
+ {
+  "commit": "19c0f5c216dfe0d63ceb605827fb92229f59a70d",
+  "subject": "Don't suggest using a pattern when `recover_arg_parse` fails",
+  "query": "recover_arg_parse",
+  "relevant": [
+   "compiler/rustc_parse/src/parser/function.rs"
+  ]
+ },
+ {
+  "commit": "ea396101f73cbcd162b69e48ee0995bb30b68963",
+  "subject": "Clarify examples related to `Sync` and `SyncView`",
+  "query": "SyncView",
+  "relevant": [
+   "library/core/src/sync/sync_view.rs"
+  ]
+ },
+ {
+  "commit": "acc7dd9f869024ae59d889f96ae2d3347f1e692f",
+  "subject": "Add `FnContext::ParenthesizedArgumentList`",
+  "query": "ParenthesizedArgumentList",
+  "relevant": [
+   "compiler/rustc_parse/src/parser/diagnostics.rs",
+   "compiler/rustc_parse/src/parser/function.rs",
+   "compiler/rustc_parse/src/parser/path.rs"
+  ]
+ },
+ {
+  "commit": "19978b4b071d1215a2e884d0b19492657921db40",
+  "subject": "Correctly track `first_param`",
+  "query": "first_param",
+  "relevant": [
+   "compiler/rustc_parse/src/parser/path.rs"
+  ]
+ },
+ {
+  "commit": "ad8967754d755aac9aea1589c5ece5707a36bb84",
+  "subject": "Skip linting unused braces for FunctionArg and MethodArg context for 2024 edition",
+  "query": "FunctionArg",
+  "relevant": [
+   "compiler/rustc_lint/src/unused.rs"
+  ]
+ },
+ {
+  "commit": "a7f33f3f8c9077193833ef1dacfcc974b583abcb",
+  "subject": "c-b: Add `aeabi_u(read|write)(4|8)` intrinsics.",
+  "query": "aeabi_u",
+  "relevant": [
+   "library/compiler-builtins/builtins-test-intrinsics/src/main.rs",
+   "library/compiler-builtins/compiler-builtins/src/arm.rs"
+  ]
+ },
+ {
+  "commit": "23b52a6a1868de31685eccd9836f30274a317dcf",
+  "subject": "iter::from_fn added as diagnostic items (requiered for clippy analysis)",
+  "query": "from_fn",
+  "relevant": [
+   "library/core/src/iter/sources/from_fn.rs"
+  ]
+ },
+ {
+  "commit": "996ef5d739983e683e40ee0da6318d521f65f83a",
+  "subject": "Replace a `format_diag_messages` use",
+  "query": "format_diag_messages",
+  "relevant": [
+   "compiler/rustc_errors/src/annotate_snippet_emitter_writer.rs"
+  ]
+ },
+ {
+  "commit": "15d08109c4ab3414ad761aba86f61e59566d8092",
+  "subject": "split `macroless_generic_const_args` in two",
+  "query": "macroless_generic_const_args",
+  "relevant": [
+   "compiler/rustc_ast_lowering/src/lib.rs",
+   "compiler/rustc_feature/src/unstable.rs",
+   "compiler/rustc_span/src/symbol.rs"
+  ]
+ },
+ {
+  "commit": "ff7156583df005352998f5faed8422ee603726b6",
+  "subject": "fix: correct incorrect_case suggestion for enum variants with raw keyword name",
+  "query": "incorrect_case",
+  "relevant": [
+   "src/tools/rust-analyzer/crates/hir-ty/src/diagnostics/decl_check.rs",
+   "src/tools/rust-analyzer/crates/ide-diagnostics/src/handlers/incorrect_case.rs"
+  ]
+ },
+ {
+  "commit": "a8f5602587693ee0bef99da56950f31131f8fd6a",
+  "subject": "lazily init SolverRegionConstraintStorage on access",
+  "query": "SolverRegionConstraintStorage",
+  "relevant": [
+   "compiler/rustc_infer/src/infer/solver_region_constraints.rs"
+  ]
+ },
+ {
+  "commit": "f93491893766093043aab7520769a679044143dd",
+  "subject": "yeet StabilityLevel",
+  "query": "StabilityLevel",
+  "relevant": [
+   "compiler/rustc_middle/src/middle/stability.rs"
+  ]
+ },
+ {
+  "commit": "f82e9630fc914ab9c398158e8908497768493133",
+  "subject": "fix: correct incorrect_case suggestion for raw identifiers",
+  "query": "incorrect_case",
+  "relevant": [
+   "src/tools/rust-analyzer/crates/hir-ty/src/diagnostics/decl_check.rs",
+   "src/tools/rust-analyzer/crates/ide-diagnostics/src/handlers/incorrect_case.rs"
+  ]
+ },
+ {
+  "commit": "25ee3c3d581c126d6c85d13a060b4d70a9209d7e",
+  "subject": "Align LoongArch64 Linux segments with GNU LD",
+  "query": "LoongArch64",
+  "relevant": [
+   "compiler/rustc_target/src/spec/targets/loongarch64_unknown_linux_gnu.rs",
+   "compiler/rustc_target/src/spec/targets/loongarch64_unknown_linux_musl.rs",
+   "compiler/rustc_target/src/spec/targets/loongarch64_unknown_linux_ohos.rs"
+  ]
+ },
+ {
+  "commit": "d4811d0e03de24318b8ffc228183bac0d7926ec8",
+  "subject": "normalize CoerceShared field types before relating",
+  "query": "CoerceShared",
+  "relevant": [
+   "compiler/rustc_borrowck/src/type_check/mod.rs"
+  ]
+ },
+ {
+  "commit": "d64cce9c3b3c374cfaaa9b6dac270a6bbf152812",
+  "subject": "Pass -Zforce-unstable-if-unmarked to cg_clif tests",
+  "query": "cg_clif",
+  "relevant": [
+   "compiler/rustc_codegen_cranelift/build_system/tests.rs"
+  ]
+ },
+ {
+  "commit": "e483654f43d4078c66bbb00acba4617f48d02bc4",
+  "subject": "Use `Box<[Word]>` for word storage in `DenseBitSet`",
+  "query": "DenseBitSet",
+  "relevant": [
+   "compiler/rustc_index/src/bit_set.rs"
+  ]
+ },
+ {
+  "commit": "bcc6320e8860e02b73acdc62664e6a4f300966d1",
+  "subject": "Disconnect `GrowableBitSet` from `DenseBitSet`",
+  "query": "GrowableBitSet",
+  "relevant": [
+   "compiler/rustc_index/src/bit_set.rs"
+  ]
+ },
+ {
+  "commit": "eb331628e59299ec0171527aaa64687c90a02139",
+  "subject": "Remove some unused `GrowableBitSet` methods",
+  "query": "GrowableBitSet",
+  "relevant": [
+   "compiler/rustc_index/src/bit_set.rs"
+  ]
+ },
+ {
+  "commit": "b5d4157547b05f413d3d35124dd3cf07dbcb6f21",
+  "subject": "Replace calls to `GrowableBitSet::len` with `.count()`",
+  "query": "GrowableBitSet",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/asm.rs",
+   "compiler/rustc_index/src/bit_set.rs",
+   "compiler/rustc_passes/src/hir_id_validator.rs"
+  ]
+ },
+ {
+  "commit": "2bb644fc928a88af977507261bb1ab9ba22d2538",
+  "subject": "Remove interconversions between `DenseBitSet` and `GrowableBitSet`",
+  "query": "GrowableBitSet",
+  "relevant": [
+   "compiler/rustc_index/src/bit_set.rs"
+  ]
+ },
+ {
+  "commit": "127c51cbef9c7427c579adb97d790f14bc6124c8",
+  "subject": "Avoid an unnecessary `GrowableBitSet` in `rustc_mir_transform::coroutine`",
+  "query": "GrowableBitSet",
+  "relevant": [
+   "compiler/rustc_index/src/bit_set.rs",
+   "compiler/rustc_index/src/bit_set/tests.rs"
+  ]
+ },
+ {
+  "commit": "80035347c4f12258a4bb342267b31341b04dddff",
+  "subject": "Avoid an intermediate `GrowableBitSet` in `rustc_mir_transform::sroa`",
+  "query": "GrowableBitSet",
+  "relevant": [
+   "compiler/rustc_index/src/bit_set.rs",
+   "compiler/rustc_mir_transform/src/sroa.rs"
+  ]
+ },
+ {
+  "commit": "93bf99fa36926f61d2a5fea19c65f15f137c23ec",
+  "subject": "underscore-prefix the field storing `EnteredSpan`",
+  "query": "EnteredSpan",
+  "relevant": [
+   "src/tools/rust-analyzer/crates/rust-analyzer/src/discover.rs"
+  ]
+ },
+ {
+  "commit": "e7f01f6d3f044c496529e5a2287250888cc682d1",
+  "subject": "fix: make OpenModule branch match ExternPrelude",
+  "query": "ExternPrelude",
+  "relevant": [
+   "compiler/rustc_resolve/src/ident.rs"
+  ]
+ },
+ {
+  "commit": "ac967d636d8a9dc78a695a265695805fd7d109d3",
+  "subject": "Use correct dir_path in wrap_flat_map_node_walk_flat_map",
+  "query": "wrap_flat_map_node_walk_flat_map",
+  "relevant": [
+   "compiler/rustc_expand/src/expand.rs"
+  ]
+ },
+ {
+  "commit": "3206f026cfe558d6a28e0eba47cb3b042c41e229",
+  "subject": "Revert \"fuchsia: Add safestack as a supported sanitizer for x86_64 fuchsia\"",
+  "query": "x86_64",
+  "relevant": [
+   "compiler/rustc_target/src/spec/targets/x86_64_unknown_fuchsia.rs"
+  ]
+ },
+ {
+  "commit": "6ab34158229d7c8504e46b78008f5b06c40c9158",
+  "subject": "Stabilize `unsafe_cell_access`",
+  "query": "unsafe_cell_access",
+  "relevant": [
+   "library/core/src/cell.rs"
+  ]
+ },
+ {
+  "commit": "43a8f8e16ef9e57649eebf9513a5bf5c6ec2cffa",
+  "subject": "Method resolution: Turn `TraitPick` and `TraitCandidate` into named structs",
+  "query": "TraitCandidate",
+  "relevant": [
+   "compiler/rustc_hir_typeck/src/method/probe.rs"
+  ]
+ },
+ {
+  "commit": "c6d1849411f2c054cffa3bafa4c3d685e8080fb9",
+  "subject": "Reserve items in `Extend` implementation of `MonoItems`",
+  "query": "MonoItems",
+  "relevant": [
+   "compiler/rustc_monomorphize/src/collector.rs"
+  ]
+ },
+ {
+  "commit": "1b1b92ed33d64bc3d722be6f13f9fc6a23faa858",
+  "subject": "Use `DenseBit` for `drop_live_at` in liveness tracing",
+  "query": "drop_live_at",
+  "relevant": [
+   "compiler/rustc_borrowck/src/type_check/liveness/trace.rs"
+  ]
+ },
+ {
+  "commit": "922fbba38ed69c18aff2cee6349287b87e208956",
+  "subject": "refactoring on upvar_tys",
+  "query": "upvar_tys",
+  "relevant": [
+   "compiler/rustc_middle/src/ty/sty.rs"
+  ]
+ },
+ {
+  "commit": "273f7fe3299b1aa57dea5d2c97fb0ed0b56f2e00",
+  "subject": "Add support for `DocJson` to `x perf`",
+  "query": "DocJson",
+  "relevant": [
+   "src/bootstrap/src/core/build_steps/perf.rs"
+  ]
+ },
+ {
+  "commit": "8bd0a5aff26444b137b61a0cb12a1fec67b8dcc7",
+  "subject": "Refactor `vec::IntoIter::into_vecdeque` to fix unsoundness",
+  "query": "into_vecdeque",
+  "relevant": [
+   "library/alloc/src/collections/vec_deque/mod.rs",
+   "library/alloc/src/vec/into_iter.rs"
+  ]
+ },
+ {
+  "commit": "265ca102b5ec5755a92bfa50c246df39a4943732",
+  "subject": "Make ConstKind Placeholder also check ConstArgHasType",
+  "query": "ConstArgHasType",
+  "relevant": [
+   "compiler/rustc_trait_selection/src/traits/wf.rs"
+  ]
+ },
+ {
+  "commit": "13f707fd296113af85111e3b05e31e9e994ff85a",
+  "subject": "Rename `lower_let_expr` to `lower_fallible_let`, and clarify",
+  "query": "lower_fallible_let",
+  "relevant": [
+   "compiler/rustc_mir_build/src/builder/block.rs",
+   "compiler/rustc_mir_build/src/builder/matches/mod.rs"
+  ]
+ },
+ {
+  "commit": "0246333ae9ca1c28786be25f503786372a446d10",
+  "subject": "Move std::sys::pal::sgx::waitqueue::unsafe_list to a platform-agnostic location and add more unit tests.",
+  "query": "unsafe_list",
+  "relevant": [
+   "library/std/src/sys/pal/sgx/waitqueue/mod.rs",
+   "library/std/src/sys/sync/mod.rs"
+  ]
+ },
+ {
+  "commit": "82bc685297f914d056596f2f0b0be0bfde96de3f",
+  "subject": "Fix unsoundness issues in std::sys::pal::sgx::waitqueue::unsafe_list",
+  "query": "unsafe_list",
+  "relevant": [
+   "library/std/src/sys/pal/sgx/waitqueue/mod.rs"
+  ]
+ },
+ {
+  "commit": "fb46c1d1b16c0838822553933f7b1955d4fa5254",
+  "subject": "de-constify FloatPrimitive fallback trait",
+  "query": "FloatPrimitive",
+  "relevant": [
+   "library/core/src/intrinsics/bounds.rs",
+   "library/core/src/intrinsics/mod.rs"
+  ]
+ },
+ {
+  "commit": "0847dae70368eeed7c4d1c772e29d3fc7e3e1f95",
+  "subject": "call renumberMetadataForAssembly() in LLVMRustPrintModule()",
+  "query": "renumberMetadataForAssembly",
+  "relevant": [
+   "compiler/rustc_llvm/llvm-wrapper/PassWrapper.cpp"
+  ]
+ },
+ {
+  "commit": "5c592638da16c87a5ff3bf487efb5236459c2c31",
+  "subject": "build: Rename `thumb_1` to `thumb1_only`",
+  "query": "thumb1_only",
+  "relevant": [
+   "library/compiler-builtins/libm/configure.rs"
+  ]
+ },
+ {
+  "commit": "1aaffe80eca450330cf3de9e6829d010ddc929d5",
+  "subject": "Forward CfgTrace attributes on EII items",
+  "query": "CfgTrace",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/eii.rs"
+  ]
+ },
+ {
+  "commit": "4c139efaa50518df61ce42c95565d689c1e145b3",
+  "subject": "Simplify recovery from outer attributes on `cfg_select` branches",
+  "query": "cfg_select",
+  "relevant": [
+   "compiler/rustc_attr_parsing/src/attributes/cfg_select.rs",
+   "compiler/rustc_parse/src/parser/cfg_select.rs"
+  ]
+ },
+ {
+  "commit": "d82b08755b372f1dcfc36ba791f15b6c7d911010",
+  "subject": "Remove obsolete recovery code from `parse_generic_arg`",
+  "query": "parse_generic_arg",
+  "relevant": [
+   "compiler/rustc_parse/src/parser/path.rs"
+  ]
+ },
+ {
+  "commit": "e30341f2c2efc701501e03dee5d9ed9210cddcbc",
+  "subject": "codegen_llvm: use minimum/maximum intrinsics now that they got fixed",
+  "query": "codegen_llvm",
+  "relevant": [
+   "compiler/rustc_codegen_llvm/src/intrinsic.rs"
+  ]
+ },
+ {
+  "commit": "1af640ea41365e55ac3d5460d5ba3e3bf4095621",
+  "subject": "docs: address docs refinements diff --git a/library/std/src/thread/thread.rs b/library/std/src/thread/thread.rs index ff6affae7f7..d70c244c65d 100644 --- a/library/std/src/thread/thread.rs +++ b/library/std/src/thread/thread.rs @@ -125,7 +125,8 @@ pub(crate) fn new_current(id: ThreadId) -> Thread {          thread      }",
+  "query": "new_current",
+  "relevant": [
+   "library/std/src/thread/thread.rs"
+  ]
+ },
+ {
+  "commit": "9c2dc7cbd509aea76da29e3af121a347c51cf057",
+  "subject": "Use IndexVec instead of BTreeMap for polonius variances",
+  "query": "IndexVec",
+  "relevant": [
+   "compiler/rustc_borrowck/src/polonius/constraints.rs",
+   "compiler/rustc_borrowck/src/polonius/mod.rs"
+  ]
+ },
+ {
+  "commit": "22506376bd6987f89d2518b8370eff4e0504d632",
+  "subject": "Don't pass a redundant `scrutinee_span` to some MIR-build methods",
+  "query": "scrutinee_span",
+  "relevant": [
+   "compiler/rustc_mir_build/src/builder/expr/into.rs",
+   "compiler/rustc_mir_build/src/builder/matches/mod.rs"
+  ]
+ },
+ {
+  "commit": "c317698ed6bba628d6438be820544e4829087f98",
+  "subject": "Make Receiver #[rustc_dyn_incompatible_trait]",
+  "query": "rustc_dyn_incompatible_trait",
+  "relevant": [
+   "library/core/src/ops/deref.rs"
+  ]
+ },
+ {
+  "commit": "ff721141e7cccf9aeb3bb7ccc49c58e981245b20",
+  "subject": "remove outdated UnsafeCell raw_get comment",
+  "query": "UnsafeCell",
+  "relevant": [
+   "library/core/src/cell.rs"
+  ]
+ },
+ {
+  "commit": "16529d723a1d66fbd926d7a8e78fb0448622a316",
+  "subject": "Make `VaArgSafe` dyn-incompatible",
+  "query": "VaArgSafe",
+  "relevant": [
+   "library/core/src/ffi/va_list.rs"
+  ]
+ },
+ {
+  "commit": "2b57478affcb4ac44556cc55cd6e195263dc6a12",
+  "subject": "Use `reason` for tracked item diagnostics from `cfg_select!`",
+  "query": "cfg_select",
+  "relevant": [
+   "compiler/rustc_attr_parsing/src/attributes/cfg_select.rs",
+   "compiler/rustc_builtin_macros/src/cfg_select.rs"
+  ]
+ },
+ {
+  "commit": "1069fc2caebab1b1ea274ac3ba06e5337457dd15",
+  "subject": "Remove `reason_span` from `EvalConfigResult::False`",
+  "query": "EvalConfigResult",
+  "relevant": [
+   "compiler/rustc_attr_parsing/src/attributes/cfg.rs",
+   "compiler/rustc_expand/src/expand.rs"
+  ]
+ },
+ {
+  "commit": "41318e09c590df57b99ab9d0fa7ee0bf4bb6191e",
+  "subject": "use `lldb.eTypeOptionHideChildren` for msvc tuples",
+  "query": "eTypeOptionHideChildren",
+  "relevant": [
+   "src/etc/lldb_lookup.py"
+  ]
+ },
+ {
+  "commit": "e9ab50c2dcfba839aac7da4470e7e16d43d7a1fc",
+  "subject": "treat more kinds of regions as trivial in evaluate_added_goals_and_make_canonical_response",
+  "query": "evaluate_added_goals_and_make_canonical_response",
+  "relevant": [
+   "compiler/rustc_next_trait_solver/src/solve/eval_ctxt/mod.rs"
+  ]
+ },
+ {
+  "commit": "436bc15d574433c5c321a6c981859c381bd66500",
+  "subject": "Add `CoverageKind::Point`",
+  "query": "CoverageKind",
+  "relevant": [
+   "compiler/rustc_codegen_llvm/src/coverageinfo/mod.rs",
+   "compiler/rustc_middle/src/mir/coverage.rs",
+   "compiler/rustc_mir_transform/src/coverage/from_mir.rs"
+  ]
+ },
+ {
+  "commit": "ccf5d59c6a5901ab9c622dfaad559e7c1d92d09a",
+  "subject": "Extract `CoverageKind::is_removed_after_analysis`",
+  "query": "is_removed_after_analysis",
+  "relevant": [
+   "compiler/rustc_middle/src/mir/coverage.rs",
+   "compiler/rustc_middle/src/mir/syntax.rs",
+   "compiler/rustc_mir_transform/src/cleanup_post_borrowck.rs",
+   "compiler/rustc_mir_transform/src/validate.rs"
+  ]
+ },
+ {
+  "commit": "5954af87959acb3483c907965e21896b9236ac93",
+  "subject": "Add `IS_RMAKE` environment variable to allow to use `htmldocck` in `run-make` without failing if no check is present",
+  "query": "IS_RMAKE",
+  "relevant": [
+   "src/etc/htmldocck.py",
+   "src/tools/run-make-support/src/external_deps/htmldocck.rs"
+  ]
+ },
+ {
+  "commit": "be58a505e546602ab9faa0714dfbe2cf7e27a3a4",
+  "subject": "Remove an existing out-of-line impl of `Arena::alloc_os_str`",
+  "query": "alloc_os_str",
+  "relevant": [
+   "compiler/rustc_interface/src/passes.rs"
+  ]
+ },
+ {
+  "commit": "808023885b778340822dfaecf878c12578bd20dc",
+  "subject": "Use the dropless arena for query `crate_extern_paths`",
+  "query": "crate_extern_paths",
+  "relevant": [
+   "compiler/rustc_metadata/src/rmeta/decoder/cstore_impl.rs",
+   "compiler/rustc_middle/src/queries.rs"
+  ]
+ },
+ {
+  "commit": "5303664f6ee9687004fbab79149d2e4f8598b205",
+  "subject": "Use the dropless arena for query `extra_filename`",
+  "query": "extra_filename",
+  "relevant": [
+   "compiler/rustc_metadata/src/rmeta/decoder/cstore_impl.rs",
+   "compiler/rustc_metadata/src/rmeta/encoder.rs",
+   "compiler/rustc_middle/src/queries.rs"
+  ]
+ },
+ {
+  "commit": "6ea33483a1da0c1dd4ea3910d8d2e61a39162379",
+  "subject": "Use the central arena for query `mir_shims`",
+  "query": "mir_shims",
+  "relevant": [
+   "compiler/rustc_middle/src/queries.rs",
+   "compiler/rustc_mir_transform/src/shim.rs"
+  ]
+ },
+ {
+  "commit": "30c55b32d57e978cfb30a876e152c0a84e52975c",
+  "subject": "Use the central arena for query `mir_callgraph_cyclic`",
+  "query": "mir_callgraph_cyclic",
+  "relevant": [
+   "compiler/rustc_middle/src/queries.rs",
+   "compiler/rustc_mir_transform/src/inline/cycle.rs"
+  ]
+ },
+ {
+  "commit": "876f11bbaf8720b779c8d1e5e03b1f5fc68cb0fd",
+  "subject": "Do not execute `llvm-config` in the `FileCheck` step when cross-compiling",
+  "query": "FileCheck",
+  "relevant": [
+   "src/bootstrap/src/core/build_steps/llvm.rs"
+  ]
+ },
+ {
+  "commit": "a6a7ec1e49172e7d6da697fc519e22bc913c6695",
+  "subject": "Add `llvm.x86.aesni.aeskeygenassist` support",
+  "query": "aeskeygenassist",
+  "relevant": [
+   "src/tools/miri/src/intrinsics/x86/aesni.rs"
+  ]
+ },
+ {
+  "commit": "39745288dba7b2e1d88a782b1ad5266e2eaedc61",
+  "subject": "Report precondition violation for `<usize as SliceIndex>::get_unchecked` in const-eval",
+  "query": "get_unchecked",
+  "relevant": [
+   "library/core/src/slice/index.rs"
+  ]
+ },
+ {
+  "commit": "6c2b37483d2ef0274ad14d2beb28692e7100a417",
+  "subject": "Revise documentation of `NumBuffer` and `format_into()`.",
+  "query": "format_into",
+  "relevant": [
+   "library/core/src/fmt/num.rs",
+   "library/core/src/fmt/num_buffer.rs"
+  ]
+ },
+ {
+  "commit": "f4cdf28df504687591d4d38e4960f12397bb5993",
+  "subject": "reflection: remove field from TypeKind::Reference",
+  "query": "TypeKind",
+  "relevant": [
+   "library/core/src/mem/type_info.rs"
+  ]
+ },
+ {
+  "commit": "e46de86eee8bf03d2b6e93a6ad56736de17453de",
+  "subject": "reflection: make `points_to` and `points_mutably` support references",
+  "query": "points_mutably",
+  "relevant": [
+   "compiler/rustc_const_eval/src/const_eval/machine.rs",
+   "library/core/src/mem/type_info.rs"
+  ]
+ },
+ {
+  "commit": "9c36788af12390eb797a3da9748fca1c3ac33517",
+  "subject": "reflection: remove field from TypeKind::Pointer variant",
+  "query": "TypeKind",
+  "relevant": [
+   "library/core/src/mem/type_info.rs"
+  ]
+ },
+ {
+  "commit": "838270f2b68a0983fb09828a5dab061cb8dd8392",
+  "subject": "add `TyAndLayout::complex_number`",
+  "query": "complex_number",
+  "relevant": [
+   "compiler/rustc_abi/src/layout/ty.rs"
+  ]
+ },
+ {
+  "commit": "95d43bf5355ae272eb6b9b33202a3a8cae4fca4c",
+  "subject": "remove no-longer-needed MaybeDangling from thread spawning",
+  "query": "MaybeDangling",
+  "relevant": [
+   "library/std/src/thread/lifecycle.rs"
+  ]
+ },
+ {
+  "commit": "b7e5447e85cc1869c7dd26d14310cd351d3f8cf0",
+  "subject": "simplify ManuallyDrop by making it natively 'like MaybeDangling'",
+  "query": "MaybeDangling",
+  "relevant": [
+   "compiler/rustc_middle/src/ty/sty.rs"
+  ]
+ },
+ {
+  "commit": "a305a9c3b6f2ff0a9833dc69f26ea6c8602b5ed9",
+  "subject": "fix `is_homogeneous_aggregate`: use unit size, not total size",
+  "query": "is_homogeneous_aggregate",
+  "relevant": [
+   "compiler/rustc_target/src/callconv/aarch64.rs",
+   "compiler/rustc_target/src/callconv/arm.rs",
+   "compiler/rustc_target/src/callconv/powerpc64.rs"
+  ]
+ },
+ {
+  "commit": "265a608daea277d5bdc666ed6598a9ff30b44d28",
+  "subject": "Reapply \"riscv: promote d, e, and f target_features to CfgStableToggleUnstable\"",
+  "query": "CfgStableToggleUnstable",
+  "relevant": [
+   "compiler/rustc_target/src/target_features.rs"
+  ]
+ },
+ {
+  "commit": "6072e6492b577f1c749d94346478bdd09bec7fb0",
+  "subject": "rustc_index: Convenient debugging view of the IndexMap",
+  "query": "rustc_index",
+  "relevant": [
+   "compiler/rustc_index/src/vec.rs"
+  ]
+ },
+ {
+  "commit": "2a2b4c654eba2e126688bd440396d648e2ca6380",
+  "subject": "box: fixup map/try_map deallocate calls",
+  "query": "try_map",
+  "relevant": [
+   "library/alloc/src/boxed.rs"
+  ]
+ },
+ {
+  "commit": "368791e6d4e3ad9e7b0981bd870700fac8978205",
+  "subject": "make `poly_select` delegate to next-solver directly",
+  "query": "poly_select",
+  "relevant": [
+   "compiler/rustc_trait_selection/src/error_reporting/traits/fulfillment_errors.rs",
+   "compiler/rustc_trait_selection/src/solve/select.rs",
+   "compiler/rustc_trait_selection/src/traits/select/mod.rs"
+  ]
+ },
+ {
+  "commit": "da7f6c04cc3d719560146650f65f1e7af7e406c9",
+  "subject": "don't manually instantiate binders in `explain_hrtb_projection`",
+  "query": "explain_hrtb_projection",
+  "relevant": [
+   "compiler/rustc_trait_selection/src/error_reporting/traits/suggestions.rs"
+  ]
+ },
+ {
+  "commit": "c1867744a9c12aa6f97777be4f9d3d404f8be334",
+  "subject": "split `bounds` module into `const_param_ty` and `copy` modules",
+  "query": "const_param_ty",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/deriving/const_param_ty.rs",
+   "compiler/rustc_builtin_macros/src/deriving/mod.rs",
+   "compiler/rustc_builtin_macros/src/lib.rs"
+  ]
+ },
+ {
+  "commit": "a054d6fa5792d4c4bfb9af4a019447b8d19648fd",
+  "subject": "remove one use of `expand_ext`",
+  "query": "expand_ext",
+  "relevant": [
+   "compiler/rustc_builtin_macros/src/deriving/clone.rs"
+  ]
+ },
+ {
+  "commit": "fda15d9a673e563906b0e63e2777cd69f2a59409",
+  "subject": "c-variadic: use `emit_ptr_va_arg` for `va_arg` on `sparc`",
+  "query": "emit_ptr_va_arg",
+  "relevant": [
+   "compiler/rustc_codegen_llvm/src/va_arg.rs"
+  ]
+ },
+ {
+  "commit": "7e43fd248740886dd756235806e8aaf7582f559c",
+  "subject": "add trait_is_marker to Interner",
+  "query": "trait_is_marker",
+  "relevant": [
+   "compiler/rustc_middle/src/ty/context/impl_interner.rs",
+   "compiler/rustc_type_ir/src/interner.rs"
+  ]
+ },
+ {
+  "commit": "2eb7af10dcaaea63938ddd73a1bf59813c9fe307",
+  "subject": "use correct `what` string in `size_of_sized` calls",
+  "query": "size_of_sized",
+  "relevant": [
+   "src/tools/rust-analyzer/crates/hir-ty/src/mir/eval.rs"
+  ]
+ },
+ {
+  "commit": "cee1e08dd94c8f51dec9bf7ecb78755b2997ec14",
+  "subject": "clean-up `render_variant_after_name`",
+  "query": "render_variant_after_name",
+  "relevant": [
+   "src/tools/rust-analyzer/crates/hir-ty/src/display.rs"
+  ]
+ },
+ {
+  "commit": "91339352a1f4decfb0736095e1930a548a3658f7",
+  "subject": "use `match_ast!` in `syntax::ast::expr_ext`",
+  "query": "match_ast",
+  "relevant": [
+   "src/tools/rust-analyzer/crates/syntax/src/ast/expr_ext.rs"
+  ]
+ },
+ {
+  "commit": "6f265f5e0ae93755ca8e5eb0781686dff83dc1be",
+  "subject": "document `ExprCollector::expand_macros_to_string`",
+  "query": "expand_macros_to_string",
+  "relevant": [
+   "src/tools/rust-analyzer/crates/hir-def/src/expr_store/lower.rs"
+  ]
+ },
+ {
+  "commit": "d80f170cc7416a90b354461c0f986337f6afba89",
+  "subject": "suppress unused_crate_dependencies",
+  "query": "unused_crate_dependencies",
+  "relevant": [
+   "src/tools/miri/cargo-miri/src/phases.rs"
+  ]
+ },
+ {
+  "commit": "5503fdadc44e352b7b1eb30e3c8b334ca321e1f4",
+  "subject": "Remove unnecessary `allow`s from `impl_walkable!` macro",
+  "query": "impl_walkable",
+  "relevant": [
+   "compiler/rustc_ast/src/mut_visit.rs",
+   "compiler/rustc_ast/src/visit.rs"
+  ]
+ },
+ {
+  "commit": "1177ad0ae2d2f1a0b56ce740bf7306e7bf0938e5",
+  "subject": "Remove optional and unused `(K, Kb)` arg from `impl_walkable!` macros",
+  "query": "impl_walkable",
+  "relevant": [
+   "compiler/rustc_ast/src/mut_visit.rs",
+   "compiler/rustc_ast/src/visit.rs"
+  ]
+ },
+ {
+  "commit": "1626def82e22a1a66ef32ce682bba1fbcf692c52",
+  "subject": "Inline and remove `MutVisitor`-only `visit_span`",
+  "query": "MutVisitor",
+  "relevant": [
+   "compiler/rustc_ast/src/visit.rs"
+  ]
+ },
+ {
+  "commit": "9c3dad95b6cadbc7674f016e00222a498fbe5124",
+  "subject": "Decide the effective DefId in `extract_hir_info` without recursion",
+  "query": "extract_hir_info",
+  "relevant": [
+   "compiler/rustc_mir_transform/src/coverage/hir_info.rs",
+   "compiler/rustc_mir_transform/src/coverage/mod.rs"
+  ]
+ },
+ {
+  "commit": "2df960410023f7e560eec7c0e4b5a1e38e4e518c",
+  "subject": "libm: Make `assert_biteq` usable outside of `libm`",
+  "query": "assert_biteq",
+  "relevant": [
+   "library/compiler-builtins/libm/src/math/support/macros.rs"
+  ]
+ },
+ {
+  "commit": "07c009005bebd09e778516e7dd46cc37cd658d3c",
+  "subject": "core: mark float `ClampBounds` methods as `#[inline]`",
+  "query": "ClampBounds",
+  "relevant": [
+   "library/core/src/cmp/clamp.rs"
+  ]
+ },
+ {
+  "commit": "6d6f7753b8816acde6272f0bb0341c406325a0d9",
+  "subject": "restructure `destructure_type_outlives_constraints_in_root`",
+  "query": "destructure_type_outlives_constraints_in_root",
+  "relevant": [
+   "compiler/rustc_type_ir/src/region_constraint.rs"
+  ]
+ },
+ {
+  "commit": "cc69cca7b7775db8b8c6c3abce952f5e81c3dc79",
+  "subject": "restructure `pull_region_outlives_constraints_out_of_universe`",
+  "query": "pull_region_outlives_constraints_out_of_universe",
+  "relevant": [
+   "compiler/rustc_type_ir/src/region_constraint.rs"
+  ]
+ },
+ {
+  "commit": "93ac67a245b9b7e867661b383fd0838af5ef0c54",
+  "subject": "restructure `compute_new_region_constraints`",
+  "query": "compute_new_region_constraints",
+  "relevant": [
+   "compiler/rustc_type_ir/src/region_constraint.rs"
+  ]
+ },
+ {
+  "commit": "ac64915a5e882e0ba334c64183f35618cf68db01",
+  "subject": "restructure `rewrite_type_outlives_constraints_in_universe`",
+  "query": "rewrite_type_outlives_constraints_in_universe",
+  "relevant": [
+   "compiler/rustc_type_ir/src/region_constraint.rs"
+  ]
+ },
+ {
+  "commit": "a166ed99134faba881ccb406db41959dc54cf79a",
+  "subject": "split `rewrite_type_outlives_constraints_in_universe` into multiple fns",
+  "query": "rewrite_type_outlives_constraints_in_universe",
+  "relevant": [
+   "compiler/rustc_type_ir/src/region_constraint.rs"
+  ]
+ },
+ {
+  "commit": "fa18a90a403ad2b5875d1893c49ed44550ac1be7",
+  "subject": "Remove wrong UnusedBraces lint for iterator loop in edition 2024",
+  "query": "UnusedBraces",
+  "relevant": [
+   "compiler/rustc_lint/src/unused.rs"
+  ]
+ },
+ {
+  "commit": "7a71a7440f6244d302ae4ffb161724b34f5ba75b",
+  "subject": "Add warnings to `can_begin_*` methods that affect stable macro matching behavior",
+  "query": "can_begin_",
+  "relevant": [
+   "compiler/rustc_ast/src/token.rs",
+   "compiler/rustc_parse/src/parser/ty.rs"
+  ]
+ },
+ {
+  "commit": "67bf3ebc32e21bdc9f6ac4639f3b1fad4509e885",
+  "subject": "Explain LoongArch f16 NaN-boxing in inline asm",
+  "query": "LoongArch",
+  "relevant": [
+   "compiler/rustc_codegen_llvm/src/asm.rs"
+  ]
+ },
+ {
+  "commit": "1d08a6b9ff707d19caf72d8ba427ec2ffa399739",
+  "subject": "Prefer `LLVMGetVersion` for runtime info",
+  "query": "LLVMGetVersion",
+  "relevant": [
+   "compiler/rustc_codegen_llvm/src/llvm/ffi.rs",
+   "compiler/rustc_codegen_llvm/src/llvm_util.rs"
+  ]
+ },
+ {
+  "commit": "7a44484407077776e30120f5e72cdef2820e8856",
+  "subject": "fuchsia: Add safestack as a supported sanitizer for x86_64 fuchsia",
+  "query": "x86_64",
+  "relevant": [
+   "compiler/rustc_target/src/spec/targets/x86_64_unknown_fuchsia.rs"
+  ]
+ },
+ {
+  "commit": "7791246b9132f2b5ab63a84cad60ebb2eda0e317",
+  "subject": "Add custom allocator support to `(try_)map` on `UniqueArc` and `UniqueRc`",
+  "query": "UniqueArc",
+  "relevant": [
+   "library/alloc/src/sync.rs"
+  ]
+ },
+ {
+  "commit": "e515460818af6185c681bc5e21667761b0a4d1c9",
+  "subject": "Store LiveLoans more densely packed",
+  "query": "LiveLoans",
+  "relevant": [
+   "compiler/rustc_borrowck/src/polonius/mod.rs"
+  ]
+ },
+ {
+  "commit": "7a02fd9f271adfb948158b13a965daee562bd73b",
+  "subject": "Remove `gate_check` from `AttributeStability::Unstable`",
+  "query": "AttributeStability",
+  "relevant": [
+   "compiler/rustc_attr_parsing/src/stability.rs",
+   "compiler/rustc_feature/src/builtin_attrs.rs"
+  ]
+ },
+ {
+  "commit": "418993806b416ec6749af0143dd33560ce9e423d",
+  "subject": "clean up CanonicalInputRaw, CanonicalInputData, and comment why its Interned",
+  "query": "CanonicalInputData",
+  "relevant": [
+   "compiler/rustc_middle/src/traits/solve.rs",
+   "compiler/rustc_middle/src/ty/context/impl_interner.rs",
+   "compiler/rustc_type_ir/src/interner.rs",
+   "compiler/rustc_type_ir/src/solve/mod.rs"
+  ]
+ },
+ {
+  "commit": "d64ea7e2151ecbad3082c6df0cfec2704b0d0bac",
+  "subject": "c-b: Use integers in `__gnu_f2h_ieee` and `__gnu_h2f_ieee` signatures",
+  "query": "__gnu_f2h_ieee",
+  "relevant": [
+   "library/compiler-builtins/compiler-builtins/src/float/trunc.rs"
+  ]
+ },
+ {
+  "commit": "80dc5df240ffbd0addc5cf73e9dfd136b4c70e5a",
+  "subject": "Update icu_list to 2.3",
+  "query": "icu_list",
+  "relevant": [
+   "compiler/rustc_baked_icu_data/src/data/mod.rs",
+   "compiler/rustc_error_messages/src/lib.rs",
+   "src/tools/tidy/src/deps.rs"
+  ]
+ },
+ {
+  "commit": "cb5e3df331e1684fd591c95658c033aed368175d",
+  "subject": "std: don't reference `libc::O_NOFOLLOW` on VxWorks in `set_perm_nofollow`",
+  "query": "set_perm_nofollow",
+  "relevant": [
+   "library/std/src/sys/fs/unix.rs"
+  ]
+ },
+ {
+  "commit": "797b6c94ccfc442a450585eb6fb12466498b4014",
+  "subject": "remove deprecated/remove/rustdoc_internal doc attributes from suggestions",
+  "query": "rustdoc_internal",
+  "relevant": [
+   "compiler/rustc_attr_parsing/src/attributes/doc.rs"
+  ]
+ },
+ {
+  "commit": "911ae19bfa3c6361fb5bde9aac4ad164bd1ab9f6",
+  "subject": "rename `Place` to `StoredPlace`",
+  "query": "StoredPlace",
+  "relevant": [
+   "src/tools/rust-analyzer/crates/hir-ty/src/mir.rs",
+   "src/tools/rust-analyzer/crates/hir-ty/src/mir/eval.rs",
+   "src/tools/rust-analyzer/crates/hir-ty/src/mir/lower.rs",
+   "src/tools/rust-analyzer/crates/hir-ty/src/mir/pretty.rs"
+  ]
+ },
+ {
+  "commit": "adbeb5e931287225d610a85f7d7c23e2377fc100",
+  "subject": "rename `StoredProjection::lookup` to `StoredProjection::as_slice`",
+  "query": "StoredProjection",
+  "relevant": [
+   "src/tools/rust-analyzer/crates/hir-ty/src/mir.rs"
+  ]
+ },
+ {
+  "commit": "f771946e61c6728b1d2a2c45272d0d4740ba61d4",
+  "subject": "Rework `next_power_of_two` to always be `1 << \u2026`",
+  "query": "next_power_of_two",
+  "relevant": [
+   "library/core/src/num/uint_macros.rs"
+  ]
+ },
+ {
+  "commit": "8717cbaa84ce740c987c055da765b83c46401a51",
+  "subject": "Deduplicate `InstrumentFnAttr`",
+  "query": "InstrumentFnAttr",
+  "relevant": [
+   "compiler/rustc_attr_ir/src/data_structures.rs",
+   "compiler/rustc_codegen_llvm/src/attributes.rs",
+   "compiler/rustc_middle/src/middle/codegen_fn_attrs.rs"
+  ]
+ },
+ {
+  "commit": "6ad5c1731c751fb25781cc3f7e74730b019544e9",
+  "subject": "Move record_live_region_variance to be a freestanding function",
+  "query": "record_live_region_variance",
+  "relevant": [
+   "compiler/rustc_borrowck/src/polonius/liveness_constraints.rs",
+   "compiler/rustc_borrowck/src/polonius/mod.rs",
+   "compiler/rustc_borrowck/src/type_check/liveness/mod.rs",
+   "compiler/rustc_borrowck/src/type_check/liveness/trace.rs"
+  ]
+ },
+ {
+  "commit": "9f89751ce757eb17da891b958924a43174d6bd32",
+  "subject": "Move polonius loan liveness computation prior to RegionInferenceContext::new",
+  "query": "RegionInferenceContext",
+  "relevant": [
+   "compiler/rustc_borrowck/src/nll.rs",
+   "compiler/rustc_borrowck/src/region_infer/mod.rs"
+  ]
+ },
+ {
+  "commit": "d3a3f135a353104f5e413c1cdced76e06f73d999",
+  "subject": "change DEFAULT_STACK_SIZE to be 17MB",
+  "query": "DEFAULT_STACK_SIZE",
+  "relevant": [
+   "compiler/rustc_interface/src/util.rs"
+  ]
+ },
+ {
+  "commit": "3ba7833fd19dd7a73e6e683e3089c1e015400eb1",
+  "subject": "Cleanup cranelift `codegen_float_intrinsic_call`",
+  "query": "codegen_float_intrinsic_call",
+  "relevant": [
+   "compiler/rustc_codegen_cranelift/src/intrinsics/mod.rs"
+  ]
+ },
+ {
+  "commit": "2039641f6574ca041cc1fb66cf67e4610c8ca98d",
+  "subject": "Refine InferCtxtInner docs - Doc links - Specify which field is the 'primary' map of inference vars to what they represent",
+  "query": "InferCtxtInner",
+  "relevant": [
+   "compiler/rustc_infer/src/infer/mod.rs"
+  ]
+ },
+ {
+  "commit": "60be5628af1f9202097d63613e9c68f1f5990378",
+  "subject": "Simplify `find_gated_cfg`",
+  "query": "find_gated_cfg",
+  "relevant": [
+   "compiler/rustc_attr_parsing/src/attributes/cfg.rs",
+   "compiler/rustc_driver_impl/src/lib.rs",
+   "compiler/rustc_feature/src/builtin_attrs.rs"
+  ]
+ },
+ {
+  "commit": "6146d3aacc810466c9f367d7da467067a465a1ed",
+  "subject": "Use `NonZero<u32>` consistently",
+  "query": "NonZero",
+  "relevant": [
+   "compiler/rustc_feature/src/removed.rs"
+  ]
+ },
+ {
+  "commit": "cd09177a9a809a90d285bb06203ab1c6ca7a0b15",
+  "subject": "Derive `StableHash` for three feature structs",
+  "query": "StableHash",
+  "relevant": [
+   "compiler/rustc_feature/src/unstable.rs"
+  ]
+ },
+ {
+  "commit": "9670dfaf1574b3417e0404af4524c686d6be7aef",
+  "subject": "Use `GateFn` in `AttributeStability`",
+  "query": "AttributeStability",
+  "relevant": [
+   "compiler/rustc_feature/src/builtin_attrs.rs"
+  ]
+ },
+ {
+  "commit": "9fb80833a925a0d3cb0d2df1cc6ccf8d6d902dca",
+  "subject": "Update comments and use `assert_matches!`",
+  "query": "assert_matches",
+  "relevant": [
+   "src/bootstrap/src/core/config/tests.rs"
+  ]
+ },
+ {
+  "commit": "7876a7b6f1b50204bbde12770df4d7fc02dd14ed",
+  "subject": "Move `download-ci-llvm` `if-unchanged` detection logic into the `LlvmFromCi` step",
+  "query": "LlvmFromCi",
+  "relevant": [
+   "src/bootstrap/src/core/build_steps/llvm.rs"
+  ]
+ },
+ {
+  "commit": "0911b0a3feb3b68632274a93a6c5eaf3a2023ea4",
+  "subject": "Simplify `OwnedTargetMachine`",
+  "query": "OwnedTargetMachine",
+  "relevant": [
+   "compiler/rustc_codegen_llvm/src/back/owned_target_machine.rs"
+  ]
+ },
+ {
+  "commit": "44febdf5d84f0f00498d7485cf95420dfbaf7be6",
+  "subject": "Emit delayed bug instead of ICEing when `TypeOutlives` goal fails",
+  "query": "TypeOutlives",
+  "relevant": [
+   "compiler/rustc_trait_selection/src/error_reporting/traits/fulfillment_errors.rs"
+  ]
+ },
+ {
+  "commit": "2e7e5cb3a90baf22f14d7f1f6b55ce46342028a3",
+  "subject": "rustdoc: cleanup `main_args()` markdown handling",
+  "query": "main_args",
+  "relevant": [
+   "src/librustdoc/lib.rs"
+  ]
+ },
+ {
+  "commit": "7ea63ccb7ea003340592addef98148cf15fe30e9",
+  "subject": "Remove redundant braces from `NonZero` doctests",
+  "query": "NonZero",
+  "relevant": [
+   "library/core/src/num/nonzero.rs"
+  ]
+ },
+ {
+  "commit": "b9fb95777ea04a8e9bf7774012671765736f9eb5",
+  "subject": "document some rustc_dump attributes",
+  "query": "rustc_dump",
+  "relevant": [
+   "compiler/rustc_attr_ir/src/attribute_docs.rs",
+   "compiler/rustc_attr_ir/src/data_structures.rs"
+  ]
+ },
+ {
+  "commit": "938b233e4c0e94db0974b958ecc5a5842fc1df21",
+  "subject": "doc: `PrintKind`",
+  "query": "PrintKind",
+  "relevant": [
+   "compiler/rustc_session/src/config.rs",
+   "compiler/rustc_session/src/config/print_request.rs"
+  ]
+ },
+ {
+  "commit": "eb870880ea932e6f788c87e72dfa54235265f6e6",
+  "subject": "Fix `NamedTempFile`",
+  "query": "NamedTempFile",
+  "relevant": [
+   "src/tools/rust-analyzer/crates/proc-macro-srv/src/dylib.rs",
+   "src/tools/rust-analyzer/crates/stdx/src/tempfile.rs"
+  ]
+ },
+ {
+  "commit": "303dafdc110da965b9b4b376dfd91f34d95b82da",
+  "subject": "Abort instead of unwinding out of an inconsistent BTreeMap::split_off",
+  "query": "split_off",
+  "relevant": [
+   "library/alloc/src/collections/btree/map/tests.rs",
+   "library/alloc/src/collections/btree/split.rs"
+  ]
+ },
+ {
+  "commit": "3c907878d2559f5cc9249f633a33a1b123b9959f",
+  "subject": "Add `f16` and `f128` inline ASM support for PowerPC",
+  "query": "PowerPC",
+  "relevant": [
+   "compiler/rustc_codegen_llvm/src/asm.rs",
+   "compiler/rustc_target/src/asm/powerpc.rs"
+  ]
+ },
+ {
+  "commit": "d40b91f18c4e3c11b7ecddb7f4365f286e623410",
+  "subject": "add FIXME in GetProcAddress",
+  "query": "GetProcAddress",
+  "relevant": [
+   "src/tools/miri/src/shims/windows/foreign_items.rs"
+  ]
+ },
+ {
+  "commit": "b901613fcab6b1e784be3af9f5f1e84888a0569d",
+  "subject": "Refactored set_perm_nofollow and have it written so that all supported fchmodat platform call on fchmodat and every platform falls back to open + fchmod when _res is set to ErrorKind::Unsupported; updated docs to reflect change",
+  "query": "set_perm_nofollow",
+  "relevant": [
+   "library/std/src/sys/fs/unix.rs"
+  ]
+ },
+ {
+  "commit": "aee52d782c7bd49237c3b2af967254f7ebf22f18",
+  "subject": "implement [u8]::split_ascii_whitespace",
+  "query": "split_ascii_whitespace",
+  "relevant": [
+   "library/core/src/slice/ascii.rs",
+   "library/core/src/slice/mod.rs",
+   "library/core/src/str/mod.rs"
+  ]
+ },
+ {
+  "commit": "0e45fdc4763e80e0461176ec31a457224a2174cc",
+  "subject": "Improve to_int_checked performance",
+  "query": "to_int_checked",
+  "relevant": [
+   "library/core/src/convert/num.rs"
+  ]
+ }
+]

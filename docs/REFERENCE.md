@@ -47,7 +47,15 @@ ogrep index .                          # index current directory
 ogrep index /path/to/repo             # index a specific repo
 ogrep index . --index-path /tmp/idx   # custom index location
 ogrep index . --exclude vendor --exclude third_party  # skip directories
+ogrep index . --no-sparse-grams       # trigrams only: smaller index
 ```
+
+Besides trigrams, the index holds sparse n-grams: longer keys that let a long
+literal be answered from a few short posting lists (see
+[How It Works](#how-it-works)). They make the index about two to three times
+larger. `--no-sparse-grams` leaves them out; searches then use trigrams alone
+and return the same results. A server that later rebuilds the index adds the
+n-grams back.
 
 Each build reports its elapsed time and peak memory when it finishes:
 
@@ -373,7 +381,47 @@ ogrep --files .                   # list searchable files
 ogrep --files src/main.rs         # list a single file if searchable
 ogrep --files -t rust .           # list Rust files only
 ogrep --type-list                 # show all file types
+ogrep "pattern" . --rank          # best files first, 3 lines each, 20 files
+ogrep "pattern" . --rank --budget 5 --per-file 1
+ogrep "pattern" . --explain-rank  # ranked, with each file's score
 ```
+
+#### Ranked results: `--rank`
+
+`--rank` orders the files that matched by relevance and prints the best first,
+with a few telling lines of each. It suits an agent or a person looking for
+*where* something lives rather than every place it is mentioned. The search
+itself is unchanged: every printed line is a real match, and ranking only
+reorders and trims. Without `--rank` output is exactly as before.
+
+A file scores higher for lines that define the match (`fn name`, `def name`,
+`class Name`, `struct Name`, and the like), for other matching lines (with
+diminishing returns), and for the match appearing in its path. Tests,
+vendored or generated code, and prose weigh less. With several patterns (`-e`),
+a rarer pattern counts for more. Within a file, definition lines are shown
+first, then the earliest matches, skipping near-duplicate lines.
+
+| Flag | Default | Effect |
+|------|---------|--------|
+| `--rank` | off | Rank files by relevance |
+| `--budget <FILES>` | 20 | Print at most this many files; implies `--rank` |
+| `--per-file <LINES>` | 3 | Print at most this many matching lines per file; implies `--rank` |
+| `--rank-cutoff auto\|none` | `none` | `auto` also stops where scores fall below a quarter of the best, or halve from one file to the next (the top three are always kept); implies `--rank` |
+| `--explain-rank` | off | Print each file's score and features on a line starting with `#`; implies `--rank` |
+
+The order is deterministic: scores are compared at a fixed precision and ties
+break by path, so two builds of the same tree rank identically. `-l` prints
+ranked file names, `-c` ranked counts, `--json` the usual `begin`/`match`/`end`
+messages in ranked order, each file preceded by a
+`{"type":"rank","data":{"path","rank","score","features"}}` message. Context
+flags keep only the context around the lines shown. `--rank` cannot be combined
+with `-v`, `--files`, `--files-without-match`, `--passthru`, `--include-zero`
+or `--sort`.
+
+On 600 localization tasks mined from django and rust history (an identifier
+from a commit message; the file the commit changed is the answer; see
+`scripts/eval/localize.py`), the right file came first 58% of the time with
+`--rank`, against 27% (django) and 41% (rust) in ogrep's default order.
 
 With the default traversal rules, `--files` reads the live server or the local
 index instead of walking the repository. The local result is an index snapshot;
@@ -445,6 +493,11 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `--ident <NAME>` | Find an identifier in every naming convention: `getUserId`, `get_user_id`, `GetUserID`, `get-user-id`, `GET_USER_ID` (repeatable) |
 | `--with <PAT>` | Only search files that also contain a line matching `PAT` (repeatable; all required; narrows via the index) |
 | `--without <PAT>` | Skip files that contain a line matching `PAT` (repeatable) |
+| `--rank` | Order files by relevance and print the best first (see [Ranked results](#ranked-results---rank)) |
+| `--budget <FILES>` | With `--rank`: at most this many files (default 20) |
+| `--per-file <LINES>` | With `--rank`: at most this many lines per file (default 3) |
+| `--rank-cutoff <auto\|none>` | With `--rank`: also stop where scores fall away (`auto`) |
+| `--explain-rank` | With `--rank`: print each file's score and features |
 | `-U, --multiline` | Enable multiline matching (`.` still excludes `\n`) |
 | `--multiline-dotall` | Make `.` match `\n`; implies `-U` |
 | `-n, --line-number` | Show line numbers (default: on when stdout is a terminal) |
@@ -791,12 +844,29 @@ exit code determined by the search alone. Suppress the message with
    writes a compact binary inverted index. Full builds stream sorted posting
    groups directly to disk to keep peak memory bounded.
 
+   Alongside the trigrams it indexes **sparse n-grams**, the scheme GitHub
+   code search and Cursor use: substrings of 4-8 bytes whose first and last
+   byte pairs both outweigh every pair inside them, with pairs weighted by how
+   rare they are in source code. The rule looks only at the substring's own
+   bytes, so every n-gram of a search literal is present in any text that
+   contains it. They are taken from lowercased text, so they serve
+   case-sensitive and case-insensitive searches alike. N-grams that occur in
+   more than 1% of the files (and at least 32) are left out, since they narrow
+   little; their keys are listed in the index so no search mistakes their
+   absence for a miss.
+
 2. **Querying** — the regex is parsed with `regex-syntax`, decomposed into
    literal fragments, converted to trigram hashes, and looked up via binary
    search in the mmap'd index. Posting lists are intersected (AND) or
    unioned (OR) to find candidate files, reusing sorted posting-list order when
    possible. Only those candidates are verified with the full regex engine in
    parallel (rayon).
+
+   Against an index with sparse n-grams, each literal is covered by as few
+   keys as possible, preferring the longest n-grams; its remaining trigrams are
+   consulted only while more than 32 candidates remain. An index without
+   n-grams (older, or built with `--no-sparse-grams`) is searched with
+   trigrams alone.
 
 3. **Serving** — `ogrep serve` wraps the index in a HybridIndex, watches for
    filesystem changes, and serves queries over TCP. If no index exists, it
@@ -812,9 +882,9 @@ exit code determined by the search alone. Suppress the message with
 
 | File | Description |
 |------|-------------|
-| `lookup.bin` | Sorted 16-byte entries: `trigram(u32) + offset(u64) + length(u32)` |
+| `lookup.bin` | Sorted 16-byte entries: `key(u32) + offset(u64) + length(u32)`. Trigram keys are below 2^24; sparse n-gram keys (hashes) lie above; the last key, `0xFFFFFFFF`, lists the n-grams left out as too common |
 | `index.bin` | Concatenated posting lists: `file_id(u32)` per entry |
 | `files.bin` | Version 3 header, then `file_id(u32) + path_len(u16) + path_bytes`; legacy headerless tables remain readable |
 | `files-extra.bin` | Version 2 filename-only paths, visibility, and file-table identity |
-| `meta.json` | Version, file/trigram counts, timestamps, coverage, visibility, and file-table identity |
+| `meta.json` | Version, file/trigram counts, timestamps, coverage, visibility, file-table identity, and the sparse n-gram version and key count (`sparse_grams`, `sparse_gram_keys`; absent when the index has none) |
 | `serve.json` | Server PID and TCP port (for client discovery) |

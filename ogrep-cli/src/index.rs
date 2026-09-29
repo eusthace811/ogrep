@@ -36,6 +36,7 @@ pub struct RunOptions<'a> {
     pub strategy: IndexStrategy,
     pub index_buffer_mb: Option<u64>,
     pub max_file_size: Option<u64>,
+    pub sparse_grams: bool,
 }
 
 pub fn run(opts: RunOptions<'_>) -> Result<()> {
@@ -49,6 +50,7 @@ pub fn run(opts: RunOptions<'_>) -> Result<()> {
         strategy,
         index_buffer_mb,
         max_file_size,
+        sparse_grams,
     } = opts;
     let explicit_buffer = index_buffer_mb.is_some();
     let buffer_bytes = index_buffer_mb
@@ -80,6 +82,7 @@ pub fn run(opts: RunOptions<'_>) -> Result<()> {
             strategy,
             buffer_bytes,
             max_file_size,
+            sparse_grams,
             ..Default::default()
         },
     )?;

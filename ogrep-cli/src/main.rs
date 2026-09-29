@@ -13,6 +13,7 @@ mod matching;
 mod mem;
 mod output;
 mod profile;
+mod rank;
 mod refresh;
 mod search;
 mod serve;
@@ -100,6 +101,31 @@ struct Cli {
     /// every one is required). Uses the index to narrow candidates.
     #[arg(long = "with", value_name = "PATTERN", global = true)]
     with: Vec<String>,
+
+    /// Order files by relevance (definitions, match density, file-name hits;
+    /// tests, vendored code and prose count less) and print the best first,
+    /// with a few telling lines each. Output order is deterministic.
+    #[arg(long = "rank", global = true)]
+    rank: bool,
+
+    /// With --rank: print at most this many files (default 20). Implies --rank.
+    #[arg(long = "budget", value_name = "FILES", global = true, value_parser = clap::value_parser!(u64).range(1..))]
+    budget: Option<u64>,
+
+    /// With --rank: print at most this many matching lines per file (default 3).
+    /// Implies --rank.
+    #[arg(long = "per-file", value_name = "LINES", global = true, value_parser = clap::value_parser!(u64).range(1..))]
+    per_file: Option<u64>,
+
+    /// With --rank: `auto` also stops where scores fall away; `none` (default)
+    /// keeps every file up to --budget. Implies --rank.
+    #[arg(long = "rank-cutoff", value_name = "MODE", global = true, value_parser = ["auto", "none"])]
+    rank_cutoff: Option<String>,
+
+    /// With --rank: print each file's score and the features behind it, on a
+    /// line starting with `#`. Implies --rank.
+    #[arg(long = "explain-rank", global = true)]
+    explain_rank: bool,
 
     /// Skip files that contain any line matching PATTERN (repeatable).
     #[arg(long = "without", value_name = "PATTERN", global = true)]
@@ -638,6 +664,12 @@ enum Command {
         /// segments to merge. Ignored by `--index-strategy=memory`.
         #[arg(long = "index-buffer", value_name = "MB", value_parser = clap::value_parser!(u64).range(1..))]
         index_buffer_mb: Option<u64>,
+
+        /// Index trigrams only, without sparse n-grams. The index is about half
+        /// the size and long literals are looked up with more, commoner keys.
+        /// A server that later rebuilds the index adds the n-grams back.
+        #[arg(long = "no-sparse-grams")]
+        no_sparse_grams: bool,
     },
 
     /// Start the persistent search server.
@@ -871,6 +903,29 @@ impl Cli {
         paths.extend(positional.cloned());
         paths.extend(rest.iter().cloned());
         (String::new(), paths)
+    }
+
+    /// The `--rank` settings, when ranking was asked for (directly or through a
+    /// flag that implies it).
+    fn rank_options(&self) -> Option<rank::RankOptions> {
+        let wanted = self.rank
+            || self.budget.is_some()
+            || self.per_file.is_some()
+            || self.rank_cutoff.is_some()
+            || self.explain_rank;
+        if !wanted {
+            return None;
+        }
+        let defaults = rank::RankOptions::default();
+        Some(rank::RankOptions {
+            budget: self.budget.map_or(defaults.budget, |b| b as usize),
+            per_file: self.per_file.map_or(defaults.per_file, |k| k as usize),
+            cutoff: match self.rank_cutoff.as_deref() {
+                Some("auto") => rank::Cutoff::Auto,
+                _ => rank::Cutoff::None,
+            },
+            explain: self.explain_rank,
+        })
     }
 
     fn build_search_opts(&self, pattern: String, resolved: &ResolvedArgs) -> search::SearchOptions {
@@ -1160,6 +1215,26 @@ fn run_cli() {
         process::exit(2);
     }
 
+    // Ranking orders the files that matched; these flags ask for something
+    // other than matching files, or for an order of their own.
+    if cli.rank_options().is_some() {
+        let conflicts = [
+            (cli.files_without_match, "--files-without-match"),
+            (cli.list_files, "--files"),
+            (cli.passthru, "--passthru"),
+            (cli.include_zero, "--include-zero"),
+            (cli.invert_match, "-v/--invert-match"),
+            (
+                cli.sort.is_some() || cli.sortr.is_some() || cli.sort_files,
+                "--sort",
+            ),
+        ];
+        if let Some((_, flag)) = conflicts.iter().find(|(set, _)| *set) {
+            eprintln!("ogrep: --rank cannot be combined with {flag}");
+            process::exit(2);
+        }
+    }
+
     // `--pcre2-version` reports the backtracking engine and exits, like ripgrep.
     // ogrep links fancy-regex rather than PCRE2 itself, so say so instead of
     // printing a PCRE2 version number that no PCRE2 is behind.
@@ -1194,6 +1269,7 @@ fn run_cli() {
             exclude,
             strategy,
             index_buffer_mb,
+            no_sparse_grams,
             ..
         }) => {
             index::run(index::RunOptions {
@@ -1208,6 +1284,7 @@ fn run_cli() {
                 // Already carries `walker::DEFAULT_MAX_FILE_SIZE` when the user
                 // named no limit, so indexing and searching cap identically.
                 max_file_size: max_filesize,
+                sparse_grams: !no_sparse_grams,
             })
         }
         Some(Command::Serve {
@@ -1458,6 +1535,10 @@ fn run_search(
     opts.no_filename = cli.no_filename
         || (!cli.with_filename && !cli.vimgrep && targets.len() == 1 && targets[0].path.is_file());
 
+    if let Some(rank_opts) = cli.rank_options() {
+        run_ranked_search(cli, &opts, ci, targets, &rank_opts);
+    }
+
     // One writer for the whole invocation: ripgrep emits a single JSON
     // `summary` covering every path it was given, so per-path writers would
     // report one summary each and a consumer reading "the" summary would see
@@ -1514,6 +1595,77 @@ fn run_search(
         process::exit(2);
     }
     process::exit(1);
+}
+
+/// `--rank`: run the ordinary search into a capturing writer, then rank and
+/// print. Never returns.
+fn run_ranked_search(
+    cli: &Cli,
+    opts: &search::SearchOptions,
+    ci: bool,
+    targets: Vec<SearchTarget>,
+    rank_opts: &rank::RankOptions,
+) -> ! {
+    // The search must produce matching lines whatever the output format, so
+    // file lists and counts are derived after ranking instead of during it.
+    let mut inner = opts.clone();
+    inner.files_only = false;
+    inner.count = false;
+    inner.count_matches = false;
+    inner.json = false;
+    inner.vimgrep = false;
+    inner.quiet = false;
+    inner.sort = None;
+    let mut capture = search::new_capturing_writer(&inner);
+    let mut captures = Vec::new();
+    for target in targets {
+        if !target.path.exists() {
+            report_missing_path(&target.path, opts.no_messages);
+            continue;
+        }
+        let display = target.display();
+        capture.set_path_display(display.clone());
+        if let Err(e) = search::run(
+            &target.path,
+            cli.index_path.as_deref(),
+            &inner,
+            ci,
+            &mut capture,
+        ) {
+            let file_error = e.is::<std::io::Error>() || e.is::<matching::MatchError>();
+            if !(opts.no_messages && file_error) {
+                eprintln!("ogrep: {e}");
+            }
+            process::exit(2);
+        }
+        captures.push((display, capture.take_captured()));
+    }
+    let mut writer = search::new_writer(opts);
+    writer.absorb_search_totals(&capture);
+    let context = opts.after_ctx().max(opts.before_ctx());
+    let printed = match rank::emit(
+        captures,
+        &opts.all_patterns(),
+        opts.fixed_string,
+        ci,
+        rank_opts,
+        context,
+        &mut writer,
+    ) {
+        Ok(printed) => printed,
+        Err(e) => {
+            eprintln!("ogrep: {e}");
+            process::exit(2);
+        }
+    };
+    if writer.finish().is_err() {
+        process::exit(2);
+    }
+    let errored = ERRORED.load(std::sync::atomic::Ordering::SeqCst);
+    if printed && (opts.quiet || !errored) {
+        process::exit(0);
+    }
+    process::exit(if errored { 2 } else { 1 });
 }
 
 #[cfg(test)]
