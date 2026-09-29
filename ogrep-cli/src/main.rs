@@ -110,21 +110,21 @@ struct Cli {
     /// Order files by relevance (definitions, match density, file-name hits;
     /// tests, vendored code and prose count less) and print the best first,
     /// with a few telling lines each. Output order is deterministic.
-    #[arg(long = "rank", global = true)]
+    #[arg(long = "rank")]
     rank: bool,
 
     /// With --rank: print at most this many files (default 20). Implies --rank.
-    #[arg(long = "budget", value_name = "FILES", global = true, value_parser = clap::value_parser!(u64).range(1..))]
+    #[arg(long = "budget", value_name = "FILES", value_parser = clap::value_parser!(u64).range(1..))]
     budget: Option<u64>,
 
     /// With --rank: print at most this many matching lines per file (default 3).
     /// Implies --rank.
-    #[arg(long = "per-file", value_name = "LINES", global = true, value_parser = clap::value_parser!(u64).range(1..))]
+    #[arg(long = "per-file", value_name = "LINES", value_parser = clap::value_parser!(u64).range(1..))]
     per_file: Option<u64>,
 
     /// With --rank: `auto` also stops where scores fall away; `none` (default)
     /// keeps every file up to --budget. Implies --rank.
-    #[arg(long = "rank-cutoff", value_name = "MODE", global = true, value_parser = ["auto", "none"])]
+    #[arg(long = "rank-cutoff", value_name = "MODE", value_parser = ["auto", "none"])]
     rank_cutoff: Option<String>,
 
     /// Fit --rank's weights to this repository from FILE: a JSON array (or
@@ -136,149 +136,149 @@ struct Cli {
 
     /// With --rank: print each file's score and the features behind it, on a
     /// line starting with `#`. Implies --rank.
-    #[arg(long = "explain-rank", global = true)]
+    #[arg(long = "explain-rank")]
     explain_rank: bool,
 
     /// Show the definition (function, method, class, ...) enclosing each match,
     /// as `path=line=text` before its matches, like `git grep -p`. Uses the
     /// built-in parsers (Rust, Python, Go, JavaScript, TypeScript, Java, C,
     /// C++, C#, Ruby, PHP).
-    #[arg(long = "scope", global = true)]
+    #[arg(long = "scope")]
     scope: bool,
 
     /// Keep only matches that define the matched name (`def`) or only the
     /// others (`ref`). Parsed languages use their grammar; others fall back to
     /// a keyword check (`fn name`, `def name`, `class Name`, ...).
-    #[arg(long = "kind", value_name = "def|ref", global = true, value_parser = ["def", "ref"])]
+    #[arg(long = "kind", value_name = "def|ref", value_parser = ["def", "ref"])]
     kind: Option<String>,
 
     /// Keep only matches in code, comments or string literals (parsed
     /// languages; other files count as code).
-    #[arg(long = "in", value_name = "code|comments|strings", global = true, value_parser = ["code", "comments", "strings"])]
+    #[arg(long = "in", value_name = "code|comments|strings", value_parser = ["code", "comments", "strings"])]
     in_zone: Option<String>,
 
     /// List the files most related to the files PATTERN matches (they use or
     /// are used by them), best first, with the names that link them. Needs
     /// `ogrep index --graph`. `--budget` sets how many (default 20).
-    #[arg(long = "near", global = true)]
+    #[arg(long = "near")]
     near: bool,
 
     /// Print an outline (definition lines) of the files most related to what
     /// PATTERN matches, within about TOKENS tokens (default 1024). Needs
     /// `ogrep index --graph`.
-    #[arg(long = "map", value_name = "TOKENS", global = true, num_args = 0..=1, default_missing_value = "1024")]
+    #[arg(long = "map", value_name = "TOKENS", num_args = 0..=1, default_missing_value = "1024")]
     map: Option<usize>,
 
     /// List the definitions (functions, methods, ...) that use PATTERN, once
     /// each, with the number of uses.
-    #[arg(long = "callers", global = true)]
+    #[arg(long = "callers")]
     callers: bool,
 
     /// For each definition named PATTERN, list the names it uses that are
     /// defined in the repository, and where. Needs `ogrep index --graph`.
-    #[arg(long = "callees", global = true)]
+    #[arg(long = "callees")]
     callees: bool,
 
     /// List services, alerts and other entities found in the repository's
     /// operations files (Compose, Kubernetes, Backstage, Prometheus rules),
     /// with what each depends on. PATTERN filters entity names (`.` for all).
-    #[arg(long = "entities", global = true)]
+    #[arg(long = "entities")]
     entities: bool,
 
     /// Show every service that depends on the service PATTERN, directly or not,
     /// by distance, with the file and line each dependency comes from.
-    #[arg(long = "blast", global = true)]
+    #[arg(long = "blast")]
     blast: bool,
 
     /// Rank likely causes for failing services (PATTERN: comma-separated
     /// names): services they depend on, weighted by how many failing services
     /// each explains and by commits since --since (default 24 hours).
-    #[arg(long = "suspects", global = true)]
+    #[arg(long = "suspects")]
     suspects: bool,
 
     /// Commits to the service PATTERN and to what it directly depends on, since
     /// --since (default 7 days), newest first.
-    #[arg(long = "timeline", global = true)]
+    #[arg(long = "timeline")]
     timeline: bool,
 
     /// Read a stack trace from the file PATTERN (`-` for standard input) and
     /// show each frame found in the repository, with its enclosing definition.
-    #[arg(long = "stack-trace", global = true)]
+    #[arg(long = "stack-trace")]
     stack_trace: bool,
 
     /// Group the log lines PATTERN matches into templates (variable parts as
     /// `<*>`), most frequent first, with first and last timestamps.
-    #[arg(long = "log-templates", global = true)]
+    #[arg(long = "log-templates")]
     log_templates: bool,
 
     /// With --log-templates: only templates first seen since WHEN.
-    #[arg(long = "new-since", value_name = "WHEN", global = true)]
+    #[arg(long = "new-since", value_name = "WHEN")]
     new_since: Option<String>,
 
     /// With --log-templates: show the code that writes each message.
-    #[arg(long = "template-to-code", global = true)]
+    #[arg(long = "template-to-code")]
     template_to_code: bool,
 
     /// Rank incident write-ups (files under postmortem, incident, rca, retro or
     /// outage paths) by similarity to PATTERN: text, or a file with the
     /// description (`-` for standard input).
-    #[arg(long = "similar-incidents", global = true)]
+    #[arg(long = "similar-incidents")]
     similar_incidents: bool,
 
     /// List the tests most related to the file PATTERN: named after it, using
     /// its definitions (with `ogrep index --graph`), or changed with it.
-    #[arg(long = "related-tests", global = true)]
+    #[arg(long = "related-tests")]
     related_tests: bool,
 
     /// Find code similar to the definition at PATTERN (`path:line`), ranked by
     /// token-shingle overlap: copies, near-duplicates and variants.
-    #[arg(long = "similar", global = true)]
+    #[arg(long = "similar")]
     similar: bool,
 
     /// Files changed both here (committed since the fork, or uncommitted) and
     /// on other local branches, and whether the changed lines overlap.
-    #[arg(long = "conflicts", global = true)]
+    #[arg(long = "conflicts")]
     conflicts: bool,
 
     /// Code names quoted in documentation (`like_this`) that no longer appear
     /// in any code file. PATTERN filters names (`.` for all).
-    #[arg(long = "doc-drift", global = true)]
+    #[arg(long = "doc-drift")]
     doc_drift: bool,
 
     /// Search the lines commits added or removed instead of the current files,
     /// newest commit first (needs `ogrep index --history`). Like
     /// `git log -G PATTERN`, but answered from an index.
-    #[arg(long = "history", global = true)]
+    #[arg(long = "history")]
     history: bool,
 
     /// Report when PATTERN first appeared in a commit, when it was last
     /// removed, and whether it is present now (needs `ogrep index --history`).
-    #[arg(long = "introduced", global = true)]
+    #[arg(long = "introduced")]
     introduced: bool,
 
     /// With --history/--introduced: only commits since WHEN (a date, `2 weeks
     /// ago`, or 2h, 3d, 2w, 6mo, 1y).
-    #[arg(long = "since", value_name = "WHEN", global = true)]
+    #[arg(long = "since", value_name = "WHEN")]
     since: Option<String>,
 
     /// With --history/--introduced: only commits until WHEN.
-    #[arg(long = "until", value_name = "WHEN", global = true)]
+    #[arg(long = "until", value_name = "WHEN")]
     until: Option<String>,
 
     /// With --history/--introduced: only commits whose author (`Name <email>`)
     /// matches this regex, case-insensitively.
-    #[arg(long = "author", value_name = "PATTERN", global = true)]
+    #[arg(long = "author", value_name = "PATTERN")]
     author: Option<String>,
 
     /// Search only files changed since REV or WHEN (a date, `2 weeks ago`, or
     /// 2h, 3d, 2w, 6mo, 1y), including uncommitted and untracked files.
-    #[arg(long = "changed-since", value_name = "REV|WHEN", global = true)]
+    #[arg(long = "changed-since", value_name = "REV|WHEN")]
     changed_since: Option<String>,
 
     /// Search the files as they were at git revision REV (a commit, tag or
     /// branch) instead of the working tree. Reads git's object store; needs no
     /// index.
-    #[arg(long = "at", value_name = "REV", global = true)]
+    #[arg(long = "at", value_name = "REV")]
     at: Option<String>,
 
     /// Skip files that contain any line matching PATTERN (repeatable).
