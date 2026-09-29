@@ -3,6 +3,7 @@
 //! graph around a file.
 
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::sync::Arc;
 
 use anyhow::{Result, anyhow};
 use ogrep_core::graph::Def;
@@ -11,9 +12,11 @@ use serde_json::{Value, json};
 
 use crate::workspace::{GraphView, Workspace};
 
-fn require_graph(ws: &Workspace) -> Result<std::sync::Arc<GraphView>> {
-    ws.graph()
-        .ok_or_else(|| anyhow!("no file graph; build it with `ogrep index --graph`"))
+fn require_graph(ws: &Workspace) -> Result<Arc<GraphView>> {
+    ws.graph().ok_or_else(|| match ws.graph_error() {
+        Some(e) => anyhow!(e),
+        None => anyhow!("no file graph; build it with `ogrep index --graph`"),
+    })
 }
 
 /// Files larger than this are shown truncated.

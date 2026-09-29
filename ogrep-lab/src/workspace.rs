@@ -105,6 +105,10 @@ impl<T> Cached<T> {
         value.map_err(|e| anyhow!(e))
     }
 
+    fn forget(&self) {
+        *self.slot.lock().unwrap_or_else(|e| e.into_inner()) = None;
+    }
+
     /// Why the last load failed, if it did.
     fn error(&self) -> Option<String> {
         let slot = self.slot.lock().unwrap_or_else(|e| e.into_inner());
@@ -174,6 +178,7 @@ impl Workspace {
     pub fn graph(&self) -> Option<Arc<GraphView>> {
         let marker = self.index_dir.join("graph").join("graph.bin");
         if !marker.is_file() {
+            self.graph.forget();
             return None;
         }
         self.graph
@@ -189,6 +194,7 @@ impl Workspace {
     pub fn history(&self) -> Option<Arc<HistoryIndex>> {
         let marker = self.index_dir.join("history").join("history.json");
         if !marker.is_file() {
+            self.history.forget();
             return None;
         }
         self.history
@@ -198,10 +204,16 @@ impl Workspace {
             .ok()
     }
 
+    /// Why the graph exists on disk but could not be read, if so.
+    pub fn graph_error(&self) -> Option<String> {
+        self.graph().is_none().then(|| self.graph.error()).flatten()
+    }
+
     /// Parts of the index that exist but could not be read, such as a graph
     /// written by a newer ogrep. Without this they would look unbuilt.
     pub fn load_errors(&self) -> Vec<String> {
-        [self.graph.error(), self.history.error()]
+        let history = self.history().is_none().then(|| self.history.error());
+        [self.graph_error(), history.flatten()]
             .into_iter()
             .flatten()
             .collect()

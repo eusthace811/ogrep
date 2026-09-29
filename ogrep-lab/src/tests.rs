@@ -110,6 +110,15 @@ fn an_unreadable_graph_is_reported_not_hidden() {
     let errors = o["load_errors"].as_array().unwrap();
     assert_eq!(errors.len(), 1, "{errors:?}");
     assert!(errors[0].as_str().unwrap().contains("graph"));
+    let e = crate::files::central(&ws, 5).unwrap_err().to_string();
+    assert!(e.contains("cannot read the graph"), "{e}");
+
+    // Once the broken file is gone, the graph is simply not built.
+    std::fs::remove_file(f.index.join("graph/graph.bin")).unwrap();
+    let o = crate::overview::overview(&ws).unwrap();
+    assert_eq!(o["load_errors"], serde_json::json!([]));
+    let e = crate::files::central(&ws, 5).unwrap_err().to_string();
+    assert!(e.contains("build it"), "{e}");
 }
 
 #[test]
