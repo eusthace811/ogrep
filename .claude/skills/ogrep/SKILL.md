@@ -133,6 +133,25 @@ ogrep -n --explain-rank --budget 5 -F bulk_update .   # with each file's score
 Ranking only reorders and trims real matches, and its order is deterministic.
 Drop `--rank` when you need every occurrence.
 
+### Structure-aware filters
+
+```bash
+ogrep -n --scope -F bulk_update .        # each hit under its enclosing function/class
+ogrep -n --kind def -F bulk_update .     # the definition itself
+ogrep -n --kind ref -F bulk_update .     # the uses
+ogrep -n --in comments TODO .            # comments only (or: code, strings)
+```
+
+### Maps and call relationships
+
+```bash
+ogrep index . --graph                    # once (seconds); rerun after large changes
+ogrep --map=1500 -F bulk_update .        # compact outline of the code around a name
+ogrep --near -F bulk_update .            # related files, with the names linking them
+ogrep --callers -w -F bulk_update .      # functions/methods that use it
+ogrep --callees bulk_update .            # what its definition uses, and where that lives
+```
+
 ### What changed, and when: history
 
 ```bash

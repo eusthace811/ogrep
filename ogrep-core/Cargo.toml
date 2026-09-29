@@ -20,6 +20,38 @@ rayon = "1"
 ignore = "0.4"
 globset = "0.4.18"
 encoding_rs = "0.8"
+fs2 = "0.4.3"
+# Source structure (--scope, --kind, --in, ranking): parsers for the languages
+# below, compiled in. Build with `--no-default-features` to leave them out.
+tree-sitter = { version = "0.26", optional = true }
+tree-sitter-rust = { version = "0.24", optional = true }
+tree-sitter-python = { version = "0.25", optional = true }
+tree-sitter-go = { version = "0.25", optional = true }
+tree-sitter-javascript = { version = "0.25", optional = true }
+tree-sitter-typescript = { version = "0.23", optional = true }
+tree-sitter-java = { version = "0.23", optional = true }
+tree-sitter-c = { version = "0.24", optional = true }
+tree-sitter-cpp = { version = "0.23", optional = true }
+tree-sitter-c-sharp = { version = "0.23", optional = true }
+tree-sitter-ruby = { version = "0.23", optional = true }
+tree-sitter-php = { version = "0.24", optional = true }
+
+[features]
+default = ["structure"]
+structure = [
+    "dep:tree-sitter",
+    "dep:tree-sitter-rust",
+    "dep:tree-sitter-python",
+    "dep:tree-sitter-go",
+    "dep:tree-sitter-javascript",
+    "dep:tree-sitter-typescript",
+    "dep:tree-sitter-java",
+    "dep:tree-sitter-c",
+    "dep:tree-sitter-cpp",
+    "dep:tree-sitter-c-sharp",
+    "dep:tree-sitter-ruby",
+    "dep:tree-sitter-php",
+]
 
 [dev-dependencies]
 criterion = "0.5"

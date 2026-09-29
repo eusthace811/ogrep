@@ -8,11 +8,13 @@
 mod admission;
 mod cpu;
 mod glob_filter;
+mod graph_search;
 mod history_search;
 mod index;
 mod matching;
 mod mem;
 mod output;
+mod post;
 mod profile;
 mod rank;
 mod refresh;
@@ -127,6 +129,46 @@ struct Cli {
     /// line starting with `#`. Implies --rank.
     #[arg(long = "explain-rank", global = true)]
     explain_rank: bool,
+
+    /// Show the definition (function, method, class, ...) enclosing each match,
+    /// as `path=line=text` before its matches, like `git grep -p`. Uses the
+    /// built-in parsers (Rust, Python, Go, JavaScript, TypeScript, Java, C,
+    /// C++, C#, Ruby, PHP).
+    #[arg(long = "scope", global = true)]
+    scope: bool,
+
+    /// Keep only matches that define the matched name (`def`) or only the
+    /// others (`ref`). Parsed languages use their grammar; others fall back to
+    /// a keyword check (`fn name`, `def name`, `class Name`, ...).
+    #[arg(long = "kind", value_name = "def|ref", global = true, value_parser = ["def", "ref"])]
+    kind: Option<String>,
+
+    /// Keep only matches in code, comments or string literals (parsed
+    /// languages; other files count as code).
+    #[arg(long = "in", value_name = "code|comments|strings", global = true, value_parser = ["code", "comments", "strings"])]
+    in_zone: Option<String>,
+
+    /// List the files most related to the files PATTERN matches (they use or
+    /// are used by them), best first, with the names that link them. Needs
+    /// `ogrep index --graph`. `--budget` sets how many (default 20).
+    #[arg(long = "near", global = true)]
+    near: bool,
+
+    /// Print an outline (definition lines) of the files most related to what
+    /// PATTERN matches, within about TOKENS tokens (default 1024). Needs
+    /// `ogrep index --graph`.
+    #[arg(long = "map", value_name = "TOKENS", global = true, num_args = 0..=1, default_missing_value = "1024")]
+    map: Option<usize>,
+
+    /// List the definitions (functions, methods, ...) that use PATTERN, once
+    /// each, with the number of uses.
+    #[arg(long = "callers", global = true)]
+    callers: bool,
+
+    /// For each definition named PATTERN, list the names it uses that are
+    /// defined in the repository, and where. Needs `ogrep index --graph`.
+    #[arg(long = "callees", global = true)]
+    callees: bool,
 
     /// Search the lines commits added or removed instead of the current files,
     /// newest commit first (needs `ogrep index --history`). Like
@@ -723,6 +765,11 @@ enum Command {
         /// `git log --since` takes, or 2h, 3d, 2w, 6mo, 1y).
         #[arg(long = "history-since", value_name = "WHEN", requires = "history")]
         history_since: Option<String>,
+
+        /// Also build the file graph (which files use names others define) for
+        /// `--near`, `--map` and `--callees`.
+        #[arg(long = "graph")]
+        graph: bool,
     },
 
     /// Start the persistent search server.
@@ -956,6 +1003,27 @@ impl Cli {
         paths.extend(positional.cloned());
         paths.extend(rest.iter().cloned());
         (String::new(), paths)
+    }
+
+    /// Everything that reshapes a search's output after it runs.
+    fn post_options(&self) -> post::PostOptions {
+        post::PostOptions {
+            rank: self.rank_options(),
+            scope: self.scope,
+            kind: match self.kind.as_deref() {
+                Some("def") => Some(post::KindFilter::Def),
+                Some("ref") => Some(post::KindFilter::Ref),
+                _ => None,
+            },
+            zone: match self.in_zone.as_deref() {
+                Some("code") => Some(post::ZoneFilter::Code),
+                Some("comments") => Some(post::ZoneFilter::Comments),
+                Some("strings") => Some(post::ZoneFilter::Strings),
+                _ => None,
+            },
+            callers: self.callers,
+        }
+        .with_callers()
     }
 
     /// The `--rank` settings, when ranking was asked for (directly or through a
@@ -1283,7 +1351,10 @@ fn run_cli() {
         let conflicts = [
             (cli.history && cli.introduced, "--introduced (pick one)"),
             (cli.changed_since.is_some(), "--changed-since"),
-            (cli.rank_options().is_some(), "--rank"),
+            (
+                cli.post_options().active(),
+                "--rank, --scope, --kind or --in",
+            ),
             (cli.files_without_match, "--files-without-match"),
             (cli.list_files, "--files"),
             (cli.passthru, "--passthru"),
@@ -1307,9 +1378,10 @@ fn run_cli() {
         }
     }
 
-    // Ranking orders the files that matched; these flags ask for something
-    // other than matching files, or for an order of their own.
-    if cli.rank_options().is_some() {
+    // Ranking and structure filters work on the files that matched; these
+    // flags ask for something other than matching files, or for an order of
+    // their own.
+    if cli.post_options().active() {
         let conflicts = [
             (cli.files_without_match, "--files-without-match"),
             (cli.list_files, "--files"),
@@ -1322,7 +1394,7 @@ fn run_cli() {
             ),
         ];
         if let Some((_, flag)) = conflicts.iter().find(|(set, _)| *set) {
-            eprintln!("ogrep: --rank cannot be combined with {flag}");
+            eprintln!("ogrep: --rank, --scope, --kind and --in cannot be combined with {flag}");
             process::exit(2);
         }
     }
@@ -1366,6 +1438,7 @@ fn run_cli() {
             history,
             history_depth,
             history_since,
+            graph,
         }) => {
             let history_opts = history.then(|| ogrep_core::history::HistoryOptions {
                 depth: match history_depth {
@@ -1392,6 +1465,13 @@ fn run_cli() {
             .and_then(|()| match history_opts {
                 Some(opts) => index::run_history(&path, cli.index_path.as_deref(), &opts, force),
                 None => Ok(()),
+            })
+            .and_then(|()| {
+                if graph {
+                    index::run_graph(&path, cli.index_path.as_deref())
+                } else {
+                    Ok(())
+                }
             })
         }
         Some(Command::Serve {
@@ -1645,8 +1725,32 @@ fn run_search(
     if cli.history || cli.introduced {
         run_history_search(cli, &opts, ci, &targets);
     }
-    if let Some(rank_opts) = cli.rank_options() {
-        run_ranked_search(cli, &opts, ci, targets, &rank_opts);
+    if cli.near || cli.map.is_some() || cli.callees {
+        let [target] = targets.as_slice() else {
+            eprintln!("ogrep: --near, --map and --callees search one path at a time");
+            process::exit(2);
+        };
+        let mode = if cli.callees {
+            graph_search::Mode::Callees
+        } else if let Some(tokens) = cli.map {
+            graph_search::Mode::Map { tokens }
+        } else {
+            graph_search::Mode::Near {
+                budget: cli.budget.map_or(20, |b| b as usize),
+            }
+        };
+        match graph_search::run(&target.path, cli.index_path.as_deref(), &opts, ci, mode) {
+            Ok(true) => process::exit(0),
+            Ok(false) => process::exit(1),
+            Err(e) => {
+                eprintln!("ogrep: {e}");
+                process::exit(2);
+            }
+        }
+    }
+    let post_opts = cli.post_options();
+    if post_opts.active() {
+        run_postprocessed_search(cli, &opts, ci, targets, &post_opts);
     }
 
     // One writer for the whole invocation: ripgrep emits a single JSON
@@ -1772,17 +1876,17 @@ fn run_history_search(
     }
 }
 
-/// `--rank`: run the ordinary search into a capturing writer, then rank and
-/// print. Never returns.
-fn run_ranked_search(
+/// `--rank`, `--scope`, `--kind`, `--in`: run the ordinary search into a
+/// capturing writer, then reshape and print (see `post`). Never returns.
+fn run_postprocessed_search(
     cli: &Cli,
     opts: &search::SearchOptions,
     ci: bool,
     targets: Vec<SearchTarget>,
-    rank_opts: &rank::RankOptions,
+    post_opts: &post::PostOptions,
 ) -> ! {
     // The search must produce matching lines whatever the output format, so
-    // file lists and counts are derived after ranking instead of during it.
+    // file lists and counts are derived afterwards instead of during it.
     let mut inner = opts.clone();
     inner.files_only = false;
     inner.count = false;
@@ -1792,7 +1896,7 @@ fn run_ranked_search(
     inner.quiet = false;
     inner.sort = None;
     let mut capture = search::new_capturing_writer(&inner);
-    let mut captures = Vec::new();
+    let mut captured = Vec::new();
     for target in targets {
         if !target.path.exists() {
             report_missing_path(&target.path, opts.no_messages);
@@ -1822,20 +1926,27 @@ fn run_ranked_search(
             }
             process::exit(2);
         }
-        captures.push((display, capture.take_captured()));
+        // The fact cache lives beside an existing index; none is created.
+        let index_dir = cli
+            .index_path
+            .clone()
+            .or_else(|| {
+                std::fs::canonicalize(&target.path)
+                    .ok()
+                    .filter(|p| p.is_dir())
+                    .map(|p| builder::default_index_dir(&p))
+            })
+            .filter(|dir| dir.join("meta.json").is_file());
+        captured.push(post::Captured {
+            display,
+            root: target.path.clone(),
+            index_dir,
+            events: capture.take_captured(),
+        });
     }
     let mut writer = search::new_writer(opts);
     writer.absorb_search_totals(&capture);
-    let context = opts.after_ctx().max(opts.before_ctx());
-    let printed = match rank::emit(
-        captures,
-        &opts.all_patterns(),
-        opts.fixed_string,
-        ci,
-        rank_opts,
-        context,
-        &mut writer,
-    ) {
+    let printed = match post::emit(captured, opts, ci, post_opts, &mut writer) {
         Ok(printed) => printed,
         Err(e) => {
             eprintln!("ogrep: {e}");

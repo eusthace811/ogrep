@@ -307,6 +307,10 @@ impl PersistedVersion {
 pub struct ContentId([u8; 16]);
 
 impl ContentId {
+    pub fn as_bytes(&self) -> &[u8; 16] {
+        &self.0
+    }
+
     pub fn from_indexed_bytes(bytes: &[u8]) -> Self {
         let mut hasher = blake3::Hasher::new();
         hasher.update(CONTENT_ID_DOMAIN);

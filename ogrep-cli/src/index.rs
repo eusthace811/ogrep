@@ -148,3 +148,21 @@ pub fn run_history(
     );
     Ok(())
 }
+
+/// Build the file graph next to the index (`index --graph`).
+pub fn run_graph(root: &Path, index_path: Option<&Path>) -> Result<()> {
+    let root = std::fs::canonicalize(root)?;
+    let index_dir = index_path
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| builder::default_index_dir(&root));
+    let started = Instant::now();
+    let graph = ogrep_core::graph::build(&root, &index_dir)?;
+    eprintln!(
+        "Graph: {} files, {} links, {} definitions in {:.1}s",
+        graph.files.len(),
+        graph.edges(),
+        graph.defs.len(),
+        started.elapsed().as_secs_f64()
+    );
+    Ok(())
+}

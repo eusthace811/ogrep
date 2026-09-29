@@ -321,6 +321,48 @@ impl OutputWriter {
         Ok(())
     }
 
+    /// Print the definition enclosing the next matches (`--scope`), the way
+    /// `git grep --show-function` does: `path=line=text`, or `line=text` under a
+    /// heading. JSON output carries the whole chain of enclosing definitions.
+    pub fn write_scope(
+        &mut self,
+        file: &str,
+        line: usize,
+        text: &str,
+        chain: &serde_json::Value,
+    ) -> io::Result<()> {
+        if !self.admits(file) {
+            return Ok(());
+        }
+        match self.config.format {
+            OutputFormat::Json => {
+                self.ensure_json_begin(file)?;
+                let msg = serde_json::json!({
+                    "type": "scope",
+                    "data": {
+                        "path": { "text": self.display_path(file) },
+                        "line_number": line,
+                        "lines": { "text": text },
+                        "chain": chain,
+                    },
+                });
+                writeln!(self.stdout, "{msg}")
+            }
+            OutputFormat::Heading | OutputFormat::Flat => {
+                if !self.config.no_filename {
+                    self.ensure_heading(file)?;
+                }
+                let text = text.trim_end_matches(['\r', '\n']);
+                if self.use_heading || self.config.no_filename {
+                    writeln!(self.stdout, "{line}={text}")
+                } else {
+                    writeln!(self.stdout, "{}={line}={text}", self.display_path(file))
+                }
+            }
+            _ => Ok(()),
+        }
+    }
+
     /// Announce a ranked file before its results (`--rank`).
     ///
     /// JSON output always carries a `rank` message, which ripgrep consumers

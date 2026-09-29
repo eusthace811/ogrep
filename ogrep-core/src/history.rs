@@ -976,7 +976,10 @@ mod tests {
             assert!(c.paths.len() <= CHUNK_MAX_FILES + 1);
             assert_eq!(parse_doc_name(&c.name), Some((5, "abc")));
         }
-        let renamed = chunks.iter().find(|c| c.paths.contains(&"dir/file7.rs".to_string())).unwrap();
+        let renamed = chunks
+            .iter()
+            .find(|c| c.paths.contains(&"dir/file7.rs".to_string()))
+            .unwrap();
         assert!(renamed.paths.contains(&"dir/old7.rs".to_string()));
         // Small commits stay whole.
         let small = CommitDoc {

@@ -43,6 +43,9 @@ use crate::output::{Captured, ContextLine, Match, OutputWriter, PathDisplay};
 /// - A definition line counts ten ordinary matching lines.
 /// - A name in the file's path adds five.
 /// - Tests count 0.3 of other code, vendored or generated code 0.3, prose 0.8.
+/// - File-graph centrality (PageRank) is not used: as a multiplier
+///   `1 + λ·centrality` it lowered MRR at every λ tried (0.5 to 8), because the
+///   file a change is about is rarely the most central one.
 const K1: f64 = 1.0;
 const W_DEF: f64 = 10.0;
 const W_BODY: f64 = 1.0;
@@ -85,11 +88,15 @@ impl Default for RankOptions {
 
 /// Everything one file contributed to the capture.
 #[derive(Default)]
-struct FileHits {
-    display: PathDisplay,
-    matches: Vec<Match>,
-    contexts: Vec<ContextLine>,
-    binary: Option<usize>,
+pub(crate) struct FileHits {
+    pub(crate) display: PathDisplay,
+    pub(crate) matches: Vec<Match>,
+    pub(crate) contexts: Vec<ContextLine>,
+    pub(crate) binary: Option<usize>,
+    /// Per match, whether it defines the matched name, from the file's parsed
+    /// structure. `None` where the language is not parsed; the keyword
+    /// heuristic [`is_definition`] decides instead.
+    pub(crate) defs: Option<Vec<bool>>,
 }
 
 /// Per-file scoring inputs, reported by `--explain-rank`.
@@ -109,7 +116,7 @@ pub struct Ranked {
 }
 
 /// Group captured results by file, in capture order.
-fn group(captures: Vec<(PathDisplay, Vec<Captured>)>) -> Vec<(String, FileHits)> {
+pub(crate) fn group(captures: Vec<(PathDisplay, Vec<Captured>)>) -> Vec<(String, FileHits)> {
     let mut order: Vec<String> = Vec::new();
     let mut files: HashMap<String, FileHits> = HashMap::new();
     for (display, events) in captures {
@@ -313,7 +320,8 @@ fn score_files(files: &[(String, FileHits)], patterns: &PatternSet) -> Vec<Ranke
         .map(|(_, hits)| {
             let mut lines = vec![(0usize, 0usize); n];
             let mut texts = Vec::new();
-            for m in &hits.matches {
+            for (i, m) in hits.matches.iter().enumerate() {
+                let parsed_def = hits.defs.as_ref().and_then(|d| d.get(i).copied());
                 let mut seen = vec![false; n];
                 let mut def = vec![false; n];
                 for &(s, e) in &m.spans {
@@ -322,7 +330,7 @@ fn score_files(files: &[(String, FileHits)], patterns: &PatternSet) -> Vec<Ranke
                     };
                     let p = patterns.of(text);
                     seen[p] = true;
-                    def[p] |= is_definition(&m.content, s);
+                    def[p] |= parsed_def.unwrap_or_else(|| is_definition(&m.content, s));
                     if text.len() >= 3 {
                         texts.push(text.to_ascii_lowercase());
                     }
@@ -423,17 +431,24 @@ fn keep_count(ranked: &[Ranked], opts: &RankOptions) -> usize {
 
 /// Pick the lines to show for one file: definitions first, then the earliest,
 /// skipping lines that differ from a kept one only in whitespace or digits.
-fn select_lines(matches: &[Match], per_file: usize) -> Vec<&Match> {
+fn select_lines<'a>(
+    matches: &'a [Match],
+    defs: Option<&[bool]>,
+    per_file: usize,
+) -> Vec<&'a Match> {
     let norm = |s: &str| -> String {
         s.chars()
             .filter(|c| !c.is_whitespace() && !c.is_ascii_digit())
             .collect()
     };
-    let mut order: Vec<&Match> = matches.iter().collect();
-    order.sort_by_key(|m| {
-        let def = m.spans.iter().any(|&(s, _)| is_definition(&m.content, s));
+    let mut order: Vec<(usize, &Match)> = matches.iter().enumerate().collect();
+    order.sort_by_key(|&(i, m)| {
+        let def = defs
+            .and_then(|d| d.get(i).copied())
+            .unwrap_or_else(|| m.spans.iter().any(|&(s, _)| is_definition(&m.content, s)));
         (!def, m.line_number)
     });
+    let order: Vec<&Match> = order.into_iter().map(|(_, m)| m).collect();
     let mut seen = std::collections::HashSet::new();
     let mut picked: Vec<&Match> = Vec::new();
     for m in order {
@@ -452,7 +467,7 @@ fn select_lines(matches: &[Match], per_file: usize) -> Vec<&Match> {
 ///
 /// Returns whether anything was printed.
 pub fn emit(
-    captures: Vec<(PathDisplay, Vec<Captured>)>,
+    files: Vec<(String, FileHits)>,
     patterns: &[String],
     fixed: bool,
     ci: bool,
@@ -460,7 +475,6 @@ pub fn emit(
     context_reach: usize,
     writer: &mut OutputWriter,
 ) -> Result<bool> {
-    let files = group(captures);
     if files.is_empty() {
         return Ok(false);
     }
@@ -486,7 +500,7 @@ pub fn emit(
             writer.write_count(&r.path, hits.matches.len())?;
             continue;
         }
-        let shown = select_lines(&hits.matches, opts.per_file);
+        let shown = select_lines(&hits.matches, hits.defs.as_deref(), opts.per_file);
         let shown_lines: std::collections::HashSet<usize> =
             shown.iter().map(|m| m.line_number).collect();
         // Context lines are kept only around the shown matches.

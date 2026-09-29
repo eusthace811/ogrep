@@ -15,6 +15,9 @@ path = "src/main.rs"
 [features]
 # Diagnostic builds only: phase timings without changing matching semantics.
 profile-search = []
+# Source structure for --scope, --kind, --in and ranking (tree-sitter grammars).
+default = ["structure"]
+structure = ["ogrep-core/structure"]
 
 [dependencies]
 ogrep-core = { workspace = true }

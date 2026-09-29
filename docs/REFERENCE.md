@@ -49,6 +49,7 @@ ogrep index . --index-path /tmp/idx   # custom index location
 ogrep index . --exclude vendor --exclude third_party  # skip directories
 ogrep index . --no-sparse-grams       # trigrams only: smaller index
 ogrep index . --history               # also index commit history (see --history)
+ogrep index . --graph                 # also build the file graph (see --near, --map)
 ```
 
 Besides trigrams, the index holds sparse n-grams: longer keys that let a long
@@ -429,6 +430,81 @@ index instead of walking the repository. The local result is an index snapshot;
 use `--no-index` to inspect the filesystem as it exists now. Flags that change
 traversal membership or the file-size policy also fall back to a walk.
 
+### Structure: scopes, definitions, comments
+
+```bash
+ogrep -n --scope bulk_update .            # each match under its enclosing definition
+ogrep -n --kind def bulk_update .         # where the name is defined
+ogrep -n --kind ref bulk_update .         # every other use
+ogrep -n --in comments TODO .             # only in comments (also: code, strings)
+ogrep -n --scope --kind def -t rust Mutex # combine freely, with --rank too
+```
+
+ogrep parses the files that matched with built-in tree-sitter grammars for
+Rust, Python, Go, JavaScript, TypeScript/TSX, Java, C, C++, C#, Ruby and PHP.
+
+- **`--scope`** prints the definition enclosing each group of matches before
+  them, the way `git grep --show-function` does: `path=line=text`, or
+  `line=text` under a heading. JSON output adds a
+  `{"type":"scope","data":{"path","line_number","lines","chain"}}` message
+  whose `chain` lists every enclosing definition (kind, name, first and last
+  line), outermost first.
+- **`--kind def`** keeps matches that cover the whole name at a definition
+  (`bulk_update` in `def bulk_update`, not in `def test_bulk_update`);
+  **`--kind ref`** keeps the rest. Other languages fall back to a keyword check
+  (`fn`, `def`, `class`, ... before the match).
+- **`--in code|comments|strings`** keeps matches whose first byte is in that
+  kind of text. In languages without a grammar every match counts as code.
+
+Parsed structure is cached beside the index under `facts/`, keyed by a hash of
+each file's content, so an edited file is simply parsed again and a cache entry
+can never be stale. On the rust targeted queries the median `--scope` search
+took 4.3 ms warm against 4.0 ms for a plain search (10.9 ms before the cache
+held the files). Build with `--no-default-features` to leave the grammars out:
+the binary is then about 9.5 MB instead of 28 MB, and these flags treat every
+file as unparsed.
+
+### Related files, maps, callers and callees
+
+```bash
+ogrep index . --graph                     # build the file graph (seconds)
+ogrep --near -F 'class FilteredRelation' .   # files most related to what matched
+ogrep --map=1500 -F bulk_update .         # outline of the related code, ~1500 tokens
+ogrep --callers -w -F bulk_update .       # definitions that use bulk_update
+ogrep --callees bulk_update .             # what bulk_update's definitions use
+```
+
+`ogrep index --graph` records which files use names that other files define.
+Definitions come from the parsed structure; uses are the identifiers each file
+mentions outside comments and strings. A name defined in more than 16 files, or
+a protocol name like `__init__`, is too generic to link files; each link is
+weighted by how rare its name is. On the rust compiler (63K files) the graph
+has 2.1M links and 304K definitions and takes 1.7 s to build (0.6 s once the
+structure cache is warm). It is stored under `graph/`; a search against a newer
+index still uses it and says so.
+
+- **`--near PATTERN`** lists the files most related to the files PATTERN
+  matches: the weight of links to and from them, divided by the log of each
+  file's total link weight so hubs do not win by volume, with the names that
+  link them (`--budget` files, default 20). Measured on files changed in the
+  same commit, this scoring found 26% of a file's co-changed files in its top
+  10, against 16% for personalized PageRank.
+- **`--map[=TOKENS]`** prints an outline, definition lines only, of the matched
+  files and then the files related to them, within about TOKENS tokens (default
+  1024): a repository map for an agent's context. Definitions around the
+  matches, and names the matched files mention, come first.
+- **`--callers`** lists each definition that uses PATTERN once, with its number
+  of uses (parsed languages).
+- **`--callees NAME`** lists, for each definition named NAME, the names it calls
+  or uses as types that are defined in the repository, preferring definitions
+  in the same file or in files it links to, and skipping names too ambiguous to
+  resolve.
+
+On the rust compiler `--near` and `--map` take about 120 ms and `--callees`
+about 160 ms, mostly loading the graph; `--callers` takes about 10 ms. The graph
+is not used for `--rank`: adding file centrality lowered ranking accuracy at
+every weight tried.
+
 ### Search history and past versions
 
 ```bash
@@ -560,6 +636,13 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `--per-file <LINES>` | With `--rank`: at most this many lines per file (default 3) |
 | `--rank-cutoff <auto\|none>` | With `--rank`: also stop where scores fall away (`auto`) |
 | `--explain-rank` | With `--rank`: print each file's score and features |
+| `--scope` | Show the definition enclosing each match (`path=line=text`); see [Structure](#structure-scopes-definitions-comments) |
+| `--kind <def\|ref>` | Keep matches that define the matched name, or the others |
+| `--in <code\|comments\|strings>` | Keep matches in code, comments or string literals |
+| `--near` | Files most related to what PATTERN matches (needs `ogrep index --graph`) |
+| `--map[=TOKENS]` | Outline of related code within a token budget (needs the graph) |
+| `--callers` | Definitions that use PATTERN, once each, with use counts |
+| `--callees` | Names used by the definitions of PATTERN, and where they are defined (needs the graph) |
 | `--history` | Search the lines commits added or removed (needs `ogrep index --history`); see [Search history](#search-history-and-past-versions) |
 | `--introduced` | When a pattern first appeared, was last removed, and whether it is present now |
 | `--since <WHEN>` / `--until <WHEN>` | With `--history`/`--introduced`: commit time window (`2 weeks ago`, `2024-05-01`, `2h`, `3d`) |
@@ -954,5 +1037,8 @@ exit code determined by the search alone. Suppress the message with
 | `index.bin` | Concatenated posting lists: `file_id(u32)` per entry |
 | `files.bin` | Version 3 header, then `file_id(u32) + path_len(u16) + path_bytes`; legacy headerless tables remain readable |
 | `files-extra.bin` | Version 2 filename-only paths, visibility, and file-table identity |
+| `facts/structure-v1/` | Cache of parsed file structure: `index.bin` (sorted content id, offset, length) and `data.bin` (payloads) |
+| `graph/graph.bin` | File graph (`ogrep index --graph`): files, links, PageRank, definitions |
+| `history/` | History index (`ogrep index --history`): an index of commit diffs, `history.json` and `chunks.json` |
 | `meta.json` | Version, file/trigram counts, timestamps, coverage, visibility, file-table identity, and the sparse n-gram version and key count (`sparse_grams`, `sparse_gram_keys`; absent when the index has none) |
 | `serve.json` | Server PID and TCP port (for client discovery) |
