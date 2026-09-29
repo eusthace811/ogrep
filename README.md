@@ -49,7 +49,7 @@ You need a Rust toolchain (edition 2024, Rust 1.85 or newer).
 **Linux, macOS and WSL:**
 
 ```sh
-make install          # builds and installs ~/.cargo/bin/ogrep (put it on PATH)
+make install          # builds and installs ~/.cargo/bin/ogrep and ogrep-lab (put it on PATH)
 ```
 
 **Windows (Git Bash):**
@@ -147,6 +147,15 @@ ogrep --files .          # which files are searchable
 ogrep count-files .      # how many text files a repository has
 ```
 
+### Looking inside the index
+
+```sh
+ogrep-lab .              # a local page: the index, query plans, files, graph, history, evaluations
+```
+
+`ogrep-lab` is a separate binary that serves a page on 127.0.0.1 only; nothing
+is fetched from the network. See [ogrep-lab/README.md](ogrep-lab/README.md).
+
 ### What ogrep searches
 
 Like ripgrep, ogrep skips files listed in `.gitignore`, hidden files and binary
@@ -194,9 +203,9 @@ make check       # formatting and Clippy
 make benchmark   # scripts/benchmark.sh: ogrep against ripgrep on a real repository
 ```
 
-The code is two crates. `ogrep-core` holds the trigram index, on-disk format,
+The code is three crates. `ogrep-core` holds the trigram index, on-disk format,
 walker and query planner. `ogrep-cli` holds the command line, output, server and
-file watcher. See [CONTRIBUTING.md](CONTRIBUTING.md).
+file watcher. `ogrep-lab` is the local workbench, a separate binary. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Credits and license
 

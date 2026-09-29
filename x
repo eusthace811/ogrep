@@ -15,7 +15,7 @@
 #   ./x fetch              download every locked crate (first thing to run on
 #                          a corporate network: shows Artifactory serves them)
 #   ./x build | release    debug or release build of ogrep.exe
-#   ./x install [dir]      release build, then copy ogrep.exe to dir
+#   ./x install [dir]      release build, then copy ogrep.exe and ogrep-lab.exe to dir
 #                          (default ~/bin, which Git Bash has on PATH)
 #   ./x install-skill      copy the Claude Code skill (.claude/skills/ogrep)
 #                          into the Windows user's ~/.claude/skills
@@ -141,10 +141,10 @@ case "${1:-help}" in
   install) shift
            dest="${1:-$BIN_DEFAULT}"
            refuse_if_running
-           run_cargo build --release --locked -p ogrep-cli
+           run_cargo build --release --locked -p ogrep-cli -p ogrep-lab
            mkdir -p "$dest"
-           cp -f "$RELEASE_DIR/ogrep.exe" "$dest/"
-           echo "installed ogrep.exe to $dest"
+           cp -f "$RELEASE_DIR/ogrep.exe" "$RELEASE_DIR/ogrep-lab.exe" "$dest/"
+           echo "installed ogrep.exe and ogrep-lab.exe to $dest"
            "$dest/ogrep.exe" --version
            # Git Bash exports $HOME/bin:$PATH unconditionally (in
            # /etc/profile.d/env.sh), so the default needs only a cache clear.

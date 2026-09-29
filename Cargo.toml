@@ -1,5 +1,5 @@
 [workspace]
-members = ["ogrep-core", "ogrep-cli"]
+members = ["ogrep-core", "ogrep-cli", "ogrep-lab"]
 resolver = "2"
 
 [workspace.package]

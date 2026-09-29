@@ -9,6 +9,7 @@ release:
 install: release
 	mkdir -p ~/.cargo/bin
 	install -m 755 target/release/ogrep ~/.cargo/bin/ogrep
+	install -m 755 target/release/ogrep-lab ~/.cargo/bin/ogrep-lab
 
 # Claude Code skill: teaches Claude to search with ogrep in any project.
 install-skill:
