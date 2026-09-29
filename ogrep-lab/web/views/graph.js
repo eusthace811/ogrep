@@ -70,7 +70,13 @@ async function load() {
       h("span", null, h("b", null, n(data.nodes.length)), " files, ", h("b", null, n(data.edges.length)), " links"),
       data.current ? null : h("span", { class: "accent" }, "graph older than the index"));
   } catch (e) {
-    if (!aborted(e)) { clear(els.status); clear(els.detail, errorBox(e)); }
+    if (aborted(e)) return;
+    // Do not leave the previous graph up under an error, and say it where it
+    // shows at every width (the detail rail is hidden on narrow screens).
+    data = null;
+    fg.setData([], []);
+    clear(els.status, h("span", { class: "accent" }, e.message));
+    clear(els.detail, errorBox(e));
   }
 }
 

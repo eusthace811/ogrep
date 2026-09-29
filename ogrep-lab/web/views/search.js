@@ -26,6 +26,11 @@ function params() {
   return { q: st.q, fixed: st.fixed === "1", case: st.case, word: st.word === "1" };
 }
 
+/// A file link that marks this search's matches.
+function fileHref(path, line) {
+  return href("files", { path, line, q: st.q, fixed: st.fixed, case: st.case === "smart" ? "" : st.case, word: st.word });
+}
+
 function syncUrl() {
   const p = {};
   for (const [k, v] of Object.entries(st)) if (v !== DEFAULTS[k]) p[k] = v;
@@ -55,7 +60,7 @@ function scoreCell(rank, top, path) {
 
 function lineRow(path, item) {
   const text = item.text ?? "(binary or non-UTF-8 line)";
-  return h("a", { class: `line ${item.kind}`, href: href("files", { path, line: item.line, q: st.q }) },
+  return h("a", { class: `line ${item.kind}`, href: fileHref(path, item.line) },
     h("span", { class: "ln" }, item.line ?? ""),
     h("span", { class: "tx" }, item.kind === "match" ? marked(text, item.spans) : text));
 }
@@ -82,7 +87,7 @@ function renderMatches(data) {
     }
     return h("div", { class: "result" },
       h("div", { class: "result-head" },
-        h("span", { class: "path" }, h("a", { href: href("files", { path: f.path, q: st.q }) }, pathLabel(f.path))),
+        h("span", { class: "path" }, h("a", { href: fileHref(f.path) }, pathLabel(f.path))),
         rank ? rank.badge : null,
         h("span", { class: "count" }, `${matches} ${matches === 1 ? "line" : "lines"}`)),
       rank?.why,

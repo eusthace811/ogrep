@@ -7,7 +7,9 @@ import { highlight, languageOf } from "../code.js";
 const RENDER_CAP = 20000;
 
 let els = {};
-let current = { path: null, dir: "", line: null, q: "" };
+// `q`, `fixed`, `case` and `word` are the matching options of the search
+// that opened the file, for marking its matches.
+let current = { path: null, dir: "", line: null, q: "", fixed: "", case: "", word: "" };
 const expanded = new Set([""]);
 const listings = new Map();
 
@@ -91,9 +93,20 @@ function linkList(rows, emptyText) {
     r.via?.length ? h("div", { class: "via" }, r.via.join("  ")) : null)));
 }
 
-function queryRegex(q) {
+/// The URL for the current file at `line`, keeping the search options.
+function here(line) {
+  const { path, q, fixed, case: cs, word } = current;
+  return { path, line, q, fixed, case: cs, word };
+}
+
+/// The search's pattern as a JavaScript regex, to mark matches. The dialects
+/// agree on everyday patterns; where they do not, nothing is marked.
+function queryRegex({ q, fixed, case: cs, word }) {
   if (!q) return null;
-  try { return new RegExp(q, /[A-Z]/.test(q) ? "g" : "gi"); } catch { return null; }
+  let src = fixed ? q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") : q;
+  if (word) src = `(?<!\\w)(?:${src})(?!\\w)`;
+  const ci = cs === "insensitive" || (cs !== "sensitive" && !/[A-Z]/.test(q));
+  try { return new RegExp(src, ci ? "gi" : "g"); } catch { return null; }
 }
 
 /// A line's tokens, with query matches marked on top.
@@ -135,13 +148,13 @@ function renderCode(f) {
   if (lines.length && lines[lines.length - 1] === "") lines.pop();
   const shown = lines.slice(0, RENDER_CAP);
   const toks = highlight(shown, languageOf(f.path));
-  const re = queryRegex(current.q);
+  const re = queryRegex(current);
   const code = h("div", { class: "code", role: "table", "aria-label": f.path });
   const frag = document.createDocumentFragment();
   toks.forEach((t, i) => {
     const ln = i + 1;
     frag.appendChild(h("div", { class: "l", id: `L${ln}`, role: "row" },
-      h("span", { class: "n", onclick: () => { current.line = ln; replace("files", { path: f.path, line: ln, q: current.q }); mark(ln); } }, ln),
+      h("span", { class: "n", onclick: () => { current.line = ln; replace("files", here(ln)); mark(ln); } }, ln),
       h("span", { class: "t" }, lineNodes(t, re))));
   });
   code.appendChild(frag);
@@ -185,7 +198,7 @@ async function openFile(path) {
       outline.length
         ? h("div", { class: "outline" }, outline.map((d) => h("a", {
             href: href("files", { path, line: d.line }), style: { "--depth": d.depth }, title: d.signature,
-            onclick: (e) => { e.preventDefault(); replace("files", { path, line: d.line, q: current.q }); mark(d.line, d.end_line); },
+            onclick: (e) => { e.preventDefault(); replace("files", here(d.line)); mark(d.line, d.end_line); },
           }, h("span", { class: "kind" }, KIND[d.kind] || "·"), h("span", { class: "nm" }, d.name), h("span", { class: "ln" }, d.line))))
         : h("p", { class: "faint small" }, f.graph ? "No definitions parsed in this file." : "Needs the file graph: ogrep index --graph."),
       f.graph ? [
@@ -220,9 +233,9 @@ function mount(root) {
 }
 
 function route(p) {
-  if (!Object.keys(p).length && current.path) { replace("files", { path: current.path, line: current.line, q: current.q }); return; }
+  if (!Object.keys(p).length && current.path) { replace("files", here(current.line)); return; }
   const samePath = p.path && p.path === current.path;
-  current = { path: p.path || null, dir: p.dir || "", line: p.line || null, q: p.q || "" };
+  current = { path: p.path || null, dir: p.dir || "", line: p.line || null, q: p.q || "", fixed: p.fixed || "", case: p.case || "", word: p.word || "" };
   if (current.path) revealInTree(current.path);
   if (current.dir) {
     let acc = "";
