@@ -33,6 +33,15 @@ pub struct IndexMeta {
     /// Binds visibility to the exact path table across multi-file publication.
     #[serde(default)]
     pub file_table_id: Option<FileTableId>,
+    /// The [`crate::sparse::VERSION`] of the sparse grams every indexed file
+    /// carries, or `None` when some file may lack them (legacy index, or a merge
+    /// onto one). Older binaries drop this field when they rewrite the metadata,
+    /// which safely turns gram lookups off.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sparse_grams: Option<u32>,
+    /// Number of sparse-gram keys, which `num_trigrams` does not count.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sparse_gram_keys: Option<u64>,
 }
 
 fn default_complete() -> bool {
@@ -56,6 +65,8 @@ impl IndexMeta {
             hidden_complete: false,
             visibility: Default::default(),
             file_table_id: None,
+            sparse_grams: None,
+            sparse_gram_keys: None,
         }
     }
 

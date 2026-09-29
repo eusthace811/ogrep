@@ -7797,11 +7797,7 @@ fn background_index_build(state: &Arc<ServerState>, root: &Path, index_dir: &Pat
                     let content = if ogrep_core::trigram::is_binary(&data) {
                         None
                     } else {
-                        let mut trigrams = ogrep_core::trigram::extract(&data);
-                        let lower = data.to_ascii_lowercase();
-                        if lower != *data {
-                            trigrams.extend(ogrep_core::trigram::extract(&lower));
-                        }
+                        let trigrams = ogrep_core::trigram::extract_index_keys(&data);
                         let content_id = ogrep_core::meta::ContentId::from_indexed_bytes(&data);
                         Some((trigrams, content_id))
                     };
@@ -7820,7 +7816,7 @@ fn background_index_build(state: &Arc<ServerState>, root: &Path, index_dir: &Pat
             for (rel_path, content, version) in batch_results {
                 versions.insert(rel_path.clone(), version);
                 if let Some((trigrams, content_id)) = content {
-                    index.live.upsert_file_with_trigrams(&rel_path, trigrams);
+                    index.live.upsert_file_with_keys(&rel_path, trigrams);
                     content_ids.insert(rel_path, content_id);
                 }
             }
@@ -8093,10 +8089,10 @@ fn flush_append_only_overlay_locked(
     let flush_start = Instant::now();
 
     // Snapshot the overlay (bounded heap) and the current reader (cheap Arc).
-    let (overlay_paths, overlay_inverted, reader) = {
+    let (overlay_paths, overlay_inverted, reader, overlay_has_grams) = {
         let index = state.index.read().unwrap();
         let (paths, inverted) = index.live.snapshot_for_disk();
-        (paths, inverted, index.reader_arc())
+        (paths, inverted, index.reader_arc(), index.live.grams_complete())
     };
     if overlay_paths.is_empty() && !complete && evidence.is_none() {
         return false;
@@ -8116,6 +8112,7 @@ fn flush_append_only_overlay_locked(
         &overlay_paths,
         &overlay_inverted,
         complete,
+        overlay_has_grams,
     ) {
         eprintln!("[trace] warning: append-only flush write failed: {e}");
         index_cleanup::cleanup_staging(&staging_dir);

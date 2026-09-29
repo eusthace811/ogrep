@@ -149,6 +149,45 @@ pub(crate) fn flush_lookup_entries(
     Ok(())
 }
 
+/// Number of entries in a `lookup.bin` whose key is a trigram rather than a
+/// sparse gram. Gram keys sort after every trigram key, so this is a binary
+/// search over the file's fixed-size entries.
+pub(crate) fn count_trigram_keys(lookup_path: &std::path::Path) -> crate::Result<u64> {
+    use std::io::{Read, Seek, SeekFrom};
+    let mut file = std::fs::File::open(lookup_path)?;
+    let entries = file.metadata()?.len() / LOOKUP_ENTRY_SIZE as u64;
+    let mut key_at = |i: u64| -> crate::Result<u32> {
+        let mut buf = [0u8; 4];
+        file.seek(SeekFrom::Start(i * LOOKUP_ENTRY_SIZE as u64))?;
+        file.read_exact(&mut buf)?;
+        Ok(u32::from_le_bytes(buf))
+    };
+    let (mut lo, mut hi) = (0u64, entries);
+    while lo < hi {
+        let mid = lo + (hi - lo) / 2;
+        if crate::sparse::sorts_after_trigrams(key_at(mid)?) {
+            hi = mid;
+        } else {
+            lo = mid + 1;
+        }
+    }
+    Ok(lo)
+}
+
+/// The key of a `lookup.bin`'s last entry, if it has any.
+pub(crate) fn last_key(lookup_path: &std::path::Path) -> crate::Result<Option<u32>> {
+    use std::io::{Read, Seek, SeekFrom};
+    let mut file = std::fs::File::open(lookup_path)?;
+    let entries = file.metadata()?.len() / LOOKUP_ENTRY_SIZE as u64;
+    if entries == 0 {
+        return Ok(None);
+    }
+    let mut buf = [0u8; 4];
+    file.seek(SeekFrom::Start((entries - 1) * LOOKUP_ENTRY_SIZE as u64))?;
+    file.read_exact(&mut buf)?;
+    Ok(Some(u32::from_le_bytes(buf)))
+}
+
 /// Maximum supported path length (in bytes) for entries in `files.bin`.
 ///
 /// Limited by the `u16` length prefix in the on-disk format.

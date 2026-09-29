@@ -235,6 +235,47 @@ pub fn extract_merged_masks(content: &[u8]) -> TrigramMaskMap {
     per_tri
 }
 
+/// Every index key of a file with its masks: the case-merged trigrams of
+/// [`extract_merged_masks`] plus the sparse grams of the lowercased content
+/// (see [`crate::sparse`]). A gram's `loc_mask` marks its start offset modulo
+/// eight and its `next_mask` the lowercased byte after it, so the planner's
+/// position and next-byte checks work for grams exactly as for trigrams.
+pub fn extract_index_masks(content: &[u8]) -> TrigramMaskMap {
+    let mut per_key = extract_merged_masks(content);
+    let len = content.len();
+    // Roughly one gram per four bytes of source; reserving avoids rehashing
+    // the trigram entries while grams are added.
+    per_key.reserve(len / 4);
+    crate::sparse::for_each_gram(
+        len,
+        |i| content[i].to_ascii_lowercase(),
+        |start, end| {
+            let key = crate::sparse::key_folding(&content[start..end]);
+            let entry = per_key.entry(key).or_default();
+            entry.loc_mask |= loc_bit(start);
+            if end < len {
+                entry.next_mask |= next_bit(content[end].to_ascii_lowercase());
+            }
+        },
+    );
+    per_key
+}
+
+/// Every index key of a file, without masks: the unique trigrams of the content
+/// and of its lowercased form, plus its sparse grams. Used where postings carry
+/// the no-filter sentinel masks.
+pub fn extract_index_keys(content: &[u8]) -> Vec<TrigramHash> {
+    let mut keys = extract(content);
+    let lower = content.to_ascii_lowercase();
+    if lower != content {
+        keys.extend(extract(&lower));
+    }
+    keys.extend(crate::sparse::content_keys(content));
+    keys.sort_unstable();
+    keys.dedup();
+    keys
+}
+
 /// Extract trigrams from a string pattern (for query planning).
 pub fn extract_from_literal(s: &str) -> Vec<TrigramHash> {
     extract(s.as_bytes())

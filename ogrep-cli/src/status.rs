@@ -66,6 +66,9 @@ pub fn run(root: &Path, index_path: Option<&Path>) -> Result<()> {
             println!("Index status for {}", root.display());
             println!("  Files:      {}", meta.num_files);
             println!("  Trigrams:   {}", meta.num_trigrams);
+            if let Some(grams) = meta.sparse_gram_keys {
+                println!("  Grams:      {grams}");
+            }
             println!("  Created:    {}", format_timestamp(meta.created_at));
             println!("  Updated:    {}", format_timestamp(meta.updated_at));
             println!("  Server:     not running");

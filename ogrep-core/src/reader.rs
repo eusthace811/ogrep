@@ -21,6 +21,12 @@ pub struct IndexReader {
     /// directly and need not pay for constructing this membership index.
     path_order: OnceLock<Vec<usize>>,
     num_entries: usize,
+    /// Every indexed file carries sparse-gram keys (see [`crate::sparse`]).
+    sparse_grams: bool,
+    /// Number of trigram entries; gram entries follow them. Found on first use.
+    trigram_end: OnceLock<usize>,
+    /// Grams a full build left out as too common (sorted). Loaded on first use.
+    dropped_grams: OnceLock<Vec<u32>>,
 }
 
 /// The bytes of `files.bin`.
@@ -338,6 +344,7 @@ impl IndexReader {
             (id, spans)
         });
         let file_paths = PathTable::from_spans(files_data, file_paths?);
+        let sparse_grams = Self::metadata_promises_grams(index_dir, &file_table_id);
         Ok(Self {
             lookup,
             postings,
@@ -345,6 +352,9 @@ impl IndexReader {
             file_table_id,
             path_order: OnceLock::new(),
             num_entries,
+            sparse_grams,
+            trigram_end: OnceLock::new(),
+            dropped_grams: OnceLock::new(),
         })
     }
 
@@ -359,7 +369,48 @@ impl IndexReader {
             file_table_id: crate::meta::file_table_id(&[]),
             path_order: OnceLock::new(),
             num_entries: 0,
+            sparse_grams: false,
+            trigram_end: OnceLock::new(),
+            dropped_grams: OnceLock::new(),
         }
+    }
+
+    /// Whether `meta.json` promises sparse grams for exactly this file table.
+    ///
+    /// The promise binds to the table's identity so that metadata from another
+    /// publication can never turn gram lookups on for postings that lack them.
+    /// Anything unreadable or mismatched means no grams: queries then use
+    /// trigrams alone, which is always sound.
+    fn metadata_promises_grams(index_dir: &Path, table: &crate::meta::FileTableId) -> bool {
+        crate::meta::IndexMeta::load(index_dir).is_ok_and(|meta| {
+            meta.sparse_grams == Some(crate::sparse::VERSION)
+                && meta.file_table_id.as_ref() == Some(table)
+        })
+    }
+
+    /// Whether every indexed file carries sparse-gram keys.
+    pub fn has_sparse_grams(&self) -> bool {
+        self.sparse_grams
+    }
+
+    /// Number of trigram keys, excluding sparse-gram keys (which sort after).
+    pub fn num_trigram_keys(&self) -> usize {
+        self.trigram_region_end()
+    }
+
+    /// Whether a full build left this gram out as too common, so its missing
+    /// or partial posting list says nothing about which files contain it.
+    pub fn gram_dropped(&self, key: u32) -> bool {
+        self.dropped_grams
+            .get_or_init(|| {
+                let bytes = self.posting_bytes(crate::sparse::DROPPED_KEY);
+                bytes
+                    .chunks_exact(POSTING_ENTRY_SIZE)
+                    .map(|raw| u32::from_le_bytes(raw[0..4].try_into().unwrap()))
+                    .collect()
+            })
+            .binary_search(&key)
+            .is_ok()
     }
 
     /// Release mmap handles so the underlying files can be overwritten (Windows).
@@ -575,9 +626,66 @@ impl IndexReader {
             .collect()
     }
 
+    /// Index of `key`'s lookup entry.
+    ///
+    /// Trigram keys all sort before gram keys, so each kind is searched only in
+    /// its own region. Gram keys are uniform hashes: interpolation lands next to
+    /// the entry in a step or two, touching a few pages of `lookup.bin` where a
+    /// binary search over millions of entries would touch twenty. Trigram keys
+    /// cluster around ASCII, so they keep the binary search.
     fn binary_search(&self, trigram: u32) -> Option<usize> {
-        let mut lo = 0usize;
-        let mut hi = self.num_entries;
+        let split = self.trigram_region_end();
+        if crate::sparse::sorts_after_trigrams(trigram) {
+            return self.interpolation_search(trigram, split, self.num_entries);
+        }
+        self.binary_search_in(trigram, 0, split)
+    }
+
+    /// First entry holding a gram key (the number of trigram entries).
+    fn trigram_region_end(&self) -> usize {
+        *self.trigram_end.get_or_init(|| {
+            let (mut lo, mut hi) = (0usize, self.num_entries);
+            while lo < hi {
+                let mid = lo + (hi - lo) / 2;
+                if crate::sparse::sorts_after_trigrams(self.read_lookup_entry(mid).trigram) {
+                    hi = mid;
+                } else {
+                    lo = mid + 1;
+                }
+            }
+            lo
+        })
+    }
+
+    fn interpolation_search(&self, key: u32, mut lo: usize, mut hi: usize) -> Option<usize> {
+        // A few guesses shrink the range; a binary search finishes it, so a
+        // skewed distribution can never cost more than a plain search.
+        for _ in 0..4 {
+            if hi - lo <= 32 {
+                break;
+            }
+            let (klo, khi) = (
+                self.read_lookup_entry(lo).trigram,
+                self.read_lookup_entry(hi - 1).trigram,
+            );
+            if key < klo || key > khi {
+                return None;
+            }
+            if khi == klo {
+                break;
+            }
+            let span = (hi - 1 - lo) as u64;
+            let guess = lo + (u64::from(key - klo) * span / u64::from(khi - klo)) as usize;
+            match self.read_lookup_entry(guess).trigram.cmp(&key) {
+                std::cmp::Ordering::Equal => return Some(guess),
+                std::cmp::Ordering::Less => lo = guess + 1,
+                std::cmp::Ordering::Greater => hi = guess,
+            }
+        }
+        self.binary_search_in(key, lo, hi)
+    }
+
+    fn binary_search_in(&self, trigram: u32, mut lo: usize, mut hi: usize) -> Option<usize> {
         while lo < hi {
             let mid = lo + (hi - lo) / 2;
             let entry = self.read_lookup_entry(mid);
@@ -689,6 +797,14 @@ impl IndexReader {
 }
 
 impl crate::query::PostingSource for IndexReader {
+    fn has_sparse_grams(&self) -> bool {
+        self.sparse_grams
+    }
+
+    fn gram_dropped(&self, key: u32) -> bool {
+        IndexReader::gram_dropped(self, key)
+    }
+
     fn posting_len(&self, trigram: u32) -> usize {
         self.posting_bytes(trigram).len() / POSTING_ENTRY_SIZE
     }
@@ -962,6 +1078,9 @@ mod tests {
             file_table_id: opened.file_table_id,
             path_order: opened.path_order,
             num_entries: 0,
+            sparse_grams: false,
+            trigram_end: OnceLock::new(),
+            dropped_grams: OnceLock::new(),
         };
         assert!(
             degenerate_reader.is_degenerate(),

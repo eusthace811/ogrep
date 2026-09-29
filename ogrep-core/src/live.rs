@@ -41,6 +41,10 @@ pub struct LiveIndex {
     next_id: AtomicU32,
     /// Number of mutations since last save.
     dirty_count: u32,
+    /// False once a file was added with trigram-only keys
+    /// ([`Self::upsert_file_with_trigrams`]); gram lookups then skip the overlay
+    /// until it is empty again.
+    grams_complete: bool,
 }
 
 impl Default for LiveIndex {
@@ -53,11 +57,16 @@ impl Default for LiveIndex {
             deleted_paths: HashSet::new(),
             next_id: AtomicU32::new(0),
             dirty_count: 0,
+            grams_complete: true,
         }
     }
 }
 
 impl crate::query::PostingSource for LiveIndex {
+    fn has_sparse_grams(&self) -> bool {
+        self.grams_complete()
+    }
+
     fn posting_len(&self, trigram: u32) -> usize {
         self.inverted.get(&trigram).map_or(0, HashSet::len)
     }
@@ -99,7 +108,7 @@ impl LiveIndex {
     /// (e.g. the file watcher) can do the heavy work without blocking
     /// concurrent searches.
     pub fn compute_trigram_masks(content: &[u8]) -> trigram::TrigramMaskMap {
-        trigram::extract_merged_masks(content)
+        trigram::extract_index_masks(content)
     }
 
     /// Commit a pre-computed set of (trigram, masks) entries for a file.
@@ -136,6 +145,16 @@ impl LiveIndex {
     /// avoids an enormous mask map (one entry per trigram per file) during
     /// bulk indexing without changing query results.
     pub fn upsert_file_with_trigrams(&mut self, rel_path: &str, trigrams: Vec<u32>) {
+        // Callers of this entry point supply trigrams only, so the overlay can
+        // no longer promise sparse grams for every file.
+        self.grams_complete = false;
+        self.upsert_file_with_keys(rel_path, trigrams);
+    }
+
+    /// Like [`Self::upsert_file_with_trigrams`], but `keys` must be every index
+    /// key of the content ([`trigram::extract_index_keys`]), sparse grams included,
+    /// so the overlay keeps serving gram lookups.
+    pub fn upsert_file_with_keys(&mut self, rel_path: &str, trigrams: Vec<u32>) {
         // Remove old entry if exists
         if let Some(&old_id) = self.path_to_id.get(rel_path) {
             self.remove_file_by_id(old_id);
@@ -152,6 +171,11 @@ impl LiveIndex {
         self.path_to_id.insert(rel_path.to_string(), file_id);
         self.deleted_paths.remove(rel_path);
         self.dirty_count += 1;
+    }
+
+    /// Whether every overlay file carries sparse-gram keys.
+    pub fn grams_complete(&self) -> bool {
+        self.grams_complete || self.file_paths.is_empty()
     }
 
     /// Mark a file as deleted.
@@ -250,6 +274,14 @@ impl LiveIndex {
     /// Number of unique trigrams in the overlay.
     pub fn num_trigrams(&self) -> usize {
         self.inverted.len()
+    }
+
+    /// Number of unique trigram keys in the overlay, excluding sparse grams.
+    pub fn num_trigram_keys(&self) -> usize {
+        self.inverted
+            .keys()
+            .filter(|&&key| !crate::sparse::is_gram_key(key))
+            .count()
     }
 
     /// Number of mutations since last reset.

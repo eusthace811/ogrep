@@ -6,6 +6,7 @@
 use regex_syntax::hir::{Class, Hir, HirKind, Literal};
 
 use crate::ondisk::PostingEntry;
+use crate::sparse;
 use crate::trigram::{self, TrigramHash};
 
 /// A single trigram query with optional next-byte constraint.
@@ -22,6 +23,24 @@ pub struct TrigramQuery {
     /// Byte offset modulo eight within this AND node's single literal run.
     /// None for manually constructed unordered conjunctions.
     pub position: Option<u8>,
+    /// Needed only when sparse grams are unavailable. A literal run keeps every
+    /// trigram so an index without grams narrows exactly as before, but against
+    /// an index with grams a few long grams cover the run and these are skipped:
+    /// each skipped key saves a lookup that costs more than it narrows.
+    pub fallback: bool,
+}
+
+impl TrigramQuery {
+    /// Whether this query takes part in execution against a source that does
+    /// (`grams`) or does not have sparse grams.
+    #[inline]
+    pub fn used_with(&self, grams: bool) -> bool {
+        if grams {
+            !self.fallback
+        } else {
+            !sparse::is_gram_key(self.hash)
+        }
+    }
 }
 
 /// A node in the query plan tree.
@@ -42,6 +61,16 @@ pub enum QueryPlan {
 /// upper bounds (a live overlay can shadow disk entries), but zero must mean
 /// that the posting is absent. Candidate IDs passed to probes are sorted.
 pub trait PostingSource {
+    /// Whether every file behind this source carries sparse-gram keys. Plans
+    /// always include gram queries; a source without them has them skipped.
+    fn has_sparse_grams(&self) -> bool {
+        false
+    }
+    /// Whether a gram was left out of the index as too common; its absence
+    /// then proves nothing and the gram must not be used.
+    fn gram_dropped(&self, _key: TrigramHash) -> bool {
+        false
+    }
     fn posting_len(&self, trigram: TrigramHash) -> usize;
     fn posting_list(&self, trigram: TrigramHash) -> Vec<PostingEntry>;
     fn probe(&self, trigram: TrigramHash, candidates: &[u32]) -> Vec<PostingEntry>;
@@ -68,12 +97,18 @@ pub fn execute_plan_indexed(
 ) -> Vec<u32> {
     match plan {
         QueryPlan::And(queries) => {
+            let usable = UsableKeys::of(queries, source);
             let mut ordered: Vec<_> = queries
                 .iter()
+                .filter(|q| usable.primary(q, source))
                 .map(|q| (q, source.posting_len(q.hash)))
                 .collect();
             ordered.sort_by_key(|(_, len)| *len);
             let Some((first, count)) = ordered.first() else {
+                // Unreachable for plans built here (a run of three or more
+                // bytes always yields a trigram), but an And with nothing
+                // usable must not read as "no file matches".
+                debug_assert!(false, "And node with no usable key");
                 return Vec::new();
             };
             if *count == 0 {
@@ -94,10 +129,10 @@ pub fn execute_plan_indexed(
                     .map_or(u8::MAX, |offset| e.loc_mask.rotate_right(offset.into()));
             }
             let mut candidates = entries;
-            for (q, count) in ordered.into_iter().skip(1) {
-                if candidates.is_empty() {
-                    break;
-                }
+            let narrow = |q: &TrigramQuery,
+                              count: usize,
+                              candidates: &mut Vec<PostingEntry>,
+                              work: &mut QueryWork| {
                 let mut entries = if candidates.len().saturating_mul(16) < count {
                     work.lists_probed += 1;
                     work.candidate_probes += candidates.len();
@@ -131,6 +166,30 @@ pub fn execute_plan_indexed(
                     }
                     true
                 });
+            };
+            for (q, count) in ordered.into_iter().skip(1) {
+                if candidates.is_empty() {
+                    break;
+                }
+                narrow(q, count, &mut candidates, work);
+            }
+            // With grams, a literal's other trigrams were held back: a few long
+            // grams usually leave little to reject, and every extra key costs a
+            // lookup. They still pay off while many candidates remain, since each
+            // candidate they reject saves reading a file.
+            if usable.held_back && candidates.len() > secondary_min() {
+                let mut rest: Vec<_> = queries
+                    .iter()
+                    .filter(|q| q.fallback && !sparse::is_gram_key(q.hash))
+                    .map(|q| (q, source.posting_len(q.hash)))
+                    .collect();
+                rest.sort_by_key(|(_, len)| *len);
+                for (q, count) in rest {
+                    if candidates.len() <= secondary_min() {
+                        break;
+                    }
+                    narrow(q, count, &mut candidates, work);
+                }
             }
             candidates.into_iter().map(|e| e.file_id).collect()
         }
@@ -161,13 +220,61 @@ pub fn execute_plan_indexed(
     }
 }
 
+/// Candidate count at or below which a gram-covered literal skips its held-back
+/// trigrams (see `execute_plan_indexed`). Swept on the rust targeted queries:
+/// 8, 32 and 128 were within noise of each other, and all beat no second phase.
+const SECONDARY_MIN: usize = 32;
+
+fn secondary_min() -> usize {
+    SECONDARY_MIN
+}
+
+/// Which of an And node's queries run against a source.
+struct UsableKeys {
+    /// The source has sparse grams.
+    grams: bool,
+    /// A cover gram was dropped from the index as too common. The cover then
+    /// has a hole, so the node uses all its trigrams (plus whatever grams
+    /// remain), exactly as selective as before grams existed or more.
+    cover_broken: bool,
+    /// Trigrams were held back for the adaptive second phase.
+    held_back: bool,
+}
+
+impl UsableKeys {
+    fn of(queries: &[TrigramQuery], source: &impl PostingSource) -> Self {
+        let grams = source.has_sparse_grams();
+        let cover_broken = grams
+            && queries
+                .iter()
+                .any(|q| sparse::is_gram_key(q.hash) && source.gram_dropped(q.hash));
+        Self {
+            grams,
+            cover_broken,
+            held_back: grams && !cover_broken,
+        }
+    }
+
+    /// Whether `q` takes part in the first, rarest-first phase.
+    fn primary(&self, q: &TrigramQuery, source: &impl PostingSource) -> bool {
+        if sparse::is_gram_key(q.hash) {
+            self.grams && !source.gram_dropped(q.hash)
+        } else {
+            !self.grams || self.cover_broken || !q.fallback
+        }
+    }
+}
+
 fn estimate(plan: &QueryPlan, source: &impl PostingSource) -> usize {
     match plan {
-        QueryPlan::And(qs) => qs
-            .iter()
-            .map(|q| source.posting_len(q.hash))
-            .min()
-            .unwrap_or(usize::MAX),
+        QueryPlan::And(qs) => {
+            let usable = UsableKeys::of(qs, source);
+            qs.iter()
+                .filter(|q| usable.primary(q, source))
+                .map(|q| source.posting_len(q.hash))
+                .min()
+                .unwrap_or(usize::MAX)
+        }
         QueryPlan::All(ps) => ps
             .iter()
             .map(|p| estimate(p, source))
@@ -712,7 +819,7 @@ fn literals_to_query_plan(bytes: &[u8]) -> QueryPlan {
     if bytes.len() < 3 {
         return QueryPlan::MatchAll;
     }
-    let queries: Vec<TrigramQuery> = (0..bytes.len() - 2)
+    let mut queries: Vec<TrigramQuery> = (0..bytes.len() - 2)
         .map(|i| {
             let hash = trigram::hash(bytes[i], bytes[i + 1], bytes[i + 2]);
             let expected_next = if i + 3 < bytes.len() {
@@ -724,10 +831,62 @@ fn literals_to_query_plan(bytes: &[u8]) -> QueryPlan {
                 hash,
                 expected_next,
                 position: Some((i % 8) as u8),
+                fallback: true,
             }
         })
         .collect();
+    // Against an index with sparse grams, the run is covered by as few keys as
+    // possible: grams (indexed from lowercased content, so sound for either case
+    // mode) where they reach furthest, exact-case trigrams where no gram does.
+    // Every other trigram stays as a fallback for indexes without grams.
+    let grams = sparse::literal_grams(bytes);
+    for (start, end, key) in cover(bytes.len(), &grams) {
+        match key {
+            Some(key) => queries.push(TrigramQuery {
+                hash: key,
+                expected_next: bytes.get(end).map(u8::to_ascii_lowercase),
+                position: Some((start % 8) as u8),
+                fallback: false,
+            }),
+            None => queries[start].fallback = false,
+        }
+    }
     QueryPlan::And(queries)
+}
+
+/// A minimum set of keys covering `0..len`: greedy interval cover over the
+/// literal's grams and trigrams, always extending to the furthest end. A gram
+/// is `Some(key)`; a trigram at `start` is `None`.
+fn cover(len: usize, grams: &[(usize, usize, u32)]) -> Vec<(usize, usize, Option<u32>)> {
+    // Longest gram starting at each position.
+    let mut best: Vec<Option<(usize, u32)>> = vec![None; len];
+    for &(start, end, key) in grams {
+        if best[start].is_none_or(|(e, _)| end > e) {
+            best[start] = Some((end, key));
+        }
+    }
+    let mut picked = Vec::new();
+    let mut covered = 0; // bytes 0..covered are covered
+    while covered < len {
+        // Among keys starting at or before `covered` (and after the last
+        // pick's start, so progress is monotone), take the one reaching furthest.
+        let mut choice: Option<(usize, usize, Option<u32>)> = None;
+        let first = picked.last().map_or(0, |&(s, _, _)| s + 1);
+        for start in first..=covered.min(len.saturating_sub(3)) {
+            let tri_end = start + 3;
+            let (end, key) = match best[start] {
+                Some((end, key)) if end > tri_end => (end, Some(key)),
+                _ => (tri_end, None),
+            };
+            if end > covered && choice.is_none_or(|(_, e, _)| end > e) {
+                choice = Some((start, end, key));
+            }
+        }
+        let Some(c) = choice else { break };
+        covered = c.1;
+        picked.push(c);
+    }
+    picked
 }
 
 /// Collapse a class only when every member has the same ASCII-folded byte.
@@ -858,6 +1017,8 @@ fn simplify(plan: QueryPlan) -> QueryPlan {
                     if retained.expected_next != duplicate.expected_next {
                         retained.expected_next = None;
                     }
+                    // Needed if either copy is needed.
+                    retained.fallback &= duplicate.fallback;
                     true
                 } else {
                     false
@@ -906,7 +1067,13 @@ where
             if queries.is_empty() {
                 return Vec::new();
             }
-            let mut lists: Vec<Vec<u32>> = queries.iter().map(|q| lookup(q.hash)).collect();
+            // A bare lookup cannot say whether the index has sparse grams, so
+            // only trigrams are used; they alone are always a sound filter.
+            let mut lists: Vec<Vec<u32>> = queries
+                .iter()
+                .filter(|q| q.used_with(false))
+                .map(|q| lookup(q.hash))
+                .collect();
             lists.sort_by_key(|l| l.len());
 
             let mut result: Vec<u32> = lists.remove(0);
@@ -962,8 +1129,12 @@ where
             }
 
             // Fetch full posting entries (with masks) for each trigram
-            let mut lists: Vec<(&TrigramQuery, Vec<PostingEntry>)> =
-                queries.iter().map(|q| (q, lookup(q.hash))).collect();
+            // As in `execute_plan`, a bare lookup gets trigram queries only.
+            let mut lists: Vec<(&TrigramQuery, Vec<PostingEntry>)> = queries
+                .iter()
+                .filter(|q| q.used_with(false))
+                .map(|q| (q, lookup(q.hash)))
+                .collect();
 
             lists.sort_by_key(|(_, l)| l.len());
 
@@ -1388,9 +1559,52 @@ mod tests {
         let plan = build_query_plan("hello", false).unwrap();
         match plan {
             QueryPlan::And(tris) => {
-                assert_eq!(tris.len(), 3); // "hel", "ell", "llo"
+                let trigrams: Vec<_> = tris
+                    .iter()
+                    .filter(|q| !sparse::is_gram_key(q.hash))
+                    .collect();
+                assert_eq!(trigrams.len(), 3); // "hel", "ell", "llo"
             }
             _ => panic!("expected And plan for literal"),
+        }
+    }
+
+    /// Against an index with grams, the queries used cover every byte of the
+    /// run; against one without, exactly the trigrams are used, as before grams.
+    #[test]
+    fn literal_runs_are_covered_with_grams_and_fall_back_to_all_trigrams() {
+        for literal in [
+            "hello",
+            "fn parse_header",
+            "called `Option::unwrap()` on a `None` value",
+            "abcabcabcabc",
+            "pool exhausted",
+            "abc",
+        ] {
+            let QueryPlan::And(queries) = literals_to_query_plan(literal.as_bytes()) else {
+                panic!("expected And for {literal:?}");
+            };
+            let without: Vec<_> = queries.iter().filter(|q| q.used_with(false)).collect();
+            assert_eq!(without.len(), literal.len() - 2, "{literal:?}");
+            assert!(without.iter().all(|q| !sparse::is_gram_key(q.hash)));
+
+            let grams = sparse::literal_grams(literal.as_bytes());
+            let picked = cover(literal.len(), &grams);
+            let mut covered = vec![false; literal.len()];
+            for &(s, e, key) in &picked {
+                covered[s..e].iter_mut().for_each(|c| *c = true);
+                let hash = key.unwrap_or_else(|| {
+                    let b = literal.as_bytes();
+                    trigram::hash(b[s], b[s + 1], b[s + 2])
+                });
+                assert!(
+                    queries.iter().any(|q| q.hash == hash && q.used_with(true)),
+                    "{literal:?}: picked key missing from the plan"
+                );
+            }
+            assert!(covered.iter().all(|&c| c), "{literal:?} not covered");
+            let used = queries.iter().filter(|q| q.used_with(true)).count();
+            assert!(used <= without.len(), "{literal:?}: cover larger than trigrams");
         }
     }
 
@@ -1443,11 +1657,13 @@ mod tests {
     fn test_or_execution_returns_sorted_unique_candidates() {
         let plan = QueryPlan::Or(vec![
             QueryPlan::And(vec![TrigramQuery {
+                fallback: false,
                 hash: 1,
                 expected_next: None,
                 position: None,
             }]),
             QueryPlan::And(vec![TrigramQuery {
+                fallback: false,
                 hash: 2,
                 expected_next: None,
                 position: None,

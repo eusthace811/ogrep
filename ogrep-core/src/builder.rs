@@ -464,7 +464,7 @@ fn indexable_text(bytes: &[u8]) -> Option<std::borrow::Cow<'_, [u8]>> {
 fn extract_indexed_file(path: String, data: &IndexRead) -> ExtractedFile {
     let (trigrams, content_id) = match indexable_text(data) {
         Some(text) => (
-            Some(trigram::extract_merged_masks(&text)),
+            Some(trigram::extract_index_masks(&text)),
             Some(meta::ContentId::from_indexed_bytes(&text)),
         ),
         None => (None, None),
@@ -816,7 +816,8 @@ pub fn build_index_with_options_and_ignorecase(
             write_index_v2_from_postings(&index_dir, &root, &file_id_map, &mut postings)?;
         }
         PostingSink::External(sorter) => {
-            let (trigram_count, segments) = sorter.write_postings(&index_dir)?;
+            let prune = crate::sparse::prune_threshold(file_id_map.len());
+            let (trigram_count, segments) = sorter.write_postings(&index_dir, Some(prune))?;
             eprintln!(
                 "Writing index ({} trigrams, {} files, {} spill segment(s))...",
                 trigram_count,
@@ -830,6 +831,7 @@ pub fn build_index_with_options_and_ignorecase(
                 file_id_map.iter().map(|(_, p)| p.as_str()),
                 trigram_count,
                 None,
+                true,
             )?;
         }
     }
@@ -1024,7 +1026,9 @@ pub fn build_index_for_files(
         }
     }
 
-    let (trigram_count, _) = sorter.write_postings(index_dir)?;
+    // A delta index for a handful of files must keep every gram: merging it
+    // into a full index could otherwise hide a gram the full index still has.
+    let (trigram_count, _) = sorter.write_postings(index_dir, None)?;
     write_files_and_meta(
         index_dir,
         &root,
@@ -1032,6 +1036,7 @@ pub fn build_index_for_files(
         file_id_map.iter().map(|(_, path)| path.as_str()),
         trigram_count,
         Some(true),
+        true,
     )?;
     Ok(FileDeltaOutcome {
         indexed: file_id_map.len(),
@@ -1055,6 +1060,7 @@ fn write_index_files<'a>(
     paths: impl IntoIterator<Item = &'a str>,
     inverted: &HashMap<u32, Vec<PostingEntry>>,
     complete: Option<bool>,
+    sparse_grams: bool,
 ) -> Result<()> {
     std::fs::create_dir_all(index_dir)?;
 
@@ -1100,6 +1106,7 @@ fn write_index_files<'a>(
         paths,
         sorted_trigrams.len(),
         complete,
+        sparse_grams,
     )
 }
 
@@ -1126,11 +1133,26 @@ fn write_index_files_from_postings<'a>(
     let mut offset: u64 = 0;
     let mut written_trigrams = 0usize;
     let mut start = 0usize;
+    // Same pruning as the external sorter's full builds (see `sparse`).
+    let prune = crate::sparse::prune_threshold(path_count);
+    let mut dropped: Vec<TrigramPosting> = Vec::new();
     while start < postings.len() {
         let trigram = postings[start].trigram;
         let mut end = start + 1;
         while end < postings.len() && postings[end].trigram == trigram {
             end += 1;
+        }
+        if end - start > prune && crate::sparse::is_gram_key(trigram) {
+            dropped.push(TrigramPosting {
+                trigram: crate::sparse::DROPPED_KEY,
+                entry: PostingEntry {
+                    file_id: trigram,
+                    loc_mask: 0,
+                    next_mask: 0,
+                },
+            });
+            start = end;
+            continue;
         }
         let length = (end - start) as u32;
         write_lookup_entry(
@@ -1151,12 +1173,26 @@ fn write_index_files_from_postings<'a>(
         written_trigrams += 1;
         start = end;
     }
-    debug_assert_eq!(written_trigrams, trigram_count);
+    if !dropped.is_empty() {
+        write_lookup_entry(
+            &mut lookup_file,
+            LookupEntry {
+                trigram: crate::sparse::DROPPED_KEY,
+                offset,
+                length: dropped.len() as u32,
+            },
+            &mut lookup_scratch,
+        )?;
+        write_flat_posting_entries(&mut postings_file, &dropped, &mut posting_scratch)?;
+        written_trigrams += 1;
+    }
+    let _ = trigram_count;
+    let trigram_count = written_trigrams;
     flush_lookup_entries(&mut lookup_file, &mut lookup_scratch)?;
     postings_file.flush()?;
     lookup_file.flush()?;
 
-    write_files_and_meta(index_dir, root, path_count, paths, trigram_count, complete)
+    write_files_and_meta(index_dir, root, path_count, paths, trigram_count, complete, true)
 }
 
 fn write_flat_posting_entries(
@@ -1202,6 +1238,7 @@ fn write_files_and_meta<'a>(
     paths: impl IntoIterator<Item = &'a str>,
     trigram_count: usize,
     complete: Option<bool>,
+    sparse_grams: bool,
 ) -> Result<()> {
     replace_file_table(index_dir, |files_file| {
         ondisk::write_file_table_header(files_file)?;
@@ -1212,15 +1249,23 @@ fn write_files_and_meta<'a>(
     })?;
 
     let canon_root = std::fs::canonicalize(root)?;
-    let mut meta = IndexMeta::new(
-        &canon_root.to_string_lossy(),
-        path_count as u64,
-        trigram_count as u64,
-    );
+    // `trigram_count` counts every lookup key; report grams separately so the
+    // trigram figure keeps its meaning.
+    let trigram_keys = ondisk::count_trigram_keys(&index_dir.join("lookup.bin"))
+        .unwrap_or(trigram_count as u64);
+    // The dropped-gram list occupies one lookup entry of its own.
+    let has_dropped_list = ondisk::last_key(&index_dir.join("lookup.bin"))
+        .is_ok_and(|key| key == Some(crate::sparse::DROPPED_KEY));
+    let gram_keys = (trigram_count as u64)
+        .saturating_sub(trigram_keys)
+        .saturating_sub(u64::from(has_dropped_list));
+    let mut meta = IndexMeta::new(&canon_root.to_string_lossy(), path_count as u64, trigram_keys);
+    meta.sparse_gram_keys = (gram_keys > 0).then_some(gram_keys);
     if let Some(c) = complete {
         meta.complete = c;
     }
     meta.file_table_id = Some(meta::read_file_table_id(index_dir)?);
+    meta.sparse_grams = sparse_grams.then_some(crate::sparse::VERSION);
     meta.save(index_dir)?;
 
     Ok(())
@@ -1264,6 +1309,8 @@ pub fn write_index_from_snapshot(
         paths.iter().map(String::as_str),
         inverted,
         Some(complete),
+        // The snapshot's provenance is unknown here; claiming no grams is safe.
+        false,
     )
 }
 
@@ -1304,6 +1351,7 @@ pub fn append_overlay_to_index(
     overlay_paths: &[String],
     overlay_inverted: &HashMap<u32, Vec<u32>>,
     complete: bool,
+    overlay_has_grams: bool,
 ) -> Result<()> {
     std::fs::create_dir_all(out_dir)?;
 
@@ -1454,6 +1502,7 @@ pub fn append_overlay_to_index(
         paths,
         trigram_count,
         Some(complete),
+        overlay_has_grams && (reader.has_sparse_grams() || reader.num_files() == 0),
     )
 }
 
@@ -1556,10 +1605,18 @@ pub fn merge_index_with_delta(
             (None, None) => break,
         };
 
+        // The dropped-gram list holds gram keys, not file IDs: it is carried
+        // over verbatim and never remapped.
+        let verbatim = append_only || trigram == crate::sparse::DROPPED_KEY;
+        let delta_bytes = if trigram == crate::sparse::DROPPED_KEY {
+            None
+        } else {
+            delta_bytes
+        };
         let mut reader_len = reader_bytes.map_or(0, |bytes| {
-            usize::from(append_only) * (bytes.len() / ondisk::POSTING_ENTRY_SIZE)
+            usize::from(verbatim) * (bytes.len() / ondisk::POSTING_ENTRY_SIZE)
         });
-        if !append_only && let Some(bytes) = reader_bytes {
+        if !verbatim && let Some(bytes) = reader_bytes {
             for raw in bytes.as_chunks::<{ ondisk::POSTING_ENTRY_SIZE }>().0.iter() {
                 let old_id = u32::from_le_bytes(raw[0..4].try_into().expect("four-byte file id"));
                 let new_id = *reader_id_map.get(old_id as usize).ok_or_else(|| {
@@ -1595,7 +1652,7 @@ pub fn merge_index_with_delta(
             &mut lookup_scratch,
         )?;
         if let Some(bytes) = reader_bytes {
-            if append_only {
+            if verbatim {
                 postings_file.write_all(bytes)?;
             } else {
                 for chunk in bytes.chunks(POSTING_WRITE_CHUNK_ENTRIES * ondisk::POSTING_ENTRY_SIZE)
@@ -1655,6 +1712,7 @@ pub fn merge_index_with_delta(
         paths,
         trigram_count,
         Some(complete),
+        (reader.has_sparse_grams() || reader.num_files() == 0) && delta.has_sparse_grams(),
     )
 }
 
@@ -2239,6 +2297,93 @@ mod tests {
         }
     }
 
+    /// A gram a full build dropped as too common must stay unusable after a
+    /// delta merge adds more files containing it; otherwise the merged index
+    /// would hold a partial posting list for it and hide the base files.
+    #[test]
+    fn dropped_grams_survive_delta_and_append_merges() {
+        use crate::query::{self, PostingSource};
+        let repo = tempfile::tempdir().unwrap();
+        let src = repo.path().join("src");
+        std::fs::create_dir_all(&src).unwrap();
+        // 40 files > the 32-file floor of the prune threshold.
+        for i in 0..40 {
+            // Every gram of the shared line occurs in all 40 files and is
+            // dropped, so its cover is broken entirely.
+            let body = format!("zqxj_marker_{i}\nshared_constraints_line\n");
+            std::fs::write(src.join(format!("f{i:02}.txt")), body).unwrap();
+        }
+        let base_dir = tempfile::tempdir().unwrap();
+        build_index(repo.path(), Some(base_dir.path()), false, false, &[]).unwrap();
+        let base = IndexReader::open(base_dir.path()).unwrap();
+        assert!(base.has_sparse_grams());
+        let literal = b"zqxj_marker_";
+        let dropped: Vec<u32> = crate::sparse::literal_grams(literal)
+            .into_iter()
+            .map(|(_, _, k)| k)
+            .filter(|&k| base.gram_dropped(k))
+            .collect();
+        assert!(!dropped.is_empty(), "the shared marker's grams must be dropped");
+
+        let find_all = |reader: &IndexReader| -> usize {
+            let plan = query::build_literal_plan("zqxj_marker_", false);
+            let mut work = query::QueryWork::default();
+            query::execute_plan_indexed(&plan, reader, &mut work).len()
+        };
+        assert_eq!(find_all(&base), 40);
+        let shared = crate::sparse::literal_grams(b"shared_constraints_line");
+        assert!(shared.iter().all(|&(_, _, k)| base.gram_dropped(k)));
+        let plan = query::build_literal_plan("shared_constraints_line", false);
+        let mut work = query::QueryWork::default();
+        assert_eq!(query::execute_plan_indexed(&plan, &base, &mut work).len(), 40);
+
+        // Delta merge: a new file with the marker.
+        std::fs::write(src.join("new.txt"), "zqxj_marker_new\n").unwrap();
+        let delta_dir = tempfile::tempdir().unwrap();
+        build_index_for_files(repo.path(), delta_dir.path(), &[src.join("new.txt")], 1).unwrap();
+        let delta = IndexReader::open(delta_dir.path()).unwrap();
+        let merged_dir = tempfile::tempdir().unwrap();
+        merge_index_with_delta(
+            repo.path(),
+            merged_dir.path(),
+            &base,
+            &delta,
+            &std::collections::HashSet::new(),
+            true,
+        )
+        .unwrap();
+        let merged = IndexReader::open(merged_dir.path()).unwrap();
+        assert!(merged.has_sparse_grams());
+        assert!(dropped.iter().all(|&k| merged.gram_dropped(k)));
+        assert_eq!(find_all(&merged), 41);
+
+        // Delta merge that also removes a base file: IDs are remapped, the
+        // dropped list must not be.
+        let removed: std::collections::HashSet<String> = ["src/f00.txt".to_string()].into();
+        let remapped_dir = tempfile::tempdir().unwrap();
+        merge_index_with_delta(repo.path(), remapped_dir.path(), &base, &delta, &removed, true)
+            .unwrap();
+        let remapped = IndexReader::open(remapped_dir.path()).unwrap();
+        assert!(dropped.iter().all(|&k| remapped.gram_dropped(k)));
+        assert_eq!(find_all(&remapped), 40);
+
+        // Append merge of an overlay that carries every key.
+        let mut live = crate::live::LiveIndex::new();
+        live.upsert_file_with_keys(
+            "src/appended.txt",
+            crate::trigram::extract_index_keys(b"zqxj_marker_appended\n"),
+        );
+        assert!(live.has_sparse_grams());
+        let (paths, inverted) = live.snapshot_for_disk();
+        let appended_dir = tempfile::tempdir().unwrap();
+        append_overlay_to_index(repo.path(), appended_dir.path(), &base, &paths, &inverted, true, true)
+            .unwrap();
+        let appended = IndexReader::open(appended_dir.path()).unwrap();
+        assert!(appended.has_sparse_grams());
+        assert!(dropped.iter().all(|&k| appended.gram_dropped(k)));
+        assert_eq!(find_all(&appended), 41);
+    }
+
     /// Canonical, walk-order-independent view of an index: every trigram
     /// mapped to its postings resolved to *paths* rather than file IDs.
     ///
@@ -2253,6 +2398,12 @@ mod tests {
         let reader = IndexReader::open(index_dir).unwrap();
         let mut fingerprint = std::collections::BTreeMap::new();
         for (trigram, entries) in reader.all_trigram_postings_with_masks() {
+            if trigram == crate::sparse::DROPPED_KEY {
+                // Gram keys, not file IDs: compare the list itself.
+                let keys = entries.iter().map(|e| (format!("{:#x}", e.file_id), 0, 0));
+                fingerprint.insert(trigram, keys.collect());
+                continue;
+            }
             let ids: Vec<u32> = entries.iter().map(|e| e.file_id).collect();
             let mut sorted = ids.clone();
             sorted.sort_unstable();
@@ -2603,6 +2754,7 @@ mod tests {
             &overlay_paths,
             &overlay_inverted,
             true,
+            false,
         )
         .unwrap();
 
@@ -2704,6 +2856,7 @@ mod tests {
             &overlay_paths,
             &overlay_inverted,
             true,
+            false,
         )
         .unwrap();
 

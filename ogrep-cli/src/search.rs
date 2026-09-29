@@ -2598,7 +2598,15 @@ fn index_narrowing_note(raw: u64, total: u64) -> &'static str {
 
 pub(crate) fn plan_summary(plan: &QueryPlan) -> String {
     match plan {
-        QueryPlan::And(queries) => format!("AND({} trigrams)", queries.len()),
+        // Sparse-gram queries ride along in every literal plan but are used only
+        // against an index that has them; the summary keeps counting trigrams.
+        QueryPlan::And(queries) => format!(
+            "AND({} trigrams)",
+            queries
+                .iter()
+                .filter(|q| !ogrep_core::sparse::is_gram_key(q.hash))
+                .count()
+        ),
         QueryPlan::All(plans) => format!(
             "ALL({})",
             plans

@@ -27,6 +27,15 @@ struct HybridPostings<'a> {
 }
 
 impl PostingSource for HybridPostings<'_> {
+    fn has_sparse_grams(&self) -> bool {
+        (self.reader.has_sparse_grams() || self.reader.num_files() == 0)
+            && self.index.live.grams_complete()
+    }
+
+    fn gram_dropped(&self, key: u32) -> bool {
+        self.reader.gram_dropped(key)
+    }
+
     fn posting_len(&self, trigram: u32) -> usize {
         self.reader
             .posting_len(trigram)
@@ -332,10 +341,11 @@ impl HybridIndex {
         reader.num_files() - shadowed + self.live.num_files()
     }
 
-    /// Total unique trigrams across both reader and live overlay.
+    /// Total unique trigrams across both reader and live overlay. Sparse-gram
+    /// keys are not trigrams and are not counted.
     pub fn num_trigrams(&self) -> usize {
-        let reader_count = self.reader().num_trigrams();
-        let live_count = self.live.num_trigrams();
+        let reader_count = self.reader().num_trigram_keys();
+        let live_count = self.live.num_trigram_keys();
         if reader_count == 0 {
             return live_count;
         }

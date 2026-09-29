@@ -274,12 +274,19 @@ impl ExternalSorter {
     /// Returns `(distinct trigram count, spill segments merged)`. Consumes the
     /// sorter so the arena and every spill segment are released before the
     /// caller proceeds.
-    pub(crate) fn write_postings(mut self, index_dir: &Path) -> Result<(usize, usize)> {
+    ///
+    /// `prune_grams_above` leaves out gram posting lists longer than that and
+    /// records their keys under [`crate::sparse::DROPPED_KEY`] (full builds only).
+    pub(crate) fn write_postings(
+        mut self,
+        index_dir: &Path,
+        prune_grams_above: Option<usize>,
+    ) -> Result<(usize, usize)> {
         if self.segments.is_empty() {
             // Never exceeded the budget: identical to the in-memory path.
             self.sort_arena();
             let arena = std::mem::take(&mut self.arena);
-            return Ok((write_sorted_arena(index_dir, &arena)?, 0));
+            return Ok((write_sorted_arena(index_dir, &arena, prune_grams_above)?, 0));
         }
 
         // Fold the tail into a final segment so the merge has a single
@@ -290,7 +297,7 @@ impl ExternalSorter {
         let segments = self.segments.len();
         eprintln!("Merging {segments} spill segment(s) into the index...");
         Ok((
-            merge_segments(index_dir, &self.segments, self.budget_bytes)?,
+            merge_segments(index_dir, &self.segments, self.budget_bytes, prune_grams_above)?,
             segments,
         ))
     }
@@ -304,10 +311,12 @@ struct IndexWriter {
     lookup_scratch: Vec<u8>,
     offset: u64,
     trigram_count: usize,
+    prune_grams_above: Option<usize>,
+    dropped: Vec<u32>,
 }
 
 impl IndexWriter {
-    fn create(index_dir: &Path) -> Result<Self> {
+    fn create(index_dir: &Path, prune_grams_above: Option<usize>) -> Result<Self> {
         std::fs::create_dir_all(index_dir)?;
         Ok(Self {
             postings: BufWriter::new(File::create(index_dir.join("index.bin"))?),
@@ -320,12 +329,21 @@ impl IndexWriter {
             ),
             offset: 0,
             trigram_count: 0,
+            prune_grams_above,
+            dropped: Vec::new(),
         })
     }
 
     /// Write one trigram's complete, file-id-sorted posting list.
     fn write_group(&mut self, trigram: u32, entries: &[PostingEntry]) -> Result<()> {
         if entries.is_empty() {
+            return Ok(());
+        }
+        if self
+            .prune_grams_above
+            .is_some_and(|limit| entries.len() > limit && crate::sparse::is_gram_key(trigram))
+        {
+            self.dropped.push(trigram);
             return Ok(());
         }
         let length = u32::try_from(entries.len()).map_err(|_| {
@@ -351,6 +369,19 @@ impl IndexWriter {
     }
 
     fn finish(mut self) -> Result<usize> {
+        if !self.dropped.is_empty() {
+            // Keys arrive in ascending order, so the list is already sorted.
+            let dropped: Vec<PostingEntry> = std::mem::take(&mut self.dropped)
+                .into_iter()
+                .map(|key| PostingEntry {
+                    file_id: key,
+                    loc_mask: 0,
+                    next_mask: 0,
+                })
+                .collect();
+            self.prune_grams_above = None;
+            self.write_group(crate::sparse::DROPPED_KEY, &dropped)?;
+        }
         flush_lookup_entries(&mut self.lookup, &mut self.lookup_scratch)?;
         self.postings.flush()?;
         self.lookup.flush()?;
@@ -359,8 +390,12 @@ impl IndexWriter {
 }
 
 /// Write an already-sorted arena directly, without any spill round trip.
-fn write_sorted_arena(index_dir: &Path, arena: &[TrigramPosting]) -> Result<usize> {
-    let mut writer = IndexWriter::create(index_dir)?;
+fn write_sorted_arena(
+    index_dir: &Path,
+    arena: &[TrigramPosting],
+    prune_grams_above: Option<usize>,
+) -> Result<usize> {
+    let mut writer = IndexWriter::create(index_dir, prune_grams_above)?;
     let mut group: Vec<PostingEntry> = Vec::new();
     let mut idx = 0usize;
     while idx < arena.len() {
@@ -538,6 +573,7 @@ fn merge_segments(
     index_dir: &Path,
     segments: &[PathBuf],
     read_budget_bytes: usize,
+    prune_grams_above: Option<usize>,
 ) -> Result<usize> {
     let per_segment = segment_buffer_bytes(read_budget_bytes, segments.len());
     let mut cursors: Vec<SegmentCursor> = Vec::with_capacity(segments.len());
@@ -556,7 +592,7 @@ fn merge_segments(
         cursors.push(cursor);
     }
 
-    let mut writer = IndexWriter::create(index_dir)?;
+    let mut writer = IndexWriter::create(index_dir, prune_grams_above)?;
     let mut group: Vec<PostingEntry> = Vec::new();
 
     while let Some(&Reverse((trigram, _))) = heap.peek() {
@@ -662,14 +698,14 @@ mod tests {
         );
 
         let out_a = dir.path().join("out_a");
-        let (trigrams_a, _) = a.write_postings(&out_a).unwrap();
+        let (trigrams_a, _) = a.write_postings(&out_a, None).unwrap();
         assert_eq!(trigrams_a, 1, "A should see only its own trigram");
         assert_eq!(trigram_ids(&out_a), vec![100]);
 
         // B still merges correctly afterwards; A's completion dropped only its
         // own spill directory.
         let out_b = dir.path().join("out_b");
-        let (trigrams_b, _) = b.write_postings(&out_b).unwrap();
+        let (trigrams_b, _) = b.write_postings(&out_b, None).unwrap();
         assert_eq!(trigrams_b, 1, "B should see only its own trigram");
         assert_eq!(trigram_ids(&out_b), vec![777]);
     }
@@ -716,14 +752,14 @@ mod tests {
                 .cmp(&b.trigram)
                 .then_with(|| a.entry.file_id.cmp(&b.entry.file_id))
         });
-        let expected_trigrams = write_sorted_arena(in_memory.path(), &direct).unwrap();
+        let expected_trigrams = write_sorted_arena(in_memory.path(), &direct, None).unwrap();
 
         let mut sorter = ExternalSorter::new(external.path(), budget_bytes);
         for posting in postings {
             sorter.push(*posting).unwrap();
         }
         let spilled = sorter.spilled_segments();
-        let (actual_trigrams, merged_segments) = sorter.write_postings(external.path()).unwrap();
+        let (actual_trigrams, merged_segments) = sorter.write_postings(external.path(), None).unwrap();
 
         assert_eq!(expected_trigrams, actual_trigrams, "trigram count mismatch");
         assert!(
@@ -772,7 +808,7 @@ mod tests {
             "expected many segments, got {}",
             sorter.spilled_segments()
         );
-        sorter.write_postings(dir.path()).unwrap();
+        sorter.write_postings(dir.path(), None).unwrap();
     }
 
     #[test]
@@ -785,7 +821,7 @@ mod tests {
             }
         }
         assert!(sorter.spilled_segments() > 0);
-        sorter.write_postings(dir.path()).unwrap();
+        sorter.write_postings(dir.path(), None).unwrap();
 
         let leftover: Vec<_> = std::fs::read_dir(dir.path())
             .unwrap()
@@ -806,7 +842,7 @@ mod tests {
             }
         }
         assert!(sorter.spilled_segments() > 1);
-        let (trigram_count, _) = sorter.write_postings(dir.path()).unwrap();
+        let (trigram_count, _) = sorter.write_postings(dir.path(), None).unwrap();
         assert_eq!(trigram_count, 40);
 
         // files.bin/meta.json are written by the builder; synthesize the
@@ -839,7 +875,7 @@ mod tests {
     fn empty_input_writes_an_empty_index() {
         let dir = tempfile::tempdir().unwrap();
         let sorter = ExternalSorter::new(dir.path(), DEFAULT_BUFFER_BYTES);
-        assert_eq!(sorter.write_postings(dir.path()).unwrap(), (0, 0));
+        assert_eq!(sorter.write_postings(dir.path(), None).unwrap(), (0, 0));
         assert_eq!(
             std::fs::read(dir.path().join("index.bin")).unwrap().len(),
             0
@@ -944,7 +980,7 @@ mod tests {
         }
         assert!(sorter.spilled_segments() > 1);
 
-        let (trigrams, merged) = sorter.write_postings(dir.path()).unwrap();
+        let (trigrams, merged) = sorter.write_postings(dir.path(), None).unwrap();
         assert_eq!(trigrams, 6_000);
         assert!(merged > 1, "expected a real merge, got {merged} segment(s)");
 
