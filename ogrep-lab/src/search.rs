@@ -46,10 +46,15 @@ fn matching_args(p: &Pattern) -> Vec<String> {
     args
 }
 
-/// `-e PATTERN` keeps a pattern that starts with `-` from reading as a flag.
+/// The pattern, through `-e` so it never reads as a path. ogrep's parser
+/// takes a value that starts with `-` for a missing one (`-e --verbose`), so
+/// such a pattern is attached instead: `--regexp=--verbose`.
 fn pattern_arg(p: &Pattern, args: &mut Vec<String>) {
-    args.push("-e".into());
-    args.push(p.text.to_string());
+    if p.text.starts_with('-') {
+        args.push(format!("--regexp={}", p.text));
+    } else {
+        args.extend(["-e".into(), p.text.to_string()]);
+    }
 }
 
 pub fn search(ws: &Workspace, req: &Request) -> Result<Value, String> {
@@ -304,5 +309,19 @@ mod tests {
         assert_eq!(command_line(&args), "ogrep -S -e 'fn foo(' '--glob=*.rs'");
         let q: Vec<String> = vec!["it's".into()];
         assert_eq!(command_line(&q), r"ogrep 'it'\''s'");
+    }
+
+    #[test]
+    fn a_leading_dash_is_attached_to_the_flag() {
+        let pat = |text| Pattern {
+            text,
+            fixed: true,
+            case: Case::Smart,
+            word: false,
+        };
+        let mut args = Vec::new();
+        pattern_arg(&pat("--noinput"), &mut args);
+        pattern_arg(&pat("noinput"), &mut args);
+        assert_eq!(args, ["--regexp=--noinput", "-e", "noinput"]);
     }
 }
