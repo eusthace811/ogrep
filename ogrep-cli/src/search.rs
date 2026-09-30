@@ -1395,6 +1395,7 @@ fn search_via_server(
                     terminator_len,
                 })?;
             } else if mtype == "binary" {
+                // The server sends the lines, if wanted, as rows of their own.
                 writer.write_binary_note(file, offset)?;
             } else {
                 let spans = m
@@ -2535,14 +2536,10 @@ fn search_decoded_file(
     }
 
     // Never dump raw binary to a terminal; ripgrep reports a note instead.
-    // JSON has no such note — the matches are emitted normally and the offset
-    // rides along on the `end` message — so only stop early for text output.
-    // A capture records the matches too: what it prints is decided later.
-    if let Some(off) = binary_offset {
-        writer.write_binary_note(rel_path, off)?;
-        if !writer.is_json() && !writer.is_capturing() {
-            return Ok(FileOutcome::Matched);
-        }
+    if let Some(off) = binary_offset
+        && !writer.write_binary_note(rel_path, off)?
+    {
+        return Ok(FileOutcome::Matched);
     }
 
     found.for_each(&match_opts, matcher, |emit| -> Result<()> {

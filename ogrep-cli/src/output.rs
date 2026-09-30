@@ -477,11 +477,6 @@ impl OutputWriter {
         self.total_matched_lines += matched_lines;
     }
 
-    /// Whether results are recorded rather than printed.
-    pub fn is_capturing(&self) -> bool {
-        self.capture.is_some()
-    }
-
     pub fn is_json(&self) -> bool {
         self.config.format == OutputFormat::Json
     }
@@ -507,28 +502,31 @@ impl OutputWriter {
     /// ripgrep prefixes the note with the file name the same way it prefixes a
     /// match line, and omits it entirely when file names are suppressed.
     ///
-    /// In JSON mode there is no note: ripgrep emits the matches as usual and
-    /// records the offset on the `end` message instead, so record it here and
-    /// let the caller go on to print the matches.
-    pub fn write_binary_note(&mut self, file: &str, offset: usize) -> io::Result<()> {
+    /// Returns whether the caller should go on to write the file's matching
+    /// lines. In JSON mode there is no note: ripgrep emits the matches as
+    /// usual and records the offset on the `end` message instead. A capture
+    /// records them for reshaping. Text output gets the note, never raw
+    /// binary.
+    pub fn write_binary_note(&mut self, file: &str, offset: usize) -> io::Result<bool> {
         if let Some(capture) = self.capture.as_mut() {
             capture.push(Captured::Binary {
                 file: file.to_string(),
                 offset,
             });
-            return Ok(());
+            return Ok(true);
         }
         if self.is_json() {
             self.ensure_json_begin(file)?;
             self.current_binary_offset = Some(offset as u64);
-            return Ok(());
+            return Ok(true);
         }
         let note = format!("binary file matches (found \"\\0\" byte around offset {offset})");
         if self.config.no_filename {
-            writeln!(self.stdout, "{note}")
+            writeln!(self.stdout, "{note}")?;
         } else {
-            writeln!(self.stdout, "{}: {note}", self.display_path(file))
+            writeln!(self.stdout, "{}: {note}", self.display_path(file))?;
         }
+        Ok(false)
     }
 
     /// Emit ripgrep's `begin` message when a new file starts producing output,

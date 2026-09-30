@@ -241,6 +241,11 @@ fn doc_drift_skips_release_notes_by_name_or_directory_only() {
         ("HISTORY.md", "Removed `missing_in_history_file`.\n"),
         ("docs/exchanges.md", "Call `missing_in_exchanges_doc`.\n"),
         ("docs/release_notes/v2.md", "Removed `missing_in_notes`.\n"),
+        ("MIGRATING.md", "Replace `missing_in_migrating`.\n"),
+        (
+            "docs/history-1.x.md",
+            "Removed `missing_in_history_notes`.\n",
+        ),
         ("lib.py", "def other():\n    pass\n"),
     ]);
     let out = stdout(ogrep(dir.path()).args(["--doc-drift", "."]));
@@ -252,6 +257,8 @@ fn doc_drift_skips_release_notes_by_name_or_directory_only() {
         "missing_in_changes",
         "missing_in_history_file",
         "missing_in_notes",
+        "missing_in_migrating",
+        "missing_in_history_notes",
     ] {
         assert!(!out.contains(&format!("`{skipped}`")), "{out:?}");
     }
@@ -472,6 +479,14 @@ fn tool_flags_are_exclusive_and_parse_as_documented() {
             &["--near", "x", "a", "b"],
             "--near takes one path at a time",
         ),
+        (
+            &["--rank-fit", "q.json", "-e", "x"],
+            "--rank-fit takes no pattern",
+        ),
+        (
+            &["--rank-fit", "q.json", ".", "b"],
+            "--rank-fit takes one path at a time",
+        ),
     ];
     for (args, message) in refused {
         ogrep(dir.path())
@@ -505,6 +520,27 @@ fn binary_files_count_the_same_with_and_without_reshaping() {
 }
 
 #[test]
+fn scope_is_taken_at_the_match_that_passes() {
+    let dir = TempDir::new().unwrap();
+    fs::write(
+        dir.path().join("t.js"),
+        "function a() { return \"x\" } function b() { x() }\n",
+    )
+    .unwrap();
+    let out = stdout(ogrep(dir.path()).args([
+        "--no-index",
+        "--json",
+        "--scope",
+        "--in",
+        "code",
+        "x",
+        "t.js",
+    ]));
+    assert!(out.contains(r#""name":"b""#), "{out}");
+    assert!(!out.contains(r#""name":"a""#), "{out}");
+}
+
+#[test]
 fn kind_and_zone_filters_decide_per_match() {
     let dir = TempDir::new().unwrap();
     fs::write(
@@ -518,6 +554,10 @@ fn kind_and_zone_filters_decide_per_match() {
     // Ranking sees only the kept reference, not the definition beside it.
     let ranked = run(&["--kind", "ref", "--rank", "--explain-rank", "get_qs"]);
     assert!(ranked.contains("def_lines=0"), "{ranked}");
+    // Nor do columns report the dropped definition.
+    let rows = run(&["--kind", "ref", "--vimgrep", "get_qs"]);
+    assert_eq!(rows.lines().count(), 1, "{rows}");
+    assert!(rows.starts_with("a.py:2:38:"), "{rows}");
     // The line has the word in a string and in a comment.
     assert!(run(&["--in", "comments", "token"]).contains("# token here"));
     let json = run(&["--in", "comments", "--json", "token"]);

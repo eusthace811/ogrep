@@ -1129,7 +1129,7 @@ impl Cli {
                 Subject,
                 Some(10),
             ),
-            tool(self.rank_fit.is_some(), "--rank-fit", Pattern, None),
+            tool(self.rank_fit.is_some(), "--rank-fit", Nothing, None),
         ]
         .into_iter()
         .flatten()
@@ -2225,6 +2225,10 @@ fn run_search(
 
 /// `--rank-fit`: learn --rank weights from examples and store them.
 fn run_rank_fit(cli: &Cli, file: &std::path::Path, resolved: &ResolvedArgs) -> anyhow::Result<()> {
+    // The positional argument is the repository; there is no pattern.
+    if !cli.paths.is_empty() {
+        anyhow::bail!("--rank-fit takes one path at a time");
+    }
     #[derive(serde::Deserialize)]
     struct Item {
         query: String,

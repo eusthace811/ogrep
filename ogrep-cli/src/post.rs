@@ -50,6 +50,22 @@ impl PostOptions {
             || self.callers
     }
 
+    /// Whether --kind or --in picks among the matches.
+    fn filters_matches(&self) -> bool {
+        self.kind.is_some() || self.zone.is_some()
+    }
+
+    /// Whether a match that is (`def`) or is not a definition, in `zone`,
+    /// passes --kind and --in.
+    fn passes(&self, def: bool, zone: ZoneFilter) -> bool {
+        let kind = match self.kind {
+            None => true,
+            Some(KindFilter::Def) => def,
+            Some(KindFilter::Ref) => !def,
+        };
+        kind && self.zone.is_none_or(|z| z == zone)
+    }
+
     /// `--callers` needs each use's enclosing definition.
     pub fn with_callers(mut self) -> Self {
         if self.callers {
@@ -96,11 +112,11 @@ struct MatchFacts {
 }
 
 /// What the structure says about `m`; the scope chain only when `--scope`
-/// will print it.
+/// will print it, taken where the first match that passes --kind and --in
+/// starts.
 #[cfg(feature = "structure")]
-fn facts(structure: &Structure, m: &Match, with_scope: bool) -> MatchFacts {
+fn facts(structure: &Structure, m: &Match, post: &PostOptions) -> MatchFacts {
     use ogrep_core::structure::Zone;
-    let offset = m.absolute_offset + m.spans.first().map_or(0, |s| s.0);
     let spans: Vec<(bool, ZoneFilter)> = m
         .spans
         .iter()
@@ -115,8 +131,12 @@ fn facts(structure: &Structure, m: &Match, with_scope: bool) -> MatchFacts {
         })
         .collect();
     let def = spans.iter().any(|&(def, _)| def);
-    let chain = if with_scope {
-        structure.enclosing(offset)
+    let chain = if post.scope {
+        let first = spans
+            .iter()
+            .position(|&(d, zone)| post.passes(d, zone))
+            .unwrap_or(0);
+        structure.enclosing(m.absolute_offset + m.spans.get(first).map_or(0, |s| s.0))
     } else {
         Vec::new()
     };
@@ -136,7 +156,7 @@ fn facts(structure: &Structure, m: &Match, with_scope: bool) -> MatchFacts {
 }
 
 #[cfg(not(feature = "structure"))]
-fn facts(_structure: &Structure, _m: &Match, _with_scope: bool) -> MatchFacts {
+fn facts(_structure: &Structure, _m: &Match, _post: &PostOptions) -> MatchFacts {
     unreachable!("no structure without the feature")
 }
 
@@ -168,15 +188,6 @@ fn read_text(rel: &str, root: &Path) -> Option<String> {
     String::from_utf8(std::fs::read(&path).ok()?).ok()
 }
 
-/// Whether a match that is (`def`) or is not a definition passes --kind.
-fn kind_matches(kind: Option<KindFilter>, def: bool) -> bool {
-    match kind {
-        None => true,
-        Some(KindFilter::Def) => def,
-        Some(KindFilter::Ref) => !def,
-    }
-}
-
 /// Annotate and filter one file's matches. `None` when no match survives.
 fn prepare(
     rel: String,
@@ -188,7 +199,7 @@ fn prepare(
     let facts: Vec<Option<MatchFacts>> = hits
         .matches
         .iter()
-        .map(|m| structure.as_ref().map(|s| facts(s, m, post.scope)))
+        .map(|m| structure.as_ref().map(|s| facts(s, m, post)))
         .collect();
 
     // A match passes when it is of the kind and in the zone asked for, and
@@ -198,30 +209,24 @@ fn prepare(
     // see them); without it the kind comes from a keyword heuristic over the
     // line, and the zone is taken to be code (never claiming a comment or
     // string).
-    let filtered = post.kind.is_some() || post.zone.is_some();
-    let passes = |d: bool, zone: ZoneFilter| {
-        kind_matches(post.kind, d) && post.zone.is_none_or(|z| z == zone)
-    };
+    let filtered = post.filters_matches();
     let mut scopes = Vec::new();
     let mut defs = Vec::new();
     let mut kept = Vec::new();
     for (mut m, f) in hits.matches.drain(..).zip(facts) {
         let def = match &f {
             Some(f) if filtered => {
-                let mut spans = f.spans.iter();
-                let mut def = false;
-                m.spans.retain(|_| {
-                    spans.next().is_some_and(|&(d, zone)| {
-                        let ok = passes(d, zone);
-                        def |= ok && d;
-                        ok
-                    })
-                });
-                if m.spans.is_empty() {
+                let keep: Vec<bool> = f.spans.iter().map(|&(d, z)| post.passes(d, z)).collect();
+                if !keep.contains(&true) {
                     continue;
                 }
+                // Columns run parallel to spans, one per match.
+                let mut flags = keep.iter();
+                m.spans.retain(|_| *flags.next().unwrap_or(&false));
+                let mut flags = keep.iter();
+                m.columns.retain(|_| *flags.next().unwrap_or(&false));
                 // The line is a definition only through the matches kept.
-                def
+                f.spans.iter().zip(&keep).any(|(&(d, _), &k)| k && d)
             }
             Some(f) => f.def,
             None => {
@@ -229,7 +234,7 @@ fn prepare(
                     .spans
                     .iter()
                     .any(|&(s, _)| rank::is_definition(&m.content, s));
-                if filtered && !passes(def, ZoneFilter::Code) {
+                if filtered && !post.passes(def, ZoneFilter::Code) {
                     continue;
                 }
                 def
@@ -323,14 +328,12 @@ pub(crate) fn emit_file(
         writer.write_count(rel, n)?;
         return Ok(());
     }
-    // A binary file's lines are not printed, only the note, as in a plain
-    // search (the capture keeps them for counting and filtering). JSON has
-    // no note: the matches go out as usual, the offset recorded on `end`.
-    if let Some(offset) = hits.binary {
-        writer.write_binary_note(rel, offset)?;
-        if !opts.json {
-            return Ok(());
-        }
+    // A binary file's lines are printed only where a plain search would
+    // print them (the capture keeps them for counting and filtering).
+    if let Some(offset) = hits.binary
+        && !writer.write_binary_note(rel, offset)?
+    {
+        return Ok(());
     }
     let lines: Vec<&str> = text.map(|t| t.lines().collect()).unwrap_or_default();
     let mut shown_lines: Vec<usize> = shown.iter().map(|&i| hits.matches[i].line_number).collect();
@@ -415,7 +418,7 @@ pub fn emit(
     post: &PostOptions,
     writer: &mut OutputWriter,
 ) -> Result<bool> {
-    let parses = post.scope || post.kind.is_some() || post.zone.is_some();
+    let parses = post.scope || post.filters_matches();
     let mut inputs: Vec<(String, FileHits, PathBuf, usize)> = Vec::new();
     let mut caches: Vec<(Option<PathBuf>, Option<ogrep_core::facts::FactStore>)> = Vec::new();
     for c in captured {

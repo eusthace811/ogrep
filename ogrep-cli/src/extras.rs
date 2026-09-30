@@ -507,7 +507,8 @@ fn doc_drift(
     // Release notes and changelogs name removed things on purpose. A file
     // is one when a word of its name (CHANGELOG.md, release_notes_2.0.md,
     // UPGRADING.md) or of a directory it sits in (changelog.d/, .changes/,
-    // docs/release-notes/, upgrade-guides/) is one of these; a keyword inside
+    // docs/release-notes/, upgrade-guides/) is one of these, or the name has
+    // the word history (HISTORY.rst, history-1.x.md); a keyword inside
     // another word (src/exchanges/, prerelease.md) does not count, and a
     // directory named history is documentation about the past, not notes.
     const NOTES: &[&str] = &[
@@ -525,17 +526,19 @@ fn doc_drift(
         "upgrade",
         "upgrades",
         "upgrading",
+        "migrate",
+        "migrating",
         "migration",
         "migrations",
     ];
     let historical = |f: &str| {
         let l = f.to_ascii_lowercase();
         let (dirs, name) = l.rsplit_once('/').unwrap_or(("", &l));
-        let words = |s: &str| {
+        fn words(s: &str) -> impl Iterator<Item = &str> {
             s.split(|c: char| !c.is_ascii_alphanumeric())
-                .any(|w| NOTES.contains(&w))
-        };
-        words(name) || name.split('.').next() == Some("history") || dirs.split('/').any(words)
+        }
+        words(name).any(|w| w == "history" || NOTES.contains(&w))
+            || words(dirs).any(|w| NOTES.contains(&w))
     };
     let docs: Vec<&String> = files
         .iter()
