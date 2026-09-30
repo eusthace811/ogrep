@@ -411,7 +411,10 @@ pub fn emit(
             prepare(rel, hits, l, post)
         })
         .collect();
-    for ((dir, _), facts) in caches.iter().zip(new_facts) {
+    for ((dir, store), facts) in caches.iter_mut().zip(new_facts) {
+        // Unmap the store first: put replaces its index.bin, which Windows
+        // refuses while this process still maps it.
+        *store = None;
         if let Some(dir) = dir {
             let _ = ogrep_core::facts::FactStore::put(dir, ogrep_core::facts::STRUCTURE, facts);
         }

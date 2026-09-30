@@ -279,3 +279,26 @@ fn changed_since_is_refused_by_tools_that_would_ignore_it() {
             "--changed-since cannot be combined with --near",
         ));
 }
+
+#[test]
+fn at_revision_refuses_what_would_read_the_working_tree() {
+    let dir = repo(&[("a.py", "def f():\n    return 1\n")]);
+    for flags in [
+        &["--scope"][..],
+        &["--kind", "def"],
+        &["--files"],
+        &["--near"],
+    ] {
+        ogrep(dir.path())
+            .args(["--at", "HEAD"])
+            .args(flags)
+            .arg("f")
+            .assert()
+            .code(2)
+            .stderr(predicates::str::contains("--at cannot be combined with"));
+    }
+    ogrep(dir.path())
+        .args(["--at", "HEAD", "--rank", "f"])
+        .assert()
+        .code(0);
+}

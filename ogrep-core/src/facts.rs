@@ -28,10 +28,10 @@ const ENTRY: usize = 16 + 8 + 4;
 /// encoding or its key changes. Defined here, outside the parser-gated
 /// module, so builds without the parsers name the same store.
 ///
-/// Stores for earlier versions are left in place: another ogrep build sharing
+/// Stores for other versions are left in place: another ogrep build sharing
 /// the index may still use one, and deleting a store under a running process
 /// cannot be made safe with file locks alone. They are only disk space;
-/// removing one by hand is safe when no older ogrep is running.
+/// removing one by hand is safe when no other ogrep version is running.
 pub const STRUCTURE: &str = "structure-v2";
 
 /// A new entry for a store: content id and payload.
@@ -180,17 +180,15 @@ mod tests {
         // Other versions' stores may belong to another ogrep sharing the
         // index; deleting them would have the two wipe each other's caches.
         let dir = tempfile::tempdir().unwrap();
+        let id = ContentId::from_indexed_bytes(b"x");
         let others = ["structure-v1", "structure-v9", "other-v1"];
         for store in others {
-            std::fs::create_dir_all(dir.path().join("facts").join(store)).unwrap();
+            FactStore::put(dir.path(), store, vec![(id, store.as_bytes().to_vec())]).unwrap();
         }
-        let id = ContentId::from_indexed_bytes(b"x");
         FactStore::put(dir.path(), "structure-v2", vec![(id, b"payload".to_vec())]).unwrap();
         for store in others {
-            assert!(
-                dir.path().join("facts").join(store).is_dir(),
-                "{store} kept"
-            );
+            let kept = FactStore::open(dir.path(), store);
+            assert_eq!(kept.get(&id), Some(store.as_bytes()), "{store} kept");
         }
     }
 

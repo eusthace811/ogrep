@@ -666,9 +666,12 @@ are never read. It also applies to `--files`, `--rank`, `--scope`, `--kind`,
 
 **`--at REV`** searches the files as they were at a commit, tag or branch,
 reading git's object store directly: no index and no checkout. Globs, types,
-`--max-filesize`, `--hidden`, `--rank` and every output format work as usual;
+`--max-filesize`, `--hidden`, `--rank` and the output formats work as usual;
 as in a working-tree search, hidden files are skipped unless `--hidden` is
-given.
+given, though `.ignore` files are not applied. Paths must exist in the working
+tree. Whatever reads the working tree after the search refuses `--at`:
+`--files`, `--scope`, `--kind`, `--in`, `--callers`, and the graph,
+repository and operations tools.
 
 ### Check status
 
@@ -1153,7 +1156,7 @@ exit code determined by the search alone. Suppress the message with
 | `index.bin` | Concatenated posting lists: `file_id(u32)` per entry |
 | `files.bin` | Version 3 header, then `file_id(u32) + path_len(u16) + path_bytes`; legacy headerless tables remain readable |
 | `files-extra.bin` | Version 2 filename-only paths, visibility, and file-table identity |
-| `facts/structure-v2/` | Cache of parsed file structure, keyed by grammar and content: `index.bin` (sorted key, offset, length) and `data.bin` (payloads). A store with a lower version (`structure-v1`) belongs to an older ogrep and is never read by this one; it is left in place in case that ogrep still shares the index, and can be deleted when none is running |
+| `facts/structure-v2/` | Cache of parsed file structure, keyed by grammar and content: `index.bin` (sorted key, offset, length) and `data.bin` (payloads). A store with another version (such as `structure-v1`) belongs to another ogrep release and is never read by this one; it is left in place in case that release still shares the index, and can be deleted when none is running |
 | `rank-weights.json` | Weights fitted by `--rank-fit`, used by `--rank` |
 | `graph/graph.bin` | File graph (`ogrep index --graph`): files, links, PageRank, definitions |
 | `history/` | History index (`ogrep index --history`): an index of commit diffs, `history.json` and `chunks.json` |

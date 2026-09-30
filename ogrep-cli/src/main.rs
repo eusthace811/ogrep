@@ -1445,10 +1445,31 @@ fn run_cli() {
         eprintln!("ogrep: --at cannot be combined with --history, --introduced or --changed-since");
         process::exit(2);
     }
-    // --changed-since narrows which files a search reads. The graph,
-    // repository and operations tools gather their own inputs, so rather
-    // than ignore it silently they refuse it.
-    if cli.changed_since.is_some() {
+    // --changed-since and --at narrow or move the files a search reads. The
+    // graph, repository and operations tools gather their own inputs from
+    // the working tree, so rather than ignore either silently they refuse it.
+    // --at also refuses what reads the working-tree file after the search
+    // (--scope, --kind, --in, --callers parse it; --files lists the tree).
+    if cli.at.is_some() {
+        let working_tree = [
+            (cli.list_files, "--files"),
+            (cli.scope, "--scope"),
+            (cli.kind.is_some(), "--kind"),
+            (cli.in_zone.is_some(), "--in"),
+            (cli.callers, "--callers"),
+        ];
+        if let Some((_, flag)) = working_tree.iter().find(|(set, _)| *set) {
+            eprintln!("ogrep: --at cannot be combined with {flag}");
+            process::exit(2);
+        }
+    }
+    if let Some(flag) = [
+        (cli.changed_since.is_some(), "--changed-since"),
+        (cli.at.is_some(), "--at"),
+    ]
+    .iter()
+    .find_map(|&(set, flag)| set.then_some(flag))
+    {
         let tools = [
             (cli.near, "--near"),
             (cli.map.is_some(), "--map"),
@@ -1466,8 +1487,8 @@ fn run_cli() {
             (cli.similar_incidents, "--similar-incidents"),
             (cli.rank_fit.is_some(), "--rank-fit"),
         ];
-        if let Some((_, flag)) = tools.iter().find(|(set, _)| *set) {
-            eprintln!("ogrep: --changed-since cannot be combined with {flag}");
+        if let Some((_, tool)) = tools.iter().find(|(set, _)| *set) {
+            eprintln!("ogrep: {flag} cannot be combined with {tool}");
             process::exit(2);
         }
     }
