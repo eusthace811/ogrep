@@ -209,7 +209,12 @@ pub fn feature(ws: &Workspace, req: &Request) -> Result<Value, String> {
     );
     let q = req.param("q").unwrap_or("");
     match mode {
-        "doc-drift" | "conflicts" => {}
+        // They take no subject, but ogrep's arguments need a pattern: for
+        // --doc-drift it filters the names checked, and "." checks them all.
+        "doc-drift" | "conflicts" => {
+            let filter = if q.is_empty() { "." } else { q };
+            args.extend(["--".into(), filter.to_string()]);
+        }
         _ if verbatim => {
             if q.is_empty() {
                 return Err("type a name".into());

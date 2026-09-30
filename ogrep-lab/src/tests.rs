@@ -251,9 +251,9 @@ fn server_trades_the_token_for_a_cookie() {
     let launch = request(&format!("/?token={token}"), None);
     assert!(launch.starts_with("HTTP/1.1 303"));
     assert!(launch.contains(&format!(
-        "Set-Cookie: ogrep_lab={token}; Path=/; HttpOnly; SameSite=Strict"
+        "Set-Cookie: ogrep_lab_{port}={token}; Path=/; HttpOnly; SameSite=Strict"
     )));
-    let cookie = format!("ogrep_lab={token}");
+    let cookie = format!("ogrep_lab_{port}={token}");
     let page = request("/", Some(&cookie));
     assert!(page.starts_with("HTTP/1.1 200") && page.contains("<title>ogrep lab</title>"));
     assert!(page.contains("Content-Security-Policy: default-src 'self'"));

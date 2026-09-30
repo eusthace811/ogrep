@@ -19,7 +19,11 @@ use std::time::Duration;
 const MAX_HEAD: usize = 32 * 1024;
 const MAX_BODY: usize = 4 * 1024 * 1024;
 const MAX_CONNECTIONS: usize = 64;
-pub const COOKIE: &str = "ogrep_lab";
+/// The session cookie's name. Browsers share cookies between ports on one
+/// host, so each server names its own, and two labs do not evict each other.
+pub fn cookie_name(port: u16) -> String {
+    format!("ogrep_lab_{port}")
+}
 
 pub struct Request {
     pub method: String,
@@ -239,11 +243,14 @@ fn respond(req: &Request, port: u16, token: &str, handler: &Handler) -> Response
         }
         return Response::redirect("/").with_header(
             "Set-Cookie",
-            format!("{COOKIE}={token}; Path=/; HttpOnly; SameSite=Strict"),
+            format!(
+                "{}={token}; Path=/; HttpOnly; SameSite=Strict",
+                cookie_name(port)
+            ),
         );
     }
     let authorized = req
-        .cookie(COOKIE)
+        .cookie(&cookie_name(port))
         .is_some_and(|c| constant_time_eq(c.as_bytes(), token.as_bytes()));
     if !authorized {
         return Response::bytes(
@@ -412,11 +419,14 @@ mod tests {
             let req = read_request(&mut raw.as_bytes()).ok().unwrap();
             respond(&req, 9, "t0k", &handler).status
         };
-        assert_eq!(get("evil.example:9", Some("ogrep_lab=t0k"), "/api/x"), 403);
-        assert_eq!(get("127.0.0.1:9", None, "/api/x"), 403);
-        assert_eq!(get("127.0.0.1:9", Some("ogrep_lab=nope"), "/api/x"), 403);
         assert_eq!(
-            get("127.0.0.1:9", Some("a=b; ogrep_lab=t0k"), "/api/x"),
+            get("evil.example:9", Some("ogrep_lab_9=t0k"), "/api/x"),
+            403
+        );
+        assert_eq!(get("127.0.0.1:9", None, "/api/x"), 403);
+        assert_eq!(get("127.0.0.1:9", Some("ogrep_lab_9=nope"), "/api/x"), 403);
+        assert_eq!(
+            get("127.0.0.1:9", Some("a=b; ogrep_lab_9=t0k"), "/api/x"),
             200
         );
         assert_eq!(get("localhost:9", None, "/?token=t0k"), 303);
@@ -428,7 +438,7 @@ mod tests {
         let handler = |_: &Request| Response::json(&serde_json::json!({}));
         let post = |ty: &str| {
             let raw = format!(
-                "POST /api/x HTTP/1.1\r\nHost: 127.0.0.1:9\r\nCookie: ogrep_lab=t\r\n\
+                "POST /api/x HTTP/1.1\r\nHost: 127.0.0.1:9\r\nCookie: ogrep_lab_9=t\r\n\
                  Content-Type: {ty}\r\nContent-Length: 2\r\n\r\n{{}}"
             );
             let req = read_request(&mut raw.as_bytes()).ok().unwrap();

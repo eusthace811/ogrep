@@ -40,11 +40,16 @@ pub struct Pattern<'a> {
 }
 
 impl Pattern<'_> {
+    /// ogrep's own smart-case rule: only literal characters count, so the
+    /// `S` in `\S` or the `Lu` in `\p{Lu}` does not make a pattern
+    /// case-sensitive.
     pub fn ignores_case(&self) -> bool {
         match self.case {
             Case::Sensitive => false,
             Case::Insensitive => true,
-            Case::Smart => !self.text.chars().any(char::is_uppercase),
+            Case::Smart => {
+                query::LiteralCase::of_all(&[self.text], self.fixed, false).ignores_case()
+            }
         }
     }
 
@@ -125,9 +130,9 @@ pub fn explain(ws: &Workspace, pat: &Pattern) -> Result<Value, String> {
 
     let t_plan = Instant::now();
     let plan = if pat.fixed {
-        query::build_literal_plan(pat.text, ci)
+        query::build_multi_pattern_plan(&[pat.text.to_string()], true, ci)?
     } else {
-        query::build_query_plan(pat.text, ci)?
+        plan_alternatives(pat.text, ci)?
     };
     let plan_us = t_plan.elapsed().as_micros();
     let verifier = pat.regex()?;
@@ -217,6 +222,29 @@ pub fn explain(ws: &Workspace, pat: &Pattern) -> Result<Value, String> {
         "work": work,
         "timing": { "plan_us": plan_us, "index_us": index_us, "verify_ms": verify_ms },
     }))
+}
+
+/// The plan ogrep builds for a regex: a top-level alternation of groups is
+/// planned branch by branch, anything else as one pattern. A copy of
+/// `plan_alternatives` in ogrep-cli's matching.rs, which stays out of
+/// ogrep-core for index build speed; keep the two in step.
+fn plan_alternatives(pattern: &str, ci: bool) -> Result<QueryPlan, String> {
+    use regex_syntax::ast::Ast;
+    let parsed = regex_syntax::ast::parse::Parser::new().parse(pattern);
+    if let Ok(Ast::Alternation(alternation)) = &parsed
+        && alternation
+            .asts
+            .iter()
+            .all(|ast| matches!(ast, Ast::Group(_)))
+    {
+        let branches: Vec<String> = alternation
+            .asts
+            .iter()
+            .map(|ast| pattern[ast.span().start.offset..ast.span().end.offset].to_string())
+            .collect();
+        return query::build_multi_pattern_plan(&branches, false, ci);
+    }
+    query::build_query_plan(pattern, ci)
 }
 
 fn count_matching_lines(re: &regex::bytes::Regex, data: &[u8]) -> usize {
@@ -343,6 +371,19 @@ mod tests {
         let names = gram_names(&pat);
         let key = sparse::key_folding(b"_upd");
         assert_eq!(names.get(&key).map(String::as_str), Some("_upd"));
+    }
+
+    #[test]
+    fn smart_case_counts_only_literals_as_ogrep_does() {
+        let smart = |text| Pattern {
+            text,
+            fixed: false,
+            case: Case::Smart,
+            word: false,
+        };
+        assert!(smart(r"\Sfoo").ignores_case(), "the S of an escape is not text");
+        assert!(smart(r"\p{Lu}x").ignores_case(), "nor is a class name");
+        assert!(!smart("Foo").ignores_case());
     }
 
     #[test]
