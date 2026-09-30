@@ -50,9 +50,7 @@ struct CommitHits {
 pub fn resolve_when(root: &Path, when: &str, until: bool) -> Result<i64> {
     let expanded = expand_duration(when).unwrap_or_else(|| when.to_string());
     let flag = if until { "--until" } else { "--since" };
-    let out = std::process::Command::new("git")
-        .arg("-C")
-        .arg(root)
+    let out = history::git(root)
         .args(["rev-parse", &format!("{flag}={expanded}")])
         .output()
         .context("running git")?;
@@ -106,9 +104,7 @@ fn describe(root: &Path, commits: &mut [CommitHits]) -> Result<()> {
     if commits.is_empty() {
         return Ok(());
     }
-    let mut child = std::process::Command::new("git")
-        .arg("-C")
-        .arg(root)
+    let mut child = history::git(root)
         .args([
             "log",
             "--no-walk=unsorted",
@@ -546,9 +542,7 @@ pub fn search_at(
     let repo = history::repo_root(root)
         .map_err(|e| anyhow::anyhow!("--at needs a git repository: {e}"))?;
     let prefix = scope_prefix(&repo, root);
-    let tree = std::process::Command::new("git")
-        .arg("-C")
-        .arg(&repo)
+    let tree = history::git(&repo)
         .args(["ls-tree", "-r", "-z", "-l", "--full-tree", rev])
         .output()
         .context("running git ls-tree")?;
@@ -596,9 +590,7 @@ pub fn search_at(
 
     let matcher = opts.matcher(ci)?;
     let filter = opts.file_filter(ci)?;
-    let mut child = std::process::Command::new("git")
-        .arg("-C")
-        .arg(&repo)
+    let mut child = history::git(&repo)
         .args(["cat-file", "--batch"])
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
@@ -652,25 +644,8 @@ pub fn changed_paths(
 ) -> Result<Option<std::collections::HashSet<String>>> {
     let repo = history::repo_root(root)
         .map_err(|e| anyhow::anyhow!("--changed-since needs a git repository: {e}"))?;
-    let git = |args: &[&str]| -> Result<Vec<u8>> {
-        let out = std::process::Command::new("git")
-            .arg("-C")
-            .arg(&repo)
-            .args(args)
-            .output()
-            .context("running git")?;
-        if !out.status.success() {
-            bail!(
-                "git {}: {}",
-                args.join(" "),
-                String::from_utf8_lossy(&out.stderr).trim()
-            );
-        }
-        Ok(out.stdout)
-    };
-    let is_rev = std::process::Command::new("git")
-        .arg("-C")
-        .arg(&repo)
+    let git = |args: &[&str]| history::git_output(&repo, args);
+    let is_rev = history::git(&repo)
         .args([
             "rev-parse",
             "--verify",
@@ -684,7 +659,7 @@ pub fn changed_paths(
     } else {
         let time = resolve_when(&repo, since, false)?;
         let before = git(&["rev-list", "-1", &format!("--before={time}"), "HEAD"])?;
-        let rev = String::from_utf8_lossy(&before).trim().to_string();
+        let rev = before.trim().to_string();
         if rev.is_empty() {
             return Ok(None);
         }
@@ -696,13 +671,12 @@ pub fn changed_paths(
         git(&["diff", "--name-only", "-z", "--no-renames", &rev])?,
         git(&["ls-files", "--others", "--exclude-standard", "-z"])?,
     ] {
-        for path in listing.split(|&b| b == 0).filter(|p| !p.is_empty()) {
-            let path = String::from_utf8_lossy(path);
-            if !in_scope(&prefix, &path) {
+        for path in listing.split('\0').filter(|p| !p.is_empty()) {
+            if !in_scope(&prefix, path) {
                 continue;
             }
             let rel = if prefix.is_empty() {
-                path.into_owned()
+                path.to_string()
             } else {
                 path[prefix.len()..].trim_start_matches('/').to_string()
             };

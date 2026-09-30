@@ -120,3 +120,22 @@ fn tools_capture_lines_whatever_the_output_flags() {
         .code(0)
         .stdout(plain);
 }
+
+#[test]
+fn repository_tools_read_non_ascii_paths() {
+    // git quotes such names ("src/caf\303\251.py") unless told not to.
+    let dir = repo(&[
+        ("café.py", "def brew_coffee():\n    return 1\n"),
+        (
+            "test_café.py",
+            "from café import brew_coffee\n\ndef test_brew():\n    brew_coffee()\n",
+        ),
+    ]);
+    ogrep(dir.path())
+        .args(["index", "--graph", "."])
+        .assert()
+        .success();
+    let out = stdout(ogrep(dir.path()).args(["--related-tests", "café.py"]));
+    assert!(out.contains("test_café.py"), "{out:?}");
+    assert!(!out.contains("\\303"), "{out:?}");
+}

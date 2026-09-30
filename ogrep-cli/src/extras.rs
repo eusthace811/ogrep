@@ -16,25 +16,13 @@ pub enum Mode {
     DocDrift,
 }
 
-fn repo_of(root: &Path) -> Result<PathBuf> {
+/// The repository containing `root`.
+pub(crate) fn repo_of(root: &Path) -> Result<PathBuf> {
     ogrep_core::history::repo_root(root).map_err(|e| anyhow!("this needs a git repository: {e}"))
 }
 
 fn git(repo: &Path, args: &[&str]) -> Result<String> {
-    let out = std::process::Command::new("git")
-        .arg("-C")
-        .arg(repo)
-        .args(args)
-        .output()
-        .context("running git")?;
-    if !out.status.success() {
-        bail!(
-            "git {}: {}",
-            args.join(" "),
-            String::from_utf8_lossy(&out.stderr).trim()
-        );
-    }
-    Ok(String::from_utf8_lossy(&out.stdout).into_owned())
+    Ok(ogrep_core::history::git_output(repo, args)?)
 }
 
 fn index_dir(root: &Path, index_path: Option<&Path>) -> PathBuf {
@@ -65,10 +53,7 @@ pub fn run(
 }
 
 fn tracked(repo: &Path) -> Result<Vec<String>> {
-    Ok(git(repo, &["ls-files"])?
-        .lines()
-        .map(String::from)
-        .collect())
+    Ok(ogrep_core::history::ls_files(repo, false)?)
 }
 
 /// A path relative to the repository root, from an argument given relative to

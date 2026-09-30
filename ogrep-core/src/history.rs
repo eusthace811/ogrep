@@ -207,7 +207,10 @@ pub fn history_dir(index_dir: &Path) -> PathBuf {
     index_dir.join(HISTORY_DIR)
 }
 
-fn git(root: &Path) -> Command {
+/// `git -C ROOT` with paths printed unquoted (non-ASCII names come back as
+/// UTF-8, not `"caf\303\251"`), no colour and no standard input. Every git
+/// call ogrep makes starts here.
+pub fn git(root: &Path) -> Command {
     let mut cmd = Command::new("git");
     cmd.arg("-C")
         .arg(root)
@@ -217,7 +220,9 @@ fn git(root: &Path) -> Command {
     cmd
 }
 
-fn git_output(root: &Path, args: &[&str]) -> Result<String> {
+/// Run `git ARGS` in `root` and return its output, or its complaint as the
+/// error.
+pub fn git_output(root: &Path, args: &[&str]) -> Result<String> {
     let out = git(root).args(args).output()?;
     if !out.status.success() {
         return Err(Error::Io(std::io::Error::other(format!(
@@ -227,6 +232,20 @@ fn git_output(root: &Path, args: &[&str]) -> Result<String> {
         ))));
     }
     Ok(String::from_utf8_lossy(&out.stdout).into_owned())
+}
+
+/// Files git knows in the work tree: tracked ones, plus untracked ones not
+/// ignored when `untracked` is set. Paths are relative to `repo`.
+pub fn ls_files(repo: &Path, untracked: bool) -> Result<Vec<String>> {
+    let mut args = vec!["ls-files", "-z", "--cached"];
+    if untracked {
+        args.extend(["--others", "--exclude-standard"]);
+    }
+    Ok(git_output(repo, &args)?
+        .split('\0')
+        .filter(|p| !p.is_empty())
+        .map(String::from)
+        .collect())
 }
 
 /// The work tree's top directory.

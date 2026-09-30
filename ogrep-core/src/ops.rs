@@ -710,9 +710,7 @@ pub struct Change {
 
 /// Commits since `since` (UNIX time) and the files each touched.
 pub fn recent_changes(root: &Path, since: i64) -> Vec<Change> {
-    let out = std::process::Command::new("git")
-        .arg("-C")
-        .arg(root)
+    let out = crate::history::git(root)
         .args([
             "log",
             "--no-merges",

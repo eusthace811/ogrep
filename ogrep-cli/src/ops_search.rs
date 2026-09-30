@@ -2,9 +2,9 @@
 //! `--timeline`, `--trace`, `--log-templates` and `--similar-incidents`.
 
 use std::io::{BufWriter, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{Context, Result, bail};
 use ogrep_core::ops::{self, OpsModel};
 
 use crate::search::SearchOptions;
@@ -24,29 +24,10 @@ pub enum Mode {
 }
 
 fn tracked_files(repo: &Path) -> Result<Vec<String>> {
-    let out = std::process::Command::new("git")
-        .arg("-C")
-        .arg(repo)
-        .args([
-            "ls-files",
-            "-z",
-            "--cached",
-            "--others",
-            "--exclude-standard",
-        ])
-        .output()
-        .context("running git ls-files")?;
-    Ok(out
-        .stdout
-        .split(|&b| b == 0)
-        .filter(|p| !p.is_empty())
-        .map(|p| String::from_utf8_lossy(p).into_owned())
-        .collect())
+    Ok(ogrep_core::history::ls_files(repo, true)?)
 }
 
-fn repo_of(root: &Path) -> Result<PathBuf> {
-    ogrep_core::history::repo_root(root).map_err(|e| anyhow!("this needs a git repository: {e}"))
-}
+use crate::extras::repo_of;
 
 fn model(repo: &Path) -> Result<(OpsModel, Vec<String>)> {
     let files = tracked_files(repo)?;
@@ -486,9 +467,7 @@ fn emitter(repo: &Path, constant: &str) -> Option<(String, usize, String)> {
         tries.push(tokens[cut..].join(" "));
     }
     for needle in tries.into_iter().filter(|n| n.len() >= 8) {
-        let out = std::process::Command::new("git")
-            .arg("-C")
-            .arg(repo)
+        let out = ogrep_core::history::git(repo)
             .args(["grep", "-n", "-F", "-I", "--", &needle])
             .output()
             .ok()?;
