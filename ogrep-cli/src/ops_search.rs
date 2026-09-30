@@ -361,11 +361,18 @@ fn log_templates(
         .into_iter()
         .filter(|t| cutoff.is_none_or(|c| t.first_seen.is_some_and(|f| f >= c)))
         .collect();
-    for t in &templates {
-        let code = match (to_code, repo) {
-            (true, Some(repo)) => emitter(repo, &t.constant_part()),
-            _ => None,
-        };
+    // Each template's search of the code is independent: run them together.
+    let codes: Vec<Option<(String, usize, String)>> = match (to_code, repo) {
+        (true, Some(repo)) => {
+            use rayon::prelude::*;
+            templates
+                .par_iter()
+                .map(|t| emitter(repo, &t.constant_part()))
+                .collect()
+        }
+        _ => vec![None; templates.len()],
+    };
+    for (t, code) in templates.iter().zip(codes) {
         if opts.json {
             let msg = serde_json::json!({"type": "template", "data": {
                 "template": t.text(), "count": t.count, "first_seen": t.first_seen, "last_seen": t.last_seen,
