@@ -39,15 +39,24 @@ use output::ColorMode;
 /// module, which drives the exit code.
 static ERRORED: AtomicBool = AtomicBool::new(false);
 
-/// A tool flag (see [`Cli::tools`]).
+/// A tool flag (see [`Cli::tools`]). Every tool works on one path.
 struct Tool {
     flag: &'static str,
-    /// Takes one name, path or service as the pattern argument.
-    one_subject: bool,
-    /// Works on one path argument.
-    one_path: bool,
-    /// Searches history (--history, --introduced), with checks of its own.
-    history: bool,
+    takes: Takes,
+    /// The default of `--budget`, when it sets how many results the tool
+    /// prints (rather than implying --rank).
+    budget: Option<usize>,
+}
+
+/// What a tool reads from the pattern argument.
+#[derive(Clone, Copy, PartialEq)]
+enum Takes {
+    /// A search pattern, from the argument, -e, -f or --ident.
+    Pattern,
+    /// One name, path or service, from the argument only.
+    Subject,
+    /// Nothing: a positional argument is the path.
+    Nothing,
 }
 
 #[derive(Parser)]
@@ -124,7 +133,9 @@ struct Cli {
     #[arg(long = "rank")]
     rank: bool,
 
-    /// With --rank: print at most this many files (default 20). Implies --rank.
+    /// With --rank: print at most this many files (default 20). Implies --rank,
+    /// except with --near, --related-tests, --similar and --similar-incidents,
+    /// where it is how many results they print (default 20, 15, 15 and 10).
     #[arg(long = "budget", value_name = "FILES", value_parser = clap::value_parser!(u64).range(1..))]
     budget: Option<u64>,
 
@@ -1088,42 +1099,47 @@ impl Cli {
     /// The tool flags given: modes that answer their own question instead
     /// of printing matching lines. More than one is refused.
     fn tools(&self) -> Vec<Tool> {
-        let tool = |set: bool, flag, one_subject, one_path, history| {
+        use Takes::*;
+        let tool = |set: bool, flag, takes, budget| {
             set.then_some(Tool {
                 flag,
-                one_subject,
-                one_path,
-                history,
+                takes,
+                budget,
             })
         };
         [
-            tool(self.history, "--history", false, true, true),
-            tool(self.introduced, "--introduced", false, true, true),
-            tool(self.near, "--near", false, true, false),
-            tool(self.map.is_some(), "--map", false, true, false),
-            tool(self.callees, "--callees", true, true, false),
-            tool(self.related_tests, "--related-tests", true, true, false),
-            tool(self.similar, "--similar", true, true, false),
-            tool(self.conflicts, "--conflicts", false, true, false),
-            tool(self.doc_drift, "--doc-drift", false, true, false),
-            tool(self.entities, "--entities", false, true, false),
-            tool(self.blast, "--blast", true, true, false),
-            tool(self.suspects, "--suspects", true, true, false),
-            tool(self.timeline, "--timeline", true, true, false),
-            tool(self.stack_trace, "--stack-trace", true, true, false),
-            tool(self.log_templates, "--log-templates", false, true, false),
+            tool(self.history, "--history", Pattern, None),
+            tool(self.introduced, "--introduced", Pattern, None),
+            tool(self.near, "--near", Pattern, Some(20)),
+            tool(self.map.is_some(), "--map", Pattern, None),
+            tool(self.callees, "--callees", Subject, None),
+            tool(self.related_tests, "--related-tests", Subject, Some(15)),
+            tool(self.similar, "--similar", Subject, Some(15)),
+            tool(self.conflicts, "--conflicts", Nothing, None),
+            tool(self.doc_drift, "--doc-drift", Pattern, None),
+            tool(self.entities, "--entities", Pattern, None),
+            tool(self.blast, "--blast", Subject, None),
+            tool(self.suspects, "--suspects", Subject, None),
+            tool(self.timeline, "--timeline", Subject, None),
+            tool(self.stack_trace, "--stack-trace", Subject, None),
+            tool(self.log_templates, "--log-templates", Pattern, None),
             tool(
                 self.similar_incidents,
                 "--similar-incidents",
-                true,
-                true,
-                false,
+                Subject,
+                Some(10),
             ),
-            tool(self.rank_fit.is_some(), "--rank-fit", false, false, false),
+            tool(self.rank_fit.is_some(), "--rank-fit", Pattern, None),
         ]
         .into_iter()
         .flatten()
         .collect()
+    }
+
+    /// The result count of a tool that takes `--budget` as one.
+    fn tool_budget(&self) -> usize {
+        let default = self.tools().first().and_then(|t| t.budget).unwrap_or(20);
+        self.budget.map_or(default, |b| b as usize)
     }
 
     /// Whether a flag (`-e`, `-f`, `--ident`) supplies the pattern, so every
@@ -1176,10 +1192,9 @@ impl Cli {
     /// The `--rank` settings, when ranking was asked for (directly or through a
     /// flag that implies it).
     fn rank_options(&self) -> Option<rank::RankOptions> {
-        // --budget is the result count of --near, --related-tests, --similar
-        // and --similar-incidents; only elsewhere does it imply --rank.
-        let budget_is_rank =
-            !(self.near || self.related_tests || self.similar || self.similar_incidents);
+        // --budget is the result count of the tools that take one; only
+        // elsewhere does it imply --rank.
+        let budget_is_rank = !self.tools().iter().any(|t| t.budget.is_some());
         let wanted = self.rank
             || (self.budget.is_some() && budget_is_rank)
             || self.per_file.is_some()
@@ -1523,7 +1538,7 @@ fn run_cli() {
     // results, so the search's reshaping and -q do not apply to them, and
     // --changed-since and --at, which narrow or move the files a search
     // reads, would be ignored: they gather their inputs from the tree.
-    if let Some(tool) = tools.first().filter(|t| !t.history) {
+    if let Some(tool) = tools.first().filter(|_| !history) {
         let refused = [
             (
                 cli.post_options().active(),
@@ -1543,16 +1558,21 @@ fn run_cli() {
             eprintln!("ogrep: {flag} cannot be combined with {}", tool.flag);
             process::exit(2);
         }
-        if tool.one_subject && cli.pattern_from_flags() {
-            eprintln!(
-                "ogrep: {} takes its subject as the pattern argument, not -e, -f or --ident",
-                tool.flag
-            );
-            process::exit(2);
-        }
-        if tool.flag == "--conflicts" && cli.pattern_from_flags() {
-            eprintln!("ogrep: --conflicts takes no pattern");
-            process::exit(2);
+        if cli.pattern_from_flags() {
+            match tool.takes {
+                Takes::Pattern => {}
+                Takes::Subject => {
+                    eprintln!(
+                        "ogrep: {} takes its subject as the pattern argument, not -e, -f or --ident",
+                        tool.flag
+                    );
+                    process::exit(2);
+                }
+                Takes::Nothing => {
+                    eprintln!("ogrep: {} takes no pattern", tool.flag);
+                    process::exit(2);
+                }
+            }
         }
     }
 
@@ -1804,7 +1824,7 @@ fn run_cli() {
                 let opts = cli.build_search_opts(String::new(), &resolved);
                 let paths = list_files_paths(&cli);
                 list_files(&cli, &paths, &opts)
-            } else if cli.conflicts && !cli.pattern_from_flags() {
+            } else if cli.conflicts {
                 // --conflicts takes no pattern: a positional is the path.
                 let paths: Vec<String> = cli.pattern.iter().chain(&cli.paths).cloned().collect();
                 run_search(&cli, ".".to_string(), &paths, &resolved)
@@ -2048,7 +2068,7 @@ fn run_search(
         || (!cli.with_filename && !cli.vimgrep && targets.len() == 1 && targets[0].path.is_file());
 
     // Tools that work on one path would drop the others without a word.
-    if let Some(tool) = cli.tools().first().filter(|t| t.one_path)
+    if let Some(tool) = cli.tools().first()
         && targets.len() > 1
     {
         eprintln!("ogrep: {} takes one path at a time", tool.flag);
@@ -2060,11 +2080,11 @@ fn run_search(
     }
     let extras_mode = if cli.related_tests {
         Some(extras::Mode::RelatedTests {
-            budget: cli.budget.map_or(15, |b| b as usize),
+            budget: cli.tool_budget(),
         })
     } else if cli.similar {
         Some(extras::Mode::Similar {
-            budget: cli.budget.map_or(15, |b| b as usize),
+            budget: cli.tool_budget(),
         })
     } else if cli.conflicts {
         Some(extras::Mode::Conflicts)
@@ -2074,11 +2094,9 @@ fn run_search(
         None
     };
     if let Some(mode) = extras_mode {
-        let root = targets
-            .first()
-            .map_or_else(|| PathBuf::from("."), |t| t.path.clone());
+        let root = &targets[0].path;
         exit_with(extras::run(
-            &root,
+            root,
             cli.index_path.as_deref(),
             &opts,
             ci,
@@ -2102,7 +2120,7 @@ fn run_search(
         })
     } else if cli.similar_incidents {
         Some(ops_search::Mode::SimilarIncidents {
-            budget: cli.budget.map_or(10, |b| b as usize),
+            budget: cli.tool_budget(),
         })
     } else {
         None
@@ -2110,11 +2128,9 @@ fn run_search(
     if let Some(mode) = ops_mode {
         // --log-templates searches its path; the others work on the
         // repository around it.
-        let root = targets
-            .first()
-            .map_or_else(|| PathBuf::from("."), |t| t.path.clone());
+        let root = &targets[0].path;
         exit_with(ops_search::run(
-            &root,
+            root,
             cli.index_path.as_deref(),
             &opts,
             ci,
@@ -2130,7 +2146,7 @@ fn run_search(
             graph_search::Mode::Map { tokens }
         } else {
             graph_search::Mode::Near {
-                budget: cli.budget.map_or(20, |b| b as usize),
+                budget: cli.tool_budget(),
             }
         };
         exit_with(graph_search::run(

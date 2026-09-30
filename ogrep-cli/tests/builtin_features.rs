@@ -239,17 +239,21 @@ fn doc_drift_skips_release_notes_by_name_or_directory_only() {
         ("changelog.d/123.md", "Removed `missing_in_fragment`.\n"),
         ("docs/.changes/notes.md", "Removed `missing_in_changes`.\n"),
         ("HISTORY.md", "Removed `missing_in_history_file`.\n"),
+        ("docs/exchanges.md", "Call `missing_in_exchanges_doc`.\n"),
+        ("docs/release_notes/v2.md", "Removed `missing_in_notes`.\n"),
         ("lib.py", "def other():\n    pass\n"),
     ]);
     let out = stdout(ogrep(dir.path()).args(["--doc-drift", "."]));
-    assert!(out.contains("missing_in_history"), "{out:?}");
-    assert!(out.contains("missing_in_exchanges"), "{out:?}");
+    assert!(out.contains("`missing_in_history`"), "{out:?}");
+    assert!(out.contains("`missing_in_exchanges`"), "{out:?}");
+    assert!(out.contains("`missing_in_exchanges_doc`"), "{out:?}");
     for skipped in [
         "missing_in_fragment",
         "missing_in_changes",
         "missing_in_history_file",
+        "missing_in_notes",
     ] {
-        assert!(!out.contains(skipped), "{skipped}: {out:?}");
+        assert!(!out.contains(&format!("`{skipped}`")), "{out:?}");
     }
 }
 
@@ -511,6 +515,9 @@ fn kind_and_zone_filters_decide_per_match() {
     let run = |args: &[&str]| stdout(ogrep(dir.path()).arg("--no-index").args(args).arg("a.py"));
     // The line defines get_qs and also calls it.
     assert!(run(&["--kind", "ref", "get_qs"]).contains("super().get_qs()"));
+    // Ranking sees only the kept reference, not the definition beside it.
+    let ranked = run(&["--kind", "ref", "--rank", "--explain-rank", "get_qs"]);
+    assert!(ranked.contains("def_lines=0"), "{ranked}");
     // The line has the word in a string and in a comment.
     assert!(run(&["--in", "comments", "token"]).contains("# token here"));
     let json = run(&["--in", "comments", "--json", "token"]);

@@ -505,45 +505,37 @@ fn doc_drift(
 ) -> Result<bool> {
     let files = ogrep_core::history::ls_files(repo, false)?;
     // Release notes and changelogs name removed things on purpose. A file
-    // is one by its name (CHANGELOG.md, HISTORY.rst, upgrading.md) or by the
-    // directory it sits in (changelog.d/, .changes/, docs/releases/); a
-    // keyword elsewhere in the path (src/exchanges/, docs/history/) is not
-    // enough.
+    // is one when a word of its name (CHANGELOG.md, release_notes_2.0.md,
+    // UPGRADING.md) or of a directory it sits in (changelog.d/, .changes/,
+    // docs/release-notes/, upgrade-guides/) is one of these; a keyword inside
+    // another word (src/exchanges/, prerelease.md) does not count, and a
+    // directory named history is documentation about the past, not notes.
+    const NOTES: &[&str] = &[
+        "release",
+        "releases",
+        "releasenotes",
+        "changelog",
+        "changelogs",
+        "changes",
+        "changeset",
+        "news",
+        "newsfragments",
+        "deprecation",
+        "deprecations",
+        "upgrade",
+        "upgrades",
+        "upgrading",
+        "migration",
+        "migrations",
+    ];
     let historical = |f: &str| {
         let l = f.to_ascii_lowercase();
         let (dirs, name) = l.rsplit_once('/').unwrap_or(("", &l));
-        let named = [
-            "release",
-            "changelog",
-            "changes",
-            "history",
-            "news",
-            "deprecation",
-            "upgrad",
-            "migrat",
-        ]
-        .iter()
-        .any(|k| name.contains(k));
-        named
-            || dirs.split('/').any(|d| {
-                let d = d.trim_start_matches('.');
-                matches!(
-                    d.strip_suffix(".d").unwrap_or(d),
-                    "release"
-                        | "releases"
-                        | "release-notes"
-                        | "releasenotes"
-                        | "changelog"
-                        | "changelogs"
-                        | "changes"
-                        | "news"
-                        | "newsfragments"
-                        | "migration"
-                        | "migrations"
-                        | "upgrading"
-                        | "deprecations"
-                )
-            })
+        let words = |s: &str| {
+            s.split(|c: char| !c.is_ascii_alphanumeric())
+                .any(|w| NOTES.contains(&w))
+        };
+        words(name) || name.split('.').next() == Some("history") || dirs.split('/').any(words)
     };
     let docs: Vec<&String> = files
         .iter()

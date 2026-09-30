@@ -1164,8 +1164,10 @@ fn search_via_server(
             // JSON output reports binary matches the same way ripgrep does —
             // the matching lines plus a `binary_offset` — so ask the server to
             // send the lines alongside the marker. An older server ignores this
-            // and returns the marker alone.
-            "binary_lines": opts.json,
+            // and returns the marker alone. A capture for reshaped output
+            // (`all_spans`) needs them too: it counts and filters those lines
+            // as the local search does, and JSON prints them.
+            "binary_lines": opts.json || opts.all_spans,
             "max_filesize": opts.max_filesize,
             "encoding": opts.encoding.label(),
             "line_regexp": opts.line_regexp,

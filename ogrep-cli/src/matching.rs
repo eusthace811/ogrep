@@ -1111,9 +1111,9 @@ fn anchors_are_line_relative(pattern: &str) -> bool {
 /// lines, so that a line and the buffer are interchangeable haystacks: the
 /// pattern itself when it is anchor-free, or its `^`/`$` form recompiled in
 /// multi-line mode (see [`Prescan`]). And every line a returned
-/// match *spans* is a candidate, not just the line it starts on: `find_iter`
-/// yields leftmost non-overlapping matches, so a match beginning on an earlier
-/// line can be the one that covers this line's match, and a pattern that can
+/// match *spans* is a candidate, not just the line it starts on: the scan
+/// takes leftmost matches from each resume point, so a match beginning on an
+/// earlier line can be the one that covers this line's match, and a pattern that can
 /// cross `\n` (via `\s`, a negated class, or `-s`) can span several. Under those
 /// rules every line that really matches is covered, and the per-line matcher
 /// still has the final say, so extra candidates cost time and never accuracy.
@@ -1139,27 +1139,24 @@ fn candidate_lines<'a>(
         return None;
     }
 
-    let mut last: Option<usize> = None;
+    // Once a match makes its lines candidates, the scan resumes at the start
+    // of the next line: further matches on those lines add nothing, and
+    // skipping them keeps a pattern that matches everywhere (`.`, `[a-z]`)
+    // from visiting every character. A line start is as good a place to
+    // resume as the end of the match, since anchors are bound to lines.
+    let mut from = Some(0);
     Some(
-        re.find_iter(content)
-            .flat_map(move |m| {
-                let first = index.line_of(m.start());
-                // A zero-width match (`\b`, `^\b`) belongs to the line it sits
-                // on; otherwise `end - 1` is the match's last byte.
-                let last_line = if m.is_empty() {
-                    first
-                } else {
-                    index.line_of(m.end() - 1)
-                };
-                first..=last_line
-            })
-            .filter(move |&li| {
-                let fresh = last != Some(li);
-                if fresh {
-                    last = Some(li);
-                }
-                fresh
-            }),
+        std::iter::from_fn(move || {
+            let m = re.find_at(content, from?)?;
+            // A zero-width match (`\b`, `^\b`) belongs to the line it sits
+            // on; otherwise `end - 1` is the match's last byte.
+            let last_byte = if m.is_empty() { m.start() } else { m.end() - 1 };
+            from = memchr::memchr(b'\n', &content.as_bytes()[last_byte..])
+                .map(|i| last_byte + i + 1)
+                .filter(|&next| next < content.len());
+            Some(index.line_of(m.start())..=index.line_of(last_byte))
+        })
+        .flatten(),
     )
 }
 
@@ -1584,6 +1581,29 @@ mod tests {
             .collect();
         assert!(proposed.contains(&0));
         assert!(proposed.contains(&1));
+    }
+
+    #[test]
+    fn prescan_offers_each_line_once_and_skips_the_rest_of_it() {
+        // `.` matches at every character; each line with one is offered once,
+        // in order, and a line with none (the empty one) is not. A zero-width
+        // match at the end of the text belongs to the last line.
+        let cases = [
+            (".", "ab\ncd\n\nef\n", vec![0, 1, 3]),
+            (".", "ab\ncd", vec![0, 1]),
+            (r"\bf\b", "a f\nb\nf", vec![0, 2]),
+            (r"d\s+e", "a\nd\n\ne\nd e", vec![1, 2, 3, 4]),
+        ];
+        for (pattern, hay, want) in cases {
+            let index = LineIndex::new(hay);
+            let matcher =
+                SearchMatcher::Standard(regex::Regex::new(pattern).unwrap(), Prescan::Direct);
+            let proposed: Vec<usize> =
+                candidate_lines(hay, &index, &matcher, &MatchOptions::default())
+                    .expect("anchor-free and non-empty")
+                    .collect();
+            assert_eq!(proposed, want, "{pattern} on {hay:?}");
+        }
     }
 
     //

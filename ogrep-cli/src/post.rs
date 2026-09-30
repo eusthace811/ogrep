@@ -191,55 +191,57 @@ fn prepare(
         .map(|m| structure.as_ref().map(|s| facts(s, m, post.scope)))
         .collect();
 
-    let mut keep = Vec::with_capacity(hits.matches.len());
-    for (m, f) in hits.matches.iter().zip(&facts) {
-        let def = f.as_ref().map_or_else(
-            || {
-                m.spans
-                    .iter()
-                    .any(|&(s, _)| rank::is_definition(&m.content, s))
-            },
-            |f| f.def,
-        );
-        // A match passes when it is of the kind and in the zone asked for,
-        // and a line is kept when one of its matches passes. With the file's
-        // structure that is decided per match; without it the kind comes
-        // from a keyword heuristic over the line, and the zone is taken to
-        // be code (never claiming a comment or string).
-        let filtered = post.kind.is_some() || post.zone.is_some();
-        let passes = |d: bool, zone: ZoneFilter| {
-            kind_matches(post.kind, d) && post.zone.is_none_or(|z| z == zone)
-        };
-        let ok = !filtered
-            || match f {
-                Some(f) => f.spans.iter().any(|&(d, zone)| passes(d, zone)),
-                None => passes(def, ZoneFilter::Code),
-            };
-        keep.push((ok, def));
-    }
+    // A match passes when it is of the kind and in the zone asked for, and
+    // a line is kept when one of its matches passes. With the file's
+    // structure that is decided per match, and the matches that fail are
+    // dropped from the kept line (-o, --count-matches and ranking must not
+    // see them); without it the kind comes from a keyword heuristic over the
+    // line, and the zone is taken to be code (never claiming a comment or
+    // string).
+    let filtered = post.kind.is_some() || post.zone.is_some();
+    let passes = |d: bool, zone: ZoneFilter| {
+        kind_matches(post.kind, d) && post.zone.is_none_or(|z| z == zone)
+    };
     let mut scopes = Vec::new();
     let mut defs = Vec::new();
     let mut kept = Vec::new();
-    for ((mut m, f), (ok, def)) in hits.matches.drain(..).zip(facts).zip(keep) {
-        if ok {
-            // Matches that fail --kind or --in are not results, even on a
-            // kept line: -o, --count-matches and ranking must not see them.
-            if let (true, Some(f)) = (post.kind.is_some() || post.zone.is_some(), &f) {
-                let mut facts = f.spans.iter();
+    for (mut m, f) in hits.matches.drain(..).zip(facts) {
+        let def = match &f {
+            Some(f) if filtered => {
+                let mut spans = f.spans.iter();
+                let mut def = false;
                 m.spans.retain(|_| {
-                    facts.next().is_some_and(|&(d, zone)| {
-                        kind_matches(post.kind, d) && post.zone.is_none_or(|z| z == zone)
+                    spans.next().is_some_and(|&(d, zone)| {
+                        let ok = passes(d, zone);
+                        def |= ok && d;
+                        ok
                     })
                 });
+                if m.spans.is_empty() {
+                    continue;
+                }
+                // The line is a definition only through the matches kept.
+                def
             }
-            scopes.push(if post.scope {
-                f.and_then(|f| f.scope)
-            } else {
-                None
-            });
-            defs.push(def);
-            kept.push(m);
-        }
+            Some(f) => f.def,
+            None => {
+                let def = m
+                    .spans
+                    .iter()
+                    .any(|&(s, _)| rank::is_definition(&m.content, s));
+                if filtered && !passes(def, ZoneFilter::Code) {
+                    continue;
+                }
+                def
+            }
+        };
+        scopes.push(if post.scope {
+            f.and_then(|f| f.scope)
+        } else {
+            None
+        });
+        defs.push(def);
+        kept.push(m);
     }
     if kept.is_empty() {
         return None;

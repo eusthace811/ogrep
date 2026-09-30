@@ -20,18 +20,34 @@ use std::collections::HashMap;
 
 /// Share of token positions that must agree for a line to join a template.
 pub const SIMILARITY: f64 = 0.5;
-/// What a masked variable token (a number, an id) becomes. Masked tokens are
-/// equal to each other, like Drain3's `<NUM>`/`<IP>` masks.
+/// How masked and generalised positions are shown.
 const WILDCARD: &str = "<*>";
-/// A position a template generalised by merging lines that differ there.
-/// It counts for neither side of a comparison, as Drain's parameter does,
-/// and is shown as `<*>` too. Tokens come from splitting on whitespace, so
-/// no real token contains this.
-const GENERALISED: &str = "\u{1}<*>";
+
+/// One position of a template.
+#[derive(Clone, Debug, PartialEq)]
+pub enum Token {
+    Word(String),
+    /// A variable token (a number, an id), masked up front. Masked tokens are
+    /// equal to each other, like Drain3's `<NUM>`/`<IP>` masks.
+    Masked,
+    /// A position the template generalised by merging lines that differ
+    /// there. It counts for neither side of a comparison, as Drain's
+    /// parameter does; a line never has one.
+    Generalised,
+}
+
+impl Token {
+    fn as_str(&self) -> &str {
+        match self {
+            Token::Word(w) => w,
+            Token::Masked | Token::Generalised => WILDCARD,
+        }
+    }
+}
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Template {
-    pub tokens: Vec<String>,
+    pub tokens: Vec<Token>,
     pub count: usize,
     pub first_seen: Option<i64>,
     pub last_seen: Option<i64>,
@@ -41,40 +57,22 @@ pub struct Template {
 
 impl Template {
     pub fn text(&self) -> String {
-        let shown: Vec<&str> = self
-            .tokens
-            .iter()
-            .map(|t| {
-                if t == GENERALISED {
-                    WILDCARD
-                } else {
-                    t.as_str()
-                }
-            })
-            .collect();
+        let shown: Vec<&str> = self.tokens.iter().map(Token::as_str).collect();
         shown.join(" ")
     }
 
     /// The longest run of constant tokens, the part most likely to be written
     /// literally in the code that logs it.
     pub fn constant_part(&self) -> String {
-        let mut best: &[String] = &[];
-        let mut start = 0;
-        for i in 0..=self.tokens.len() {
-            if i == self.tokens.len()
-                || self.tokens[i] == GENERALISED
-                || self.tokens[i].contains(WILDCARD)
-            {
-                let run = &self.tokens[start..i];
-                if run.iter().map(|t| t.len() + 1).sum::<usize>()
-                    > best.iter().map(|t| t.len() + 1).sum::<usize>()
-                {
-                    best = run;
-                }
-                start = i + 1;
+        let len = |run: &[Token]| run.iter().map(|t| t.as_str().len() + 1).sum::<usize>();
+        let mut best: &[Token] = &[];
+        for run in self.tokens.split(|t| !matches!(t, Token::Word(_))) {
+            if len(run) > len(best) {
+                best = run;
             }
         }
-        best.join(" ")
+        let words: Vec<&str> = best.iter().map(Token::as_str).collect();
+        words.join(" ")
     }
 }
 
@@ -160,33 +158,34 @@ pub struct Drain {
 impl Drain {
     pub fn add(&mut self, file: &str, line_number: usize, line: &str) {
         let (time, rest) = leading_timestamp(line);
-        let tokens: Vec<String> = rest
+        let tokens: Vec<Token> = rest
             .split_whitespace()
             .map(|t| {
                 if is_variable(t) {
-                    WILDCARD.to_string()
+                    Token::Masked
                 } else {
-                    t.to_string()
+                    Token::Word(t.to_string())
                 }
             })
             .collect();
         if tokens.is_empty() {
             return;
         }
-        let key = (tokens.len(), tokens[0].clone());
+        let key = (tokens.len(), tokens[0].as_str().to_string());
         let slots = self.groups.entry(key).or_default();
-        // As in Drain: similarity counts equal constant tokens only (a
-        // template's `<*>` counts for neither side), and the most similar
-        // template wins, then the one with more wildcards.
+        // As in Drain3: similarity counts equal tokens (a line has no
+        // generalised position, so those count for neither side), and the
+        // most similar template wins, then the more general one.
         let best = slots
             .iter()
             .map(|&i| {
                 let t = &self.templates[i];
-                let pairs = || t.tokens.iter().zip(&tokens);
-                let same = pairs()
-                    .filter(|(a, b)| a == b && a.as_str() != GENERALISED)
+                let same = t.tokens.iter().zip(&tokens).filter(|(a, b)| a == b).count();
+                let wild = t
+                    .tokens
+                    .iter()
+                    .filter(|a| **a == Token::Generalised)
                     .count();
-                let wild = pairs().filter(|(a, _)| a.as_str() == GENERALISED).count();
                 (same, wild, i)
             })
             .filter(|&(same, ..)| same as f64 / tokens.len() as f64 >= SIMILARITY)
@@ -195,7 +194,7 @@ impl Drain {
             let t = &mut self.templates[i];
             for (a, b) in t.tokens.iter_mut().zip(&tokens) {
                 if a != b {
-                    *a = GENERALISED.to_string();
+                    *a = Token::Generalised;
                 }
             }
             t.count += 1;
@@ -217,12 +216,8 @@ impl Drain {
 
     /// Templates, most frequent first; ties by first sighting, then text.
     pub fn sorted(mut self) -> Vec<Template> {
-        self.templates.sort_by(|a, b| {
-            b.count
-                .cmp(&a.count)
-                .then(a.first_seen.cmp(&b.first_seen))
-                .then_with(|| a.text().cmp(&b.text()))
-        });
+        self.templates
+            .sort_by_cached_key(|t| (std::cmp::Reverse(t.count), t.first_seen, t.text()));
         self.templates
     }
 }
