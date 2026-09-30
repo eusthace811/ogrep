@@ -51,22 +51,6 @@ fn matched_lines(
         .collect())
 }
 
-/// Files the search matched, relative to the index root, with match counts.
-fn matched_files(
-    root: &Path,
-    index_path: Option<&Path>,
-    opts: &SearchOptions,
-    ci: bool,
-) -> Result<Vec<(String, usize)>> {
-    let mut counts: HashMap<String, usize> = HashMap::new();
-    for (file, _) in matched_lines(root, index_path, opts, ci)? {
-        *counts.entry(file).or_default() += 1;
-    }
-    let mut out: Vec<(String, usize)> = counts.into_iter().collect();
-    out.sort();
-    Ok(out)
-}
-
 /// The graph for `root`'s index, with a note when it predates the index.
 fn load_graph(root: &Path, index_path: Option<&Path>, quiet: bool) -> Result<Graph> {
     let index_dir = index_path.map(Path::to_path_buf).unwrap_or_else(|| {
@@ -116,47 +100,40 @@ pub fn run(
     ci: bool,
     mode: Mode,
 ) -> Result<bool> {
-    let g = load_graph(root, index_path, opts.no_messages)?;
+    // Loading the graph takes longest; the seed search runs meanwhile.
+    let (g, matched) = std::thread::scope(|scope| {
+        let search = (!matches!(mode, Mode::Callees))
+            .then(|| scope.spawn(|| matched_lines(root, index_path, opts, ci)));
+        let g = load_graph(root, index_path, opts.no_messages);
+        let matched = search.map(|s| s.join().expect("seed search panicked"));
+        (g, matched)
+    });
+    let g = g?;
+    // Matched lines per graph file; each file weighs by how many matched.
+    let mut lines: HashMap<u32, Vec<usize>> = HashMap::new();
+    for (path, line) in matched.transpose()?.unwrap_or_default() {
+        if let Some(f) = g.file(&path) {
+            lines.entry(f).or_default().push(line);
+        }
+    }
+    let mut seeds: Vec<(u32, f64)> = lines
+        .iter()
+        .map(|(&f, l)| (f, (1.0 + l.len() as f64).ln()))
+        .collect();
     let mut out = BufWriter::new(std::io::stdout().lock());
     let found = match mode {
         Mode::Callees => callees(&g, root, opts, &mut out)?,
         Mode::Near { budget } => {
-            let seeds = seeds(&g, root, index_path, opts, ci)?;
+            seeds.sort_by(|a, b| g.files[a.0 as usize].cmp(&g.files[b.0 as usize]));
             near(&g, root, &seeds, budget, opts, &mut out)?
         }
         Mode::Map { tokens } => {
-            let matched = matched_lines(root, index_path, opts, ci)?;
-            let mut lines: HashMap<u32, Vec<usize>> = HashMap::new();
-            let mut counts: HashMap<u32, usize> = HashMap::new();
-            for (path, line) in matched {
-                if let Some(f) = g.file(&path) {
-                    lines.entry(f).or_default().push(line);
-                    *counts.entry(f).or_default() += 1;
-                }
-            }
-            let mut seeds: Vec<(u32, f64)> = counts
-                .into_iter()
-                .map(|(f, n)| (f, (1.0 + n as f64).ln()))
-                .collect();
             seeds.sort_by_key(|s| s.0);
             map(&g, root, &seeds, &lines, tokens, opts, &mut out)?
         }
     };
     out.flush()?;
     Ok(found)
-}
-
-fn seeds(
-    g: &Graph,
-    root: &Path,
-    index_path: Option<&Path>,
-    opts: &SearchOptions,
-    ci: bool,
-) -> Result<Vec<(u32, f64)>> {
-    Ok(matched_files(root, index_path, opts, ci)?
-        .into_iter()
-        .filter_map(|(path, n)| g.file(&path).map(|f| (f, (1.0 + n as f64).ln())))
-        .collect())
 }
 
 fn near(
