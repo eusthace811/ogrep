@@ -1445,6 +1445,32 @@ fn run_cli() {
         eprintln!("ogrep: --at cannot be combined with --history, --introduced or --changed-since");
         process::exit(2);
     }
+    // --changed-since narrows which files a search reads. The graph,
+    // repository and operations tools gather their own inputs, so rather
+    // than ignore it silently they refuse it.
+    if cli.changed_since.is_some() {
+        let tools = [
+            (cli.near, "--near"),
+            (cli.map.is_some(), "--map"),
+            (cli.callees, "--callees"),
+            (cli.related_tests, "--related-tests"),
+            (cli.similar, "--similar"),
+            (cli.conflicts, "--conflicts"),
+            (cli.doc_drift, "--doc-drift"),
+            (cli.entities, "--entities"),
+            (cli.blast, "--blast"),
+            (cli.suspects, "--suspects"),
+            (cli.timeline, "--timeline"),
+            (cli.stack_trace, "--stack-trace"),
+            (cli.log_templates, "--log-templates"),
+            (cli.similar_incidents, "--similar-incidents"),
+            (cli.rank_fit.is_some(), "--rank-fit"),
+        ];
+        if let Some((_, flag)) = tools.iter().find(|(set, _)| *set) {
+            eprintln!("ogrep: --changed-since cannot be combined with {flag}");
+            process::exit(2);
+        }
+    }
     if history {
         let conflicts = [
             (cli.history && cli.introduced, "--introduced (pick one)"),
@@ -1816,10 +1842,7 @@ fn restrict_to_changed(
                 ..opts.clone()
             })
         }
-        Err(e) => {
-            eprintln!("ogrep: {e}");
-            process::exit(2);
-        }
+        Err(e) => exit_with(Err(e)),
     }
 }
 
@@ -2036,9 +2059,7 @@ fn run_rank_fit(cli: &Cli, file: &std::path::Path, resolved: &ResolvedArgs) -> a
             .collect::<Result<Vec<Item>, _>>()
     })?;
     let root = PathBuf::from(cli.pattern.as_deref().unwrap_or("."));
-    let index_dir = cli.index_path.clone().unwrap_or_else(|| {
-        builder::default_index_dir(&std::fs::canonicalize(&root).unwrap_or(root.clone()))
-    });
+    let index_dir = search::index_dir_for(&root, cli.index_path.as_deref());
     let base = cli.build_search_opts(String::new(), resolved).for_capture();
     let mut examples = Vec::new();
     for item in items {

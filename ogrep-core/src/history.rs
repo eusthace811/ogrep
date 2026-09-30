@@ -344,7 +344,6 @@ fn diff_tree(root: &Path) -> Command {
     cmd
 }
 
-/// Parse a running `git diff-tree`'s output, passing each commit to `each`.
 /// Parse `git diff-tree` output from `child`, passing each commit to `each`
 /// until it says to stop, which ends git early.
 fn read_diffs(

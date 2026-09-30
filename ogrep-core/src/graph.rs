@@ -128,16 +128,13 @@ pub fn kind_name(kind: u8) -> &'static str {
     NAMES.get(usize::from(kind)).copied().unwrap_or("other")
 }
 
-/// A newly parsed structure for the fact cache.
-type NewFact = (crate::meta::ContentId, Vec<u8>);
-
 #[cfg(feature = "structure")]
 fn scan(
     file: u32,
     path: &str,
     text: &[u8],
     cache: &crate::facts::FactStore,
-) -> (Scanned, Option<NewFact>) {
+) -> (Scanned, Option<crate::facts::NewFact>) {
     use crate::structure::{self, SymbolKind, Zone};
     let (parsed, fact) = structure::analyze_cached(path, text, Some(cache));
     let mut defs = Vec::new();
@@ -187,7 +184,7 @@ fn scan(
     _path: &str,
     text: &[u8],
     _cache: &crate::facts::FactStore,
-) -> (Scanned, Option<NewFact>) {
+) -> (Scanned, Option<crate::facts::NewFact>) {
     (
         Scanned {
             defs: Vec::new(),
@@ -203,7 +200,7 @@ pub fn build(root: &Path, index_dir: &Path) -> Result<Graph> {
     let reader = IndexReader::open(index_dir)?;
     let files: Vec<String> = reader.all_paths().iter().map(|s| s.to_string()).collect();
     let cache = crate::facts::FactStore::open(index_dir, crate::facts::STRUCTURE);
-    let scanned: Vec<(Scanned, Option<NewFact>)> = files
+    let scanned: Vec<(Scanned, Option<crate::facts::NewFact>)> = files
         .par_iter()
         .enumerate()
         .map(|(i, path)| {
@@ -597,13 +594,13 @@ impl Graph {
     }
 }
 
-/// The stored graph, whether it matches the current index, or an error when
-/// there is none.
 /// Whether `index_dir` holds a file graph (cheap: one file check).
 pub fn exists(index_dir: &Path) -> bool {
     index_dir.join(GRAPH_DIR).join(GRAPH_FILE).is_file()
 }
 
+/// The stored graph, whether it matches the current index, or an error when
+/// there is none.
 pub fn open(index_dir: &Path) -> Result<(Graph, bool)> {
     let graph = Graph::load(index_dir)
         .ok_or_else(|| Error::IndexNotFound(format!("{}/{GRAPH_DIR}", index_dir.display())))?;

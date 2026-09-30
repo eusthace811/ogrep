@@ -35,15 +35,6 @@ fn matched_lines(
         .collect())
 }
 
-/// The index directory for `root`.
-fn index_dir(root: &Path, index_path: Option<&Path>) -> std::path::PathBuf {
-    index_path.map(Path::to_path_buf).unwrap_or_else(|| {
-        ogrep_core::builder::default_index_dir(
-            &std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf()),
-        )
-    })
-}
-
 fn no_graph(index_dir: &Path) -> anyhow::Error {
     anyhow!(
         "no file graph in {}; build it with `ogrep index --graph`",
@@ -92,7 +83,7 @@ pub fn run(
 ) -> Result<bool> {
     // Loading the graph takes longest; the seed search runs meanwhile. A
     // missing graph is reported first, without paying for the search.
-    let dir = index_dir(root, index_path);
+    let dir = crate::search::index_dir_for(root, index_path);
     if !graph::exists(&dir) {
         return Err(no_graph(&dir));
     }

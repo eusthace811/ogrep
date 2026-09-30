@@ -36,27 +36,30 @@ fn rank_keeps_same_named_files_under_two_paths_apart() {
     );
 }
 
+/// Run git in `dir` as a throwaway identity, failing the test on error.
+fn git(dir: &Path, args: &[&str]) {
+    let ok = std::process::Command::new("git")
+        .current_dir(dir)
+        .args([
+            "-c",
+            "user.name=t",
+            "-c",
+            "user.email=t@t",
+            "-c",
+            "commit.gpgsign=false",
+        ])
+        .args(args)
+        .output()
+        .unwrap()
+        .status
+        .success();
+    assert!(ok, "git {args:?}");
+}
+
 /// A git repository with one commit per `(path, contents)` step.
 fn repo(steps: &[(&str, &str)]) -> TempDir {
     let dir = TempDir::new().unwrap();
-    let git = |args: &[&str]| {
-        let ok = std::process::Command::new("git")
-            .current_dir(dir.path())
-            .args([
-                "-c",
-                "user.name=t",
-                "-c",
-                "user.email=t@t",
-                "-c",
-                "commit.gpgsign=false",
-            ])
-            .args(args)
-            .output()
-            .unwrap()
-            .status
-            .success();
-        assert!(ok, "git {args:?}");
-    };
+    let git = |args: &[&str]| git(dir.path(), args);
     git(&["init", "-q", "-b", "main"]);
     for (i, (path, text)) in steps.iter().enumerate() {
         let file = dir.path().join(path);
@@ -231,16 +234,7 @@ fn doc_drift_filters_names_with_the_search_options() {
 #[test]
 fn conflicts_name_files_with_spaces_cleanly() {
     let dir = repo(&[("x y.txt", "l1\nl2\nl3\n")]);
-    let run = |args: &[&str]| {
-        let ok = std::process::Command::new("git")
-            .current_dir(dir.path())
-            .args(["-c", "user.name=t", "-c", "user.email=t@t"])
-            .args(args)
-            .status()
-            .unwrap()
-            .success();
-        assert!(ok, "git {args:?}");
-    };
+    let run = |args: &[&str]| git(dir.path(), args);
     run(&["checkout", "-qb", "other"]);
     fs::write(dir.path().join("x y.txt"), "l1\nOTHER\nl3\n").unwrap();
     run(&["commit", "-qam", "other"]);
@@ -258,17 +252,7 @@ fn conflicts_name_files_with_spaces_cleanly() {
 fn conflicts_do_not_read_removed_comment_lines_as_headers() {
     // With --unified=0 a removed "-- comment" line reads "--- comment".
     let dir = repo(&[("a.sql", "-- drop old index\nselect 1;\nx\ny\nz\n")]);
-    let run = |args: &[&str]| {
-        assert!(
-            std::process::Command::new("git")
-                .current_dir(dir.path())
-                .args(["-c", "user.name=t", "-c", "user.email=t@t"])
-                .args(args)
-                .status()
-                .unwrap()
-                .success()
-        );
-    };
+    let run = |args: &[&str]| git(dir.path(), args);
     run(&["checkout", "-qb", "other"]);
     fs::write(dir.path().join("a.sql"), "select 1;\nx\nOTHER\nz\n").unwrap();
     run(&["commit", "-qam", "other"]);
@@ -282,4 +266,16 @@ fn conflicts_do_not_read_removed_comment_lines_as_headers() {
         out,
         "other: a.sql  overlapping lines  (here 1,4; there 1,4)\n"
     );
+}
+
+#[test]
+fn changed_since_is_refused_by_tools_that_would_ignore_it() {
+    let dir = TempDir::new().unwrap();
+    ogrep(dir.path())
+        .args(["--changed-since", "HEAD", "--near", "x"])
+        .assert()
+        .code(2)
+        .stderr(predicates::str::contains(
+            "--changed-since cannot be combined with --near",
+        ));
 }

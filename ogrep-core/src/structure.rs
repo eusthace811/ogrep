@@ -232,10 +232,6 @@ const KINDS: &[SymbolKind] = &[
     SymbolKind::Other,
 ];
 
-/// Name of the fact-cache store for [`FileStructure`] (see
-/// [`crate::facts::STRUCTURE`]).
-pub const FACTS_NAME: &str = crate::facts::STRUCTURE;
-
 struct Grammar {
     name: &'static str,
     language: fn() -> Language,
@@ -459,9 +455,6 @@ fn definition<'t>(
     }
 }
 
-/// A new fact-cache entry: content id and encoded structure.
-pub type NewFact = (crate::meta::ContentId, Vec<u8>);
-
 /// `path`'s structure: from `cache` when this exact text was parsed before by
 /// the same grammar, otherwise parsed now, with the entry to add to the cache
 /// (only when there is a cache). Entries are keyed by grammar and content:
@@ -470,7 +463,7 @@ pub fn analyze_cached(
     path: &str,
     text: &[u8],
     cache: Option<&crate::facts::FactStore>,
-) -> (Option<FileStructure>, Option<NewFact>) {
+) -> (Option<FileStructure>, Option<crate::facts::NewFact>) {
     let Some(grammar) = grammar_for(path) else {
         return (None, None);
     };

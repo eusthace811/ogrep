@@ -28,7 +28,10 @@ pub fn overview(ws: &Workspace) -> Result<Value> {
         ),
         ("history", "history/: the index over commit diffs"),
         ("graph", "graph/: definitions and links between files"),
-        ("facts", "facts/: cached parse results, keyed by content"),
+        (
+            "facts",
+            "facts/: cached parse results, keyed by grammar and content",
+        ),
         ("lab", "lab/: saved evaluation runs"),
         ("other", "anything else in the index directory"),
     ]

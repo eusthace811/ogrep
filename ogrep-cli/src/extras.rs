@@ -21,15 +21,7 @@ pub(crate) fn repo_of(root: &Path) -> Result<PathBuf> {
     ogrep_core::history::repo_root(root).map_err(|e| anyhow!("this needs a git repository: {e}"))
 }
 
-use ogrep_core::history::git_output as git;
-
-fn index_dir(root: &Path, index_path: Option<&Path>) -> PathBuf {
-    index_path.map(Path::to_path_buf).unwrap_or_else(|| {
-        ogrep_core::builder::default_index_dir(
-            &std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf()),
-        )
-    })
-}
+use ogrep_core::history::git_output;
 
 pub fn run(
     root: &Path,
@@ -39,7 +31,7 @@ pub fn run(
     mode: Mode,
 ) -> Result<bool> {
     let repo = repo_of(root)?;
-    let idx = index_dir(&repo, index_path);
+    let idx = crate::search::index_dir_for(&repo, index_path);
     let mut out = BufWriter::new(std::io::stdout().lock());
     let found = match mode {
         Mode::RelatedTests => related_tests(&repo, &idx, opts, &mut out)?,
@@ -128,7 +120,7 @@ fn related_tests(
     // History: test files changed in the same commits.
     // `--full-diff`: every file of the commits that touched the target, not
     // just the target.
-    let log = git(
+    let log = git_output(
         repo,
         &[
             "log",
@@ -286,7 +278,7 @@ fn similar(repo: &Path, idx: &Path, opts: &SearchOptions, out: &mut impl Write) 
         }
         None => {
             for id in &idents {
-                for p in git(repo, &["grep", "-l", "-F", "-I", "--", id])
+                for p in git_output(repo, &["grep", "-l", "-F", "-I", "--", id])
                     .unwrap_or_default()
                     .lines()
                 {
@@ -359,12 +351,16 @@ fn hunks(repo: &Path, from: &str, to: Option<&str>) -> Result<BTreeMap<String, V
         "--no-color",
         "--no-ext-diff",
         "--no-renames",
+        // Fixed prefixes: diff.mnemonicPrefix would label a commit-to-worktree
+        // diff differently from a commit-to-commit one, and paths must match.
+        "--src-prefix=a/",
+        "--dst-prefix=b/",
         from,
     ];
     if let Some(to) = to {
         args.push(to);
     }
-    let diff = git(repo, &args)?;
+    let diff = git_output(repo, &args)?;
     let mut out: BTreeMap<String, Vec<(u32, u32)>> = BTreeMap::new();
     let mut file = String::new();
     // `---`/`+++` are headers only between `diff --git` and the file's first
@@ -403,10 +399,10 @@ fn hunks(repo: &Path, from: &str, to: Option<&str>) -> Result<BTreeMap<String, V
 }
 
 fn conflicts(repo: &Path, opts: &SearchOptions, out: &mut impl Write) -> Result<bool> {
-    let current = git(repo, &["rev-parse", "--abbrev-ref", "HEAD"])?
+    let current = git_output(repo, &["rev-parse", "--abbrev-ref", "HEAD"])?
         .trim()
         .to_string();
-    let branches: Vec<String> = git(
+    let branches: Vec<String> = git_output(
         repo,
         &["for-each-ref", "--format=%(refname:short)", "refs/heads"],
     )?
@@ -416,7 +412,7 @@ fn conflicts(repo: &Path, opts: &SearchOptions, out: &mut impl Write) -> Result<
     .collect();
     let mut any = false;
     for branch in branches {
-        let Ok(base) = git(repo, &["merge-base", "HEAD", &branch]) else {
+        let Ok(base) = git_output(repo, &["merge-base", "HEAD", &branch]) else {
             continue;
         };
         let base = base.trim();
@@ -579,7 +575,7 @@ fn doc_drift(
                     .filter(|p| is_code.contains(p.as_str()))
                     .collect()
             }
-            None => git(repo, &["grep", "-l", "-F", "-w", "-I", "--", name])
+            None => git_output(repo, &["grep", "-l", "-F", "-w", "-I", "--", name])
                 .unwrap_or_default()
                 .lines()
                 .map(String::from)

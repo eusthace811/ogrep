@@ -588,6 +588,16 @@ pub fn new_writer(opts: &SearchOptions) -> OutputWriter {
 }
 
 /// A writer that records results instead of printing them (`--rank`).
+/// The index directory for a search of `root`: `--index-path`, else
+/// `.ogrep` in the (canonical) root.
+pub(crate) fn index_dir_for(root: &Path, index_path: Option<&Path>) -> PathBuf {
+    index_path.map(Path::to_path_buf).unwrap_or_else(|| {
+        builder::default_index_dir(
+            &std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf()),
+        )
+    })
+}
+
 pub fn new_capturing_writer(opts: &SearchOptions) -> OutputWriter {
     OutputWriter::capturing(opts.make_output_config())
 }

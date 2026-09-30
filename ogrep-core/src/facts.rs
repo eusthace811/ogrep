@@ -23,13 +23,16 @@ use crate::meta::ContentId;
 
 const ENTRY: usize = 16 + 8 + 4;
 
-/// An open fact store.
 /// The store holding parsed file structure ([`crate::structure`]), keyed by
 /// grammar and content. The suffix is bumped whenever the analysis, its
 /// encoding or its key changes. Defined here, outside the parser-gated
 /// module, so builds without the parsers name the same store.
 pub const STRUCTURE: &str = "structure-v2";
 
+/// A new entry for a store: content id and payload.
+pub type NewFact = (ContentId, Vec<u8>);
+
+/// An open fact store.
 pub struct FactStore {
     index: Option<Mmap>,
     data: Option<Mmap>,
@@ -155,7 +158,30 @@ impl FactStore {
         drop(out);
         drop(current);
         std::fs::rename(&tmp, dir.join("index.bin"))?;
+        remove_older_versions(index_dir, name);
         Ok(())
+    }
+}
+
+/// Delete earlier versions of the store `name` (`structure-v1` once
+/// `structure-v2` has entries): nothing reads them any more.
+fn remove_older_versions(index_dir: &Path, name: &str) {
+    let Some((stem, _)) = name.rsplit_once("-v") else {
+        return;
+    };
+    let Ok(entries) = std::fs::read_dir(index_dir.join("facts")) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let other = entry.file_name();
+        let other = other.to_string_lossy();
+        let older = other != name
+            && other.rsplit_once("-v").is_some_and(|(s, v)| {
+                s == stem && !v.is_empty() && v.bytes().all(|b| b.is_ascii_digit())
+            });
+        if older {
+            let _ = std::fs::remove_dir_all(entry.path());
+        }
     }
 }
 

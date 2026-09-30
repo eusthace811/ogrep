@@ -56,9 +56,9 @@ impl GlobFilter {
         self
     }
 
-    /// Returns true if the glob list is empty (no filtering needed).
+    /// Whether the filter passes every path: no globs and no restriction.
     pub fn is_empty(&self) -> bool {
-        self.overrides.is_empty()
+        self.overrides.is_empty() && self.only.is_none()
     }
 
     /// Check if a path passes this glob filter.
@@ -66,7 +66,7 @@ impl GlobFilter {
         if self.only.as_ref().is_some_and(|only| !only.contains(path)) {
             return false;
         }
-        if self.is_empty() {
+        if self.overrides.is_empty() {
             return true;
         }
         // Normalize backslashes only when needed (index paths use forward slashes)

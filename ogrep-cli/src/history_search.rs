@@ -669,8 +669,45 @@ pub fn changed_paths(
 ) -> Result<Option<std::collections::HashSet<String>>> {
     let repo = history::repo_root(root)
         .map_err(|e| anyhow::anyhow!("--changed-since needs a git repository: {e}"))?;
-    let git = |args: &[&str]| history::git_output(&repo, args);
-    let is_rev = history::git(&repo)
+    let Some(changed) = changed_in_repo(&repo, since)? else {
+        return Ok(None);
+    };
+    let prefix = scope_prefix(&repo, root);
+    Ok(Some(
+        changed
+            .iter()
+            .filter(|path| in_scope(&prefix, path))
+            .map(|path| {
+                if prefix.is_empty() {
+                    path.clone()
+                } else {
+                    path[prefix.len()..].trim_start_matches('/').to_string()
+                }
+            })
+            .collect(),
+    ))
+}
+
+/// [`changed_paths`] for the whole repository, with repository-relative
+/// paths. git is asked once per repository and `since` in a run, however
+/// many path arguments share them.
+fn changed_in_repo(
+    repo: &Path,
+    since: &str,
+) -> Result<Option<std::sync::Arc<std::collections::HashSet<String>>>> {
+    type Changed = Option<std::sync::Arc<std::collections::HashSet<String>>>;
+    static ASKED: std::sync::Mutex<Vec<(std::path::PathBuf, String, Changed)>> =
+        std::sync::Mutex::new(Vec::new());
+    let asked = |memo: &Vec<(std::path::PathBuf, String, Changed)>| {
+        memo.iter()
+            .find(|(r, s, _)| r == repo && s == since)
+            .map(|(_, _, c)| c.clone())
+    };
+    if let Some(changed) = asked(&ASKED.lock().unwrap_or_else(|e| e.into_inner())) {
+        return Ok(changed);
+    }
+    let git = |args: &[&str]| history::git_output(repo, args);
+    let is_rev = history::git(repo)
         .args([
             "rev-parse",
             "--verify",
@@ -680,35 +717,36 @@ pub fn changed_paths(
         .output()
         .is_ok_and(|o| o.status.success());
     let rev = if is_rev {
-        since.to_string()
+        Some(since.to_string())
     } else {
-        let time = resolve_when(&repo, since, false)?;
+        let time = resolve_when(repo, since, false)?;
         let before = git(&["rev-list", "-1", &format!("--before={time}"), "HEAD"])?;
-        let rev = before.trim().to_string();
-        if rev.is_empty() {
-            return Ok(None);
-        }
-        rev
+        Some(before.trim().to_string()).filter(|rev| !rev.is_empty())
     };
-    let prefix = scope_prefix(&repo, root);
-    let mut paths = std::collections::HashSet::new();
-    for listing in [
-        git(&["diff", "--name-only", "-z", "--no-renames", &rev])?,
-        git(&["ls-files", "--others", "--exclude-standard", "-z"])?,
-    ] {
-        for path in listing.split('\0').filter(|p| !p.is_empty()) {
-            if !in_scope(&prefix, path) {
-                continue;
+    let changed = match rev {
+        None => None,
+        Some(rev) => {
+            let mut paths = std::collections::HashSet::new();
+            for listing in [
+                git(&["diff", "--name-only", "-z", "--no-renames", &rev])?,
+                git(&["ls-files", "--others", "--exclude-standard", "-z"])?,
+            ] {
+                paths.extend(
+                    listing
+                        .split('\0')
+                        .filter(|p| !p.is_empty())
+                        .map(String::from),
+                );
             }
-            let rel = if prefix.is_empty() {
-                path.to_string()
-            } else {
-                path[prefix.len()..].trim_start_matches('/').to_string()
-            };
-            paths.insert(rel);
+            Some(std::sync::Arc::new(paths))
         }
-    }
-    Ok(Some(paths))
+    };
+    ASKED.lock().unwrap_or_else(|e| e.into_inner()).push((
+        repo.to_path_buf(),
+        since.to_string(),
+        changed.clone(),
+    ));
+    Ok(changed)
 }
 
 #[cfg(test)]

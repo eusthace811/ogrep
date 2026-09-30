@@ -349,7 +349,9 @@ fn log_templates(
         drain.add(&m.file, m.line_number, &m.content);
     }
     let cutoff = match new_since {
-        Some(w) => Some(parse_when(repo, w)?),
+        Some(w) => Some(parse_when(repo, w).map_err(|_| {
+            anyhow::anyhow!("cannot read --new-since {w:?} as a time (use 2h, 3d, 6mo, or a date)")
+        })?),
         None => None,
     };
     let templates: Vec<_> = drain
@@ -362,7 +364,10 @@ fn log_templates(
     let codes: Vec<Option<(String, usize, String)>> = match (to_code, repo) {
         (true, Some(repo)) => {
             use rayon::prelude::*;
-            let pool = rayon::ThreadPoolBuilder::new().num_threads(4).build()?;
+            let threads = opts.threads.unwrap_or(4).clamp(1, 4);
+            let pool = rayon::ThreadPoolBuilder::new()
+                .num_threads(threads)
+                .build()?;
             pool.install(|| {
                 templates
                     .par_iter()
@@ -537,7 +542,7 @@ fn similar_incidents(repo: &Path, opts: &SearchOptions, out: &mut impl Write) ->
     let avg = texts.iter().map(|t| t.1.len()).sum::<usize>() as f64 / n;
     // BM25 over the incident notes. Term counts per note, and the number of
     // notes holding each query term, are counted once up front.
-    let query_terms: std::collections::BTreeSet<&String> = q.iter().collect();
+    let query_terms: std::collections::BTreeSet<&str> = q.iter().map(String::as_str).collect();
     let counts: Vec<HashMap<&str, usize>> = texts
         .iter()
         .map(|(_, doc)| {
@@ -548,13 +553,11 @@ fn similar_incidents(repo: &Path, opts: &SearchOptions, out: &mut impl Write) ->
             c
         })
         .collect();
-    let df: HashMap<&str, f64> = query_terms
+    let idf: Vec<(&str, f64)> = query_terms
         .iter()
-        .map(|t| {
-            (
-                t.as_str(),
-                counts.iter().filter(|c| c.contains_key(t.as_str())).count() as f64,
-            )
+        .map(|&t| {
+            let df = counts.iter().filter(|c| c.contains_key(t)).count() as f64;
+            (t, (1.0 + (n - df + 0.5) / (df + 0.5)).ln())
         })
         .collect();
     let mut scored: Vec<(f64, &str, Vec<&str>)> = texts
@@ -563,16 +566,14 @@ fn similar_incidents(repo: &Path, opts: &SearchOptions, out: &mut impl Write) ->
         .map(|((path, doc), count)| {
             let mut score = 0.0;
             let mut hits = Vec::new();
-            for t in &query_terms {
-                let tf = count.get(t.as_str()).copied().unwrap_or(0) as f64;
+            let norm = 1.0 - 0.75 + 0.75 * doc.len() as f64 / avg.max(1.0);
+            for &(t, idf) in &idf {
+                let tf = count.get(t).copied().unwrap_or(0) as f64;
                 if tf == 0.0 {
                     continue;
                 }
-                let df = df[t.as_str()];
-                let idf = (1.0 + (n - df + 0.5) / (df + 0.5)).ln();
-                let norm = 1.0 - 0.75 + 0.75 * doc.len() as f64 / avg.max(1.0);
                 score += idf * tf * 2.2 / (tf + 1.2 * norm);
-                hits.push(t.as_str());
+                hits.push(t);
             }
             // Shared services count twice as much as other shared words.
             let shared = q_services

@@ -79,8 +79,7 @@ fn analyze_cached(
     (None, None)
 }
 
-/// A fact-cache entry: content id and encoded structure.
-type NewFact = (ogrep_core::meta::ContentId, Vec<u8>);
+use ogrep_core::facts::NewFact;
 /// A match or context line of one file, by line number, for printing.
 type Row<'a> = (
     usize,
@@ -372,13 +371,10 @@ pub fn emit(
     let mut inputs: Vec<(String, FileHits, PathBuf, usize)> = Vec::new();
     let mut caches: Vec<(Option<PathBuf>, Option<ogrep_core::facts::FactStore>)> = Vec::new();
     for c in captured {
-        #[cfg(feature = "structure")]
         let store = parses
             .then_some(c.index_dir.as_deref())
             .flatten()
-            .map(|dir| ogrep_core::facts::FactStore::open(dir, ogrep_core::structure::FACTS_NAME));
-        #[cfg(not(feature = "structure"))]
-        let store: Option<ogrep_core::facts::FactStore> = None;
+            .map(|dir| ogrep_core::facts::FactStore::open(dir, ogrep_core::facts::STRUCTURE));
         let slot = caches.len();
         caches.push((c.index_dir, store));
         for (rel, hits) in rank::group(vec![(c.display, c.events)]) {
@@ -414,15 +410,11 @@ pub fn emit(
             prepare(rel, hits, l, post)
         })
         .collect();
-    #[cfg(feature = "structure")]
     for ((dir, _), facts) in caches.iter().zip(new_facts) {
         if let Some(dir) = dir {
-            let _ =
-                ogrep_core::facts::FactStore::put(dir, ogrep_core::structure::FACTS_NAME, facts);
+            let _ = ogrep_core::facts::FactStore::put(dir, ogrep_core::facts::STRUCTURE, facts);
         }
     }
-    #[cfg(not(feature = "structure"))]
-    drop(new_facts);
     match &post.rank {
         Some(rank_opts) => {
             // A repository's fitted weights (`--rank-fit`) replace the defaults.
