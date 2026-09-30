@@ -32,6 +32,7 @@
 
 use std::collections::HashSet;
 use std::io::{BufRead, BufReader, Write};
+use std::ops::ControlFlow;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -339,7 +340,12 @@ fn diff_tree(root: &Path) -> Command {
 }
 
 /// Parse a running `git diff-tree`'s output, passing each commit to `each`.
-fn read_diffs(mut child: std::process::Child, mut each: impl FnMut(CommitDoc)) -> Result<()> {
+/// Parse `git diff-tree` output from `child`, passing each commit to `each`
+/// until it says to stop, which ends git early.
+fn read_diffs(
+    mut child: std::process::Child,
+    mut each: impl FnMut(CommitDoc) -> ControlFlow<()>,
+) -> Result<()> {
     let stdout = child.stdout.take().expect("piped stdout");
     let mut parser = DiffParser::default();
     let mut reader = BufReader::with_capacity(1 << 16, stdout);
@@ -352,12 +358,16 @@ fn read_diffs(mut child: std::process::Child, mut each: impl FnMut(CommitDoc)) -
         if buf.last() == Some(&b'\n') {
             buf.pop();
         }
-        if let Some(doc) = parser.line(&buf) {
-            each(doc);
+        if let Some(doc) = parser.line(&buf)
+            && each(doc).is_break()
+        {
+            let _ = child.kill();
+            let _ = child.wait();
+            return Ok(());
         }
     }
     if let Some(doc) = parser.finish() {
-        each(doc);
+        let _ = each(doc);
     }
     let status = child.wait()?;
     if !status.success() {
@@ -367,8 +377,13 @@ fn read_diffs(mut child: std::process::Child, mut each: impl FnMut(CommitDoc)) -
 }
 
 /// Diff each commit against its first parent and pass the parsed result to
-/// `each`, in the order given. One `git diff-tree` process serves every commit.
-pub fn git_diff(root: &Path, shas: &[String], each: impl FnMut(CommitDoc)) -> Result<()> {
+/// `each`, in the order given, until it breaks. One `git diff-tree` process
+/// serves every commit.
+pub fn git_diff(
+    root: &Path,
+    shas: &[String],
+    each: impl FnMut(CommitDoc) -> ControlFlow<()>,
+) -> Result<()> {
     if shas.is_empty() {
         return Ok(());
     }
@@ -395,7 +410,7 @@ pub fn git_diff_paths(
     root: &Path,
     sha: &str,
     paths: &[String],
-    each: impl FnMut(CommitDoc),
+    each: impl FnMut(CommitDoc) -> ControlFlow<()>,
 ) -> Result<()> {
     let child = diff_tree(root)
         .arg(sha)
@@ -629,16 +644,23 @@ fn index_commits(
     let root_owned = root.to_path_buf();
     let producer = std::thread::spawn(move || -> Result<ChunkPaths> {
         let mut chunk_paths = ChunkPaths::new();
-        git_diff(&root_owned, &shas, |doc| match doc.chunks() {
-            Some(chunks) => {
-                let last = chunks.len().saturating_sub(1);
-                for (i, chunk) in chunks.into_iter().enumerate() {
-                    chunk_paths.insert(chunk.name.clone(), chunk.paths);
-                    let _ = tx.send((chunk.name, chunk.text, doc.truncated && i == last));
+        // A failed send means the index build gave up: stop diffing.
+        git_diff(&root_owned, &shas, |doc| {
+            let sent = match doc.chunks() {
+                Some(chunks) => {
+                    let last = chunks.len().saturating_sub(1);
+                    chunks.into_iter().enumerate().all(|(i, chunk)| {
+                        chunk_paths.insert(chunk.name.clone(), chunk.paths);
+                        tx.send((chunk.name, chunk.text, doc.truncated && i == last))
+                            .is_ok()
+                    })
                 }
-            }
-            None => {
-                let _ = tx.send((doc.name(), doc.text(), doc.truncated));
+                None => tx.send((doc.name(), doc.text(), doc.truncated)).is_ok(),
+            };
+            if sent {
+                ControlFlow::Continue(())
+            } else {
+                ControlFlow::Break(())
             }
         })?;
         Ok(chunk_paths)
@@ -648,11 +670,14 @@ fn index_commits(
         truncated += usize::from(cut);
         (name, text)
     });
-    crate::builder::build_index_from_documents(root, dir, docs, prune_grams)?;
-    let chunk_paths = producer
+    // The build consumes (and on failure drops) the receiver, which stops the
+    // producer; join it either way so no git process outlives this call.
+    let built = crate::builder::build_index_from_documents(root, dir, docs, prune_grams);
+    let produced = producer
         .join()
-        .map_err(|_| Error::Io(std::io::Error::other("history producer panicked")))??;
-    Ok((truncated, chunk_paths))
+        .map_err(|_| Error::Io(std::io::Error::other("history producer panicked")))?;
+    built?;
+    Ok((truncated, produced?))
 }
 
 fn read_chunks(dir: &Path) -> ChunkPaths {

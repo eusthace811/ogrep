@@ -66,21 +66,35 @@ pub fn resolve_when(root: &Path, when: &str, until: bool) -> Result<i64> {
     }
 }
 
-fn expand_duration(when: &str) -> Option<String> {
+/// Short duration units: what the user types, git's word for it, and its
+/// length in seconds (months and years approximate, for use without git).
+const UNITS: &[(&[&str], &str, i64)] = &[
+    (&["s"], "seconds", 1),
+    (&["m", "min"], "minutes", 60),
+    (&["h"], "hours", 3_600),
+    (&["d"], "days", 86_400),
+    (&["w"], "weeks", 604_800),
+    (&["mo"], "months", 2_592_000),
+    (&["y"], "years", 31_536_000),
+];
+
+/// `6mo` → (6, the months row of [`UNITS`]).
+fn split_duration(when: &str) -> Option<(i64, &'static str, i64)> {
     let split = when.find(|c: char| !c.is_ascii_digit())?;
     let (n, unit) = when.split_at(split);
-    let n: u64 = n.parse().ok()?;
-    let unit = match unit {
-        "s" => "seconds",
-        "m" | "min" => "minutes",
-        "h" => "hours",
-        "d" => "days",
-        "w" => "weeks",
-        "mo" => "months",
-        "y" => "years",
-        _ => return None,
-    };
-    Some(format!("{n} {unit} ago"))
+    let n = n.parse().ok()?;
+    let &(_, name, secs) = UNITS.iter().find(|(names, ..)| names.contains(&unit))?;
+    Some((n, name, secs))
+}
+
+/// `2w` as git's `2 weeks ago`.
+fn expand_duration(when: &str) -> Option<String> {
+    split_duration(when).map(|(n, name, _)| format!("{n} {name} ago"))
+}
+
+/// `2w` as seconds, for times worked out without git.
+pub(crate) fn duration_secs(when: &str) -> Option<i64> {
+    split_duration(when).map(|(n, _, secs)| n * secs)
 }
 
 /// `YYYY-MM-DD` for a UNIX time, in UTC.
@@ -274,14 +288,15 @@ pub fn run(
             .map(|item| -> Result<Vec<CommitHits>> {
                 let mut found = Vec::new();
                 let mut failure = None;
-                let each = |doc| {
-                    if failure.is_some() {
-                        return;
+                // The first error ends the diff; nothing after it is used.
+                let each = |doc| match search_commit(doc) {
+                    Ok(hits) => {
+                        found.extend(hits);
+                        std::ops::ControlFlow::Continue(())
                     }
-                    match search_commit(doc) {
-                        Ok(Some(hits)) => found.push(hits),
-                        Ok(None) => {}
-                        Err(e) => failure = Some(e),
+                    Err(e) => {
+                        failure = Some(e);
+                        std::ops::ControlFlow::Break(())
                     }
                 };
                 match item {

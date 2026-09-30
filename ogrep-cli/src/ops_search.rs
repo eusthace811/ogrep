@@ -82,7 +82,7 @@ pub fn run(
         Mode::Blast => blast(&repo, opts, &mut out)?,
         Mode::Suspects => suspects(&repo, opts, since, &mut out)?,
         Mode::Timeline => timeline(&repo, opts, since, &mut out)?,
-        Mode::Trace => trace(&repo, root, opts, &mut out)?,
+        Mode::Trace => trace(&repo, opts, &mut out)?,
         Mode::LogTemplates { .. } => unreachable!("handled above"),
         Mode::SimilarIncidents => similar_incidents(&repo, opts, &mut out)?,
     };
@@ -262,7 +262,7 @@ fn timeline(
     Ok(!events.is_empty())
 }
 
-fn trace(repo: &Path, root: &Path, opts: &SearchOptions, out: &mut impl Write) -> Result<bool> {
+fn trace(repo: &Path, opts: &SearchOptions, out: &mut impl Write) -> Result<bool> {
     let text = if opts.pattern == "-" {
         std::io::read_to_string(std::io::stdin())?
     } else {
@@ -285,7 +285,6 @@ fn trace(repo: &Path, root: &Path, opts: &SearchOptions, out: &mut impl Write) -
             .unwrap_or("")
             .trim();
         let scope = scope_of(path, &source, f.line);
-        let _ = root;
         if opts.json {
             let msg = serde_json::json!({"type": "frame", "data": {
                 "index": f.index, "path": path, "line_number": f.line, "function": f.function,
@@ -309,10 +308,11 @@ fn trace(repo: &Path, root: &Path, opts: &SearchOptions, out: &mut impl Write) -
 #[cfg(feature = "structure")]
 fn scope_of(path: &str, source: &str, line: usize) -> Option<String> {
     let fs = ogrep_core::structure::analyze(path, source.as_bytes())?;
+    // Byte offset of the line's start; `lines()` would drop each `\r`.
     let offset = source
-        .lines()
+        .split_inclusive('\n')
         .take(line.saturating_sub(1))
-        .map(|l| l.len() + 1)
+        .map(str::len)
         .sum();
     let chain = fs.enclosing(offset);
     (!chain.is_empty()).then(|| {
@@ -390,22 +390,8 @@ fn parse_when(repo: Option<&Path>, when: &str) -> Result<i64> {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |d| d.as_secs() as i64);
-    let split = when
-        .find(|c: char| !c.is_ascii_digit())
-        .unwrap_or(when.len());
-    if split > 0 && split < when.len() {
-        let n: i64 = when[..split].parse().unwrap_or(0);
-        let unit = match &when[split..] {
-            "s" => Some(1),
-            "m" | "min" => Some(60),
-            "h" => Some(3600),
-            "d" => Some(86_400),
-            "w" => Some(604_800),
-            _ => None,
-        };
-        if let Some(unit) = unit {
-            return Ok(now - n * unit);
-        }
+    if let Some(ago) = crate::history_search::duration_secs(when) {
+        return Ok(now - ago);
     }
     let padded = if when.len() == 10 {
         format!("{when}T00:00:00Z")
@@ -417,7 +403,7 @@ fn parse_when(repo: Option<&Path>, when: &str) -> Result<i64> {
     }
     match repo {
         Some(repo) => crate::history_search::resolve_when(repo, when, false),
-        None => bail!("cannot read {when:?} as a time (use 2h, 3d, or an ISO 8601 date)"),
+        None => bail!("cannot read {when:?} as a time (use 2h, 3d, 6mo, or an ISO 8601 date)"),
     }
 }
 

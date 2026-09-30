@@ -155,3 +155,29 @@ fn cached_structure_is_per_language_not_just_per_content() {
     let js = stdout(ogrep(dir.path()).args(["--kind", "def", "-g", "*.js", "Widget", "."]));
     assert_eq!(js, "", "the TypeScript parse must not be reused for a.js");
 }
+
+#[test]
+fn stack_trace_scopes_are_right_in_crlf_files() {
+    let body: Vec<String> = std::iter::once("def first():".to_string())
+        .chain((0..40).map(|i| format!("    x = {i}")))
+        .chain(
+            [
+                "    return x",
+                "",
+                "def second():",
+                "    raise ValueError('boom')",
+                "",
+            ]
+            .map(String::from),
+        )
+        .collect();
+    let dir = repo(&[("app.py", &body.join("\r\n"))]);
+    let line = body.iter().position(|l| l.contains("raise")).unwrap() + 1;
+    fs::write(
+        dir.path().join("trace.txt"),
+        format!("Traceback (most recent call last):\n  File \"app.py\", line {line}, in second\n    raise ValueError('boom')\n"),
+    )
+    .unwrap();
+    let out = stdout(ogrep(dir.path()).args(["--stack-trace", "trace.txt"]));
+    assert!(out.contains("[second]"), "{out:?}");
+}
