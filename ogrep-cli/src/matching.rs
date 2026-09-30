@@ -332,7 +332,7 @@ impl SearchMatcher {
     /// engine. The linear-time engine ignores `patterns` and plans exactly the
     /// regex it compiled (so a pattern completed by a `-x`/`-w` wrapper, like
     /// `-x 'a)(b'`, still plans), one alternative per group; see
-    /// [`plan_alternatives`]. For the PCRE-style engine,
+    /// [`ogrep_core::query::plan_alternatives`]. For the PCRE-style engine,
     /// `patterns` are relaxed into ones the planner can read.
     pub fn index_plan(
         &self,
@@ -345,7 +345,7 @@ impl SearchMatcher {
             query::build_multi_pattern_plan(patterns, true, case_insensitive)
         } else {
             match self {
-                Self::Standard(re, _) => plan_alternatives(re.as_str(), case_insensitive),
+                Self::Standard(re, _) => query::plan_alternatives(re.as_str(), case_insensitive),
                 Self::Fancy { .. } => Ok(query::build_relaxed_multi_pattern_plan(
                     patterns,
                     case_insensitive,
@@ -1029,38 +1029,6 @@ impl<'a> FileMatches<'a> {
     }
 }
 
-/// Plan a compiled regex, each top-level alternative on its own when every
-/// one is a group (as `-e p1 -e p2` compiles to `(?:p1)|(?:p2)`).
-///
-/// A group scopes the flags set inside it, so each can be planned alone, and
-/// separately each keeps all its trigrams: as one alternation, `-i` patterns
-/// lose those past a shared prefix. Planning the compiled text rather than
-/// the raw patterns stays exact when a pattern's text reaches past its group,
-/// as a `(?x)` comment does into the next one: the parse then shows fewer
-/// alternatives.
-fn plan_alternatives(
-    pattern: &str,
-    case_insensitive: bool,
-) -> std::result::Result<ogrep_core::query::QueryPlan, String> {
-    use regex_syntax::ast::Ast;
-
-    let parsed = regex_syntax::ast::parse::Parser::new().parse(pattern);
-    if let Ok(Ast::Alternation(alternation)) = &parsed
-        && alternation
-            .asts
-            .iter()
-            .all(|ast| matches!(ast, Ast::Group(_)))
-    {
-        let branches: Vec<String> = alternation
-            .asts
-            .iter()
-            .map(|ast| pattern[ast.span().start.offset..ast.span().end.offset].to_string())
-            .collect();
-        return ogrep_core::query::build_multi_pattern_plan(&branches, false, case_insensitive);
-    }
-    ogrep_core::query::build_query_plan(pattern, case_insensitive)
-}
-
 /// Whether `pattern` is free of anchors whose meaning depends on where the
 /// haystack starts and ends.
 ///
@@ -1281,19 +1249,22 @@ mod tests {
         assert_eq!(
             format!(
                 "{:?}",
-                plan_alternatives("(?:foobar)|(?:foobaz)", true).unwrap()
+                ogrep_core::query::plan_alternatives("(?:foobar)|(?:foobaz)", true).unwrap()
             ),
             format!("{separate:?}")
         );
         assert!(matches!(
-            plan_alternatives("(?:foobar)|(?:foobaz)", true).unwrap(),
+            ogrep_core::query::plan_alternatives("(?:foobar)|(?:foobaz)", true).unwrap(),
             ogrep_core::query::QueryPlan::Or(_)
         ));
         // A (?x) comment swallows the `|` and the next group's start: the
         // regex is really one alternative, and is planned as a whole.
         let swallowed = "(?:(?x)qqq #)|(?:yyy\n?zzz)";
         assert_eq!(
-            format!("{:?}", plan_alternatives(swallowed, false).unwrap()),
+            format!(
+                "{:?}",
+                ogrep_core::query::plan_alternatives(swallowed, false).unwrap()
+            ),
             format!(
                 "{:?}",
                 ogrep_core::query::build_query_plan(swallowed, false).unwrap()
@@ -1304,7 +1275,7 @@ mod tests {
         assert_eq!(
             format!(
                 "{:?}",
-                plan_alternatives("(?x) ab c | d e f", false).unwrap()
+                ogrep_core::query::plan_alternatives("(?x) ab c | d e f", false).unwrap()
             ),
             format!(
                 "{:?}",

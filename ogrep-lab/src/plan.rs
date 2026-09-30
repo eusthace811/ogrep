@@ -132,7 +132,7 @@ pub fn explain(ws: &Workspace, pat: &Pattern) -> Result<Value, String> {
     let plan = if pat.fixed {
         query::build_multi_pattern_plan(&[pat.text.to_string()], true, ci)?
     } else {
-        plan_alternatives(pat.text, ci)?
+        query::plan_alternatives(pat.text, ci)?
     };
     let plan_us = t_plan.elapsed().as_micros();
     let verifier = pat.regex()?;
@@ -222,29 +222,6 @@ pub fn explain(ws: &Workspace, pat: &Pattern) -> Result<Value, String> {
         "work": work,
         "timing": { "plan_us": plan_us, "index_us": index_us, "verify_ms": verify_ms },
     }))
-}
-
-/// The plan ogrep builds for a regex: a top-level alternation of groups is
-/// planned branch by branch, anything else as one pattern. A copy of
-/// `plan_alternatives` in ogrep-cli's matching.rs, which stays out of
-/// ogrep-core for index build speed; keep the two in step.
-fn plan_alternatives(pattern: &str, ci: bool) -> Result<QueryPlan, String> {
-    use regex_syntax::ast::Ast;
-    let parsed = regex_syntax::ast::parse::Parser::new().parse(pattern);
-    if let Ok(Ast::Alternation(alternation)) = &parsed
-        && alternation
-            .asts
-            .iter()
-            .all(|ast| matches!(ast, Ast::Group(_)))
-    {
-        let branches: Vec<String> = alternation
-            .asts
-            .iter()
-            .map(|ast| pattern[ast.span().start.offset..ast.span().end.offset].to_string())
-            .collect();
-        return query::build_multi_pattern_plan(&branches, false, ci);
-    }
-    query::build_query_plan(pattern, ci)
 }
 
 fn count_matching_lines(re: &regex::bytes::Regex, data: &[u8]) -> usize {

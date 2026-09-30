@@ -289,6 +289,38 @@ impl QueryPlan {
     }
 }
 
+/// Plan a compiled regex, each top-level alternative on its own when every
+/// one is a group (as `-e p1 -e p2` compiles to `(?:p1)|(?:p2)`).
+///
+/// A group scopes the flags set inside it, so each can be planned alone, and
+/// separately each keeps all its trigrams: as one alternation, `-i` patterns
+/// lose those past a shared prefix. Planning the compiled text rather than
+/// the raw patterns stays exact when a pattern's text reaches past its group,
+/// as a `(?x)` comment does into the next one: the parse then shows fewer
+/// alternatives.
+pub fn plan_alternatives(
+    pattern: &str,
+    case_insensitive: bool,
+) -> std::result::Result<QueryPlan, String> {
+    use regex_syntax::ast::Ast;
+
+    let parsed = regex_syntax::ast::parse::Parser::new().parse(pattern);
+    if let Ok(Ast::Alternation(alternation)) = &parsed
+        && alternation
+            .asts
+            .iter()
+            .all(|ast| matches!(ast, Ast::Group(_)))
+    {
+        let branches: Vec<String> = alternation
+            .asts
+            .iter()
+            .map(|ast| pattern[ast.span().start.offset..ast.span().end.offset].to_string())
+            .collect();
+        return build_multi_pattern_plan(&branches, false, case_insensitive);
+    }
+    build_query_plan(pattern, case_insensitive)
+}
+
 /// Parse a regex pattern and produce a query plan for trigram lookups.
 pub fn build_query_plan(pattern: &str, case_insensitive: bool) -> Result<QueryPlan, String> {
     let hir = regex_syntax::ParserBuilder::new()
