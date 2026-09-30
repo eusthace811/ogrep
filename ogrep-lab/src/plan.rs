@@ -381,7 +381,10 @@ mod tests {
             case: Case::Smart,
             word: false,
         };
-        assert!(smart(r"\Sfoo").ignores_case(), "the S of an escape is not text");
+        assert!(
+            smart(r"\Sfoo").ignores_case(),
+            "the S of an escape is not text"
+        );
         assert!(smart(r"\p{Lu}x").ignores_case(), "nor is a class name");
         assert!(!smart("Foo").ignores_case());
     }

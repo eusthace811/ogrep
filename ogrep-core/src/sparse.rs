@@ -133,11 +133,6 @@ pub fn key_folding(gram: &[u8]) -> u32 {
     KEY_BASE + ((u128::from(hash) * u128::from(range)) >> 64) as u32
 }
 
-/// Key of a gram given as lowercased bytes.
-pub fn key(gram: &[u8]) -> u32 {
-    key_folding(gram)
-}
-
 /// Call `f(start, end)` for every sparse gram of `len` bytes where `at(i)`
 /// returns the (lowercased) byte at `i`. Each gram is reported once per
 /// occurrence, as a half-open byte range.
@@ -332,13 +327,13 @@ mod tests {
             &b"_header"[..],
             &b"abcd"[..],
         ] {
-            let k = key(gram);
+            let k = key_folding(gram);
             assert!(is_gram_key(k));
         }
         // Pinned: changing the hash, table or rule must bump VERSION.
-        assert_eq!(key(b"pool"), key(b"pool"));
-        assert_ne!(key(b"pool"), key(b"loop"));
-        assert_ne!(key(b"abcd"), key(b"abcde"));
+        assert_eq!(key_folding(b"pool"), key_folding(b"pool"));
+        assert_ne!(key_folding(b"pool"), key_folding(b"loop"));
+        assert_ne!(key_folding(b"abcd"), key_folding(b"abcde"));
     }
 
     #[test]

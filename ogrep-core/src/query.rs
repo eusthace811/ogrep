@@ -177,7 +177,7 @@ pub fn execute_plan_indexed(
             // grams usually leave little to reject, and every extra key costs a
             // lookup. They still pay off while many candidates remain, since each
             // candidate they reject saves reading a file.
-            if usable.held_back && candidates.len() > secondary_min() {
+            if usable.held_back && candidates.len() > SECONDARY_MIN {
                 let mut rest: Vec<_> = queries
                     .iter()
                     .filter(|q| q.fallback && !sparse::is_gram_key(q.hash))
@@ -185,7 +185,7 @@ pub fn execute_plan_indexed(
                     .collect();
                 rest.sort_by_key(|(_, len)| *len);
                 for (q, count) in rest {
-                    if candidates.len() <= secondary_min() {
+                    if candidates.len() <= SECONDARY_MIN {
                         break;
                     }
                     narrow(q, count, &mut candidates, work);
@@ -224,10 +224,6 @@ pub fn execute_plan_indexed(
 /// trigrams (see `execute_plan_indexed`). Swept on the rust targeted queries:
 /// 8, 32 and 128 were within noise of each other, and all beat no second phase.
 const SECONDARY_MIN: usize = 32;
-
-fn secondary_min() -> usize {
-    SECONDARY_MIN
-}
 
 /// Which of an And node's queries run against a source.
 struct UsableKeys {

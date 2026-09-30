@@ -19,7 +19,7 @@ use std::collections::HashMap;
 pub const SIMILARITY: f64 = 0.5;
 const WILDCARD: &str = "<*>";
 
-#[derive(Clone, Debug, PartialEq, serde::Serialize)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Template {
     pub tokens: Vec<String>,
     pub count: usize,
@@ -27,7 +27,6 @@ pub struct Template {
     pub last_seen: Option<i64>,
     /// Where the first line of this template was seen: `(file, line)`.
     pub example: (String, usize),
-    pub example_text: String,
 }
 
 impl Template {
@@ -179,7 +178,6 @@ impl Drain {
             first_seen: time,
             last_seen: time,
             example: (file.to_string(), line_number),
-            example_text: line.to_string(),
         });
     }
 

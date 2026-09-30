@@ -216,6 +216,31 @@ fn duration_json(d: std::time::Duration) -> serde_json::Value {
     })
 }
 
+/// `content` with each match span wrapped in the match colour. Spans are
+/// clamped to character boundaries, so a bad span never splits a character.
+pub(crate) fn highlight_spans(content: &str, spans: &[(usize, usize)]) -> String {
+    if spans.is_empty() {
+        return content.to_string();
+    }
+    let mut out = String::with_capacity(content.len() + spans.len() * 12);
+    let mut pos = 0;
+    for &(start, end) in spans {
+        let start = floor_boundary(content, start).max(pos);
+        let end = floor_boundary(content, end).max(start);
+        if start > pos {
+            out.push_str(&content[pos..start]);
+        }
+        if end > start {
+            out.push_str(MATCH_COLOR);
+            out.push_str(&content[start..end]);
+            out.push_str(COLOR_RESET);
+        }
+        pos = end;
+    }
+    out.push_str(&content[pos..]);
+    out
+}
+
 /// Walk `i` back to the nearest UTF-8 character boundary at or below it.
 ///
 /// Match offsets from the regex engine always land on boundaries, but clamping
@@ -871,26 +896,10 @@ impl OutputWriter {
 
     /// Wrap each matched range in `content` with the match color.
     fn highlight(&self, content: &str, spans: &[(usize, usize)]) -> String {
-        if !self.use_color || spans.is_empty() {
+        if !self.use_color {
             return content.to_string();
         }
-        let mut out = String::with_capacity(content.len() + spans.len() * 12);
-        let mut pos = 0;
-        for &(start, end) in spans {
-            let start = floor_boundary(content, start).max(pos);
-            let end = floor_boundary(content, end).max(start);
-            if start > pos {
-                out.push_str(&content[pos..start]);
-            }
-            if end > start {
-                out.push_str(MATCH_COLOR);
-                out.push_str(&content[start..end]);
-                out.push_str(COLOR_RESET);
-            }
-            pos = end;
-        }
-        out.push_str(&content[pos..]);
-        out
+        highlight_spans(content, spans)
     }
 
     fn ensure_heading(&mut self, file: &str) -> io::Result<()> {

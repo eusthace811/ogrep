@@ -352,14 +352,6 @@ impl Graph {
             .collect()
     }
 
-    /// Number of distinct files defining `name`.
-    pub fn definers(&self, name: &str) -> usize {
-        let mut files: Vec<u32> = self.defs_named(name).map(|d| d.file).collect();
-        files.sort_unstable();
-        files.dedup();
-        files.len()
-    }
-
     /// Definitions of `name`.
     pub fn defs_named(&self, name: &str) -> impl Iterator<Item = &Def> {
         self.by_name

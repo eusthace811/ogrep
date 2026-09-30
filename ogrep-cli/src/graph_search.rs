@@ -68,11 +68,7 @@ fn matched_files(
 }
 
 /// The graph for `root`'s index, with a note when it predates the index.
-fn load_graph(
-    root: &Path,
-    index_path: Option<&Path>,
-    quiet: bool,
-) -> Result<(Graph, std::path::PathBuf)> {
+fn load_graph(root: &Path, index_path: Option<&Path>, quiet: bool) -> Result<Graph> {
     let index_dir = index_path.map(Path::to_path_buf).unwrap_or_else(|| {
         ogrep_core::builder::default_index_dir(
             &std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf()),
@@ -87,7 +83,7 @@ fn load_graph(
     if !current && !quiet {
         eprintln!("note: the file graph predates the index; `ogrep index --graph` refreshes it");
     }
-    Ok((g, index_dir))
+    Ok(g)
 }
 
 /// Identifiers mentioned in the seed files.
@@ -120,7 +116,7 @@ pub fn run(
     ci: bool,
     mode: Mode,
 ) -> Result<bool> {
-    let (g, _index_dir) = load_graph(root, index_path, opts.no_messages)?;
+    let g = load_graph(root, index_path, opts.no_messages)?;
     let mut out = BufWriter::new(std::io::stdout().lock());
     let found = match mode {
         Mode::Callees => callees(&g, root, opts, &mut out)?,

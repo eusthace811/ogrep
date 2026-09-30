@@ -99,8 +99,15 @@ pub(crate) fn duration_secs(when: &str) -> Option<i64> {
 
 /// `YYYY-MM-DD` for a UNIX time, in UTC.
 fn date(time: i64) -> String {
+    let mut iso = iso(time);
+    iso.truncate(10);
+    iso
+}
+
+/// `YYYY-MM-DDTHH:MM:SSZ` for a UNIX time.
+pub(crate) fn iso(time: i64) -> String {
     // Howard Hinnant's days-to-civil.
-    let days = time.div_euclid(86_400);
+    let (days, secs) = (time.div_euclid(86_400), time.rem_euclid(86_400));
     let z = days + 719_468;
     let era = z.div_euclid(146_097);
     let doe = z - era * 146_097;
@@ -110,7 +117,8 @@ fn date(time: i64) -> String {
     let d = doy - (153 * mp + 2) / 5 + 1;
     let m = if mp < 10 { mp + 3 } else { mp - 9 };
     let y = yoe + era * 400 + i64::from(m <= 2);
-    format!("{y:04}-{m:02}-{d:02}")
+    let (hh, mm, ss) = (secs / 3600, secs / 60 % 60, secs % 60);
+    format!("{y:04}-{m:02}-{d:02}T{hh:02}:{mm:02}:{ss:02}Z")
 }
 
 /// The index holding the history: the nearest `.ogrep` with one, from the
@@ -352,8 +360,7 @@ pub fn run(
     if opts.quiet {
         return Ok(!commits.is_empty());
     }
-    let color = opts.color.is_enabled() && crate::output::atty_check()
-        || opts.color == crate::output::ColorMode::Always;
+    let color = opts.color.is_enabled();
     let mut out = BufWriter::new(std::io::stdout().lock());
     match mode {
         Mode::Log => print_log(&mut out, &commits, opts, color)?,
@@ -364,26 +371,6 @@ pub fn run(
     }
     out.flush()?;
     Ok(!commits.is_empty())
-}
-
-fn highlight(text: &str, spans: &[(usize, usize)], color: bool) -> String {
-    if !color || spans.is_empty() {
-        return text.to_string();
-    }
-    let mut out = String::with_capacity(text.len() + spans.len() * 12);
-    let mut pos = 0;
-    for &(s, e) in spans {
-        if s < pos || e > text.len() || !text.is_char_boundary(s) || !text.is_char_boundary(e) {
-            continue;
-        }
-        out.push_str(&text[pos..s]);
-        out.push_str("\x1b[1;31m");
-        out.push_str(&text[s..e]);
-        out.push_str("\x1b[0m");
-        pos = e;
-    }
-    out.push_str(&text[pos..]);
-    out
 }
 
 fn print_log(
@@ -461,7 +448,11 @@ fn print_log(
                 "{}:{}:{sign}{}",
                 h.line.path,
                 h.line.line,
-                highlight(&h.line.text, &h.spans, color)
+                if color {
+                    crate::output::highlight_spans(&h.line.text, &h.spans)
+                } else {
+                    h.line.text.clone()
+                }
             )?;
         }
     }
@@ -728,6 +719,7 @@ mod tests {
         assert_eq!(date(0), "1970-01-01");
         assert_eq!(date(1_700_000_000), "2023-11-14");
         assert_eq!(date(951_782_400), "2000-02-29");
+        assert_eq!(iso(1_700_000_000), "2023-11-14T22:13:20Z");
         assert_eq!(expand_duration("2h").as_deref(), Some("2 hours ago"));
         assert_eq!(expand_duration("6mo").as_deref(), Some("6 months ago"));
         assert_eq!(expand_duration("2024-05-01"), None);

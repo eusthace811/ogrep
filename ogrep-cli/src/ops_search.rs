@@ -374,7 +374,11 @@ fn log_templates(
             continue;
         }
         let seen = match (t.first_seen, t.last_seen) {
-            (Some(f), Some(l)) => format!("  first {} last {}", iso(f), iso(l)),
+            (Some(f), Some(l)) => format!(
+                "  first {} last {}",
+                crate::history_search::iso(f),
+                crate::history_search::iso(l)
+            ),
             _ => String::new(),
         };
         writeln!(out, "{:>7}  {}{seen}", t.count, t.text())?;
@@ -406,28 +410,6 @@ fn parse_when(repo: Option<&Path>, when: &str) -> Result<i64> {
         Some(repo) => crate::history_search::resolve_when(repo, when, false),
         None => bail!("cannot read {when:?} as a time (use 2h, 3d, 6mo, or an ISO 8601 date)"),
     }
-}
-
-fn iso(time: i64) -> String {
-    let days = time.div_euclid(86_400);
-    let secs = time.rem_euclid(86_400);
-    let date = {
-        let z = days + 719_468;
-        let era = z.div_euclid(146_097);
-        let doe = z - era * 146_097;
-        let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365;
-        let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
-        let mp = (5 * doy + 2) / 153;
-        let d = doy - (153 * mp + 2) / 5 + 1;
-        let m = if mp < 10 { mp + 3 } else { mp - 9 };
-        format!("{:04}-{m:02}-{d:02}", yoe + era * 400 + i64::from(m <= 2))
-    };
-    format!(
-        "{date}T{:02}:{:02}:{:02}Z",
-        secs / 3600,
-        secs / 60 % 60,
-        secs % 60
-    )
 }
 
 const LEVELS: &[&str] = &[

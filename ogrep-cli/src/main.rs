@@ -1772,6 +1772,18 @@ fn report_missing_path(path: &std::path::Path, no_messages: bool) {
     }
 }
 
+/// Exit as grep does for a tool's result: 0 when it found something, 1 when
+/// not, 2 on an error (reported first).
+fn exit_with(result: anyhow::Result<bool>) -> ! {
+    match result {
+        Ok(found) => process::exit(if found { 0 } else { 1 }),
+        Err(e) => {
+            eprintln!("ogrep: {e}");
+            process::exit(2);
+        }
+    }
+}
+
 /// `--changed-since`: the options for one path argument, limited to the files
 /// changed since the given revision or time (`None` when the flag is absent).
 /// Exits on a git error, like any other argument error.
@@ -1878,14 +1890,13 @@ fn run_search(
         let root = targets
             .first()
             .map_or_else(|| PathBuf::from("."), |t| t.path.clone());
-        match extras::run(&root, cli.index_path.as_deref(), &opts, ci, mode) {
-            Ok(true) => process::exit(0),
-            Ok(false) => process::exit(1),
-            Err(e) => {
-                eprintln!("ogrep: {e}");
-                process::exit(2);
-            }
-        }
+        exit_with(extras::run(
+            &root,
+            cli.index_path.as_deref(),
+            &opts,
+            ci,
+            mode,
+        ));
     }
     let ops_mode = if cli.entities {
         Some(ops_search::Mode::Entities)
@@ -1913,21 +1924,14 @@ fn run_search(
         let root = targets
             .first()
             .map_or_else(|| PathBuf::from("."), |t| t.path.clone());
-        match ops_search::run(
+        exit_with(ops_search::run(
             &root,
             cli.index_path.as_deref(),
             &opts,
             ci,
             &mode,
             cli.since.as_deref(),
-        ) {
-            Ok(true) => process::exit(0),
-            Ok(false) => process::exit(1),
-            Err(e) => {
-                eprintln!("ogrep: {e}");
-                process::exit(2);
-            }
-        }
+        ));
     }
     if cli.near || cli.map.is_some() || cli.callees {
         let [target] = targets.as_slice() else {
@@ -1943,14 +1947,13 @@ fn run_search(
                 budget: cli.budget.map_or(20, |b| b as usize),
             }
         };
-        match graph_search::run(&target.path, cli.index_path.as_deref(), &opts, ci, mode) {
-            Ok(true) => process::exit(0),
-            Ok(false) => process::exit(1),
-            Err(e) => {
-                eprintln!("ogrep: {e}");
-                process::exit(2);
-            }
-        }
+        exit_with(graph_search::run(
+            &target.path,
+            cli.index_path.as_deref(),
+            &opts,
+            ci,
+            mode,
+        ));
     }
     let post_opts = cli.post_options();
     if post_opts.active() {
@@ -2106,18 +2109,14 @@ fn run_history_search(
     } else {
         history_search::Mode::Log
     };
-    match history_search::run(
+    exit_with(history_search::run(
         &target.path,
         cli.index_path.as_deref(),
         opts,
         ci,
         mode,
         &filters,
-    ) {
-        Ok(true) => process::exit(0),
-        Ok(false) => process::exit(1),
-        Err(e) => fail(e),
-    }
+    ));
 }
 
 /// `--rank`, `--scope`, `--kind`, `--in`: run the ordinary search into a
