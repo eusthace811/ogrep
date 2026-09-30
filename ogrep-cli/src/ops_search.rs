@@ -32,8 +32,13 @@ fn model(repo: &Path) -> Result<(OpsModel, Vec<String>)> {
 }
 
 fn when(repo: &Path, value: Option<&str>, default: &str) -> Result<i64> {
-    crate::history_search::resolve_when(repo, value.unwrap_or(default), false)
-        .map_err(|e| anyhow::anyhow!("--since: {e}"))
+    let time = crate::history_search::resolve_when(repo, value.unwrap_or(default), false);
+    // Name the flag only when the user gave it.
+    if value.is_some() {
+        time.map_err(|e| e.context("--since"))
+    } else {
+        time
+    }
 }
 
 fn ago(time: i64) -> String {
@@ -350,7 +355,7 @@ fn log_templates(
         drain.add(&m.file, m.line_number, &m.content);
     }
     let cutoff = match new_since {
-        Some(w) => Some(parse_when(repo, w).map_err(|e| anyhow::anyhow!("--new-since: {e}"))?),
+        Some(w) => Some(parse_when(repo, w).map_err(|e| e.context("--new-since"))?),
         None => None,
     };
     let templates: Vec<_> = drain

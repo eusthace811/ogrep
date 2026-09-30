@@ -104,11 +104,8 @@ impl FactStore {
             return Ok(());
         }
         let dir = store_dir(index_dir, name);
-        let created = !dir.is_dir();
         std::fs::create_dir_all(&dir)?;
-        if created {
-            remove_older_versions(index_dir, name);
-        }
+        remove_older_versions(index_dir, name);
         let lock = std::fs::OpenOptions::new()
             .create(true)
             .truncate(false)
@@ -166,9 +163,10 @@ impl FactStore {
     }
 }
 
-/// Delete earlier versions of the store `name` (`structure-v1` when
-/// `structure-v2` is first created): nothing this build reads. Newer versions
-/// are left alone, since a newer ogrep may share the index.
+/// Delete earlier versions of the store `name` (`structure-v1` next to
+/// `structure-v2`): nothing this build reads. Newer versions are left alone,
+/// since a newer ogrep may share the index. A listing of a few entries,
+/// beside the fsync every put does anyway.
 fn remove_older_versions(index_dir: &Path, name: &str) {
     let version = |n: &str| {
         let (stem, v) = n.rsplit_once("-v")?;
@@ -196,6 +194,25 @@ fn lock_exclusive(file: &std::fs::File) -> std::io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_put_removes_older_versions_of_its_store_only() {
+        let dir = tempfile::tempdir().unwrap();
+        for store in ["structure-v1", "structure-v3", "other-v1", "structure-vx"] {
+            std::fs::create_dir_all(dir.path().join("facts").join(store)).unwrap();
+        }
+        let id = ContentId::from_indexed_bytes(b"x");
+        FactStore::put(dir.path(), "structure-v2", vec![(id, b"payload".to_vec())]).unwrap();
+        let mut left: Vec<String> = std::fs::read_dir(dir.path().join("facts"))
+            .unwrap()
+            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+            .collect();
+        left.sort();
+        assert_eq!(
+            left,
+            ["other-v1", "structure-v2", "structure-v3", "structure-vx"]
+        );
+    }
 
     #[test]
     fn stores_and_finds_payloads_across_updates() {

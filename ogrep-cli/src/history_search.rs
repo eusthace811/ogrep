@@ -658,41 +658,37 @@ pub fn search_at(
     Ok(had_match)
 }
 
-type Changed = Option<std::sync::Arc<std::collections::HashSet<String>>>;
+type Changed = Option<std::collections::HashSet<String>>;
 
 /// `--changed-since` for one invocation: the files changed since a point,
 /// asked of git once per repository however many path arguments share it.
-#[derive(Default)]
-pub struct ChangedSets(std::cell::RefCell<Vec<(std::path::PathBuf, Changed)>>);
+pub struct ChangedSets {
+    since: String,
+    by_repo: std::collections::HashMap<std::path::PathBuf, Changed>,
+}
 
 impl ChangedSets {
-    /// Files changed since `since` (a revision, or a date or duration as for
-    /// `--since`), relative to `root`: every tracked file that differs between
-    /// that point and the working tree, including uncommitted changes, plus
-    /// untracked files that are not ignored. `None` when `since` predates the
-    /// history, so every file counts as changed.
-    pub fn under(
-        &self,
-        root: &Path,
-        since: &str,
-    ) -> Result<Option<std::collections::HashSet<String>>> {
-        let repo = history::repo_root(root)
-            .map_err(|e| anyhow::anyhow!("--changed-since needs a git repository: {e}"))?;
-        let known = self
-            .0
-            .borrow()
-            .iter()
-            .find(|(r, _)| *r == repo)
-            .map(|(_, c)| c.clone());
-        let changed = match known {
-            Some(changed) => changed,
-            None => {
-                let changed = changed_in_repo(&repo, since)?;
-                self.0.borrow_mut().push((repo.clone(), changed.clone()));
-                changed
-            }
-        };
-        let Some(changed) = changed else {
+    /// For `since` (a revision, or a date or duration as for `--since`);
+    /// unused when `None`.
+    pub fn new(since: Option<&str>) -> Self {
+        Self {
+            since: since.unwrap_or_default().to_string(),
+            by_repo: Default::default(),
+        }
+    }
+
+    /// Files changed since the point, relative to `root`: every tracked file
+    /// that differs between it and the working tree, including uncommitted
+    /// changes, plus untracked files that are not ignored. `None` when the
+    /// point predates the history, so every file counts as changed.
+    pub fn under(&mut self, root: &Path) -> Result<Option<std::collections::HashSet<String>>> {
+        let repo =
+            history::repo_root(root).map_err(|e| anyhow::anyhow!("needs a git repository: {e}"))?;
+        if !self.by_repo.contains_key(&repo) {
+            let changed = changed_in_repo(&repo, &self.since)?;
+            self.by_repo.insert(repo.clone(), changed);
+        }
+        let Some(changed) = &self.by_repo[&repo] else {
             return Ok(None);
         };
         let prefix = scope_prefix(&repo, root);
@@ -746,7 +742,7 @@ fn changed_in_repo(repo: &Path, since: &str) -> Result<Changed> {
                         .map(String::from),
                 );
             }
-            Some(std::sync::Arc::new(paths))
+            Some(paths)
         }
     };
     Ok(changed)
