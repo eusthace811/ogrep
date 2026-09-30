@@ -1,6 +1,7 @@
 //! Incident and operations commands: `--entities`, `--blast`, `--suspects`,
 //! `--timeline`, `--trace`, `--log-templates` and `--similar-incidents`.
 
+use std::collections::HashMap;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
@@ -523,24 +524,50 @@ fn similar_incidents(repo: &Path, opts: &SearchOptions, out: &mut impl Write) ->
         .collect();
     let n = texts.len().max(1) as f64;
     let avg = texts.iter().map(|t| t.1.len()).sum::<usize>() as f64 / n;
+    // BM25 over the incident notes. Term counts per note, and the number of
+    // notes holding each query term, are counted once up front.
+    let query_terms: std::collections::BTreeSet<&String> = q.iter().collect();
+    let counts: Vec<HashMap<&str, usize>> = texts
+        .iter()
+        .map(|(_, doc)| {
+            let mut c = HashMap::new();
+            for t in doc {
+                *c.entry(t.as_str()).or_default() += 1;
+            }
+            c
+        })
+        .collect();
+    let df: HashMap<&str, f64> = query_terms
+        .iter()
+        .map(|t| {
+            (
+                t.as_str(),
+                counts.iter().filter(|c| c.contains_key(t.as_str())).count() as f64,
+            )
+        })
+        .collect();
     let mut scored: Vec<(f64, &str, Vec<&str>)> = texts
         .iter()
-        .map(|(path, doc)| {
+        .zip(&counts)
+        .map(|((path, doc), count)| {
             let mut score = 0.0;
             let mut hits = Vec::new();
-            for t in q.iter().collect::<std::collections::BTreeSet<_>>() {
-                let tf = doc.iter().filter(|d| *d == t).count() as f64;
+            for t in &query_terms {
+                let tf = count.get(t.as_str()).copied().unwrap_or(0) as f64;
                 if tf == 0.0 {
                     continue;
                 }
-                let df = texts.iter().filter(|(_, d)| d.contains(t)).count() as f64;
+                let df = df[t.as_str()];
                 let idf = (1.0 + (n - df + 0.5) / (df + 0.5)).ln();
                 let norm = 1.0 - 0.75 + 0.75 * doc.len() as f64 / avg.max(1.0);
                 score += idf * tf * 2.2 / (tf + 1.2 * norm);
                 hits.push(t.as_str());
             }
             // Shared services count twice as much as other shared words.
-            let shared = q_services.iter().filter(|s| doc.contains(s)).count() as f64;
+            let shared = q_services
+                .iter()
+                .filter(|s| count.contains_key(s.as_str()))
+                .count() as f64;
             (score * (1.0 + shared), path.as_str(), hits)
         })
         .filter(|s| s.0 > 0.0)
