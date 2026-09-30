@@ -576,3 +576,45 @@ fn kind_and_zone_filters_decide_per_match() {
         "{json}"
     );
 }
+
+#[test]
+fn reshaped_output_keeps_structure_context_and_callers_straight() {
+    let dir = TempDir::new().unwrap();
+    let write = |name: &str, text: &[u8]| fs::write(dir.path().join(name), text).unwrap();
+    write(
+        "bom.rs",
+        b"\xef\xbb\xbf// x\nfn k() { let a = \"foo\"; }\nfn foo() {}\n",
+    );
+    write(
+        "b.py",
+        b"def foo():\n    return \"foo\"\n\ndef beta():\n    foo()\n",
+    );
+    write(
+        "c.rs",
+        b"fn crlf2() {\n    let s = \"x foo\";\n    foo();\n}\n",
+    );
+    let run = |args: &[&str]| stdout(ogrep(dir.path()).arg("--no-index").args(args));
+    // A byte-order mark does not shift where matches are looked up.
+    assert!(run(&["--in", "strings", "foo", "bom.rs"]).contains("let a"));
+    assert!(run(&["--kind", "def", "foo", "bom.rs"]).contains("fn foo()"));
+    // A name in a string is not a use.
+    assert_eq!(
+        run(&["--callers", "foo", "b.py"]),
+        "4=def beta():  (1 use)\n"
+    );
+    // A matching line that --in dropped is still context.
+    assert_eq!(
+        run(&["-n", "--in", "strings", "-A1", "foo", "c.rs"]),
+        "2:    let s = \"x foo\";\n3-    foo();\n"
+    );
+    // The scope header comes first and stands for its own line.
+    assert_eq!(
+        run(&["-n", "--scope", "-C1", "foo", "c.rs"]),
+        "1=fn crlf2() {\n2:    let s = \"x foo\";\n3:    foo();\n4-}\n"
+    );
+    // Under -o, rows on different lines are not duplicates.
+    assert_eq!(
+        run(&["--rank", "-n", "-o", "foo", "c.rs"]),
+        "2:foo\n3:foo\n"
+    );
+}

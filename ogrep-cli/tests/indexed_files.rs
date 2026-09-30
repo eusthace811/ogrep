@@ -308,4 +308,13 @@ fn reshaped_searches_through_the_server_place_matches_in_the_file() {
     assert!(!scoped.contains("alpha"), "{scoped}");
     let ranked = run(&["--json", "--rank", "foo"]);
     assert!(ranked.contains(r#""absolute_offset":27"#), "{ranked}");
+    // And the server answered them.
+    let stats = ogrep()
+        .args(["--stats", "--scope", "foo"])
+        .arg(root.to_str().unwrap())
+        .args(["--index-path", index.to_str().unwrap()])
+        .output()
+        .unwrap();
+    let stats = String::from_utf8_lossy(&stats.stderr);
+    assert!(stats.contains("(via server)"), "{stats}");
 }

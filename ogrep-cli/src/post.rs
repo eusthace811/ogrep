@@ -76,6 +76,8 @@ impl PostOptions {
         if self.callers {
             self.scope = true;
             self.kind = Some(KindFilter::Ref);
+            // A name in a string or comment is a mention, not a use.
+            self.zone.get_or_insert(ZoneFilter::Code);
         }
         self
     }
@@ -181,14 +183,19 @@ struct Loaded {
 
 /// A matched file's text, when it is valid UTF-8: offsets are only comparable
 /// when the searched text is the file's bytes, which is also what the parsers
-/// take.
+/// take. A UTF-8 byte-order mark is dropped, as the search drops it before
+/// counting offsets.
 fn read_text(rel: &str, root: &Path) -> Option<String> {
     let path = if root.is_file() {
         root.to_path_buf()
     } else {
         root.join(rel)
     };
-    String::from_utf8(std::fs::read(&path).ok()?).ok()
+    let mut text = String::from_utf8(std::fs::read(&path).ok()?).ok()?;
+    if text.starts_with('\u{feff}') {
+        text.drain(..'\u{feff}'.len_utf8());
+    }
+    Some(text)
 }
 
 /// Annotate and filter one file's matches. `None` when no match survives.
@@ -216,11 +223,13 @@ fn prepare(
     let mut scopes = Vec::new();
     let mut defs = Vec::new();
     let mut kept = Vec::new();
+    let mut dropped = Vec::new();
     for (mut m, f) in hits.matches.drain(..).zip(facts) {
         let def = match &f {
             Some(f) if filtered => {
                 let keep: Vec<bool> = f.spans.iter().map(|&(d, z)| post.passes(d, z)).collect();
                 if !keep.contains(&true) {
+                    dropped.push(m);
                     continue;
                 }
                 m.retain_matches(&keep);
@@ -234,6 +243,7 @@ fn prepare(
                     .iter()
                     .any(|&(s, _)| rank::is_definition(&m.content, s));
                 if filtered && !post.passes(def, ZoneFilter::Code) {
+                    dropped.push(m);
                     continue;
                 }
                 def
@@ -253,6 +263,7 @@ fn prepare(
         return None;
     }
     hits.matches = kept;
+    hits.dropped = dropped;
     hits.defs = structure.is_some().then_some(defs);
     Some(Prepared {
         rel,
@@ -350,6 +361,42 @@ pub(crate) fn emit_file(
             || i.checked_sub(1)
                 .is_some_and(|j| line - shown_lines[j] <= after)
     };
+    // Lines that matched but are not shown (--rank picked others, --kind or
+    // --in dropped them) are context like any other line near a shown one.
+    // Under -o a match row holds only the matched text, so the line is read
+    // from the file, when it was loaded.
+    let mut is_shown = vec![false; hits.matches.len()];
+    for &i in shown {
+        is_shown[i] = true;
+    }
+    let mut unshown_lines = std::collections::HashSet::new();
+    let unshown: Vec<crate::output::ContextLine> = hits
+        .matches
+        .iter()
+        .zip(&is_shown)
+        .filter(|(_, shown)| !**shown)
+        .map(|(m, _)| m)
+        .chain(&hits.dropped)
+        .filter(|m| {
+            shown_lines.binary_search(&m.line_number).is_err()
+                && near(m.line_number)
+                && unshown_lines.insert(m.line_number)
+        })
+        .filter_map(|m| {
+            let content = if opts.only_matching {
+                lines.get(m.line_number.checked_sub(1)?)?.to_string()
+            } else {
+                m.content.clone()
+            };
+            Some(crate::output::ContextLine {
+                file: m.file.clone(),
+                line_number: m.line_number,
+                content,
+                absolute_offset: m.absolute_offset,
+                terminator_len: m.terminator_len,
+            })
+        })
+        .collect();
     let mut rows: Vec<Row> = shown
         .iter()
         .map(|&i| (hits.matches[i].line_number, Ok((i, &hits.matches[i]))))
@@ -358,18 +405,47 @@ pub(crate) fn emit_file(
         hits.contexts
             .iter()
             .filter(|c| shown_lines.binary_search(&c.line_number).is_err() && near(c.line_number))
+            .chain(&unshown)
             .map(|c| (c.line_number, Err(c))),
     );
     rows.sort_by_key(|(line, _)| *line);
+    // Each row's scope: a match's own; a context line's is that of the match
+    // it follows (within -A lines), else of the match it leads into, so a
+    // scope's header comes before the context leading into its first match.
+    let scope_of = |row: &Row| match row.1 {
+        Ok((i, _)) => scopes.get(i).and_then(Option::as_ref),
+        Err(_) => None,
+    };
+    let mut row_scopes: Vec<Option<&(usize, serde_json::Value)>> = vec![None; rows.len()];
+    let mut next = None;
+    for (k, row) in rows.iter().enumerate().rev() {
+        if row.1.is_ok() {
+            next = scope_of(row);
+        }
+        row_scopes[k] = next;
+    }
+    let mut prev: Option<(usize, Option<&(usize, serde_json::Value)>)> = None;
+    for (k, row) in rows.iter().enumerate() {
+        if row.1.is_ok() {
+            prev = Some((row.0, scope_of(row)));
+        } else if let Some((line, scope)) = prev
+            && row.0 - line <= after
+        {
+            row_scopes[k] = scope;
+        }
+    }
     let mut last_scope: Option<usize> = None;
-    for (line, row) in rows {
-        if let Ok((i, _)) = &row
-            && let Some(Some((start, chain))) = scopes.get(*i)
+    for ((line, row), scope) in rows.into_iter().zip(row_scopes) {
+        if let Some((start, chain)) = scope
             && last_scope != Some(*start)
         {
             last_scope = Some(*start);
             let header = lines.get(start - 1).copied().unwrap_or("");
             writer.write_scope(rel, *start, header, chain)?;
+        }
+        // The header already shows its own line.
+        if row.is_err() && scope.is_some_and(|(start, _)| *start == line) {
+            continue;
         }
         writer.write_context_separator(rel, line)?;
         match row {

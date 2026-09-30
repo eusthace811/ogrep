@@ -130,6 +130,8 @@ pub(crate) struct FileHits {
     /// structure. `None` where the language is not parsed; the keyword
     /// heuristic [`is_definition`] decides instead.
     pub(crate) defs: Option<Vec<bool>>,
+    /// Matching lines --kind or --in dropped: context, if near a shown match.
+    pub(crate) dropped: Vec<Match>,
 }
 
 /// Per-file scoring inputs, reported by `--explain-rank`.
@@ -465,7 +467,12 @@ fn keep_count(ranked: &[Ranked], opts: &RankOptions) -> usize {
 
 /// Pick the lines to show for one file: definitions first, then the earliest,
 /// skipping lines that differ from a kept one only in whitespace or digits.
-fn select_lines(matches: &[Match], defs: Option<&[bool]>, per_file: usize) -> Vec<usize> {
+fn select_lines(
+    matches: &[Match],
+    defs: Option<&[bool]>,
+    per_file: usize,
+    only_matching: bool,
+) -> Vec<usize> {
     let norm = |s: &str| -> String {
         s.chars()
             .filter(|c| !c.is_whitespace() && !c.is_ascii_digit())
@@ -484,7 +491,14 @@ fn select_lines(matches: &[Match], defs: Option<&[bool]>, per_file: usize) -> Ve
         if picked.len() >= per_file {
             break;
         }
-        if seen.insert(norm(&m.content)) {
+        // Under -o a row is just the matched text, so only a repeat of the
+        // same row is dropped.
+        let key = if only_matching {
+            format!("{}:{}", m.line_number, m.content)
+        } else {
+            norm(&m.content)
+        };
+        if seen.insert(key) {
             picked.push(i);
         }
     }
@@ -514,7 +528,12 @@ pub fn emit(
         let hits = &files[r.file].1;
         writer.set_path_display(hits.display.clone());
         writer.write_rank_record(&r.path, rank + 1, r.score, &r.features, opts.explain)?;
-        let shown = select_lines(&hits.matches, hits.defs.as_deref(), opts.per_file);
+        let shown = select_lines(
+            &hits.matches,
+            hits.defs.as_deref(),
+            opts.per_file,
+            search.only_matching,
+        );
         crate::post::emit_file(&r.path, hits, &shown, &[], None, search, writer)?;
     }
     Ok(keep > 0)

@@ -459,8 +459,10 @@ Rust, Python, Go, JavaScript, TypeScript/TSX, Java, C, C++, C#, Ruby and PHP.
 `--kind` and `--in` decide per match: a line is kept when one of its matches
 passes, and the matches that fail are dropped from it (for `-o`, `--column`,
 `--count-matches` and `--rank`). `--scope` names the definition around the
-first match kept. These flags place matches in the file as it is, so they
-cannot be combined with `-r/--replace`.
+first match kept, and a matching line that is not shown is still context.
+These flags place matches in the file as it is, so they cannot be combined
+with `-r/--replace`, and a file that is not UTF-8 (UTF-16, `--encoding`) is
+treated as unparsed.
 
 Parsed structure is cached beside the index under `facts/`, keyed by a hash of
 each file's content, so an edited file is simply parsed again and a cache entry
@@ -500,7 +502,7 @@ index still uses it and says so.
   1024): a repository map for an agent's context. Definitions around the
   matches, and names the matched files mention, come first.
 - **`--callers`** lists each definition that uses PATTERN once, with its number
-  of uses (parsed languages).
+  of uses in code (not in strings or comments; parsed languages).
 - **`--callees NAME`** lists, for each definition named NAME, the names it calls
   or uses as types that are defined in the repository, preferring definitions
   in the same file or in files it links to, and skipping names too ambiguous to
