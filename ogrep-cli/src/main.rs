@@ -25,7 +25,7 @@ mod serve;
 mod status;
 mod walkcount;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process;
 use std::sync::atomic::AtomicBool;
 use std::time::Duration;
@@ -1203,6 +1203,7 @@ impl Cli {
             glob: self.glob.clone(),
             iglob: self.iglob.clone(),
             glob_case_insensitive: self.glob_case_insensitive,
+            only_paths: None,
             types: self.file_type.clone(),
             types_not: self.type_not.clone(),
             type_add: self.type_add.clone(),
@@ -1770,6 +1771,44 @@ fn report_missing_path(path: &std::path::Path, no_messages: bool) {
     }
 }
 
+/// `--changed-since`: the options for one path argument, limited to the files
+/// changed since the given revision or time (`None` when the flag is absent).
+/// Exits on a git error, like any other argument error.
+fn restrict_to_changed(
+    cli: &Cli,
+    opts: &search::SearchOptions,
+    target: &Path,
+) -> Option<search::SearchOptions> {
+    let since = cli.changed_since.as_ref()?;
+    // A named file is searched whole or not at all: ask about its directory.
+    let (dir, file) = match target.file_name() {
+        Some(name) if target.is_file() => (
+            target.parent().filter(|p| !p.as_os_str().is_empty()),
+            Some(name.to_string_lossy()),
+        ),
+        _ => (Some(target), None),
+    };
+    match history_search::changed_paths(dir.unwrap_or(Path::new(".")), since) {
+        Ok(paths) => {
+            let only = match (paths, file) {
+                (Some(paths), Some(file)) if !paths.contains(file.as_ref()) => {
+                    Some(Default::default())
+                }
+                (paths, None) => paths,
+                _ => None,
+            };
+            Some(search::SearchOptions {
+                only_paths: only.map(std::sync::Arc::new),
+                ..opts.clone()
+            })
+        }
+        Err(e) => {
+            eprintln!("ogrep: {e}");
+            process::exit(2);
+        }
+    }
+}
+
 fn run_search(
     cli: &Cli,
     pattern: String,
@@ -1929,24 +1968,14 @@ fn run_search(
             continue;
         }
         writer.set_path_display(target.display());
-        if let Some(since) = &cli.changed_since {
-            match history_search::changed_paths(&target.path, since) {
-                Ok(paths) => writer.restrict_to(paths),
-                Err(e) => {
-                    eprintln!("ogrep: {e}");
-                    process::exit(2);
-                }
-            }
-        }
+        let restricted = restrict_to_changed(cli, &opts, &target.path);
         let result = search::run(
             &target.path,
             cli.index_path.as_deref(),
-            &opts,
+            restricted.as_ref().unwrap_or(&opts),
             ci,
             &mut writer,
-        )
-        // A restricted search matched only if a result survived the filter.
-        .map(|matched| matched && (cli.changed_since.is_none() || writer.emitted_any()));
+        );
         match result {
             Ok(true) => {
                 had_matches = true;
@@ -2118,19 +2147,11 @@ fn run_postprocessed_search(
         }
         let display = target.display();
         capture.set_path_display(display.clone());
-        if let Some(since) = &cli.changed_since {
-            match history_search::changed_paths(&target.path, since) {
-                Ok(paths) => capture.restrict_to(paths),
-                Err(e) => {
-                    eprintln!("ogrep: {e}");
-                    process::exit(2);
-                }
-            }
-        }
+        let restricted = restrict_to_changed(cli, &inner, &target.path);
         if let Err(e) = search::run(
             &target.path,
             cli.index_path.as_deref(),
-            &inner,
+            restricted.as_ref().unwrap_or(&inner),
             ci,
             &mut capture,
         ) {

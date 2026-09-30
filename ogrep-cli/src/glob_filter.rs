@@ -1,5 +1,7 @@
 /// Ripgrep-style glob overrides, shared by indexed filtering and full walks.
+use std::collections::HashSet;
 use std::path::Path;
+use std::sync::Arc;
 
 use anyhow::Result;
 use ogrep_core::walker::{Override, OverrideBuilder};
@@ -7,6 +9,8 @@ use ogrep_core::walker::{Override, OverrideBuilder};
 pub struct GlobFilter {
     overrides: Override,
     globs: Vec<(String, bool)>,
+    /// `--changed-since`: only these paths, relative to the search root.
+    only: Option<Arc<HashSet<String>>>,
 }
 
 impl Default for GlobFilter {
@@ -14,6 +18,7 @@ impl Default for GlobFilter {
         Self {
             overrides: Override::empty(),
             globs: Vec::new(),
+            only: None,
         }
     }
 }
@@ -45,6 +50,12 @@ impl GlobFilter {
         Ok(builder.build()?)
     }
 
+    /// Keep only `paths` as well (`None` keeps everything the globs pass).
+    pub fn restricted_to(mut self, paths: Option<Arc<HashSet<String>>>) -> Self {
+        self.only = paths;
+        self
+    }
+
     /// Returns true if the glob list is empty (no filtering needed).
     pub fn is_empty(&self) -> bool {
         self.overrides.is_empty()
@@ -52,6 +63,9 @@ impl GlobFilter {
 
     /// Check if a path passes this glob filter.
     pub fn matches(&self, path: &str) -> bool {
+        if self.only.as_ref().is_some_and(|only| !only.contains(path)) {
+            return false;
+        }
         if self.is_empty() {
             return true;
         }

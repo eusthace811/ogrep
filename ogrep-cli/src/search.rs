@@ -70,6 +70,9 @@ pub struct SearchOptions {
     pub glob: Vec<String>,
     pub iglob: Vec<String>,
     pub glob_case_insensitive: bool,
+    /// `--changed-since`: search only these paths, relative to the search
+    /// root. Set per path argument.
+    pub only_paths: Option<std::sync::Arc<std::collections::HashSet<String>>>,
     pub types: Vec<String>,
     pub types_not: Vec<String>,
     pub type_add: Vec<String>,
@@ -302,7 +305,12 @@ impl SearchOptions {
     }
 
     pub(crate) fn glob_filter(&self) -> Result<crate::glob_filter::GlobFilter> {
-        crate::glob_filter::GlobFilter::new(&self.glob, &self.iglob, self.glob_case_insensitive)
+        Ok(crate::glob_filter::GlobFilter::new(
+            &self.glob,
+            &self.iglob,
+            self.glob_case_insensitive,
+        )?
+        .restricted_to(self.only_paths.clone()))
     }
 
     /// The matching-relevant subset, shared with the server path.
@@ -934,8 +942,11 @@ pub fn run(
     // since the server only returns matching files). `--include-zero` needs
     // the same bypass: a zero-count row can only come from a file the server
     // never reports.
+    // Nor for `--changed-since`, whose path set the server has no field for;
+    // the local index answers a search over a few changed files quickly.
     if !opts.no_index
         && !bypass_index
+        && opts.only_paths.is_none()
         && !opts.effective_passthru()
         && !opts.files_without_match
         && !opts.include_zero

@@ -264,11 +264,6 @@ pub struct OutputWriter {
     total_matched_lines: u64,
     /// When set, results are recorded here instead of printed (`--rank`).
     capture: Option<Vec<Captured>>,
-    /// When set, results for files outside it are dropped (`--changed-since`).
-    /// Paths are relative to the search root, like every reported path.
-    allow: Option<std::collections::HashSet<String>>,
-    /// Whether a result passed `allow` since the last [`Self::restrict_to`].
-    emitted: bool,
 }
 
 /// A result recorded by a capturing writer, in the order it was reported.
@@ -331,9 +326,6 @@ impl OutputWriter {
         text: &str,
         chain: &serde_json::Value,
     ) -> io::Result<()> {
-        if !self.admits(file) {
-            return Ok(());
-        }
         match self.config.format {
             OutputFormat::Json => {
                 self.ensure_json_begin(file)?;
@@ -442,27 +434,7 @@ impl OutputWriter {
             total_matches: 0,
             total_matched_lines: 0,
             capture: None,
-            allow: None,
-            emitted: false,
         }
-    }
-
-    /// Report only files in `allow` (`None` lifts the restriction).
-    pub fn restrict_to(&mut self, allow: Option<std::collections::HashSet<String>>) {
-        self.allow = allow;
-        self.emitted = false;
-    }
-
-    /// Whether any result passed the restriction set by [`Self::restrict_to`].
-    pub fn emitted_any(&self) -> bool {
-        self.emitted
-    }
-
-    /// Whether results for `file` are reported, noting that one was.
-    fn admits(&mut self, file: &str) -> bool {
-        let admitted = self.allow.as_ref().is_none_or(|allow| allow.contains(file));
-        self.emitted |= admitted;
-        admitted
     }
 
     pub fn match_totals(&self) -> (u64, u64) {
@@ -509,9 +481,6 @@ impl OutputWriter {
     /// records the offset on the `end` message instead, so record it here and
     /// let the caller go on to print the matches.
     pub fn write_binary_note(&mut self, file: &str, offset: usize) -> io::Result<()> {
-        if !self.admits(file) {
-            return Ok(());
-        }
         if let Some(capture) = self.capture.as_mut() {
             capture.push(Captured::Binary {
                 file: file.to_string(),
@@ -600,13 +569,6 @@ impl OutputWriter {
     /// Substrate-sized tree. In heading mode there is no separator, because the
     /// blank line before the next heading already does that job.
     pub fn write_context_separator(&mut self, file: &str, line_num: usize) -> io::Result<()> {
-        if self
-            .allow
-            .as_ref()
-            .is_some_and(|allow| !allow.contains(file))
-        {
-            return Ok(());
-        }
         if self.capture.is_some() || self.is_json() || !self.config.context {
             return Ok(());
         }
@@ -715,9 +677,6 @@ impl OutputWriter {
 
     /// Write a context (non-matching) line.
     pub fn write_context_line(&mut self, ctx: &ContextLine) -> io::Result<()> {
-        if !self.admits(&ctx.file) {
-            return Ok(());
-        }
         if let Some(capture) = self.capture.as_mut() {
             capture.push(Captured::Context(ctx.clone()));
             return Ok(());
@@ -755,9 +714,6 @@ impl OutputWriter {
     }
 
     pub fn write_match(&mut self, m: &Match) -> io::Result<()> {
-        if !self.admits(&m.file) {
-            return Ok(());
-        }
         if let Some(capture) = self.capture.as_mut() {
             capture.push(Captured::Match(m.clone()));
             return Ok(());
@@ -844,9 +800,6 @@ impl OutputWriter {
     }
 
     pub fn write_file(&mut self, path: &str) -> io::Result<()> {
-        if !self.admits(path) {
-            return Ok(());
-        }
         let path = self.display_path(path);
         if self.config.null {
             write!(self.stdout, "{path}\0")?;
@@ -857,9 +810,6 @@ impl OutputWriter {
     }
 
     pub fn write_count(&mut self, file: &str, count: usize) -> io::Result<()> {
-        if !self.admits(file) {
-            return Ok(());
-        }
         if self.config.no_filename {
             writeln!(self.stdout, "{count}")?;
         } else {

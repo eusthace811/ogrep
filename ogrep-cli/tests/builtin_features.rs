@@ -78,3 +78,26 @@ fn history_paths_with_spaces_match_globs() {
     assert!(out.contains("x y.txt:"), "{out:?}");
     assert!(!out.contains('\t'), "no tab left in the path: {out:?}");
 }
+
+#[test]
+fn changed_since_limits_the_search_not_just_the_output() {
+    let dir = repo(&[("a.txt", "needle old\n"), ("b.txt", "other\n")]);
+    fs::write(dir.path().join("b.txt"), "needle new\n").unwrap();
+    ogrep(dir.path()).args(["index", "."]).assert().success();
+
+    let out = stdout(ogrep(dir.path()).args(["--changed-since", "HEAD", "needle"]));
+    assert_eq!(out, "b.txt:needle new\n");
+    // -q stops at the first match without printing; it used to report no
+    // match because nothing had passed the output filter.
+    ogrep(dir.path())
+        .args(["-q", "--changed-since", "HEAD", "needle"])
+        .assert()
+        .code(0);
+    // A named file is searched when it changed, and matches nothing when not.
+    let named = stdout(ogrep(dir.path()).args(["--changed-since", "HEAD", "needle", "b.txt"]));
+    assert_eq!(named, "needle new\n");
+    ogrep(dir.path())
+        .args(["--changed-since", "HEAD", "needle", "a.txt"])
+        .assert()
+        .code(1);
+}
