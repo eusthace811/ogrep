@@ -10,8 +10,9 @@
 //! [`MAX_EDGES`] strongest links.
 //!
 //! PageRank over the links (importance flows from a user to what it uses) gives
-//! a global prior; a personalized PageRank from the files a search matched
-//! finds the files most related to them (`--near`, `--map`).
+//! a global prior. The files most related to a search's matches (`--near`,
+//! `--map`) are found by [`Graph::related`], the direct link weight to them,
+//! which beat personalized PageRank on co-change.
 //!
 //! The graph is stored under `<index>/graph/` with the identity of the file
 //! table it was built from. A search against a newer index still uses it, since

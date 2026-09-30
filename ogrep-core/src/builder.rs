@@ -1062,7 +1062,6 @@ pub fn build_index_for_files(
     })
 }
 
-/// Return the default index directory for a given repo root.
 /// Build an index over in-memory documents rather than files on disk.
 ///
 /// For derived corpora such as the commit history ([`crate::history`]): each
@@ -1122,6 +1121,7 @@ pub fn build_index_from_documents(
     Ok(names.len())
 }
 
+/// Return the default index directory for a given repo root.
 pub fn default_index_dir(root: &Path) -> std::path::PathBuf {
     root.join(INDEX_DIR_NAME)
 }

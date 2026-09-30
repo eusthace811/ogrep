@@ -634,10 +634,11 @@ pub struct HistoryOutcome {
     pub truncated: usize,
 }
 
-/// Index `commits` (newest first) into `dir`, returning how many documents
-/// were truncated.
+/// For each chunk document (see [`CommitDoc::chunks`]), the paths it covers.
 type ChunkPaths = std::collections::BTreeMap<String, Vec<String>>;
 
+/// Index `commits` (newest first) into `dir`, returning how many documents
+/// were truncated and the paths of each chunk.
 fn index_commits(
     root: &Path,
     dir: &Path,
