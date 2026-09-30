@@ -27,6 +27,11 @@ const ENTRY: usize = 16 + 8 + 4;
 /// grammar and content. The suffix is bumped whenever the analysis, its
 /// encoding or its key changes. Defined here, outside the parser-gated
 /// module, so builds without the parsers name the same store.
+///
+/// A superseded store (`structure-v1`) is left in place: another ogrep build
+/// sharing the index may still use it, and deleting a store under a running
+/// process cannot be made safe with file locks alone. It is only disk space;
+/// removing it by hand is safe when no older ogrep is running.
 pub const STRUCTURE: &str = "structure-v2";
 
 /// A new entry for a store: content id and payload.
@@ -104,12 +109,7 @@ impl FactStore {
             return Ok(());
         }
         let dir = store_dir(index_dir, name);
-        if !dir.is_dir() {
-            std::fs::create_dir_all(&dir)?;
-            // This build's store is new: an upgrade. The earlier version's
-            // store is dead weight to it.
-            remove_older_versions(index_dir, name);
-        }
+        std::fs::create_dir_all(&dir)?;
         let lock = std::fs::OpenOptions::new()
             .create(true)
             .truncate(false)
@@ -167,37 +167,6 @@ impl FactStore {
     }
 }
 
-/// Delete earlier versions of the store `name` (`structure-v1` when
-/// `structure-v2` is created): nothing this build reads. Each is deleted
-/// under its own lock, so an older build writing to it finishes first.
-/// Newer versions are left alone, since a newer ogrep may share the index; an
-/// older build that later recreates its store keeps it, rather than the two
-/// deleting each other's caches in turn.
-fn remove_older_versions(index_dir: &Path, name: &str) {
-    let version = |n: &str| {
-        let (stem, v) = n.rsplit_once("-v")?;
-        Some((stem.to_string(), v.parse::<u32>().ok()?))
-    };
-    let Some((stem, current)) = version(name) else {
-        return;
-    };
-    let Ok(entries) = std::fs::read_dir(index_dir.join("facts")) else {
-        return;
-    };
-    for entry in entries.flatten() {
-        let older = version(&entry.file_name().to_string_lossy())
-            .is_some_and(|(s, v)| s == stem && v < current);
-        if older {
-            let path = entry.path();
-            let lock = std::fs::File::open(path.join("lock")).ok();
-            if let Some(lock) = &lock {
-                let _ = lock_exclusive(lock);
-            }
-            let _ = std::fs::remove_dir_all(&path);
-        }
-    }
-}
-
 fn lock_exclusive(file: &std::fs::File) -> std::io::Result<()> {
     fs2::FileExt::lock_exclusive(file)
 }
@@ -205,37 +174,6 @@ fn lock_exclusive(file: &std::fs::File) -> std::io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn creating_a_store_removes_older_versions_of_it_only() {
-        let dir = tempfile::tempdir().unwrap();
-        let facts = dir.path().join("facts");
-        let stores = || {
-            let mut left: Vec<String> = std::fs::read_dir(&facts)
-                .unwrap()
-                .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
-                .collect();
-            left.sort();
-            left
-        };
-        for store in ["structure-v1", "structure-v3", "other-v1", "structure-vx"] {
-            std::fs::create_dir_all(facts.join(store)).unwrap();
-        }
-        let put = |bytes: &[u8]| {
-            let id = ContentId::from_indexed_bytes(bytes);
-            FactStore::put(dir.path(), "structure-v2", vec![(id, bytes.to_vec())]).unwrap();
-        };
-        put(b"first");
-        assert_eq!(
-            stores(),
-            ["other-v1", "structure-v2", "structure-v3", "structure-vx"]
-        );
-        // An older build recreating its store later keeps it: deleting on
-        // every put would have two builds wipe each other's caches in turn.
-        std::fs::create_dir_all(facts.join("structure-v1")).unwrap();
-        put(b"second");
-        assert!(stores().contains(&"structure-v1".to_string()));
-    }
 
     #[test]
     fn stores_and_finds_payloads_across_updates() {

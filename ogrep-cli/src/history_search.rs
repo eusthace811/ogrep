@@ -692,12 +692,11 @@ impl ChangedSets {
             return Ok(None);
         };
         let repo = history::repo_root(root).context("needs a git repository")?;
-        let changed = match self.by_repo.entry(repo.clone()) {
-            std::collections::hash_map::Entry::Occupied(e) => e.into_mut(),
-            std::collections::hash_map::Entry::Vacant(e) => {
-                e.insert(changed_in_repo(&repo, since)?)
-            }
-        };
+        if !self.by_repo.contains_key(&repo) {
+            let changed = changed_in_repo(&repo, since)?;
+            self.by_repo.insert(repo.clone(), changed);
+        }
+        let changed = &self.by_repo[&repo];
         let Some(changed) = changed else {
             return Ok(None);
         };
