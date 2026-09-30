@@ -37,6 +37,7 @@ pub fn run(
     root: &Path,
     index_path: Option<&Path>,
     opts: &SearchOptions,
+    ci: bool,
     mode: Mode,
 ) -> Result<bool> {
     let repo = repo_of(root)?;
@@ -46,7 +47,7 @@ pub fn run(
         Mode::RelatedTests => related_tests(&repo, &idx, opts, &mut out)?,
         Mode::Similar => similar(&repo, &idx, opts, &mut out)?,
         Mode::Conflicts => conflicts(&repo, opts, &mut out)?,
-        Mode::DocDrift => doc_drift(&repo, &idx, opts, &mut out)?,
+        Mode::DocDrift => doc_drift(&repo, &idx, opts, ci, &mut out)?,
     };
     out.flush()?;
     Ok(found)
@@ -469,7 +470,13 @@ fn conflicts(repo: &Path, opts: &SearchOptions, out: &mut impl Write) -> Result<
 
 // ---------------------------------------------------------------- doc drift
 
-fn doc_drift(repo: &Path, idx: &Path, opts: &SearchOptions, out: &mut impl Write) -> Result<bool> {
+fn doc_drift(
+    repo: &Path,
+    idx: &Path,
+    opts: &SearchOptions,
+    ci: bool,
+    out: &mut impl Write,
+) -> Result<bool> {
     let files = tracked(repo)?;
     // Release notes and changelogs name removed things on purpose.
     let historical = |f: &str| {
@@ -550,12 +557,13 @@ fn doc_drift(repo: &Path, idx: &Path, opts: &SearchOptions, out: &mut impl Write
                 && !text[i + name.len()..].chars().next().is_some_and(ident)
         })
     };
-    let filter = regex::Regex::new(&opts.pattern)?;
+    // The pattern picks names with every matching option (-i, -F, -w, ...).
+    let filter = opts.matcher(ci)?;
     let mut missing = Vec::new();
-    for (name, locs) in mentions
-        .iter()
-        .filter(|(n, _)| filter.is_match(n) && !examples.contains(*n))
-    {
+    for (name, locs) in &mentions {
+        if examples.contains(name) || !filter.is_match(name)? {
+            continue;
+        }
         let candidates: Vec<String> = match &reader {
             Some(r) => {
                 let plan = ogrep_core::query::build_literal_plan(name, false);

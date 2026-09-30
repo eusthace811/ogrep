@@ -208,3 +208,22 @@ fn at_revision_skips_hidden_files_like_a_working_tree_search() {
         stdout(ogrep(dir.path()).args(["--at", "HEAD", "--hidden", "--sort=path", "TODO_MARK"]));
     assert!(hidden.contains(".github/ci.yml"), "{hidden:?}");
 }
+
+#[test]
+fn doc_drift_filters_names_with_the_search_options() {
+    let dir = repo(&[
+        (
+            "guide.md",
+            "Call `load_config()` and then `Parse_Header`.\n",
+        ),
+        ("lib.py", "def other():\n    pass\n"),
+    ]);
+    // -F takes the pattern literally: `(` is not a regex error.
+    ogrep(dir.path())
+        .args(["--doc-drift", "-F", "load_config("])
+        .assert()
+        .code(1);
+    // -i applies to the name filter.
+    let out = stdout(ogrep(dir.path()).args(["--doc-drift", "-i", "PARSE_HEADER"]));
+    assert!(out.contains("Parse_Header"), "{out:?}");
+}

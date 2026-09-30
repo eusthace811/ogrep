@@ -1878,7 +1878,7 @@ fn run_search(
         let root = targets
             .first()
             .map_or_else(|| PathBuf::from("."), |t| t.path.clone());
-        match extras::run(&root, cli.index_path.as_deref(), &opts, mode) {
+        match extras::run(&root, cli.index_path.as_deref(), &opts, ci, mode) {
             Ok(true) => process::exit(0),
             Ok(false) => process::exit(1),
             Err(e) => {

@@ -92,11 +92,12 @@ pub fn run(
 
 fn entities(repo: &Path, opts: &SearchOptions, ci: bool, out: &mut impl Write) -> Result<bool> {
     let (m, _) = model(repo)?;
-    let re = regex::RegexBuilder::new(&opts.pattern)
-        .case_insensitive(ci)
-        .build()?;
+    let matcher = opts.matcher(ci)?;
     let mut any = false;
-    for e in m.entities.iter().filter(|e| re.is_match(&e.id)) {
+    for e in &m.entities {
+        if !matcher.is_match(&e.id)? {
+            continue;
+        }
         any = true;
         let deps: Vec<&ops::Edge> = m.edges.iter().filter(|x| x.from == e.id).collect();
         if opts.json {
