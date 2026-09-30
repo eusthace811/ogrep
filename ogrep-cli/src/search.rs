@@ -70,6 +70,10 @@ pub struct SearchOptions {
     pub glob: Vec<String>,
     pub iglob: Vec<String>,
     pub glob_case_insensitive: bool,
+    /// Report every match span of a line even when the output would not
+    /// need them: a captured search is reshaped afterwards (--rank's pattern
+    /// counts, --in's zones, --count-matches), not printed.
+    pub all_spans: bool,
     /// `--changed-since`: search only these paths, relative to the search
     /// root. Set per path argument.
     pub only_paths: Option<std::sync::Arc<std::collections::HashSet<String>>>,
@@ -329,6 +333,7 @@ impl SearchOptions {
             || self.only_matching    // prints the spans themselves
             || self.replace.is_some() // rewrites the matched text
             || self.stats // reports a match total, not a line total
+            || self.all_spans // captured for reshaping
     }
 
     /// Whether the reply has to carry per-row `offset` and `term`.
@@ -616,6 +621,7 @@ impl SearchOptions {
             json: false,
             vimgrep: false,
             quiet: false,
+            all_spans: true,
             ..self.clone()
         }
     }

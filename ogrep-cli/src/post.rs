@@ -89,7 +89,8 @@ type Row<'a> = (
 /// What the structure says about one match.
 struct MatchFacts {
     def: bool,
-    zone: ZoneFilter,
+    /// The zone of each match on the line.
+    zones: Vec<ZoneFilter>,
     /// Innermost enclosing definition: `(first line, chain as JSON)`.
     scope: Option<(usize, serde_json::Value)>,
 }
@@ -104,11 +105,15 @@ fn facts(structure: &Structure, m: &Match, with_scope: bool) -> MatchFacts {
         .spans
         .iter()
         .any(|&(s, e)| structure.defines(m.absolute_offset + s, m.absolute_offset + e));
-    let zone = match structure.zone_at(offset) {
-        Zone::Code => ZoneFilter::Code,
-        Zone::Comment => ZoneFilter::Comments,
-        Zone::String => ZoneFilter::Strings,
-    };
+    let zones = m
+        .spans
+        .iter()
+        .map(|&(s, _)| match structure.zone_at(m.absolute_offset + s) {
+            Zone::Code => ZoneFilter::Code,
+            Zone::Comment => ZoneFilter::Comments,
+            Zone::String => ZoneFilter::Strings,
+        })
+        .collect();
     let chain = if with_scope {
         structure.enclosing(offset)
     } else {
@@ -126,7 +131,7 @@ fn facts(structure: &Structure, m: &Match, with_scope: bool) -> MatchFacts {
             .collect::<Vec<_>>();
         (inner.start_line, serde_json::Value::from(json))
     });
-    MatchFacts { def, zone, scope }
+    MatchFacts { def, zones, scope }
 }
 
 #[cfg(not(feature = "structure"))]
@@ -191,10 +196,13 @@ fn prepare(
             Some(KindFilter::Def) => def,
             Some(KindFilter::Ref) => !def,
         };
-        // Without structure the zone is unknown: count it as code, and never
-        // claim a comment or string.
-        let zone = f.as_ref().map_or(ZoneFilter::Code, |f| f.zone);
-        let zone_ok = post.zone.is_none_or(|z| z == zone);
+        // A line is in a zone when any of its matches is. Without structure
+        // the zone is unknown: count it as code, and never claim a comment
+        // or string.
+        let zone_ok = post.zone.is_none_or(|z| match f {
+            Some(f) => f.zones.contains(&z),
+            None => z == ZoneFilter::Code,
+        });
         keep.push((kind_ok && zone_ok, def));
     }
     let mut scopes = Vec::new();
@@ -211,7 +219,10 @@ fn prepare(
             kept.push(m);
         }
     }
-    if kept.is_empty() {
+    // A file that matched only as binary has no lines to classify: it is
+    // kept (for its note, -l or rank) unless a filter needs its lines.
+    let binary_only = hits.binary.is_some() && post.kind.is_none() && post.zone.is_none();
+    if kept.is_empty() && !binary_only {
         return None;
     }
     hits.matches = kept;
@@ -264,87 +275,98 @@ fn emit_callers(
     Ok(printed)
 }
 
-/// Print prepared files in search order, with scope headers under `--scope`.
+/// Print one file's result: its binary note, then its path (-l), its count
+/// (-c, over all its matches) or the `shown` matches (indices into
+/// `hits.matches`) with the context around them and, when `scopes` has
+/// them, scope headers read from `text`.
+pub(crate) fn emit_file(
+    rel: &str,
+    hits: &FileHits,
+    shown: &[usize],
+    scopes: &[Option<(usize, serde_json::Value)>],
+    text: Option<&str>,
+    opts: &crate::search::SearchOptions,
+    writer: &mut OutputWriter,
+) -> Result<()> {
+    writer.set_path_display(hits.display.clone());
+    if let Some(offset) = hits.binary {
+        writer.write_binary_note(rel, offset)?;
+    }
+    if writer.is_files_only() {
+        writer.write_file(rel)?;
+        return Ok(());
+    }
+    if writer.is_count() {
+        let n = if opts.count_matches {
+            hits.matches.iter().map(|m| m.spans.len().max(1)).sum()
+        } else {
+            hits.matches.len()
+        };
+        writer.write_count(rel, n)?;
+        return Ok(());
+    }
+    let lines: Vec<&str> = text.map(|t| t.lines().collect()).unwrap_or_default();
+    let mut shown_lines: Vec<usize> = shown.iter().map(|&i| hits.matches[i].line_number).collect();
+    shown_lines.sort_unstable();
+    // A context line belongs to a shown match up to -B lines below it or -A
+    // lines above it, in those directions only, as in the search itself.
+    let (before, after) = (opts.before_ctx(), opts.after_ctx());
+    let near = |line: usize| {
+        let i = shown_lines.partition_point(|&s| s < line);
+        shown_lines
+            .get(i)
+            .is_some_and(|&next| next - line <= before)
+            || i.checked_sub(1)
+                .is_some_and(|j| line - shown_lines[j] <= after)
+    };
+    let mut rows: Vec<Row> = shown
+        .iter()
+        .map(|&i| (hits.matches[i].line_number, Ok((i, &hits.matches[i]))))
+        .collect();
+    rows.extend(
+        hits.contexts
+            .iter()
+            .filter(|c| shown_lines.binary_search(&c.line_number).is_err() && near(c.line_number))
+            .map(|c| (c.line_number, Err(c))),
+    );
+    rows.sort_by_key(|(line, _)| *line);
+    let mut last_scope: Option<usize> = None;
+    for (line, row) in rows {
+        if let Ok((i, _)) = &row
+            && let Some(Some((start, chain))) = scopes.get(*i)
+            && last_scope != Some(*start)
+        {
+            last_scope = Some(*start);
+            let header = lines.get(start - 1).copied().unwrap_or("");
+            writer.write_scope(rel, *start, header, chain)?;
+        }
+        writer.write_context_separator(rel, line)?;
+        match row {
+            Ok((_, m)) => writer.write_match(m)?,
+            Err(c) => writer.write_context_line(c)?,
+        }
+    }
+    writer.flush_file()?;
+    Ok(())
+}
+
 fn emit_plain(
     files: Vec<Prepared>,
     opts: &crate::search::SearchOptions,
-    context_reach: usize,
     writer: &mut OutputWriter,
 ) -> Result<bool> {
-    let mut printed = false;
+    let printed = !files.is_empty();
     for file in files {
-        let Prepared {
-            rel,
-            hits,
-            scopes,
-            text,
-            ..
-        } = file;
-        writer.set_path_display(hits.display.clone());
-        printed = true;
-        if let Some(offset) = hits.binary {
-            writer.write_binary_note(&rel, offset)?;
-        }
-        if writer.is_files_only() {
-            writer.write_file(&rel)?;
-            continue;
-        }
-        if writer.is_count() {
-            let n = if opts.count_matches {
-                hits.matches.iter().map(|m| m.spans.len().max(1)).sum()
-            } else {
-                hits.matches.len()
-            };
-            writer.write_count(&rel, n)?;
-            continue;
-        }
-        let lines: Vec<&str> = text
-            .as_deref()
-            .map(|t| t.lines().collect())
-            .unwrap_or_default();
-        let mut shown: Vec<usize> = hits.matches.iter().map(|m| m.line_number).collect();
-        shown.sort_unstable();
-        // A context line is kept when a shown match is within reach: the
-        // nearest shown lines on either side decide.
-        let near = |line: usize| {
-            let i = shown.partition_point(|&s| s < line);
-            let close = |j: usize| {
-                shown
-                    .get(j)
-                    .is_some_and(|&s| line.abs_diff(s) <= context_reach)
-            };
-            close(i) || i.checked_sub(1).is_some_and(close)
-        };
-        let mut rows: Vec<Row> = hits
-            .matches
-            .iter()
-            .enumerate()
-            .map(|(i, m)| (m.line_number, Ok((i, m))))
-            .collect();
-        rows.extend(
-            hits.contexts
-                .iter()
-                .filter(|c| shown.binary_search(&c.line_number).is_err() && near(c.line_number))
-                .map(|c| (c.line_number, Err(c))),
-        );
-        rows.sort_by_key(|(line, _)| *line);
-        let mut last_scope: Option<usize> = None;
-        for (line, row) in rows {
-            if let Ok((i, _)) = &row
-                && let Some(Some((start, chain))) = scopes.get(*i)
-                && last_scope != Some(*start)
-            {
-                last_scope = Some(*start);
-                let header = lines.get(start - 1).copied().unwrap_or("");
-                writer.write_scope(&rel, *start, header, chain)?;
-            }
-            writer.write_context_separator(&rel, line)?;
-            match row {
-                Ok((_, m)) => writer.write_match(m)?,
-                Err(c) => writer.write_context_line(c)?,
-            }
-        }
-        writer.flush_file()?;
+        let shown: Vec<usize> = (0..file.hits.matches.len()).collect();
+        emit_file(
+            &file.rel,
+            &file.hits,
+            &shown,
+            &file.scopes,
+            file.text.as_deref(),
+            opts,
+            writer,
+        )?;
     }
     Ok(printed)
 }
@@ -366,7 +388,6 @@ pub fn emit(
     post: &PostOptions,
     writer: &mut OutputWriter,
 ) -> Result<bool> {
-    let context_reach = opts.after_ctx().max(opts.before_ctx());
     let parses = post.scope || post.kind.is_some() || post.zone.is_some();
     let mut inputs: Vec<(String, FileHits, PathBuf, usize)> = Vec::new();
     let mut caches: Vec<(Option<PathBuf>, Option<ogrep_core::facts::FactStore>)> = Vec::new();
@@ -436,11 +457,11 @@ pub fn emit(
                 opts.fixed_string,
                 ci,
                 rank_opts,
-                context_reach,
+                opts,
                 writer,
             )
         }
         None if post.callers => emit_callers(prepared, opts, writer),
-        None => emit_plain(prepared, opts, context_reach, writer),
+        None => emit_plain(prepared, opts, writer),
     }
 }

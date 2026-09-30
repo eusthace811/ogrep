@@ -361,3 +361,44 @@ fn near_works_below_the_index_root() {
     ]));
     assert!(out.contains("src/user.rs"), "{out:?}");
 }
+
+#[test]
+fn reshaped_searches_see_every_match_and_keep_context_directional() {
+    let dir = TempDir::new().unwrap();
+    fs::write(dir.path().join("t.txt"), "foo foo foo\n").unwrap();
+    fs::write(
+        dir.path().join("z.py"),
+        "call(zork)  # zork is deprecated\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.path().join("k.py"),
+        "x = 1\nref foo_ref\nctx1\nctx2\ndef foo_ref():\n    pass\n",
+    )
+    .unwrap();
+    fs::write(dir.path().join("bin.dat"), b"needle\0binary\n").unwrap();
+    let run = |args: &[&str]| stdout(ogrep(dir.path()).arg("--no-index").args(args));
+    // --count-matches counts matches, not lines, under --rank too.
+    assert_eq!(run(&["--rank", "--count-matches", "foo", "t.txt"]), "3\n");
+    // A line is in comments when any of its matches is.
+    assert!(run(&["--in", "comments", "zork", "z.py"]).contains("# zork"));
+    // -A context of a filtered-out match is not before-context of the next.
+    assert_eq!(
+        run(&["--kind", "def", "-A2", "foo_ref", "k.py"]),
+        "def foo_ref():\n    pass\n"
+    );
+    // A file that matches only as binary is still reported.
+    assert!(run(&["--rank", "needle", "bin.dat"]).contains("binary file matches"));
+}
+
+#[test]
+fn shapes_that_would_be_ignored_are_refused() {
+    let dir = TempDir::new().unwrap();
+    for args in [&["--rank", "--scope", "x"][..], &["--callers", "-c", "x"]] {
+        ogrep(dir.path())
+            .args(args)
+            .assert()
+            .code(2)
+            .stderr(predicates::str::contains("cannot be combined"));
+    }
+}

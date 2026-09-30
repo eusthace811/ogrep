@@ -153,7 +153,9 @@ pub struct Ranked {
 
 /// Group captured results by file, in capture order.
 pub(crate) fn group(captures: Vec<(PathDisplay, Vec<Captured>)>) -> Vec<(String, FileHits)> {
-    let mut order: Vec<String> = Vec::new();
+    // (key, file name), in capture order: a file can have only a binary
+    // note, and no match or context line to take its name from.
+    let mut order: Vec<(String, String)> = Vec::new();
     let mut files: HashMap<String, FileHits> = HashMap::new();
     for (display, events) in captures {
         for event in events {
@@ -165,7 +167,7 @@ pub(crate) fn group(captures: Vec<(PathDisplay, Vec<Captured>)>) -> Vec<(String,
             // The same relative path under two path arguments is two files.
             let key = format!("{display:?}\0{file}");
             let hits = files.entry(key.clone()).or_insert_with(|| {
-                order.push(key.clone());
+                order.push((key.clone(), file.clone()));
                 FileHits {
                     display: display.clone(),
                     ..Default::default()
@@ -180,16 +182,7 @@ pub(crate) fn group(captures: Vec<(PathDisplay, Vec<Captured>)>) -> Vec<(String,
     }
     order
         .into_iter()
-        .map(|k| {
-            let hits = files.remove(&k).unwrap();
-            let rel = hits
-                .matches
-                .first()
-                .map(|m| m.file.clone())
-                .or_else(|| hits.contexts.first().map(|c| c.file.clone()))
-                .unwrap_or_default();
-            (rel, hits)
-        })
+        .map(|(key, rel)| (rel, files.remove(&key).unwrap()))
         .collect()
 }
 
@@ -244,17 +237,15 @@ pub fn is_definition(line: &str, start: usize) -> bool {
 pub(crate) fn is_test_path(path: &str) -> bool {
     let p = path.to_ascii_lowercase();
     let name = p.rsplit('/').next().unwrap_or(&p);
-    p.starts_with("test/")
-        || p.starts_with("tests/")
-        || p.contains("/test/")
-        || p.contains("/tests/")
-        || p.contains("/testing/")
-        || p.contains("/spec/")
-        || p.contains("/__tests__/")
+    let dir = |d: &str| p.starts_with(&format!("{d}/")) || p.contains(&format!("/{d}/"));
+    ["test", "tests", "testing", "spec", "__tests__"]
+        .into_iter()
+        .any(dir)
         || name.starts_with("test_")
         || name.contains("_test.")
         || name.contains(".test.")
         || name.contains(".spec.")
+        || name.contains("_spec.")
         || name.ends_with("_tests.rs")
         || name.ends_with("tests.py")
 }
@@ -309,7 +300,9 @@ fn saturate(tf: f64, k1: f64) -> f64 {
 
 /// Which pattern produced a match text. With one pattern it is always 0.
 struct PatternSet {
-    regexes: Vec<regex::Regex>,
+    /// One per pattern, in order; `None` where the plain engine cannot
+    /// compile it (a -P lookaround), so later patterns keep their index.
+    regexes: Vec<Option<regex::Regex>>,
 }
 
 impl PatternSet {
@@ -319,7 +312,7 @@ impl PatternSet {
         } else {
             patterns
                 .iter()
-                .filter_map(|p| {
+                .map(|p| {
                     let p = if fixed { regex::escape(p) } else { p.clone() };
                     regex::RegexBuilder::new(&p)
                         .case_insensitive(ci)
@@ -338,7 +331,7 @@ impl PatternSet {
     fn of(&self, text: &str) -> usize {
         self.regexes
             .iter()
-            .position(|re| re.is_match(text))
+            .position(|re| re.as_ref().is_some_and(|re| re.is_match(text)))
             .unwrap_or(0)
     }
 }
@@ -469,11 +462,7 @@ fn keep_count(ranked: &[Ranked], opts: &RankOptions) -> usize {
 
 /// Pick the lines to show for one file: definitions first, then the earliest,
 /// skipping lines that differ from a kept one only in whitespace or digits.
-fn select_lines<'a>(
-    matches: &'a [Match],
-    defs: Option<&[bool]>,
-    per_file: usize,
-) -> Vec<&'a Match> {
+fn select_lines(matches: &[Match], defs: Option<&[bool]>, per_file: usize) -> Vec<usize> {
     let norm = |s: &str| -> String {
         s.chars()
             .filter(|c| !c.is_whitespace() && !c.is_ascii_digit())
@@ -486,18 +475,17 @@ fn select_lines<'a>(
             .unwrap_or_else(|| m.spans.iter().any(|&(s, _)| is_definition(&m.content, s)));
         (!def, m.line_number)
     });
-    let order: Vec<&Match> = order.into_iter().map(|(_, m)| m).collect();
     let mut seen = std::collections::HashSet::new();
-    let mut picked: Vec<&Match> = Vec::new();
-    for m in order {
+    let mut picked: Vec<usize> = Vec::new();
+    for (i, m) in order {
         if picked.len() >= per_file {
             break;
         }
         if seen.insert(norm(&m.content)) {
-            picked.push(m);
+            picked.push(i);
         }
     }
-    picked.sort_by_key(|m| m.line_number);
+    picked.sort_by_key(|&i| matches[i].line_number);
     picked
 }
 
@@ -510,7 +498,7 @@ pub fn emit(
     fixed: bool,
     ci: bool,
     opts: &RankOptions,
-    context_reach: usize,
+    search: &crate::search::SearchOptions,
     writer: &mut OutputWriter,
 ) -> Result<bool> {
     if files.is_empty() {
@@ -523,45 +511,8 @@ pub fn emit(
         let hits = &files[r.file].1;
         writer.set_path_display(hits.display.clone());
         writer.write_rank_record(&r.path, rank + 1, r.score, &r.features, opts.explain)?;
-        if let Some(offset) = hits.binary {
-            writer.write_binary_note(&r.path, offset)?;
-        }
-        if writer.is_files_only() {
-            writer.write_file(&r.path)?;
-            continue;
-        }
-        if writer.is_count() {
-            writer.write_count(&r.path, hits.matches.len())?;
-            continue;
-        }
         let shown = select_lines(&hits.matches, hits.defs.as_deref(), opts.per_file);
-        let shown_lines: std::collections::HashSet<usize> =
-            shown.iter().map(|m| m.line_number).collect();
-        // Context lines are kept only around the shown matches.
-        let mut rows: Vec<(usize, Result<&Match, &ContextLine>)> =
-            shown.iter().map(|m| (m.line_number, Ok(*m))).collect();
-        if !hits.contexts.is_empty() {
-            let near = |line: usize| {
-                shown_lines
-                    .iter()
-                    .any(|&s| line.abs_diff(s) <= context_reach)
-            };
-            rows.extend(
-                hits.contexts
-                    .iter()
-                    .filter(|c| near(c.line_number) && !shown_lines.contains(&c.line_number))
-                    .map(|c| (c.line_number, Err(c))),
-            );
-            rows.sort_by_key(|(line, _)| *line);
-        }
-        for (line, row) in rows {
-            writer.write_context_separator(&r.path, line)?;
-            match row {
-                Ok(m) => writer.write_match(m)?,
-                Err(c) => writer.write_context_line(c)?,
-            }
-        }
-        writer.flush_file()?;
+        crate::post::emit_file(&r.path, hits, &shown, &[], None, search, writer)?;
     }
     Ok(keep > 0)
 }

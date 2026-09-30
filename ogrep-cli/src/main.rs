@@ -1204,6 +1204,7 @@ impl Cli {
             glob: self.glob.clone(),
             iglob: self.iglob.clone(),
             glob_case_insensitive: self.glob_case_insensitive,
+            all_spans: false,
             only_paths: None,
             types: self.file_type.clone(),
             types_not: self.type_not.clone(),
@@ -1555,6 +1556,28 @@ fn run_cli() {
             eprintln!("ogrep: --rank, --scope, --kind and --in cannot be combined with {flag}");
             process::exit(2);
         }
+    }
+    // --rank prints files in its own order, dropping --scope's headers and
+    // replacing --callers' listing; --callers lists definitions, not lines
+    // to count or files to name.
+    let post = cli.post_options();
+    let shapes = [
+        (
+            post.rank.is_some() && cli.scope,
+            "--rank cannot be combined with --scope",
+        ),
+        (
+            post.rank.is_some() && cli.callers,
+            "--rank cannot be combined with --callers",
+        ),
+        (
+            cli.callers && (cli.count || cli.count_matches || cli.files_only),
+            "--callers cannot be combined with -c, --count-matches or -l",
+        ),
+    ];
+    if let Some((_, message)) = shapes.iter().find(|(set, _)| *set) {
+        eprintln!("ogrep: {message}");
+        process::exit(2);
     }
 
     // `--pcre2-version` reports the backtracking engine and exits, like ripgrep.
