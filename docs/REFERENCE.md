@@ -660,11 +660,15 @@ boundary commits, which git diffs against an empty tree, are skipped.
 
 **`--changed-since REV|WHEN`** restricts an ordinary search to files that differ
 between REV (or the last commit before WHEN) and the working tree, including
-uncommitted edits, plus untracked files that are not ignored.
+uncommitted edits, plus untracked files that are not ignored. Unchanged files
+are never read. It also applies to `--files`, `--rank`, `--scope`, `--kind`,
+`--in` and `--callers`; the graph, repository and operations tools refuse it.
 
 **`--at REV`** searches the files as they were at a commit, tag or branch,
 reading git's object store directly: no index and no checkout. Globs, types,
-`--max-filesize`, `--rank` and every output format work as usual.
+`--max-filesize`, `--hidden`, `--rank` and every output format work as usual;
+as in a working-tree search, hidden files are skipped unless `--hidden` is
+given.
 
 ### Check status
 
