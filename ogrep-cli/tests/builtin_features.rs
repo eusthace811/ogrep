@@ -338,3 +338,26 @@ fn at_revision_filters_a_named_file_by_its_name() {
         .assert()
         .code(0);
 }
+
+#[test]
+fn near_works_below_the_index_root() {
+    let dir = repo(&[
+        ("src/core.rs", "pub fn shared_helper() {}\n"),
+        ("src/user.rs", "fn run() { shared_helper(); }\n"),
+    ]);
+    ogrep(dir.path())
+        .args(["index", "--graph", "."])
+        .assert()
+        .success();
+    // Matches come back relative to src/, the graph's paths relative to the
+    // repository: both must meet.
+    let out = stdout(ogrep(dir.path()).args([
+        "--index-path",
+        ".ogrep",
+        "--near",
+        "-F",
+        "pub fn shared_helper",
+        "src",
+    ]));
+    assert!(out.contains("src/user.rs"), "{out:?}");
+}

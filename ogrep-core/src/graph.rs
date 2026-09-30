@@ -499,8 +499,14 @@ impl Graph {
             put_str(&mut buf, &d.name);
             put_str(&mut buf, &d.signature);
         }
-        let tmp = dir.join("graph.bin.tmp");
-        std::fs::File::create(&tmp)?.write_all(&buf)?;
+        // A temporary name per process, synced before it replaces the graph:
+        // two builds at once must not publish each other's half-written file,
+        // nor a crash leave a truncated one.
+        let tmp = dir.join(format!("graph.bin.{}.tmp", std::process::id()));
+        let mut file = std::fs::File::create(&tmp)?;
+        file.write_all(&buf)?;
+        file.sync_all()?;
+        drop(file);
         std::fs::rename(tmp, dir.join(GRAPH_FILE))?;
         Ok(())
     }
@@ -536,29 +542,32 @@ impl Graph {
         }
         let file_table_id: [u8; 32] = c.take(32)?.try_into().ok()?;
         let n = c.u32()? as usize;
-        let mut files = Vec::with_capacity(n);
+        // Counts come from the file: never reserve more than its bytes could
+        // hold (a corrupt count would otherwise ask for gigabytes).
+        let cap = |count: usize, each: usize| count.min(bytes.len() / each);
+        let mut files = Vec::with_capacity(cap(n, 4));
         for _ in 0..n {
             files.push(c.string()?);
         }
-        let mut pagerank = Vec::with_capacity(n);
+        let mut pagerank = Vec::with_capacity(cap(n, 4));
         for _ in 0..n {
             pagerank.push(c.f32()?);
         }
         let m = c.u32()? as usize;
-        let mut offsets = Vec::with_capacity(n + 1);
+        let mut offsets = Vec::with_capacity(cap(n + 1, 4));
         for _ in 0..=n {
             offsets.push(c.u32()?);
         }
-        let mut targets = Vec::with_capacity(m);
+        let mut targets = Vec::with_capacity(cap(m, 4));
         for _ in 0..m {
             targets.push(c.u32()?);
         }
-        let mut weights = Vec::with_capacity(m);
+        let mut weights = Vec::with_capacity(cap(m, 4));
         for _ in 0..m {
             weights.push(c.f32()?);
         }
         let d = c.u32()? as usize;
-        let mut defs = Vec::with_capacity(d);
+        let mut defs = Vec::with_capacity(cap(d, 18));
         for _ in 0..d {
             let file = c.u32()?;
             let kind = c.take(1)?[0];
@@ -576,6 +585,16 @@ impl Graph {
                 signature,
                 linkable,
             });
+        }
+        // Queries index by these without checks: a corrupt file must fail to
+        // load ("unreadable"), not panic later.
+        let links_ok = offsets.first() == Some(&0)
+            && offsets.last().is_some_and(|&last| last as usize == m)
+            && offsets.windows(2).all(|w| w[0] <= w[1])
+            && targets.iter().all(|&t| (t as usize) < n)
+            && defs.iter().all(|d| (d.file as usize) < n);
+        if !links_ok {
+            return None;
         }
         let mut graph = Graph {
             file_table_id,
@@ -662,5 +681,16 @@ mod tests {
         let ppr = loaded.propagate(Some(&[(user, 1.0)]));
         let lonely = loaded.file("src/lonely.rs").unwrap();
         assert!(ppr[core as usize] > ppr[lonely as usize]);
+
+        // A link to a file past the end is corrupt: unreadable, not a panic
+        // in a later query. The first target sits right after the offsets.
+        let path = index.path().join(GRAPH_DIR).join(GRAPH_FILE);
+        let mut bytes = std::fs::read(&path).unwrap();
+        let n = g.files.len();
+        let names: usize = g.files.iter().map(|f| 4 + f.len()).sum();
+        let first_target = 8 + 4 + 32 + 4 + names + 4 * n + 4 + 4 * (n + 1);
+        bytes[first_target..first_target + 4].copy_from_slice(&(n as u32).to_le_bytes());
+        std::fs::write(&path, bytes).unwrap();
+        assert!(Graph::load(index.path()).is_none());
     }
 }

@@ -95,13 +95,33 @@ pub fn run(
         (g, matched)
     });
     let g = g?;
+    // The graph's paths are relative to the index root, a search's to the
+    // path searched, which may be below it (with --index-path): translate.
+    let index_root = ogrep_core::meta::IndexMeta::load(&dir)
+        .map(|m| std::path::PathBuf::from(m.root_path))
+        .unwrap_or_else(|_| root.to_path_buf());
+    let canonical = |p: &Path| std::fs::canonicalize(p).unwrap_or_else(|_| p.to_path_buf());
+    let below = canonical(root)
+        .strip_prefix(canonical(&index_root))
+        .map(|p| p.to_string_lossy().replace('\\', "/"))
+        .unwrap_or_default();
+    let in_graph = |rel: &str| {
+        if root.is_file() {
+            below.clone()
+        } else if below.is_empty() {
+            rel.to_string()
+        } else {
+            format!("{below}/{rel}")
+        }
+    };
     // Matched lines per graph file; each file weighs by how many matched.
     let mut lines: HashMap<u32, Vec<usize>> = HashMap::new();
     for (path, line) in matched.transpose()?.unwrap_or_default() {
-        if let Some(f) = g.file(&path) {
+        if let Some(f) = g.file(&in_graph(&path)) {
             lines.entry(f).or_default().push(line);
         }
     }
+    let root = index_root.as_path();
     let mut seeds: Vec<(u32, f64)> = lines
         .iter()
         .map(|(&f, l)| (f, (1.0 + l.len() as f64).ln()))
@@ -135,8 +155,9 @@ fn near(
     }
     let rank = g.related(seeds);
     let seed_set: std::collections::HashSet<u32> = seeds.iter().map(|s| s.0).collect();
+    // Unrelated files (no link to any seed) are not results.
     let mut order: Vec<u32> = (0..g.files.len() as u32)
-        .filter(|f| !seed_set.contains(f))
+        .filter(|f| !seed_set.contains(f) && rank[*f as usize] > 0.0)
         .collect();
     order.sort_by(|&a, &b| {
         rank[b as usize]
@@ -321,7 +342,7 @@ fn callees(g: &Graph, root: &Path, opts: &SearchOptions, out: &mut impl Write) -
             if word.len() < 3
                 || word == def.name
                 || graph::is_protocol_name(word)
-                || !seen.insert(word.to_string())
+                || seen.contains(word)
             {
                 continue;
             }
@@ -350,6 +371,9 @@ fn callees(g: &Graph, root: &Path, opts: &SearchOptions, out: &mut impl Write) -
                 continue;
             }
             targets.truncate(3);
+            // Seen once it is a callee: an earlier mention that was not a
+            // call (`let cb = process_item;`) must not hide a later call.
+            seen.insert(word.to_string());
             rows.push((word.to_string(), targets));
         }
         if !opts.json {
@@ -369,7 +393,8 @@ fn callees(g: &Graph, root: &Path, opts: &SearchOptions, out: &mut impl Write) -
                 }
             }
         }
-        printed = true;
+        // Text output prints the definition's header; JSON only its callees.
+        printed |= !opts.json || !rows.is_empty();
     }
     Ok(printed)
 }
