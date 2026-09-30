@@ -518,18 +518,21 @@ ogrep --rank-fit feedback.json .                    # tune --rank for this repos
 - **`--related-tests FILE`** ranks test files by three signals: named after the
   file (`test_query.py`, `query_test.go`), using its definitions (with
   `ogrep index --graph`), and changed in the same commits (the last 400 commits
-  touching the file).
+  touching the file). `--budget` sets how many (default 15).
 - **`--similar PATH:LINE`** takes the definition around that line (or 30 lines)
   and ranks other definitions by the overlap of their 5-token shingles
   (Jaccard). Candidates are files that contain two of the region's longest
-  identifiers, found through the index.
+  identifiers, found through the index. `--budget` sets how many (default 15).
 - **`--conflicts`** compares, for each other local branch, the lines changed
   on it since the common ancestor with the lines changed here (committed or
   not), and reports files changed on both sides and whether the lines overlap.
 - **`--doc-drift`** lists names quoted as code in documentation (`` `like_this` ``
   or ``` ``LikeThis`` ```) that appear in no code file, skipping release notes and
   changelogs, which name removed things on purpose, and names the docs define in
-  their own examples.
+  their own examples. A file counts as release notes by its name (`CHANGELOG.md`,
+  `HISTORY.rst`, `UPGRADING.md`) or by a directory named for them (`changelog.d/`,
+  `.changes/`, `newsfragments/`, `releases/`, `migrations/`); a keyword elsewhere
+  in the path (`docs/history/`) does not count.
 - **`--rank-fit FILE`** reads `{"query": ..., "relevant": [paths]}` examples (a
   JSON array or JSON lines), grid-searches the ranking weights for the best mean
   reciprocal rank, and writes them to `rank-weights.json` beside the index;
@@ -597,7 +600,8 @@ not through the index.
 
 **`--similar-incidents TEXT`** (or a file, or `-`) ranks write-ups under paths
 containing `postmortem`, `incident`, `rca`, `retro` or `outage` by BM25 over the
-description, doubling the weight of shared service names.
+description, doubling the weight of shared service names. `--budget` sets how
+many (default 10).
 
 A decision journal needs no flag: record hypotheses, evidence and verdicts as
 JSON lines in a committed file (for example `ogrep-journal.jsonl`, one object
@@ -739,7 +743,7 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `--with <PAT>` | Only search files that also contain a line matching `PAT` (repeatable; all required; narrows via the index) |
 | `--without <PAT>` | Skip files that contain a line matching `PAT` (repeatable) |
 | `--rank` | Order files by relevance and print the best first (see [Ranked results](#ranked-results---rank)) |
-| `--budget <FILES>` | With `--rank`: at most this many files (default 20) |
+| `--budget <FILES>` | With `--rank`: at most this many files (default 20); with `--near`, `--related-tests`, `--similar` or `--similar-incidents`: how many results |
 | `--per-file <LINES>` | With `--rank`: at most this many lines per file (default 3) |
 | `--rank-cutoff <auto\|none>` | With `--rank`: also stop where scores fall away (`auto`) |
 | `--explain-rank` | With `--rank`: print each file's score and features |

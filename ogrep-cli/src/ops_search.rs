@@ -21,7 +21,10 @@ pub enum Mode {
         new_since: Option<String>,
         to_code: bool,
     },
-    SimilarIncidents,
+    /// With the number of incidents to list (`--budget`).
+    SimilarIncidents {
+        budget: usize,
+    },
 }
 
 use crate::extras::repo_of;
@@ -87,7 +90,7 @@ pub fn run(
         Mode::Timeline => timeline(&repo, opts, since, &mut out)?,
         Mode::Trace => trace(&repo, opts, &mut out)?,
         Mode::LogTemplates { .. } => unreachable!("handled above"),
-        Mode::SimilarIncidents => similar_incidents(&repo, opts, &mut out)?,
+        Mode::SimilarIncidents { budget } => similar_incidents(&repo, opts, *budget, &mut out)?,
     };
     out.flush()?;
     Ok(found)
@@ -501,7 +504,12 @@ fn terms(text: &str) -> Vec<String> {
         .collect()
 }
 
-fn similar_incidents(repo: &Path, opts: &SearchOptions, out: &mut impl Write) -> Result<bool> {
+fn similar_incidents(
+    repo: &Path,
+    opts: &SearchOptions,
+    budget: usize,
+    out: &mut impl Write,
+) -> Result<bool> {
     let query = if opts.pattern == "-" {
         std::io::read_to_string(std::io::stdin())?
     } else if Path::new(&opts.pattern).is_file() {
@@ -591,7 +599,7 @@ fn similar_incidents(repo: &Path, opts: &SearchOptions, out: &mut impl Write) ->
         .filter(|s| s.0 > 0.0)
         .collect();
     scored.sort_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(b.1)));
-    for (score, path, hits) in scored.iter().take(10) {
+    for (score, path, hits) in scored.iter().take(budget) {
         if opts.json {
             let msg = serde_json::json!({"type": "incident", "data": {"path": path, "score": score, "terms": hits}});
             writeln!(out, "{msg}")?;

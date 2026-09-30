@@ -232,6 +232,28 @@ fn doc_drift_filters_names_with_the_search_options() {
 }
 
 #[test]
+fn doc_drift_skips_release_notes_by_name_or_directory_only() {
+    let dir = repo(&[
+        ("docs/history/guide.md", "Call `missing_in_history`.\n"),
+        ("src/exchanges/README.md", "Call `missing_in_exchanges`.\n"),
+        ("changelog.d/123.md", "Removed `missing_in_fragment`.\n"),
+        ("docs/.changes/notes.md", "Removed `missing_in_changes`.\n"),
+        ("HISTORY.md", "Removed `missing_in_history_file`.\n"),
+        ("lib.py", "def other():\n    pass\n"),
+    ]);
+    let out = stdout(ogrep(dir.path()).args(["--doc-drift", "."]));
+    assert!(out.contains("missing_in_history"), "{out:?}");
+    assert!(out.contains("missing_in_exchanges"), "{out:?}");
+    for skipped in [
+        "missing_in_fragment",
+        "missing_in_changes",
+        "missing_in_history_file",
+    ] {
+        assert!(!out.contains(skipped), "{skipped}: {out:?}");
+    }
+}
+
+#[test]
 fn conflicts_name_files_with_spaces_cleanly() {
     let dir = repo(&[("x y.txt", "l1\nl2\nl3\n")]);
     let run = |args: &[&str]| git(dir.path(), args);
@@ -433,6 +455,27 @@ fn tool_flags_are_exclusive_and_parse_as_documented() {
                 .or(predicates::str::contains("takes its subject")),
         );
     }
+    let refused = [
+        (
+            &["--conflicts", "-e", "x"][..],
+            "--conflicts takes no pattern",
+        ),
+        (
+            &["--introduced", "x", "a", "b"],
+            "--introduced takes one path at a time",
+        ),
+        (
+            &["--near", "x", "a", "b"],
+            "--near takes one path at a time",
+        ),
+    ];
+    for (args, message) in refused {
+        ogrep(dir.path())
+            .args(args)
+            .assert()
+            .code(2)
+            .stderr(predicates::str::contains(message));
+    }
     // --map takes its budget only as --map=N, so the pattern after it is a
     // pattern: this fails for want of a graph, not as a bad --map value.
     ogrep(dir.path())
@@ -455,4 +498,24 @@ fn binary_files_count_the_same_with_and_without_reshaping() {
         );
         assert_eq!(out, "3\n", "with {extra:?}");
     }
+}
+
+#[test]
+fn kind_and_zone_filters_decide_per_match() {
+    let dir = TempDir::new().unwrap();
+    fs::write(
+        dir.path().join("a.py"),
+        "class A:\n    def get_qs(self): return super().get_qs()\n\nx = \"token\"  # token here\n",
+    )
+    .unwrap();
+    let run = |args: &[&str]| stdout(ogrep(dir.path()).arg("--no-index").args(args).arg("a.py"));
+    // The line defines get_qs and also calls it.
+    assert!(run(&["--kind", "ref", "get_qs"]).contains("super().get_qs()"));
+    // The line has the word in a string and in a comment.
+    assert!(run(&["--in", "comments", "token"]).contains("# token here"));
+    let json = run(&["--in", "comments", "--json", "token"]);
+    assert!(
+        json.contains(r#""submatches":[{"end":20,"match":{"text":"token"},"start":15}]"#),
+        "{json}"
+    );
 }

@@ -646,11 +646,20 @@ pub fn captured_matches(
     };
     let mut capture = new_capturing_writer(&opts);
     run(root, index_path, &opts, ci, &mut capture)?;
-    Ok(capture
-        .take_captured()
+    // A binary file's lines are not text these callers can use (a capture
+    // records them only so reshaped output can count them).
+    let captured = capture.take_captured();
+    let binary: std::collections::HashSet<String> = captured
+        .iter()
+        .filter_map(|c| match c {
+            crate::output::Captured::Binary { file, .. } => Some(file.clone()),
+            _ => None,
+        })
+        .collect();
+    Ok(captured
         .into_iter()
         .filter_map(|c| match c {
-            crate::output::Captured::Match(m) => Some(m),
+            crate::output::Captured::Match(m) if !binary.contains(&m.file) => Some(m),
             _ => None,
         })
         .collect())

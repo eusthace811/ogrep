@@ -201,38 +201,35 @@ fn prepare(
             },
             |f| f.def,
         );
-        let kind_ok = match post.kind {
-            None => true,
-            Some(KindFilter::Def) => def,
-            Some(KindFilter::Ref) => !def,
+        // A match passes when it is of the kind and in the zone asked for,
+        // and a line is kept when one of its matches passes. With the file's
+        // structure that is decided per match; without it the kind comes
+        // from a keyword heuristic over the line, and the zone is taken to
+        // be code (never claiming a comment or string).
+        let filtered = post.kind.is_some() || post.zone.is_some();
+        let passes = |d: bool, zone: ZoneFilter| {
+            kind_matches(post.kind, d) && post.zone.is_none_or(|z| z == zone)
         };
-        // With --in, a line is kept for a match that is in the zone and also
-        // of the kind asked for, decided together per match. Without
-        // structure the zone is unknown: count it as code, and never claim a
-        // comment or string.
-        let zone_ok = post.zone.is_none_or(|z| match f {
-            Some(f) => f
-                .spans
-                .iter()
-                .any(|&(d, zone)| zone == z && kind_matches(post.kind, d)),
-            None => z == ZoneFilter::Code,
-        });
-        keep.push((kind_ok && zone_ok, def));
+        let ok = !filtered
+            || match f {
+                Some(f) => f.spans.iter().any(|&(d, zone)| passes(d, zone)),
+                None => passes(def, ZoneFilter::Code),
+            };
+        keep.push((ok, def));
     }
     let mut scopes = Vec::new();
     let mut defs = Vec::new();
     let mut kept = Vec::new();
     for ((mut m, f), (ok, def)) in hits.matches.drain(..).zip(facts).zip(keep) {
         if ok {
-            // Under --in, matches outside the zone (or not of the kind asked
-            // for) are not results: -o, --count-matches and ranking must not
-            // see them.
-            if let (Some(z), Some(f)) = (post.zone, &f) {
+            // Matches that fail --kind or --in are not results, even on a
+            // kept line: -o, --count-matches and ranking must not see them.
+            if let (true, Some(f)) = (post.kind.is_some() || post.zone.is_some(), &f) {
                 let mut facts = f.spans.iter();
                 m.spans.retain(|_| {
-                    facts
-                        .next()
-                        .is_some_and(|&(d, zone)| zone == z && kind_matches(post.kind, d))
+                    facts.next().is_some_and(|&(d, zone)| {
+                        kind_matches(post.kind, d) && post.zone.is_none_or(|z| z == zone)
+                    })
                 });
             }
             scopes.push(if post.scope {
@@ -324,11 +321,14 @@ pub(crate) fn emit_file(
         writer.write_count(rel, n)?;
         return Ok(());
     }
-    // A binary file's lines are never printed, only the note, as in a plain
-    // search (the capture keeps them for counting and filtering).
+    // A binary file's lines are not printed, only the note, as in a plain
+    // search (the capture keeps them for counting and filtering). JSON has
+    // no note: the matches go out as usual, the offset recorded on `end`.
     if let Some(offset) = hits.binary {
         writer.write_binary_note(rel, offset)?;
-        return Ok(());
+        if !opts.json {
+            return Ok(());
+        }
     }
     let lines: Vec<&str> = text.map(|t| t.lines().collect()).unwrap_or_default();
     let mut shown_lines: Vec<usize> = shown.iter().map(|&i| hits.matches[i].line_number).collect();

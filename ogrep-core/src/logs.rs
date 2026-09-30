@@ -6,9 +6,10 @@
 //! paths with digits) are masked up front; lines with the same number of tokens
 //! and the same first token are compared position by position. A line joins
 //! the template whose constant tokens it matches in the most positions (at
-//! least [`SIMILARITY`] of them; a template's `<*>` positions count for
-//! neither side, as in Drain), preferring the more general one on a tie, and
-//! the positions that differ become `<*>`.
+//! least [`SIMILARITY`] of them), preferring the more general one on a tie,
+//! and the positions that differ become `<*>`. As in Drain3, masked tokens
+//! are equal to each other, while a position a template generalised counts
+//! for neither side.
 //!
 //! A leading timestamp (ISO 8601, with or without `T`, zone or fraction) is
 //! read, not templated, so each template knows when it was first and last seen.
@@ -19,7 +20,14 @@ use std::collections::HashMap;
 
 /// Share of token positions that must agree for a line to join a template.
 pub const SIMILARITY: f64 = 0.5;
+/// What a masked variable token (a number, an id) becomes. Masked tokens are
+/// equal to each other, like Drain3's `<NUM>`/`<IP>` masks.
 const WILDCARD: &str = "<*>";
+/// A position a template generalised by merging lines that differ there.
+/// It counts for neither side of a comparison, as Drain's parameter does,
+/// and is shown as `<*>` too. Tokens come from splitting on whitespace, so
+/// no real token contains this.
+const GENERALISED: &str = "\u{1}<*>";
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Template {
@@ -33,7 +41,18 @@ pub struct Template {
 
 impl Template {
     pub fn text(&self) -> String {
-        self.tokens.join(" ")
+        let shown: Vec<&str> = self
+            .tokens
+            .iter()
+            .map(|t| {
+                if t == GENERALISED {
+                    WILDCARD
+                } else {
+                    t.as_str()
+                }
+            })
+            .collect();
+        shown.join(" ")
     }
 
     /// The longest run of constant tokens, the part most likely to be written
@@ -43,7 +62,7 @@ impl Template {
         let mut start = 0;
         for i in 0..=self.tokens.len() {
             if i == self.tokens.len()
-                || self.tokens[i] == WILDCARD
+                || self.tokens[i] == GENERALISED
                 || self.tokens[i].contains(WILDCARD)
             {
                 let run = &self.tokens[start..i];
@@ -165,9 +184,9 @@ impl Drain {
                 let t = &self.templates[i];
                 let pairs = || t.tokens.iter().zip(&tokens);
                 let same = pairs()
-                    .filter(|(a, b)| a == b && a.as_str() != WILDCARD)
+                    .filter(|(a, b)| a == b && a.as_str() != GENERALISED)
                     .count();
-                let wild = pairs().filter(|(a, _)| a.as_str() == WILDCARD).count();
+                let wild = pairs().filter(|(a, _)| a.as_str() == GENERALISED).count();
                 (same, wild, i)
             })
             .filter(|&(same, ..)| same as f64 / tokens.len() as f64 >= SIMILARITY)
@@ -176,7 +195,7 @@ impl Drain {
             let t = &mut self.templates[i];
             for (a, b) in t.tokens.iter_mut().zip(&tokens) {
                 if a != b {
-                    *a = WILDCARD.to_string();
+                    *a = GENERALISED.to_string();
                 }
             }
             t.count += 1;
@@ -211,6 +230,23 @@ impl Drain {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn identical_lines_with_masked_values_share_a_template() {
+        let mut drain = Drain::default();
+        for (i, line) in ["Connected 10.0.0.1 5432", "Connected 10.0.0.2 5433"]
+            .iter()
+            .enumerate()
+        {
+            drain.add("app.log", i + 1, line);
+        }
+        let templates: Vec<(String, usize)> = drain
+            .sorted()
+            .into_iter()
+            .map(|t| (t.text(), t.count))
+            .collect();
+        assert_eq!(templates, [("Connected <*> <*>".to_string(), 2)]);
+    }
 
     #[test]
     fn the_most_similar_template_wins() {

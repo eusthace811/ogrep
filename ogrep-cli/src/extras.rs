@@ -10,8 +10,14 @@ use crate::search::SearchOptions;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mode {
-    RelatedTests,
-    Similar,
+    /// With the number of tests to list (`--budget`).
+    RelatedTests {
+        budget: usize,
+    },
+    /// With the number of regions to list (`--budget`).
+    Similar {
+        budget: usize,
+    },
     Conflicts,
     DocDrift,
 }
@@ -34,8 +40,8 @@ pub fn run(
     let idx = crate::search::index_dir_for(&repo, index_path);
     let mut out = BufWriter::new(std::io::stdout().lock());
     let found = match mode {
-        Mode::RelatedTests => related_tests(&repo, &idx, opts, &mut out)?,
-        Mode::Similar => similar(&repo, &idx, opts, &mut out)?,
+        Mode::RelatedTests { budget } => related_tests(&repo, &idx, opts, budget, &mut out)?,
+        Mode::Similar { budget } => similar(&repo, &idx, opts, budget, &mut out)?,
         Mode::Conflicts => conflicts(&repo, opts, &mut out)?,
         Mode::DocDrift => doc_drift(&repo, &idx, opts, ci, &mut out)?,
     };
@@ -67,6 +73,7 @@ fn related_tests(
     repo: &Path,
     idx: &Path,
     opts: &SearchOptions,
+    budget: usize,
     out: &mut impl Write,
 ) -> Result<bool> {
     let target = repo_relative(repo, &opts.pattern);
@@ -158,7 +165,7 @@ fn related_tests(
     let mut ranked: Vec<(String, f64, Vec<String>)> =
         score.into_iter().map(|(p, (s, w))| (p, s, w)).collect();
     ranked.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
-    for (path, s, why) in ranked.iter().take(15) {
+    for (path, s, why) in ranked.iter().take(budget) {
         if opts.json {
             let msg =
                 serde_json::json!({"type": "test", "data": {"path": path, "score": s, "why": why}});
@@ -234,7 +241,13 @@ fn slice_lines(text: &str, start: usize, end: usize) -> String {
         .join("\n")
 }
 
-fn similar(repo: &Path, idx: &Path, opts: &SearchOptions, out: &mut impl Write) -> Result<bool> {
+fn similar(
+    repo: &Path,
+    idx: &Path,
+    opts: &SearchOptions,
+    budget: usize,
+    out: &mut impl Write,
+) -> Result<bool> {
     let (file_arg, line) = opts
         .pattern
         .rsplit_once(':')
@@ -331,7 +344,7 @@ fn similar(repo: &Path, idx: &Path, opts: &SearchOptions, out: &mut impl Write) 
         };
         writeln!(out, "similar to {target}:{start}-{end}{label}")?;
     }
-    for (sim, path, s, e, n) in found.iter().take(15) {
+    for (sim, path, s, e, n) in found.iter().take(budget) {
         if opts.json {
             let msg = serde_json::json!({"type": "similar", "data": {"path": path, "start_line": s, "end_line": e, "name": n, "similarity": sim}});
             writeln!(out, "{msg}")?;
@@ -491,10 +504,15 @@ fn doc_drift(
     out: &mut impl Write,
 ) -> Result<bool> {
     let files = ogrep_core::history::ls_files(repo, false)?;
-    // Release notes and changelogs name removed things on purpose.
+    // Release notes and changelogs name removed things on purpose. A file
+    // is one by its name (CHANGELOG.md, HISTORY.rst, upgrading.md) or by the
+    // directory it sits in (changelog.d/, .changes/, docs/releases/); a
+    // keyword elsewhere in the path (src/exchanges/, docs/history/) is not
+    // enough.
     let historical = |f: &str| {
         let l = f.to_ascii_lowercase();
-        [
+        let (dirs, name) = l.rsplit_once('/').unwrap_or(("", &l));
+        let named = [
             "release",
             "changelog",
             "changes",
@@ -505,7 +523,27 @@ fn doc_drift(
             "migrat",
         ]
         .iter()
-        .any(|k| l.contains(k))
+        .any(|k| name.contains(k));
+        named
+            || dirs.split('/').any(|d| {
+                let d = d.trim_start_matches('.');
+                matches!(
+                    d.strip_suffix(".d").unwrap_or(d),
+                    "release"
+                        | "releases"
+                        | "release-notes"
+                        | "releasenotes"
+                        | "changelog"
+                        | "changelogs"
+                        | "changes"
+                        | "news"
+                        | "newsfragments"
+                        | "migration"
+                        | "migrations"
+                        | "upgrading"
+                        | "deprecations"
+                )
+            })
     };
     let docs: Vec<&String> = files
         .iter()
