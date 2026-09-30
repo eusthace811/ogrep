@@ -92,9 +92,10 @@ fn expand_duration(when: &str) -> Option<String> {
     split_duration(when).map(|(n, name, _)| format!("{n} {name} ago"))
 }
 
-/// `2w` as seconds, for times worked out without git.
+/// `2w` as seconds, for times worked out without git (`None` if absurdly
+/// long).
 pub(crate) fn duration_secs(when: &str) -> Option<i64> {
-    split_duration(when).map(|(n, _, secs)| n * secs)
+    split_duration(when).and_then(|(n, _, secs)| n.checked_mul(secs))
 }
 
 /// `YYYY-MM-DD` for a UNIX time, in UTC.

@@ -202,7 +202,7 @@ fn scan(
 pub fn build(root: &Path, index_dir: &Path) -> Result<Graph> {
     let reader = IndexReader::open(index_dir)?;
     let files: Vec<String> = reader.all_paths().iter().map(|s| s.to_string()).collect();
-    let cache = crate::facts::FactStore::open(index_dir, facts_name());
+    let cache = crate::facts::FactStore::open(index_dir, crate::facts::STRUCTURE);
     let scanned: Vec<(Scanned, Option<NewFact>)> = files
         .par_iter()
         .enumerate()
@@ -226,7 +226,7 @@ pub fn build(root: &Path, index_dir: &Path) -> Result<Graph> {
         new_facts.extend(fact);
     }
     drop(cache);
-    let _ = crate::facts::FactStore::put(index_dir, facts_name(), new_facts);
+    let _ = crate::facts::FactStore::put(index_dir, crate::facts::STRUCTURE, new_facts);
 
     // name -> files defining it (distinct, capped).
     let mut definers: HashMap<&str, Vec<u32>> = HashMap::new();
@@ -301,17 +301,6 @@ pub fn build(root: &Path, index_dir: &Path) -> Result<Graph> {
     graph.save(index_dir)?;
     graph.index_lookups();
     Ok(graph)
-}
-
-fn facts_name() -> &'static str {
-    #[cfg(feature = "structure")]
-    {
-        crate::structure::FACTS_NAME
-    }
-    #[cfg(not(feature = "structure"))]
-    {
-        "structure-v1"
-    }
 }
 
 impl Graph {
@@ -610,6 +599,11 @@ impl Graph {
 
 /// The stored graph, whether it matches the current index, or an error when
 /// there is none.
+/// Whether `index_dir` holds a file graph (cheap: one file check).
+pub fn exists(index_dir: &Path) -> bool {
+    index_dir.join(GRAPH_DIR).join(GRAPH_FILE).is_file()
+}
+
 pub fn open(index_dir: &Path) -> Result<(Graph, bool)> {
     let graph = Graph::load(index_dir)
         .ok_or_else(|| Error::IndexNotFound(format!("{}/{GRAPH_DIR}", index_dir.display())))?;

@@ -24,14 +24,10 @@ pub enum Mode {
     SimilarIncidents,
 }
 
-fn tracked_files(repo: &Path) -> Result<Vec<String>> {
-    Ok(ogrep_core::history::ls_files(repo, true)?)
-}
-
 use crate::extras::repo_of;
 
 fn model(repo: &Path) -> Result<(OpsModel, Vec<String>)> {
-    let files = tracked_files(repo)?;
+    let files = ogrep_core::history::ls_files(repo, true)?;
     Ok((ops::scan(repo, &files), files))
 }
 
@@ -271,7 +267,7 @@ fn trace(repo: &Path, opts: &SearchOptions, out: &mut impl Write) -> Result<bool
         std::fs::read_to_string(&opts.pattern)
             .with_context(|| format!("reading {}", opts.pattern))?
     };
-    let files = tracked_files(repo)?;
+    let files = ogrep_core::history::ls_files(repo, true)?;
     let frames = ogrep_core::trace::frames(&text);
     let mut found = false;
     for f in &frames {
@@ -361,14 +357,18 @@ fn log_templates(
         .into_iter()
         .filter(|t| cutoff.is_none_or(|c| t.first_seen.is_some_and(|f| f >= c)))
         .collect();
-    // Each template's search of the code is independent: run them together.
+    // Each template's search of the code is independent: run a few at a
+    // time (git grep is itself multi-threaded, so more would oversubscribe).
     let codes: Vec<Option<(String, usize, String)>> = match (to_code, repo) {
         (true, Some(repo)) => {
             use rayon::prelude::*;
-            templates
-                .par_iter()
-                .map(|t| emitter(repo, &t.constant_part()))
-                .collect()
+            let pool = rayon::ThreadPoolBuilder::new().num_threads(4).build()?;
+            pool.install(|| {
+                templates
+                    .par_iter()
+                    .map(|t| emitter(repo, &t.constant_part()))
+                    .collect()
+            })
         }
         _ => vec![None; templates.len()],
     };
@@ -403,8 +403,12 @@ fn parse_when(repo: Option<&Path>, when: &str) -> Result<i64> {
     let now = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |d| d.as_secs() as i64);
-    if let Some(ago) = crate::history_search::duration_secs(when) {
-        return Ok(now - ago);
+    // Inside a repository git reads durations, with calendar months and
+    // years; outside, months and years are approximate.
+    if repo.is_none()
+        && let Some(ago) = crate::history_search::duration_secs(when)
+    {
+        return Ok(now.saturating_sub(ago));
     }
     let padded = if when.len() == 10 {
         format!("{when}T00:00:00Z")

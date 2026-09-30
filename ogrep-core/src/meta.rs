@@ -320,6 +320,19 @@ impl ContentId {
         Self(id)
     }
 
+    /// The id of something derived from `bytes` in a `context`, such as a
+    /// parse by one grammar: the same bytes in two contexts get two ids.
+    pub fn of_derived(context: &[u8], bytes: &[u8]) -> Self {
+        let mut hasher = blake3::Hasher::new();
+        hasher.update(CONTENT_ID_DOMAIN);
+        hasher.update(&(context.len() as u64).to_le_bytes());
+        hasher.update(context);
+        hasher.update(bytes);
+        let mut id = [0; 16];
+        id.copy_from_slice(&hasher.finalize().as_bytes()[..16]);
+        Self(id)
+    }
+
     fn from_hex(value: &str) -> Option<Self> {
         if value.len() != 32 {
             return None;

@@ -232,9 +232,9 @@ const KINDS: &[SymbolKind] = &[
     SymbolKind::Other,
 ];
 
-/// Name of the fact-cache store for [`FileStructure`]; the suffix is bumped
-/// whenever [`analyze`] or [`FileStructure::encode`] changes.
-pub const FACTS_NAME: &str = "structure-v1";
+/// Name of the fact-cache store for [`FileStructure`] (see
+/// [`crate::facts::STRUCTURE`]).
+pub const FACTS_NAME: &str = crate::facts::STRUCTURE;
 
 struct Grammar {
     name: &'static str,
@@ -464,8 +464,8 @@ pub type NewFact = (crate::meta::ContentId, Vec<u8>);
 
 /// `path`'s structure: from `cache` when this exact text was parsed before by
 /// the same grammar, otherwise parsed now, with the entry to add to the cache
-/// (only when there is a cache). Content alone does not decide: the same
-/// bytes in `util.js` and `util.ts` parse differently.
+/// (only when there is a cache). Entries are keyed by grammar and content:
+/// the same bytes in `util.js` and `util.ts` parse differently.
 pub fn analyze_cached(
     path: &str,
     text: &[u8],
@@ -474,11 +474,10 @@ pub fn analyze_cached(
     let Some(grammar) = grammar_for(path) else {
         return (None, None);
     };
-    let id = crate::meta::ContentId::from_indexed_bytes(text);
+    let id = crate::meta::ContentId::of_derived(grammar.name.as_bytes(), text);
     if let Some(found) = cache
         .and_then(|c| c.get(&id))
         .and_then(FileStructure::decode)
-        .filter(|f| f.language == grammar.name)
     {
         return (Some(found), None);
     }

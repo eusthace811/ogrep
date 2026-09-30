@@ -1636,7 +1636,7 @@ fn run_cli() {
             } else if cli.list_files {
                 let opts = cli.build_search_opts(String::new(), &resolved);
                 let paths = list_files_paths(&cli);
-                list_files(&paths, cli.index_path.as_deref(), &opts)
+                list_files(&cli, &paths, &opts)
             } else if cli.pattern.is_some() || cli.pattern_from_flags() {
                 let (pattern, paths) =
                     cli.split_pattern_and_paths(cli.pattern.as_ref(), &cli.paths);
@@ -1731,11 +1731,7 @@ fn list_files_paths(cli: &Cli) -> Vec<String> {
     paths
 }
 
-fn list_files(
-    paths: &[String],
-    index_path: Option<&std::path::Path>,
-    opts: &search::SearchOptions,
-) -> anyhow::Result<()> {
+fn list_files(cli: &Cli, paths: &[String], opts: &search::SearchOptions) -> anyhow::Result<()> {
     // A bad glob or type is an argument error, reported before any path is
     // looked at, even a missing one, as rg does.
     if let Err(e) = opts.check_filters(opts.effective_case_insensitive()) {
@@ -1749,7 +1745,12 @@ fn list_files(
             continue;
         }
         opts.path_display = target.display();
-        search::list_files(&target.path, index_path, &opts)?;
+        let restricted = restrict_to_changed(cli, &opts, &target.path);
+        search::list_files(
+            &target.path,
+            cli.index_path.as_deref(),
+            restricted.as_ref().unwrap_or(&opts),
+        )?;
     }
     Ok(())
 }
@@ -2081,10 +2082,7 @@ fn run_history_search(
         eprintln!("ogrep: --history searches one path at a time");
         process::exit(2);
     };
-    let fail = |e: anyhow::Error| -> ! {
-        eprintln!("ogrep: {e}");
-        process::exit(2);
-    };
+    let fail = |e: anyhow::Error| -> ! { exit_with(Err(e)) };
     let mut filters = history_search::Filters::default();
     if let Some(when) = &cli.since {
         filters.since = Some(

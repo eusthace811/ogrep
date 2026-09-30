@@ -253,3 +253,33 @@ fn conflicts_name_files_with_spaces_cleanly() {
     assert!(out.contains("other: x y.txt  overlapping"), "{out:?}");
     assert!(!out.contains('\t'), "{out:?}");
 }
+
+#[test]
+fn conflicts_do_not_read_removed_comment_lines_as_headers() {
+    // With --unified=0 a removed "-- comment" line reads "--- comment".
+    let dir = repo(&[("a.sql", "-- drop old index\nselect 1;\nx\ny\nz\n")]);
+    let run = |args: &[&str]| {
+        assert!(
+            std::process::Command::new("git")
+                .current_dir(dir.path())
+                .args(["-c", "user.name=t", "-c", "user.email=t@t"])
+                .args(args)
+                .status()
+                .unwrap()
+                .success()
+        );
+    };
+    run(&["checkout", "-qb", "other"]);
+    fs::write(dir.path().join("a.sql"), "select 1;\nx\nOTHER\nz\n").unwrap();
+    run(&["commit", "-qam", "other"]);
+    run(&["checkout", "-q", "main"]);
+    run(&["checkout", "-qb", "mine"]);
+    fs::write(dir.path().join("a.sql"), "select 1;\nx\nMINE\nz\n").unwrap();
+    run(&["commit", "-qam", "mine"]);
+
+    let out = stdout(ogrep(dir.path()).args(["--conflicts", "."]));
+    assert_eq!(
+        out,
+        "other: a.sql  overlapping lines  (here 1,4; there 1,4)\n"
+    );
+}

@@ -24,6 +24,12 @@ use crate::meta::ContentId;
 const ENTRY: usize = 16 + 8 + 4;
 
 /// An open fact store.
+/// The store holding parsed file structure ([`crate::structure`]), keyed by
+/// grammar and content. The suffix is bumped whenever the analysis, its
+/// encoding or its key changes. Defined here, outside the parser-gated
+/// module, so builds without the parsers name the same store.
+pub const STRUCTURE: &str = "structure-v2";
+
 pub struct FactStore {
     index: Option<Mmap>,
     data: Option<Mmap>,

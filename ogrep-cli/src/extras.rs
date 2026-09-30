@@ -21,9 +21,7 @@ pub(crate) fn repo_of(root: &Path) -> Result<PathBuf> {
     ogrep_core::history::repo_root(root).map_err(|e| anyhow!("this needs a git repository: {e}"))
 }
 
-fn git(repo: &Path, args: &[&str]) -> Result<String> {
-    Ok(ogrep_core::history::git_output(repo, args)?)
-}
+use ogrep_core::history::git_output as git;
 
 fn index_dir(root: &Path, index_path: Option<&Path>) -> PathBuf {
     index_path.map(Path::to_path_buf).unwrap_or_else(|| {
@@ -53,10 +51,6 @@ pub fn run(
     Ok(found)
 }
 
-fn tracked(repo: &Path) -> Result<Vec<String>> {
-    Ok(ogrep_core::history::ls_files(repo, false)?)
-}
-
 /// A path relative to the repository root, from an argument given relative to
 /// the current directory.
 fn repo_relative(repo: &Path, arg: &str) -> String {
@@ -81,7 +75,7 @@ fn related_tests(
     out: &mut impl Write,
 ) -> Result<bool> {
     let target = repo_relative(repo, &opts.pattern);
-    let files = tracked(repo)?;
+    let files = ogrep_core::history::ls_files(repo, false)?;
     if !files.contains(&target) {
         bail!("{target} is not a tracked file");
     }
@@ -373,21 +367,27 @@ fn hunks(repo: &Path, from: &str, to: Option<&str>) -> Result<BTreeMap<String, V
     let diff = git(repo, &args)?;
     let mut out: BTreeMap<String, Vec<(u32, u32)>> = BTreeMap::new();
     let mut file = String::new();
+    // `---`/`+++` are headers only between `diff --git` and the file's first
+    // hunk; inside a hunk they are removed or added lines ("-- comment").
+    let mut in_header = false;
     let path = |raw: &str, side: &[u8]| {
         ogrep_core::history::header_path(raw.as_bytes(), side).unwrap_or_default()
     };
     for line in diff.lines() {
-        // The old path names the file; a new file's is /dev/null, so its
-        // new path does.
-        if let Some(raw) = line.strip_prefix("--- ") {
+        if line.starts_with("diff --git ") {
+            file.clear();
+            in_header = true;
+        } else if in_header && let Some(raw) = line.strip_prefix("--- ") {
+            // The old path names the file; a new file's is /dev/null, so its
+            // new path does.
             file = path(raw, b"a/");
-        } else if let Some(raw) = line.strip_prefix("+++ ")
+        } else if in_header
+            && let Some(raw) = line.strip_prefix("+++ ")
             && file.is_empty()
         {
             file = path(raw, b"b/");
-        } else if line.starts_with("diff --git ") {
-            file.clear();
         } else if let Some(rest) = line.strip_prefix("@@ -") {
+            in_header = false;
             let old = rest.split(' ').next().unwrap_or("0");
             let (s, n) = old.split_once(',').map_or((old, "1"), |(s, n)| (s, n));
             let (s, n): (u32, u32) = (s.parse().unwrap_or(0), n.parse().unwrap_or(1));
@@ -482,7 +482,7 @@ fn doc_drift(
     ci: bool,
     out: &mut impl Write,
 ) -> Result<bool> {
-    let files = tracked(repo)?;
+    let files = ogrep_core::history::ls_files(repo, false)?;
     // Release notes and changelogs name removed things on purpose.
     let historical = |f: &str| {
         let l = f.to_ascii_lowercase();

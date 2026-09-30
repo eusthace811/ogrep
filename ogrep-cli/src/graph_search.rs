@@ -35,19 +35,25 @@ fn matched_lines(
         .collect())
 }
 
-/// The graph for `root`'s index, with a note when it predates the index.
-fn load_graph(root: &Path, index_path: Option<&Path>, quiet: bool) -> Result<Graph> {
-    let index_dir = index_path.map(Path::to_path_buf).unwrap_or_else(|| {
+/// The index directory for `root`.
+fn index_dir(root: &Path, index_path: Option<&Path>) -> std::path::PathBuf {
+    index_path.map(Path::to_path_buf).unwrap_or_else(|| {
         ogrep_core::builder::default_index_dir(
             &std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf()),
         )
-    });
-    let (g, current) = graph::open(&index_dir).map_err(|_| {
-        anyhow!(
-            "no file graph in {}; build it with `ogrep index --graph`",
-            index_dir.display()
-        )
-    })?;
+    })
+}
+
+fn no_graph(index_dir: &Path) -> anyhow::Error {
+    anyhow!(
+        "no file graph in {}; build it with `ogrep index --graph`",
+        index_dir.display()
+    )
+}
+
+/// The graph in `index_dir`, with a note when it predates the index.
+fn load_graph(index_dir: &Path, quiet: bool) -> Result<Graph> {
+    let (g, current) = graph::open(index_dir).map_err(|_| no_graph(index_dir))?;
     if !current && !quiet {
         eprintln!("note: the file graph predates the index; `ogrep index --graph` refreshes it");
     }
@@ -84,11 +90,16 @@ pub fn run(
     ci: bool,
     mode: Mode,
 ) -> Result<bool> {
-    // Loading the graph takes longest; the seed search runs meanwhile.
+    // Loading the graph takes longest; the seed search runs meanwhile. A
+    // missing graph is reported first, without paying for the search.
+    let dir = index_dir(root, index_path);
+    if !graph::exists(&dir) {
+        return Err(no_graph(&dir));
+    }
     let (g, matched) = std::thread::scope(|scope| {
         let search = (!matches!(mode, Mode::Callees))
             .then(|| scope.spawn(|| matched_lines(root, index_path, opts, ci)));
-        let g = load_graph(root, index_path, opts.no_messages);
+        let g = load_graph(&dir, opts.no_messages);
         let matched = search.map(|s| s.join().expect("seed search panicked"));
         (g, matched)
     });
