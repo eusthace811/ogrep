@@ -603,8 +603,11 @@ pub(crate) fn index_dir_for(root: &Path, index_path: Option<&Path>) -> PathBuf {
 }
 
 /// A writer that records results instead of printing them (`--rank`).
+/// A writer that captures what `opts` finds. A capture for reshaped output
+/// (`all_spans`) keeps binary files' lines, as the local search reports them;
+/// one for tools that want text lines keeps only the note.
 pub fn new_capturing_writer(opts: &SearchOptions) -> OutputWriter {
-    OutputWriter::capturing(opts.make_output_config())
+    OutputWriter::capturing(opts.make_output_config(), opts.all_spans)
 }
 
 impl SearchOptions {
@@ -646,20 +649,13 @@ pub fn captured_matches(
     };
     let mut capture = new_capturing_writer(&opts);
     run(root, index_path, &opts, ci, &mut capture)?;
-    // A binary file's lines are not text these callers can use (a capture
-    // records them only so reshaped output can count them).
-    let captured = capture.take_captured();
-    let binary: std::collections::HashSet<String> = captured
-        .iter()
-        .filter_map(|c| match c {
-            crate::output::Captured::Binary { file, .. } => Some(file.clone()),
-            _ => None,
-        })
-        .collect();
-    Ok(captured
+    // Without `all_spans` the capture keeps no binary file's lines: they are
+    // not text these callers can use.
+    Ok(capture
+        .take_captured()
         .into_iter()
         .filter_map(|c| match c {
-            crate::output::Captured::Match(m) if !binary.contains(&m.file) => Some(m),
+            crate::output::Captured::Match(m) => Some(m),
             _ => None,
         })
         .collect())
@@ -1375,8 +1371,14 @@ fn search_via_server(
             writer.write_count(file, n)?;
         }
     } else {
+        // A binary file's rows follow its marker; they are written only
+        // where the marker says a plain search would write them.
+        let mut suppressed: Option<&str> = None;
         for m in matches {
             let file = m.get("file").and_then(|f| f.as_str()).unwrap_or("");
+            if suppressed == Some(file) {
+                continue;
+            }
             let line = m.get("line").and_then(|l| l.as_u64()).unwrap_or(0) as usize;
             let content = m.get("content").and_then(|c| c.as_str()).unwrap_or("");
             let mtype = m.get("type").and_then(|t| t.as_str()).unwrap_or("match");
@@ -1395,8 +1397,9 @@ fn search_via_server(
                     terminator_len,
                 })?;
             } else if mtype == "binary" {
-                // The server sends the lines, if wanted, as rows of their own.
-                writer.write_binary_note(file, offset)?;
+                if !writer.write_binary_note(file, offset)? {
+                    suppressed = Some(file);
+                }
             } else {
                 let spans = m
                     .get("spans")

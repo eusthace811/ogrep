@@ -24,7 +24,7 @@ pub const SIMILARITY: f64 = 0.5;
 const WILDCARD: &str = "<*>";
 
 /// One position of a template.
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Token {
     Word(String),
     /// A variable token (a number, an id), masked up front. Masked tokens are
@@ -151,7 +151,9 @@ fn is_variable(token: &str) -> bool {
 /// Groups lines into templates.
 #[derive(Default)]
 pub struct Drain {
-    groups: HashMap<(usize, Token), Vec<usize>>,
+    /// Templates by length and first token as shown, so lines that would
+    /// print the same template are compared.
+    groups: HashMap<(usize, String), Vec<usize>>,
     pub templates: Vec<Template>,
 }
 
@@ -171,7 +173,7 @@ impl Drain {
         if tokens.is_empty() {
             return;
         }
-        let key = (tokens.len(), tokens[0].clone());
+        let key = (tokens.len(), tokens[0].as_str().to_string());
         let slots = self.groups.entry(key).or_default();
         // As in Drain3: similarity counts equal tokens (a line has no
         // generalised position, so those count for neither side), and the
@@ -244,13 +246,18 @@ mod tests {
     }
 
     #[test]
-    fn a_literal_wildcard_word_is_not_a_masked_value() {
+    fn lines_shown_alike_share_a_template() {
+        // A literal `<*>` word prints like a masked value, so its line joins
+        // the same template rather than printing a duplicate.
         let mut drain = Drain::default();
         drain.add("app.log", 1, "12 connected ok");
         drain.add("app.log", 2, "<*> connected ok");
-        let templates = drain.sorted();
-        assert_eq!(templates.len(), 2);
-        assert!(templates.iter().all(|t| t.count == 1));
+        let templates: Vec<(String, usize)> = drain
+            .sorted()
+            .into_iter()
+            .map(|t| (t.text(), t.count))
+            .collect();
+        assert_eq!(templates, [("<*> connected ok".to_string(), 2)]);
     }
 
     #[test]

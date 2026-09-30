@@ -1678,6 +1678,13 @@ fn run_cli() {
             cli.callers && cli.kind.is_some(),
             "--callers cannot be combined with --kind",
         ),
+        // These place each match in the file's structure, and a replaced
+        // line's matches are no longer where they are in the file.
+        (
+            cli.replace.is_some()
+                && (cli.scope || cli.kind.is_some() || cli.in_zone.is_some() || cli.callers),
+            "--replace cannot be combined with --scope, --kind, --in or --callers",
+        ),
     ];
     if let Some((_, message)) = shapes.iter().find(|(set, _)| *set) {
         eprintln!("ogrep: {message}");
@@ -2229,6 +2236,10 @@ fn run_rank_fit(cli: &Cli, file: &std::path::Path, resolved: &ResolvedArgs) -> a
     if !cli.paths.is_empty() {
         anyhow::bail!("--rank-fit takes one path at a time");
     }
+    let root = PathBuf::from(cli.pattern.as_deref().unwrap_or("."));
+    if !root.is_dir() {
+        anyhow::bail!("--rank-fit: {} is not a directory", root.display());
+    }
     #[derive(serde::Deserialize)]
     struct Item {
         query: String,
@@ -2241,7 +2252,6 @@ fn run_rank_fit(cli: &Cli, file: &std::path::Path, resolved: &ResolvedArgs) -> a
             .map(serde_json::from_str)
             .collect::<Result<Vec<Item>, _>>()
     })?;
-    let root = PathBuf::from(cli.pattern.as_deref().unwrap_or("."));
     let index_dir = search::index_dir_for(&root, cli.index_path.as_deref());
     let base = cli.build_search_opts(String::new(), resolved).for_capture();
     let mut examples = Vec::new();

@@ -29,6 +29,18 @@ impl Match {
     fn column(&self) -> Option<usize> {
         self.columns.first().copied()
     }
+
+    /// Keep the matches (spans, and their columns) whose `keep` is true.
+    pub fn retain_matches(&mut self, keep: &[bool]) {
+        debug_assert_eq!(self.spans.len(), keep.len());
+        debug_assert!(self.columns.is_empty() || self.columns.len() == self.spans.len());
+        let mut flags = keep.iter();
+        self.spans.retain(|_| *flags.next().unwrap_or(&false));
+        if !self.columns.is_empty() {
+            let mut flags = keep.iter();
+            self.columns.retain(|_| *flags.next().unwrap_or(&false));
+        }
+    }
 }
 
 /// A context (non-matching) line surrounding a match.
@@ -289,6 +301,8 @@ pub struct OutputWriter {
     total_matched_lines: u64,
     /// When set, results are recorded here instead of printed (`--rank`).
     capture: Option<Vec<Captured>>,
+    /// Whether a capture records a binary file's lines, or only its note.
+    capture_binary_lines: bool,
 }
 
 /// A result recorded by a capturing writer, in the order it was reported.
@@ -302,11 +316,14 @@ pub enum Captured {
 impl OutputWriter {
     /// A writer that records results for later reordering instead of printing
     /// them. Its format is always the per-line one, whatever `config` says.
-    pub fn capturing(mut config: OutputConfig) -> Self {
+    /// A binary file's lines are recorded only with `binary_lines`, for output
+    /// that counts, filters or prints them later as a plain search would.
+    pub fn capturing(mut config: OutputConfig, binary_lines: bool) -> Self {
         config.format = OutputFormat::Flat;
         config.line_buffered = false;
         let mut writer = Self::new(config);
         writer.capture = Some(Vec::new());
+        writer.capture_binary_lines = binary_lines;
         writer
     }
 
@@ -459,6 +476,7 @@ impl OutputWriter {
             total_matches: 0,
             total_matched_lines: 0,
             capture: None,
+            capture_binary_lines: false,
         }
     }
 
@@ -505,7 +523,7 @@ impl OutputWriter {
     /// Returns whether the caller should go on to write the file's matching
     /// lines. In JSON mode there is no note: ripgrep emits the matches as
     /// usual and records the offset on the `end` message instead. A capture
-    /// records them for reshaping. Text output gets the note, never raw
+    /// records them if it was made to. Text output gets the note, never raw
     /// binary.
     pub fn write_binary_note(&mut self, file: &str, offset: usize) -> io::Result<bool> {
         if let Some(capture) = self.capture.as_mut() {
@@ -513,7 +531,7 @@ impl OutputWriter {
                 file: file.to_string(),
                 offset,
             });
-            return Ok(true);
+            return Ok(self.capture_binary_lines);
         }
         if self.is_json() {
             self.ensure_json_begin(file)?;

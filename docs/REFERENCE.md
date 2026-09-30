@@ -456,6 +456,12 @@ Rust, Python, Go, JavaScript, TypeScript/TSX, Java, C, C++, C#, Ruby and PHP.
 - **`--in code|comments|strings`** keeps matches whose first byte is in that
   kind of text. In languages without a grammar every match counts as code.
 
+`--kind` and `--in` decide per match: a line is kept when one of its matches
+passes, and the matches that fail are dropped from it (for `-o`, `--column`,
+`--count-matches` and `--rank`). `--scope` names the definition around the
+first match kept. These flags place matches in the file as it is, so they
+cannot be combined with `-r/--replace`.
+
 Parsed structure is cached beside the index under `facts/`, keyed by a hash of
 each file's content, so an edited file is simply parsed again and a cache entry
 can never be stale. On the rust targeted queries the median `--scope` search

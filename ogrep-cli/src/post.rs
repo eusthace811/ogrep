@@ -107,15 +107,11 @@ struct MatchFacts {
     def: bool,
     /// Per match on the line: whether it names a definition, and its zone.
     spans: Vec<(bool, ZoneFilter)>,
-    /// Innermost enclosing definition: `(first line, chain as JSON)`.
-    scope: Option<(usize, serde_json::Value)>,
 }
 
-/// What the structure says about `m`; the scope chain only when `--scope`
-/// will print it, taken where the first match that passes --kind and --in
-/// starts.
+/// What the structure says about each match of `m`.
 #[cfg(feature = "structure")]
-fn facts(structure: &Structure, m: &Match, post: &PostOptions) -> MatchFacts {
+fn facts(structure: &Structure, m: &Match) -> MatchFacts {
     use ogrep_core::structure::Zone;
     let spans: Vec<(bool, ZoneFilter)> = m
         .spans
@@ -131,32 +127,34 @@ fn facts(structure: &Structure, m: &Match, post: &PostOptions) -> MatchFacts {
         })
         .collect();
     let def = spans.iter().any(|&(def, _)| def);
-    let chain = if post.scope {
-        let first = spans
-            .iter()
-            .position(|&(d, zone)| post.passes(d, zone))
-            .unwrap_or(0);
-        structure.enclosing(m.absolute_offset + m.spans.get(first).map_or(0, |s| s.0))
-    } else {
-        Vec::new()
-    };
-    let scope = chain.last().map(|inner| {
-        let json = chain
-            .iter()
-            .map(|s| {
-                serde_json::json!({
-                    "kind": s.kind, "name": s.name,
-                    "start_line": s.start_line, "end_line": s.end_line,
-                })
+    MatchFacts { def, spans }
+}
+
+/// The definitions enclosing `offset`, innermost last: `(first line of the
+/// innermost, chain as JSON)`.
+#[cfg(feature = "structure")]
+fn scope_at(structure: &Structure, offset: usize) -> Option<(usize, serde_json::Value)> {
+    let chain = structure.enclosing(offset);
+    let inner = chain.last()?;
+    let json = chain
+        .iter()
+        .map(|s| {
+            serde_json::json!({
+                "kind": s.kind, "name": s.name,
+                "start_line": s.start_line, "end_line": s.end_line,
             })
-            .collect::<Vec<_>>();
-        (inner.start_line, serde_json::Value::from(json))
-    });
-    MatchFacts { def, spans, scope }
+        })
+        .collect::<Vec<_>>();
+    Some((inner.start_line, serde_json::Value::from(json)))
 }
 
 #[cfg(not(feature = "structure"))]
-fn facts(_structure: &Structure, _m: &Match, _post: &PostOptions) -> MatchFacts {
+fn facts(_structure: &Structure, _m: &Match) -> MatchFacts {
+    unreachable!("no structure without the feature")
+}
+
+#[cfg(not(feature = "structure"))]
+fn scope_at(_structure: &Structure, _offset: usize) -> Option<(usize, serde_json::Value)> {
     unreachable!("no structure without the feature")
 }
 
@@ -199,7 +197,7 @@ fn prepare(
     let facts: Vec<Option<MatchFacts>> = hits
         .matches
         .iter()
-        .map(|m| structure.as_ref().map(|s| facts(s, m, post)))
+        .map(|m| structure.as_ref().map(|s| facts(s, m)))
         .collect();
 
     // A match passes when it is of the kind and in the zone asked for, and
@@ -220,11 +218,7 @@ fn prepare(
                 if !keep.contains(&true) {
                     continue;
                 }
-                // Columns run parallel to spans, one per match.
-                let mut flags = keep.iter();
-                m.spans.retain(|_| *flags.next().unwrap_or(&false));
-                let mut flags = keep.iter();
-                m.columns.retain(|_| *flags.next().unwrap_or(&false));
+                m.retain_matches(&keep);
                 // The line is a definition only through the matches kept.
                 f.spans.iter().zip(&keep).any(|(&(d, _), &k)| k && d)
             }
@@ -240,10 +234,12 @@ fn prepare(
                 def
             }
         };
-        scopes.push(if post.scope {
-            f.and_then(|f| f.scope)
-        } else {
-            None
+        // The scope is where the first kept match starts.
+        scopes.push(match &structure {
+            Some(s) if post.scope => {
+                scope_at(s, m.absolute_offset + m.spans.first().map_or(0, |s| s.0))
+            }
+            _ => None,
         });
         defs.push(def);
         kept.push(m);

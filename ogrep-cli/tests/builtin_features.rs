@@ -246,12 +246,19 @@ fn doc_drift_skips_release_notes_by_name_or_directory_only() {
             "docs/history-1.x.md",
             "Removed `missing_in_history_notes`.\n",
         ),
+        (
+            "docs/history-search.md",
+            "Call `missing_in_history_guide`.\n",
+        ),
+        ("docs/migrate.md", "Call `missing_in_migrate_guide`.\n"),
         ("lib.py", "def other():\n    pass\n"),
     ]);
     let out = stdout(ogrep(dir.path()).args(["--doc-drift", "."]));
     assert!(out.contains("`missing_in_history`"), "{out:?}");
     assert!(out.contains("`missing_in_exchanges`"), "{out:?}");
     assert!(out.contains("`missing_in_exchanges_doc`"), "{out:?}");
+    assert!(out.contains("`missing_in_history_guide`"), "{out:?}");
+    assert!(out.contains("`missing_in_migrate_guide`"), "{out:?}");
     for skipped in [
         "missing_in_fragment",
         "missing_in_changes",
@@ -459,6 +466,7 @@ fn tool_flags_are_exclusive_and_parse_as_documented() {
         &["-q", "--entities", "."],
         &["--callers", "--kind", "def", "x"],
         &["--history", "--multiline-dotall", "a.b", "."],
+        &["--in", "comments", "-r", "Z", "x", "."],
     ];
     for args in refused {
         ogrep(dir.path()).args(args).assert().code(2).stderr(
@@ -487,6 +495,7 @@ fn tool_flags_are_exclusive_and_parse_as_documented() {
             &["--rank-fit", "q.json", ".", "b"],
             "--rank-fit takes one path at a time",
         ),
+        (&["--rank-fit", "q.json", "missing"], "is not a directory"),
     ];
     for (args, message) in refused {
         ogrep(dir.path())
