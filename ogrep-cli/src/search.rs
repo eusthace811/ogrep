@@ -587,7 +587,6 @@ pub fn new_writer(opts: &SearchOptions) -> OutputWriter {
     OutputWriter::new(opts.make_output_config())
 }
 
-/// A writer that records results instead of printing them (`--rank`).
 /// The index directory for a search of `root`: `--index-path`, else
 /// `.ogrep` in the (canonical) root.
 pub(crate) fn index_dir_for(root: &Path, index_path: Option<&Path>) -> PathBuf {
@@ -598,6 +597,7 @@ pub(crate) fn index_dir_for(root: &Path, index_path: Option<&Path>) -> PathBuf {
     })
 }
 
+/// A writer that records results instead of printing them (`--rank`).
 pub fn new_capturing_writer(opts: &SearchOptions) -> OutputWriter {
     OutputWriter::capturing(opts.make_output_config())
 }

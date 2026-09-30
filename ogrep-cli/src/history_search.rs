@@ -62,7 +62,7 @@ pub fn resolve_when(root: &Path, when: &str, until: bool) -> Result<i64> {
         .and_then(|v| v.parse::<i64>().ok());
     match value {
         Some(v) if out.status.success() => Ok(v),
-        _ => bail!("cannot read {flag} value {when:?} as a date"),
+        _ => bail!("cannot read {when:?} as a date"),
     }
 }
 
@@ -658,54 +658,62 @@ pub fn search_at(
     Ok(had_match)
 }
 
-/// Files changed since `since` (a revision, or a date or duration as for
-/// `--since`), relative to the search root: every tracked file that differs
-/// between that point and the working tree, including uncommitted changes,
-/// plus untracked files that are not ignored. `None` when `since` predates the
-/// history, so every file counts as changed.
-pub fn changed_paths(
-    root: &Path,
-    since: &str,
-) -> Result<Option<std::collections::HashSet<String>>> {
-    let repo = history::repo_root(root)
-        .map_err(|e| anyhow::anyhow!("--changed-since needs a git repository: {e}"))?;
-    let Some(changed) = changed_in_repo(&repo, since)? else {
-        return Ok(None);
-    };
-    let prefix = scope_prefix(&repo, root);
-    Ok(Some(
-        changed
+type Changed = Option<std::sync::Arc<std::collections::HashSet<String>>>;
+
+/// `--changed-since` for one invocation: the files changed since a point,
+/// asked of git once per repository however many path arguments share it.
+#[derive(Default)]
+pub struct ChangedSets(std::cell::RefCell<Vec<(std::path::PathBuf, Changed)>>);
+
+impl ChangedSets {
+    /// Files changed since `since` (a revision, or a date or duration as for
+    /// `--since`), relative to `root`: every tracked file that differs between
+    /// that point and the working tree, including uncommitted changes, plus
+    /// untracked files that are not ignored. `None` when `since` predates the
+    /// history, so every file counts as changed.
+    pub fn under(
+        &self,
+        root: &Path,
+        since: &str,
+    ) -> Result<Option<std::collections::HashSet<String>>> {
+        let repo = history::repo_root(root)
+            .map_err(|e| anyhow::anyhow!("--changed-since needs a git repository: {e}"))?;
+        let known = self
+            .0
+            .borrow()
             .iter()
-            .filter(|path| in_scope(&prefix, path))
-            .map(|path| {
-                if prefix.is_empty() {
-                    path.clone()
-                } else {
-                    path[prefix.len()..].trim_start_matches('/').to_string()
-                }
-            })
-            .collect(),
-    ))
+            .find(|(r, _)| *r == repo)
+            .map(|(_, c)| c.clone());
+        let changed = match known {
+            Some(changed) => changed,
+            None => {
+                let changed = changed_in_repo(&repo, since)?;
+                self.0.borrow_mut().push((repo.clone(), changed.clone()));
+                changed
+            }
+        };
+        let Some(changed) = changed else {
+            return Ok(None);
+        };
+        let prefix = scope_prefix(&repo, root);
+        Ok(Some(
+            changed
+                .iter()
+                .filter(|path| in_scope(&prefix, path))
+                .map(|path| {
+                    if prefix.is_empty() {
+                        path.clone()
+                    } else {
+                        path[prefix.len()..].trim_start_matches('/').to_string()
+                    }
+                })
+                .collect(),
+        ))
+    }
 }
 
-/// [`changed_paths`] for the whole repository, with repository-relative
-/// paths. git is asked once per repository and `since` in a run, however
-/// many path arguments share them.
-fn changed_in_repo(
-    repo: &Path,
-    since: &str,
-) -> Result<Option<std::sync::Arc<std::collections::HashSet<String>>>> {
-    type Changed = Option<std::sync::Arc<std::collections::HashSet<String>>>;
-    static ASKED: std::sync::Mutex<Vec<(std::path::PathBuf, String, Changed)>> =
-        std::sync::Mutex::new(Vec::new());
-    let asked = |memo: &Vec<(std::path::PathBuf, String, Changed)>| {
-        memo.iter()
-            .find(|(r, s, _)| r == repo && s == since)
-            .map(|(_, _, c)| c.clone())
-    };
-    if let Some(changed) = asked(&ASKED.lock().unwrap_or_else(|e| e.into_inner())) {
-        return Ok(changed);
-    }
+/// The files changed since `since` in `repo`, repository-relative.
+fn changed_in_repo(repo: &Path, since: &str) -> Result<Changed> {
     let git = |args: &[&str]| history::git_output(repo, args);
     let is_rev = history::git(repo)
         .args([
@@ -741,11 +749,6 @@ fn changed_in_repo(
             Some(std::sync::Arc::new(paths))
         }
     };
-    ASKED.lock().unwrap_or_else(|e| e.into_inner()).push((
-        repo.to_path_buf(),
-        since.to_string(),
-        changed.clone(),
-    ));
     Ok(changed)
 }
 

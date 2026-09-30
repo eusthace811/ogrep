@@ -371,7 +371,8 @@ pub fn emit(
     let mut inputs: Vec<(String, FileHits, PathBuf, usize)> = Vec::new();
     let mut caches: Vec<(Option<PathBuf>, Option<ogrep_core::facts::FactStore>)> = Vec::new();
     for c in captured {
-        let store = parses
+        // Without the parsers nothing is ever read from or added to it.
+        let store = (parses && cfg!(feature = "structure"))
             .then_some(c.index_dir.as_deref())
             .flatten()
             .map(|dir| ogrep_core::facts::FactStore::open(dir, ogrep_core::facts::STRUCTURE));

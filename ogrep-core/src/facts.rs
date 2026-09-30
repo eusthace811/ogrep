@@ -104,7 +104,11 @@ impl FactStore {
             return Ok(());
         }
         let dir = store_dir(index_dir, name);
+        let created = !dir.is_dir();
         std::fs::create_dir_all(&dir)?;
+        if created {
+            remove_older_versions(index_dir, name);
+        }
         let lock = std::fs::OpenOptions::new()
             .create(true)
             .truncate(false)
@@ -158,27 +162,27 @@ impl FactStore {
         drop(out);
         drop(current);
         std::fs::rename(&tmp, dir.join("index.bin"))?;
-        remove_older_versions(index_dir, name);
         Ok(())
     }
 }
 
-/// Delete earlier versions of the store `name` (`structure-v1` once
-/// `structure-v2` has entries): nothing reads them any more.
+/// Delete earlier versions of the store `name` (`structure-v1` when
+/// `structure-v2` is first created): nothing this build reads. Newer versions
+/// are left alone, since a newer ogrep may share the index.
 fn remove_older_versions(index_dir: &Path, name: &str) {
-    let Some((stem, _)) = name.rsplit_once("-v") else {
+    let version = |n: &str| {
+        let (stem, v) = n.rsplit_once("-v")?;
+        Some((stem.to_string(), v.parse::<u32>().ok()?))
+    };
+    let Some((stem, current)) = version(name) else {
         return;
     };
     let Ok(entries) = std::fs::read_dir(index_dir.join("facts")) else {
         return;
     };
     for entry in entries.flatten() {
-        let other = entry.file_name();
-        let other = other.to_string_lossy();
-        let older = other != name
-            && other.rsplit_once("-v").is_some_and(|(s, v)| {
-                s == stem && !v.is_empty() && v.bytes().all(|b| b.is_ascii_digit())
-            });
+        let older = version(&entry.file_name().to_string_lossy())
+            .is_some_and(|(s, v)| s == stem && v < current);
         if older {
             let _ = std::fs::remove_dir_all(entry.path());
         }

@@ -1765,13 +1765,14 @@ fn list_files(cli: &Cli, paths: &[String], opts: &search::SearchOptions) -> anyh
         process::exit(2);
     }
     let mut opts = opts.clone();
+    let changed = history_search::ChangedSets::default();
     for target in normalize_search_paths(paths) {
         if !target.path.exists() {
             report_missing_path(&target.path, opts.no_messages);
             continue;
         }
         opts.path_display = target.display();
-        let restricted = restrict_to_changed(cli, &opts, &target.path);
+        let restricted = restrict_to_changed(cli, &changed, &opts, &target.path);
         search::list_files(
             &target.path,
             cli.index_path.as_deref(),
@@ -1816,6 +1817,7 @@ fn exit_with(result: anyhow::Result<bool>) -> ! {
 /// Exits on a git error, like any other argument error.
 fn restrict_to_changed(
     cli: &Cli,
+    changed: &history_search::ChangedSets,
     opts: &search::SearchOptions,
     target: &Path,
 ) -> Option<search::SearchOptions> {
@@ -1828,7 +1830,7 @@ fn restrict_to_changed(
         ),
         _ => (Some(target), None),
     };
-    match history_search::changed_paths(dir.unwrap_or(Path::new(".")), since) {
+    match changed.under(dir.unwrap_or(Path::new(".")), since) {
         Ok(paths) => {
             let only = match (paths, file) {
                 (Some(paths), Some(file)) if !paths.contains(file.as_ref()) => {
@@ -1990,13 +1992,14 @@ fn run_search(
     // only the first path's numbers.
     let mut writer = search::new_writer(&opts);
 
+    let changed = history_search::ChangedSets::default();
     for target in targets {
         if !target.path.exists() {
             report_missing_path(&target.path, opts.no_messages);
             continue;
         }
         writer.set_path_display(target.display());
-        let restricted = restrict_to_changed(cli, &opts, &target.path);
+        let restricted = restrict_to_changed(cli, &changed, &opts, &target.path);
         let result = search::run(
             &target.path,
             cli.index_path.as_deref(),
@@ -2107,12 +2110,14 @@ fn run_history_search(
     let mut filters = history_search::Filters::default();
     if let Some(when) = &cli.since {
         filters.since = Some(
-            history_search::resolve_when(&target.path, when, false).unwrap_or_else(|e| fail(e)),
+            history_search::resolve_when(&target.path, when, false)
+                .unwrap_or_else(|e| fail(anyhow::anyhow!("--since: {e}"))),
         );
     }
     if let Some(when) = &cli.until {
         filters.until = Some(
-            history_search::resolve_when(&target.path, when, true).unwrap_or_else(|e| fail(e)),
+            history_search::resolve_when(&target.path, when, true)
+                .unwrap_or_else(|e| fail(anyhow::anyhow!("--until: {e}"))),
         );
     }
     if let Some(author) = &cli.author {
@@ -2155,6 +2160,7 @@ fn run_postprocessed_search(
     };
     let mut capture = search::new_capturing_writer(&inner);
     let mut captured = Vec::new();
+    let changed = history_search::ChangedSets::default();
     for target in targets {
         if !target.path.exists() {
             report_missing_path(&target.path, opts.no_messages);
@@ -2162,7 +2168,7 @@ fn run_postprocessed_search(
         }
         let display = target.display();
         capture.set_path_display(display.clone());
-        let restricted = restrict_to_changed(cli, &inner, &target.path);
+        let restricted = restrict_to_changed(cli, &changed, &inner, &target.path);
         if let Err(e) = search::run(
             &target.path,
             cli.index_path.as_deref(),
