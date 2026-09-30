@@ -95,8 +95,10 @@ struct MatchFacts {
     scope: Option<(usize, serde_json::Value)>,
 }
 
+/// What the structure says about `m`; the scope chain only when `--scope`
+/// will print it.
 #[cfg(feature = "structure")]
-fn facts(structure: &Structure, m: &Match) -> MatchFacts {
+fn facts(structure: &Structure, m: &Match, with_scope: bool) -> MatchFacts {
     use ogrep_core::structure::Zone;
     let offset = m.absolute_offset + m.spans.first().map_or(0, |s| s.0);
     let def = m
@@ -108,7 +110,11 @@ fn facts(structure: &Structure, m: &Match) -> MatchFacts {
         Zone::Comment => ZoneFilter::Comments,
         Zone::String => ZoneFilter::Strings,
     };
-    let chain = structure.enclosing(offset);
+    let chain = if with_scope {
+        structure.enclosing(offset)
+    } else {
+        Vec::new()
+    };
     let scope = chain.last().map(|inner| {
         let json = chain
             .iter()
@@ -125,7 +131,7 @@ fn facts(structure: &Structure, m: &Match) -> MatchFacts {
 }
 
 #[cfg(not(feature = "structure"))]
-fn facts(_structure: &Structure, _m: &Match) -> MatchFacts {
+fn facts(_structure: &Structure, _m: &Match, _with_scope: bool) -> MatchFacts {
     unreachable!("no structure without the feature")
 }
 
@@ -168,7 +174,7 @@ fn prepare(
     let facts: Vec<Option<MatchFacts>> = hits
         .matches
         .iter()
-        .map(|m| structure.as_ref().map(|s| facts(s, m)))
+        .map(|m| structure.as_ref().map(|s| facts(s, m, post.scope)))
         .collect();
 
     let mut keep = Vec::with_capacity(hits.matches.len());
