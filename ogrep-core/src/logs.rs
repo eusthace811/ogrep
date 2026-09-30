@@ -154,28 +154,33 @@ impl Drain {
         }
         let key = (tokens.len(), tokens[0].clone());
         let slots = self.groups.entry(key).or_default();
-        for &i in slots.iter() {
+        // As in Drain: similarity counts equal tokens only, and the most
+        // similar template wins (then the one with more wildcards), not the
+        // first above the threshold.
+        let best = slots
+            .iter()
+            .map(|&i| {
+                let t = &self.templates[i];
+                let pairs = || t.tokens.iter().zip(&tokens);
+                let same = pairs().filter(|(a, b)| a == b).count();
+                let wild = pairs().filter(|(a, _)| a.as_str() == WILDCARD).count();
+                (same, wild, i)
+            })
+            .filter(|&(same, ..)| same as f64 / tokens.len() as f64 >= SIMILARITY)
+            .max_by_key(|&(same, wild, i)| (same, wild, std::cmp::Reverse(i)));
+        if let Some((_, _, i)) = best {
             let t = &mut self.templates[i];
-            // A position the template already generalised matches anything.
-            let same = t
-                .tokens
-                .iter()
-                .zip(&tokens)
-                .filter(|(a, b)| a == b || a.as_str() == WILDCARD)
-                .count();
-            if same as f64 / tokens.len() as f64 >= SIMILARITY {
-                for (a, b) in t.tokens.iter_mut().zip(&tokens) {
-                    if a != b {
-                        *a = WILDCARD.to_string();
-                    }
+            for (a, b) in t.tokens.iter_mut().zip(&tokens) {
+                if a != b {
+                    *a = WILDCARD.to_string();
                 }
-                t.count += 1;
-                if let Some(time) = time {
-                    t.first_seen = Some(t.first_seen.map_or(time, |f| f.min(time)));
-                    t.last_seen = Some(t.last_seen.map_or(time, |l| l.max(time)));
-                }
-                return;
             }
+            t.count += 1;
+            if let Some(time) = time {
+                t.first_seen = Some(t.first_seen.map_or(time, |f| f.min(time)));
+                t.last_seen = Some(t.last_seen.map_or(time, |l| l.max(time)));
+            }
+            return;
         }
         slots.push(self.templates.len());
         self.templates.push(Template {
@@ -204,19 +209,30 @@ mod tests {
     use super::*;
 
     #[test]
-    fn generalised_positions_match_any_token() {
+    fn the_most_similar_template_wins() {
         let mut drain = Drain::default();
-        for (i, line) in ["A b c d", "A b e f", "A g h i"].iter().enumerate() {
+        // Two templates share a first token; a line exactly like the second
+        // joins it, though the first also clears the threshold.
+        for (i, line) in [
+            "retry job alpha now",
+            "retry job beta now",
+            "retry task gamma later",
+            "retry task gamma later",
+        ]
+        .iter()
+        .enumerate()
+        {
             drain.add("app.log", i + 1, line);
         }
-        let templates = drain.sorted();
-        assert_eq!(
-            templates.len(),
-            1,
-            "{:?}",
-            templates.iter().map(|t| t.text()).collect::<Vec<_>>()
+        let counts: Vec<(String, usize)> = drain
+            .sorted()
+            .into_iter()
+            .map(|t| (t.text(), t.count))
+            .collect();
+        assert!(
+            counts.contains(&("retry task gamma later".to_string(), 2)),
+            "{counts:?}"
         );
-        assert_eq!(templates[0].count, 3);
     }
 
     #[test]

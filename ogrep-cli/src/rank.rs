@@ -332,6 +332,9 @@ impl PatternSet {
         self.regexes
             .iter()
             .position(|re| re.as_ref().is_some_and(|re| re.is_match(text)))
+            // No compiled pattern matched: credit a pattern the plain engine
+            // could not compile, since the search matched it somehow.
+            .or_else(|| self.regexes.iter().position(Option::is_none))
             .unwrap_or(0)
     }
 }

@@ -635,7 +635,11 @@ pub fn captured_matches(
     opts: &SearchOptions,
     ci: bool,
 ) -> Result<Vec<crate::output::Match>> {
-    let opts = opts.for_capture();
+    // Callers use the lines, not their spans.
+    let opts = SearchOptions {
+        all_spans: false,
+        ..opts.for_capture()
+    };
     let mut capture = new_capturing_writer(&opts);
     run(root, index_path, &opts, ci, &mut capture)?;
     Ok(capture

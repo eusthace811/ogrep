@@ -27,13 +27,18 @@ pub fn frames(trace: &str) -> Vec<Frame> {
         // Java / Kotlin / Scala: at a.b.C.m(C.java:12)
         Regex::new(r"at ([\w$.<>]+)\(([\w$.-]+\.(?:java|kt|scala|groovy)):(\d+)\)").unwrap(),
         // JavaScript / TypeScript: at fn (path:12:3)  or  at path:12:3
-        // (also `at async fn (...)`, `at new Foo (...)` and file:// URLs)
-        Regex::new(r"at (?:(?:async |new )?(\S+) \()?(?:file://)?((?:[A-Za-z]:)?[^\s():]+\.(?:js|mjs|cjs|ts|tsx|jsx)):(\d+)(?::\d+)?\)?").unwrap(),
+        // (also `at async ...`, `at new Foo (...)`; file:// URLs are
+        // turned into paths first)
+        Regex::new(r"at (?:async |new )?(?:(\S+) \()?((?:[A-Za-z]:)?[^\s():]+\.(?:js|mjs|cjs|ts|tsx|jsx)):(\d+)(?::\d+)?\)?").unwrap(),
         // Generic path:line[:col] (Go, Rust, C, Ruby, PHP, compilers)
         Regex::new(r"((?:[A-Za-z]:)?[\w./\\-]+\.(?:go|rs|c|cc|cpp|h|hpp|rb|php|py|cs|swift|m|mm|ex|exs|erl|clj|lua|pl)):(\d+)").unwrap(),
     ];
+    let file_url = Regex::new(r"file://(?:/([A-Za-z]:))?").unwrap();
     let mut out = Vec::new();
     for line in trace.lines() {
+        // file:///C:/app/x.js -> C:/app/x.js, file:///app/x.js -> /app/x.js
+        let line = file_url.replace_all(line, "$1");
+        let line = line.as_ref();
         let found = if let Some(c) = patterns[0].captures(line) {
             Some((
                 c[1].to_string(),
@@ -114,7 +119,7 @@ mod tests {
 
     #[test]
     fn javascript_async_and_constructor_frames_are_read() {
-        let trace = "Error: boom\n    at async handler (/app/src/api/routes.ts:12:7)\n    at new Cart (file:///app/src/cart.js:5:3)\n";
+        let trace = "Error: boom\n    at async handler (/app/src/api/routes.ts:12:7)\n    at new Cart (file:///app/src/cart.js:5:3)\n    at async file:///app/src/main.mjs:9:1\n    at f (file:///C:/app/x.js:1:1)\n";
         let found: Vec<(String, usize, Option<String>)> = frames(trace)
             .into_iter()
             .map(|f| (f.raw_path, f.line, f.function))
@@ -128,6 +133,8 @@ mod tests {
                     Some("handler".to_string())
                 ),
                 ("/app/src/cart.js".to_string(), 5, Some("Cart".to_string())),
+                ("/app/src/main.mjs".to_string(), 9, None),
+                ("C:/app/x.js".to_string(), 1, Some("f".to_string())),
             ]
         );
     }

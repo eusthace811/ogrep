@@ -208,8 +208,14 @@ fn prepare(
     let mut scopes = Vec::new();
     let mut defs = Vec::new();
     let mut kept = Vec::new();
-    for ((m, f), (ok, def)) in hits.matches.drain(..).zip(facts).zip(keep) {
+    for ((mut m, f), (ok, def)) in hits.matches.drain(..).zip(facts).zip(keep) {
         if ok {
+            // Under --in, the matches outside the zone are not results: -o,
+            // --count-matches and ranking must not see them.
+            if let (Some(z), Some(f)) = (post.zone, &f) {
+                let mut zones = f.zones.iter();
+                m.spans.retain(|_| zones.next() == Some(&z));
+            }
             scopes.push(if post.scope {
                 f.and_then(|f| f.scope)
             } else {
@@ -289,14 +295,16 @@ pub(crate) fn emit_file(
     writer: &mut OutputWriter,
 ) -> Result<()> {
     writer.set_path_display(hits.display.clone());
-    if let Some(offset) = hits.binary {
-        writer.write_binary_note(rel, offset)?;
-    }
     if writer.is_files_only() {
         writer.write_file(rel)?;
         return Ok(());
     }
     if writer.is_count() {
+        // A binary-only match carries no lines to count; print nothing
+        // rather than a wrong 0.
+        if hits.matches.is_empty() {
+            return Ok(());
+        }
         let n = if opts.count_matches {
             hits.matches.iter().map(|m| m.spans.len().max(1)).sum()
         } else {
@@ -304,6 +312,10 @@ pub(crate) fn emit_file(
         };
         writer.write_count(rel, n)?;
         return Ok(());
+    }
+    // The note belongs to line output, as in a plain search.
+    if let Some(offset) = hits.binary {
+        writer.write_binary_note(rel, offset)?;
     }
     let lines: Vec<&str> = text.map(|t| t.lines().collect()).unwrap_or_default();
     let mut shown_lines: Vec<usize> = shown.iter().map(|&i| hits.matches[i].line_number).collect();

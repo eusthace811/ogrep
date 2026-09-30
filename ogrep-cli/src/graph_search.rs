@@ -105,8 +105,9 @@ pub fn run(
         .strip_prefix(canonical(&index_root))
         .map(|p| p.to_string_lossy().replace('\\', "/"))
         .unwrap_or_default();
+    let named_file = root.is_file();
     let in_graph = |rel: &str| {
-        if root.is_file() {
+        if named_file {
             below.clone()
         } else if below.is_empty() {
             rel.to_string()
