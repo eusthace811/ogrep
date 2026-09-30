@@ -417,8 +417,8 @@ ranked file names, `-c` ranked counts, `--json` the usual `begin`/`match`/`end`
 messages in ranked order, each file preceded by a
 `{"type":"rank","data":{"path","rank","score","features"}}` message. Context
 flags keep only the context around the lines shown. `--rank` cannot be combined
-with `-v`, `--files`, `--files-without-match`, `--passthru`, `--include-zero`
-or `--sort`.
+with `-v`, `--files`, `--files-without-match`, `--passthru`, `--include-zero`,
+`--sort` or `-r/--replace` (it scores the matched text).
 
 On 600 localization tasks mined from django and rust history (an identifier
 from a commit message; the file the commit changed is the answer; see

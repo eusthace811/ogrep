@@ -74,6 +74,10 @@ pub struct SearchOptions {
     /// need them: a captured search is reshaped afterwards (--rank's pattern
     /// counts, --in's zones, --count-matches), not printed.
     pub all_spans: bool,
+    /// Whether a capture keeps a binary file's matching lines (for output
+    /// that counts, filters or prints them as a plain search would) or only
+    /// its note (for tools that want text lines).
+    pub binary_lines: bool,
     /// `--changed-since`: search only these paths, relative to the search
     /// root. Set per path argument.
     pub only_paths: Option<std::sync::Arc<std::collections::HashSet<String>>>,
@@ -602,12 +606,10 @@ pub(crate) fn index_dir_for(root: &Path, index_path: Option<&Path>) -> PathBuf {
     })
 }
 
-/// A writer that records results instead of printing them (`--rank`).
-/// A writer that captures what `opts` finds. A capture for reshaped output
-/// (`all_spans`) keeps binary files' lines, as the local search reports them;
-/// one for tools that want text lines keeps only the note.
+/// A writer that records what `opts` finds instead of printing it, keeping
+/// binary files' lines only as `opts.binary_lines` says.
 pub fn new_capturing_writer(opts: &SearchOptions) -> OutputWriter {
-    OutputWriter::capturing(opts.make_output_config(), opts.all_spans)
+    OutputWriter::capturing(opts.make_output_config(), opts.binary_lines)
 }
 
 impl SearchOptions {
@@ -625,6 +627,7 @@ impl SearchOptions {
             vimgrep: false,
             quiet: false,
             all_spans: true,
+            binary_lines: true,
             ..self.clone()
         }
     }
@@ -641,6 +644,7 @@ pub fn captured_matches(
     // Callers use the lines, not their spans or anything that shapes output.
     let opts = SearchOptions {
         all_spans: false,
+        binary_lines: false,
         color: crate::output::ColorMode::Never,
         column: false,
         only_matching: false,
@@ -649,8 +653,8 @@ pub fn captured_matches(
     };
     let mut capture = new_capturing_writer(&opts);
     run(root, index_path, &opts, ci, &mut capture)?;
-    // Without `all_spans` the capture keeps no binary file's lines: they are
-    // not text these callers can use.
+    // The capture keeps no binary file's lines: they are not text these
+    // callers can use.
     Ok(capture
         .take_captured()
         .into_iter()
@@ -1160,10 +1164,8 @@ fn search_via_server(
             // JSON output reports binary matches the same way ripgrep does —
             // the matching lines plus a `binary_offset` — so ask the server to
             // send the lines alongside the marker. An older server ignores this
-            // and returns the marker alone. A capture for reshaped output
-            // (`all_spans`) needs them too: it counts and filters those lines
-            // as the local search does, and JSON prints them.
-            "binary_lines": opts.json || opts.all_spans,
+            // and returns the marker alone. A capture that keeps them asks too.
+            "binary_lines": opts.json || opts.binary_lines,
             "max_filesize": opts.max_filesize,
             "encoding": opts.encoding.label(),
             "line_regexp": opts.line_regexp,
@@ -1373,10 +1375,10 @@ fn search_via_server(
     } else {
         // A binary file's rows follow its marker; they are written only
         // where the marker says a plain search would write them.
-        let mut suppressed: Option<&str> = None;
+        let mut suppressed: std::collections::HashSet<&str> = std::collections::HashSet::new();
         for m in matches {
             let file = m.get("file").and_then(|f| f.as_str()).unwrap_or("");
-            if suppressed == Some(file) {
+            if suppressed.contains(file) {
                 continue;
             }
             let line = m.get("line").and_then(|l| l.as_u64()).unwrap_or(0) as usize;
@@ -1398,7 +1400,7 @@ fn search_via_server(
                 })?;
             } else if mtype == "binary" {
                 if !writer.write_binary_note(file, offset)? {
-                    suppressed = Some(file);
+                    suppressed.insert(file);
                 }
             } else {
                 let spans = m

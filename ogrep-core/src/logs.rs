@@ -151,8 +151,6 @@ fn is_variable(token: &str) -> bool {
 /// Groups lines into templates.
 #[derive(Default)]
 pub struct Drain {
-    /// Templates by length and first token as shown, so lines that would
-    /// print the same template are compared.
     groups: HashMap<(usize, String), Vec<usize>>,
     pub templates: Vec<Template>,
 }
@@ -163,7 +161,8 @@ impl Drain {
         let tokens: Vec<Token> = rest
             .split_whitespace()
             .map(|t| {
-                if is_variable(t) {
+                // A literal `<*>` prints like a masked value, so it is one.
+                if is_variable(t) || t == WILDCARD {
                     Token::Masked
                 } else {
                     Token::Word(t.to_string())
@@ -247,17 +246,19 @@ mod tests {
 
     #[test]
     fn lines_shown_alike_share_a_template() {
-        // A literal `<*>` word prints like a masked value, so its line joins
-        // the same template rather than printing a duplicate.
+        // A literal `<*>` word prints like a masked value, so it is one.
         let mut drain = Drain::default();
         drain.add("app.log", 1, "12 connected ok");
         drain.add("app.log", 2, "<*> connected ok");
+        // These agree with it in two of three positions, so they join it.
+        drain.add("app.log", 3, "<*> 7 ok");
+        drain.add("app.log", 4, "9 <*> ok");
         let templates: Vec<(String, usize)> = drain
             .sorted()
             .into_iter()
             .map(|t| (t.text(), t.count))
             .collect();
-        assert_eq!(templates, [("<*> connected ok".to_string(), 2)]);
+        assert_eq!(templates, [("<*> <*> ok".to_string(), 4)]);
     }
 
     #[test]

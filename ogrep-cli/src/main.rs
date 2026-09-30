@@ -1283,6 +1283,7 @@ impl Cli {
             iglob: self.iglob.clone(),
             glob_case_insensitive: self.glob_case_insensitive,
             all_spans: false,
+            binary_lines: false,
             only_paths: None,
             types: self.file_type.clone(),
             types_not: self.type_not.clone(),
@@ -1678,12 +1679,11 @@ fn run_cli() {
             cli.callers && cli.kind.is_some(),
             "--callers cannot be combined with --kind",
         ),
-        // These place each match in the file's structure, and a replaced
-        // line's matches are no longer where they are in the file.
+        // These read each match's text or place it in the file, and a
+        // replaced line's matches are neither.
         (
-            cli.replace.is_some()
-                && (cli.scope || cli.kind.is_some() || cli.in_zone.is_some() || cli.callers),
-            "--replace cannot be combined with --scope, --kind, --in or --callers",
+            cli.replace.is_some() && post.active(),
+            "--replace cannot be combined with --rank, --scope, --kind, --in or --callers",
         ),
     ];
     if let Some((_, message)) = shapes.iter().find(|(set, _)| *set) {

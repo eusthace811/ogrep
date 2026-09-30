@@ -257,8 +257,6 @@ fn doc_drift_skips_release_notes_by_name_or_directory_only() {
     assert!(out.contains("`missing_in_history`"), "{out:?}");
     assert!(out.contains("`missing_in_exchanges`"), "{out:?}");
     assert!(out.contains("`missing_in_exchanges_doc`"), "{out:?}");
-    assert!(out.contains("`missing_in_history_guide`"), "{out:?}");
-    assert!(out.contains("`missing_in_migrate_guide`"), "{out:?}");
     for skipped in [
         "missing_in_fragment",
         "missing_in_changes",
@@ -266,6 +264,8 @@ fn doc_drift_skips_release_notes_by_name_or_directory_only() {
         "missing_in_notes",
         "missing_in_migrating",
         "missing_in_history_notes",
+        "missing_in_history_guide",
+        "missing_in_migrate_guide",
     ] {
         assert!(!out.contains(&format!("`{skipped}`")), "{out:?}");
     }
@@ -467,6 +467,7 @@ fn tool_flags_are_exclusive_and_parse_as_documented() {
         &["--callers", "--kind", "def", "x"],
         &["--history", "--multiline-dotall", "a.b", "."],
         &["--in", "comments", "-r", "Z", "x", "."],
+        &["--rank", "-r", "Z", "x", "."],
     ];
     for args in refused {
         ogrep(dir.path()).args(args).assert().code(2).stderr(
