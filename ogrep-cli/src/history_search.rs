@@ -450,21 +450,10 @@ fn present_at_head(
     opts: &SearchOptions,
     ci: bool,
 ) -> Option<usize> {
-    let mut inner = opts.clone();
-    inner.files_only = false;
-    inner.count = false;
-    inner.count_matches = false;
-    inner.json = false;
-    inner.quiet = false;
-    let mut capture = crate::search::new_capturing_writer(&inner);
-    crate::search::run(root, index_path, &inner, ci, &mut capture).ok()?;
-    let mut files: Vec<String> = capture
-        .take_captured()
+    let mut files: Vec<String> = crate::search::captured_matches(root, index_path, opts, ci)
+        .ok()?
         .into_iter()
-        .filter_map(|c| match c {
-            crate::output::Captured::Match(m) => Some(m.file),
-            _ => None,
-        })
+        .map(|m| m.file)
         .collect();
     files.sort();
     files.dedup();

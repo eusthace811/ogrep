@@ -101,3 +101,22 @@ fn changed_since_limits_the_search_not_just_the_output() {
         .assert()
         .code(1);
 }
+
+#[test]
+fn tools_capture_lines_whatever_the_output_flags() {
+    // Tools read the search's matching lines; a flag that shapes ordinary
+    // output (here --count-matches) must not leak into theirs.
+    let dir = TempDir::new().unwrap();
+    fs::write(
+        dir.path().join("app.log"),
+        "ERROR db timeout 12\nERROR db timeout 40\nINFO ok\n",
+    )
+    .unwrap();
+    let plain = stdout(ogrep(dir.path()).args(["--log-templates", "ERROR", "app.log"]));
+    assert!(plain.contains("ERROR db timeout <*>"), "{plain:?}");
+    ogrep(dir.path())
+        .args(["--log-templates", "--count-matches", "ERROR", "app.log"])
+        .assert()
+        .code(0)
+        .stdout(plain);
+}

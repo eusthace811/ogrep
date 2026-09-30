@@ -2034,7 +2034,7 @@ fn run_rank_fit(cli: &Cli, file: &std::path::Path, resolved: &ResolvedArgs) -> a
     let index_dir = cli.index_path.clone().unwrap_or_else(|| {
         builder::default_index_dir(&std::fs::canonicalize(&root).unwrap_or(root.clone()))
     });
-    let base = cli.build_search_opts(String::new(), resolved);
+    let base = cli.build_search_opts(String::new(), resolved).for_capture();
     let mut examples = Vec::new();
     for item in items {
         let mut opts = base.clone();
@@ -2130,14 +2130,10 @@ fn run_postprocessed_search(
 ) -> ! {
     // The search must produce matching lines whatever the output format, so
     // file lists and counts are derived afterwards instead of during it.
-    let mut inner = opts.clone();
-    inner.files_only = false;
-    inner.count = false;
-    inner.count_matches = false;
-    inner.json = false;
-    inner.vimgrep = false;
-    inner.quiet = false;
-    inner.sort = None;
+    let inner = search::SearchOptions {
+        sort: None,
+        ..opts.for_capture()
+    };
     let mut capture = search::new_capturing_writer(&inner);
     let mut captured = Vec::new();
     for target in targets {

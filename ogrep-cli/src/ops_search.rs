@@ -361,19 +361,13 @@ fn log_templates(
 ) -> Result<bool> {
     // The pattern picks the lines; the path argument picks the logs. Logs are
     // usually not indexed, so read them directly.
-    let mut inner = opts.clone();
-    inner.no_index = true;
-    inner.files_only = false;
-    inner.count = false;
-    inner.json = false;
-    inner.quiet = false;
-    let mut capture = crate::search::new_capturing_writer(&inner);
-    crate::search::run(root, index_path, &inner, ci, &mut capture)?;
+    let logs = SearchOptions {
+        no_index: true,
+        ..opts.clone()
+    };
     let mut drain = ogrep_core::logs::Drain::default();
-    for c in capture.take_captured() {
-        if let crate::output::Captured::Match(m) = c {
-            drain.add(&m.file, m.line_number, &m.content);
-        }
+    for m in crate::search::captured_matches(root, index_path, &logs, ci)? {
+        drain.add(&m.file, m.line_number, &m.content);
     }
     let cutoff = match new_since {
         Some(w) => Some(parse_when(repo, w)?),

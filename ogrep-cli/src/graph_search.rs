@@ -45,21 +45,9 @@ fn matched_lines(
     opts: &SearchOptions,
     ci: bool,
 ) -> Result<Vec<(String, usize)>> {
-    let mut inner = opts.clone();
-    inner.files_only = false;
-    inner.count = false;
-    inner.count_matches = false;
-    inner.json = false;
-    inner.quiet = false;
-    let mut capture = crate::search::new_capturing_writer(&inner);
-    crate::search::run(root, index_path, &inner, ci, &mut capture)?;
-    Ok(capture
-        .take_captured()
+    Ok(crate::search::captured_matches(root, index_path, opts, ci)?
         .into_iter()
-        .filter_map(|c| match c {
-            crate::output::Captured::Match(m) => Some((m.file, m.line_number)),
-            _ => None,
-        })
+        .map(|m| (m.file, m.line_number))
         .collect())
 }
 
@@ -70,19 +58,9 @@ fn matched_files(
     opts: &SearchOptions,
     ci: bool,
 ) -> Result<Vec<(String, usize)>> {
-    let mut inner = opts.clone();
-    inner.files_only = false;
-    inner.count = false;
-    inner.count_matches = false;
-    inner.json = false;
-    inner.quiet = false;
-    let mut capture = crate::search::new_capturing_writer(&inner);
-    crate::search::run(root, index_path, &inner, ci, &mut capture)?;
     let mut counts: HashMap<String, usize> = HashMap::new();
-    for c in capture.take_captured() {
-        if let crate::output::Captured::Match(m) = c {
-            *counts.entry(m.file).or_default() += 1;
-        }
+    for (file, _) in matched_lines(root, index_path, opts, ci)? {
+        *counts.entry(file).or_default() += 1;
     }
     let mut out: Vec<(String, usize)> = counts.into_iter().collect();
     out.sort();

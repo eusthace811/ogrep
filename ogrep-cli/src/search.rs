@@ -592,6 +592,46 @@ pub fn new_capturing_writer(opts: &SearchOptions) -> OutputWriter {
     OutputWriter::capturing(opts.make_output_config())
 }
 
+impl SearchOptions {
+    /// These options with every output-shaping flag off, for a search whose
+    /// lines are captured and reshaped afterwards (`--rank`, `--scope`, the
+    /// graph, history and log tools): counts, file lists and JSON are derived
+    /// from the captured lines, never produced by the search itself.
+    pub fn for_capture(&self) -> SearchOptions {
+        SearchOptions {
+            files_only: false,
+            files_without_match: false,
+            count: false,
+            count_matches: false,
+            json: false,
+            vimgrep: false,
+            quiet: false,
+            ..self.clone()
+        }
+    }
+}
+
+/// Run the search for `opts` with output shaping off (see
+/// [`SearchOptions::for_capture`]) and return its matching lines.
+pub fn captured_matches(
+    root: &Path,
+    index_path: Option<&Path>,
+    opts: &SearchOptions,
+    ci: bool,
+) -> Result<Vec<crate::output::Match>> {
+    let opts = opts.for_capture();
+    let mut capture = new_capturing_writer(&opts);
+    run(root, index_path, &opts, ci, &mut capture)?;
+    Ok(capture
+        .take_captured()
+        .into_iter()
+        .filter_map(|c| match c {
+            crate::output::Captured::Match(m) => Some(m),
+            _ => None,
+        })
+        .collect())
+}
+
 /// List files that would be searched (`--files` mode).
 pub fn list_files(root: &Path, index_path: Option<&Path>, opts: &SearchOptions) -> Result<()> {
     let start = Instant::now();
