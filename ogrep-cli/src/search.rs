@@ -1966,7 +1966,7 @@ fn resolve_scope(index_dir: &Path, root: &Path) -> Option<(PathBuf, IndexScope)>
 ///
 /// The walker applies this while descending; the indexed paths never went
 /// through it, so it has to be re-applied by counting components.
-fn within_max_depth(rel: &str, opts: &SearchOptions) -> bool {
+pub(crate) fn within_max_depth(rel: &str, opts: &SearchOptions) -> bool {
     match opts.max_depth {
         // `rel` is search-root-relative, so its separator count is the number
         // of directory levels below the root; a depth of 1 means "directly in

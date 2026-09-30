@@ -302,3 +302,39 @@ fn at_revision_refuses_what_would_read_the_working_tree() {
         .assert()
         .code(0);
 }
+
+#[test]
+fn history_filters_and_limits_like_a_search() {
+    let dir = repo(&[
+        ("src/lib.rs", "fn foo_mark() {}\n"),
+        ("src/models/x.py", "foo_mark here\n"),
+    ]);
+    ogrep(dir.path())
+        .args(["index", "--history", "."])
+        .assert()
+        .success();
+    // Globs see paths from the search root, as a working-tree search does.
+    let out = stdout(ogrep(dir.path()).args(["--history", "-g", "models/**", "foo_mark", "src"]));
+    assert!(out.contains("src/models/x.py"), "{out:?}");
+    assert!(!out.contains("src/lib.rs"), "{out:?}");
+    // -m 0 shows nothing and matches nothing, as in ripgrep.
+    ogrep(dir.path())
+        .args(["--history", "-m", "0", "foo_mark", "."])
+        .assert()
+        .code(1)
+        .stdout("");
+    // --since works with a single file as the path.
+    ogrep(dir.path())
+        .args(["--history", "--since", "2w", "foo_mark", "src/lib.rs"])
+        .assert()
+        .code(0);
+}
+
+#[test]
+fn at_revision_filters_a_named_file_by_its_name() {
+    let dir = repo(&[("src/lib.rs", "fn foo_mark() {}\n")]);
+    ogrep(dir.path())
+        .args(["--at", "HEAD", "-t", "rust", "foo_mark", "src/lib.rs"])
+        .assert()
+        .code(0);
+}

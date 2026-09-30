@@ -1457,6 +1457,12 @@ fn run_cli() {
             (cli.kind.is_some(), "--kind"),
             (cli.in_zone.is_some(), "--in"),
             (cli.callers, "--callers"),
+            (
+                [&cli.sort, &cli.sortr]
+                    .iter()
+                    .any(|key| key.as_deref().is_some_and(|k| k != "path" && k != "none")),
+                "--sort by time",
+            ),
         ];
         if let Some((_, flag)) = working_tree.iter().find(|(set, _)| *set) {
             eprintln!("ogrep: --at cannot be combined with {flag}");
@@ -1516,6 +1522,13 @@ fn run_cli() {
                 "context lines (-A/-B/-C)",
             ),
             (cli.vimgrep, "--vimgrep"),
+            (
+                !cli.with.is_empty() || !cli.without.is_empty(),
+                "--with/--without",
+            ),
+            // A commit's changed lines are searched as one text: a multiline
+            // match would span unrelated hunks and files.
+            (cli.multiline, "-U/--multiline"),
         ];
         if let Some((_, flag)) = conflicts.iter().find(|(set, _)| *set) {
             eprintln!("ogrep: --history cannot be combined with {flag}");

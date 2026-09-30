@@ -411,10 +411,12 @@ pub fn emit(
             prepare(rel, hits, l, post)
         })
         .collect();
-    for ((dir, store), facts) in caches.iter_mut().zip(new_facts) {
-        // Unmap the store first: put replaces its index.bin, which Windows
-        // refuses while this process still maps it.
+    // Unmap every store first: put replaces index.bin, which Windows refuses
+    // while this process maps it, and several path arguments can share one.
+    for (_, store) in &mut caches {
         *store = None;
+    }
+    for ((dir, _), facts) in caches.iter().zip(new_facts) {
         if let Some(dir) = dir {
             let _ = ogrep_core::facts::FactStore::put(dir, ogrep_core::facts::STRUCTURE, facts);
         }

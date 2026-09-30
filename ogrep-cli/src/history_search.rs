@@ -48,6 +48,17 @@ struct CommitHits {
 /// parser, so every form `git log --since` takes works. Short durations such as
 /// `2h`, `3d`, `2w`, `6mo` and `1y` mean that long ago.
 pub fn resolve_when(root: &Path, when: &str, until: bool) -> Result<i64> {
+    // git runs in a directory: for a named file, its own.
+    let root = match root.parent() {
+        Some(parent) if root.is_file() => {
+            if parent.as_os_str().is_empty() {
+                Path::new(".")
+            } else {
+                parent
+            }
+        }
+        _ => root,
+    };
     let expanded = expand_duration(when).unwrap_or_else(|| when.to_string());
     let flag = if until { "--until" } else { "--since" };
     let out = history::git(root)
@@ -188,12 +199,18 @@ fn scope_prefix(repo: &Path, search_root: &Path) -> String {
     }
 }
 
-fn in_scope(prefix: &str, path: &str) -> bool {
-    prefix.is_empty()
-        || path == prefix
-        || path
-            .strip_prefix(prefix)
-            .is_some_and(|rest| rest.starts_with('/'))
+/// A repository-relative `path` as seen from the search scope `prefix`: the
+/// rest of it under a directory, or its name when the scope is that file (a
+/// working-tree search also filters a named file by its name). `None` when
+/// the path is outside the scope.
+fn scoped<'a>(prefix: &str, path: &'a str) -> Option<&'a str> {
+    if prefix.is_empty() {
+        Some(path)
+    } else if path == prefix {
+        Some(path.rsplit('/').next().unwrap_or(path))
+    } else {
+        path.strip_prefix(prefix)?.strip_prefix('/')
+    }
 }
 
 /// Search the history index. Returns whether anything matched.
@@ -287,9 +304,11 @@ pub fn run(
                 line_number, spans, ..
             } = emit
                 && let Some(line) = doc.lines.get(line_number - 1)
-                && in_scope(&prefix, &line.path)
-                && type_filter.matches(&line.path)
-                && glob_filter.matches(&line.path)
+                // Globs and types see the path from the search root, as in a
+                // working-tree search; it is printed repository-relative.
+                && let Some(rel) = scoped(&prefix, &line.path)
+                && type_filter.matches(rel)
+                && glob_filter.matches(rel)
             {
                 hits.push(Hit {
                     line: line.clone(),
@@ -348,10 +367,13 @@ pub fn run(
     let mut commits: Vec<CommitHits> = by_sha.into_values().collect();
     for c in &mut commits {
         c.hits.sort_by(|a, b| a.line.path.cmp(&b.line.path));
-        if let Some(max) = opts.max_count {
+        // -m limits the lines shown per commit. --introduced needs every
+        // hit to find the first addition and last removal, so it is exempt.
+        if let (Mode::Log, Some(max)) = (&mode, opts.max_count) {
             c.hits.truncate(max);
         }
     }
+    commits.retain(|c| !c.hits.is_empty());
     describe(&repo, &mut commits)?;
     if let Some(author) = &filters.author {
         commits.retain(|c| author.is_match(&c.author));
@@ -460,15 +482,20 @@ fn print_log(
     Ok(())
 }
 
-/// Whether the pattern still matches at HEAD, as a count of matching files from
-/// an ordinary search, or `None` when that search could not run.
+/// Whether the pattern still matches at HEAD, as a count of matching files in
+/// HEAD's tree, or `None` when that search could not run.
 fn present_at_head(
     root: &Path,
     index_path: Option<&Path>,
     opts: &SearchOptions,
     ci: bool,
 ) -> Option<usize> {
-    let mut files: Vec<String> = crate::search::captured_matches(root, index_path, opts, ci)
+    // HEAD itself, not the working tree, which may hold uncommitted edits.
+    let at_head = SearchOptions {
+        at_rev: Some("HEAD".to_string()),
+        ..opts.clone()
+    };
+    let mut files: Vec<String> = crate::search::captured_matches(root, index_path, &at_head, ci)
         .ok()?
         .into_iter()
         .map(|m| m.file)
@@ -590,27 +617,32 @@ pub fn search_at(
         else {
             continue;
         };
-        if kind != "blob" || mode == "120000" || !in_scope(&prefix, path) {
+        if kind != "blob" || mode == "120000" {
             continue;
         }
+        let Some(rel) = scoped(&prefix, path) else {
+            continue;
+        };
         if max_size.is_some_and(|max| size.parse::<u64>().is_ok_and(|s| s > max)) {
             continue;
         }
-        let rel = if prefix.is_empty() {
-            path.to_string()
-        } else {
-            path[prefix.len()..].trim_start_matches('/').to_string()
-        };
-        // Hidden files are skipped unless --hidden, as a working-tree search
-        // (and ripgrep) would skip them.
-        let hidden = !opts.hidden && rel.split('/').any(|c| c.starts_with('.'));
-        if hidden || !type_filter.matches(&rel) || !glob_filter.matches(&rel) {
+        // As a working-tree search would: hidden files are skipped unless
+        // --hidden or named, and --max-depth applies below the root.
+        let named = path == prefix;
+        let hidden = !opts.hidden && !named && rel.split('/').any(|c| c.starts_with('.'));
+        if hidden
+            || !crate::search::within_max_depth(rel, opts)
+            || !type_filter.matches(rel)
+            || !glob_filter.matches(rel)
+        {
             continue;
         }
-        blobs.push((id.to_string(), rel));
+        blobs.push((id.to_string(), rel.to_string()));
     }
-    if opts.sort.is_some() {
-        blobs.sort_by(|a, b| a.1.cmp(&b.1));
+    // ls-tree lists paths in order; --sortr path reverses it. (Other keys are
+    // working-tree metadata, which --at refuses.)
+    if opts.sort.is_some_and(|s| s.reverse) {
+        blobs.reverse();
     }
 
     let matcher = opts.matcher(ci)?;
@@ -704,14 +736,8 @@ impl ChangedSets {
         Ok(Some(
             changed
                 .iter()
-                .filter(|path| in_scope(&prefix, path))
-                .map(|path| {
-                    if prefix.is_empty() {
-                        path.clone()
-                    } else {
-                        path[prefix.len()..].trim_start_matches('/').to_string()
-                    }
-                })
+                .filter_map(|path| scoped(&prefix, path))
+                .map(String::from)
                 .collect(),
         ))
     }
@@ -770,8 +796,12 @@ mod tests {
         assert_eq!(expand_duration("2h").as_deref(), Some("2 hours ago"));
         assert_eq!(expand_duration("6mo").as_deref(), Some("6 months ago"));
         assert_eq!(expand_duration("2024-05-01"), None);
-        assert!(in_scope("", "a/b"));
-        assert!(in_scope("django/db", "django/db/models/query.py"));
-        assert!(!in_scope("django/db", "django/dbx/models.py"));
+        assert_eq!(scoped("", "a/b"), Some("a/b"));
+        assert_eq!(
+            scoped("django/db", "django/db/models/query.py"),
+            Some("models/query.py")
+        );
+        assert_eq!(scoped("django/db", "django/dbx/models.py"), None);
+        assert_eq!(scoped("src/lib.rs", "src/lib.rs"), Some("lib.rs"));
     }
 }
