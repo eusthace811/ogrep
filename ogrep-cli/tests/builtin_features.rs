@@ -195,3 +195,16 @@ fn history_is_found_where_index_history_put_it() {
     let out = stdout(ogrep(dir.path()).args(["--history", "needle_x", "sub"]));
     assert!(out.contains("sub/f.txt:1:+needle_x"), "{out:?}");
 }
+
+#[test]
+fn at_revision_skips_hidden_files_like_a_working_tree_search() {
+    let dir = repo(&[
+        ("src/a.txt", "TODO_MARK a\n"),
+        (".github/ci.yml", "TODO_MARK ci\n"),
+    ]);
+    let at = stdout(ogrep(dir.path()).args(["--at", "HEAD", "TODO_MARK"]));
+    assert_eq!(at, "src/a.txt:TODO_MARK a\n");
+    let hidden =
+        stdout(ogrep(dir.path()).args(["--at", "HEAD", "--hidden", "--sort=path", "TODO_MARK"]));
+    assert!(hidden.contains(".github/ci.yml"), "{hidden:?}");
+}

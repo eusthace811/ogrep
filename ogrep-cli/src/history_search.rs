@@ -609,7 +609,10 @@ pub fn search_at(
         } else {
             path[prefix.len()..].trim_start_matches('/').to_string()
         };
-        if !type_filter.matches(&rel) || !glob_filter.matches(&rel) {
+        // Hidden files are skipped unless --hidden, as a working-tree search
+        // (and ripgrep) would skip them.
+        let hidden = !opts.hidden && rel.split('/').any(|c| c.starts_with('.'));
+        if hidden || !type_filter.matches(&rel) || !glob_filter.matches(&rel) {
             continue;
         }
         blobs.push((id.to_string(), rel));
