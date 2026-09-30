@@ -28,7 +28,7 @@
 //! so the order is a strict total order that does not depend on which file a
 //! parallel search happened to report first.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 
 use anyhow::Result;
 
@@ -143,6 +143,9 @@ pub struct Features {
 }
 
 pub struct Ranked {
+    /// Position in the grouped files: two path arguments can hold files with
+    /// the same relative path, so the path alone does not identify one.
+    pub file: usize,
     pub path: String,
     pub score: f64,
     pub features: Features,
@@ -404,7 +407,8 @@ fn score_files(files: &[(String, FileHits)], patterns: &PatternSet, w: &Weights)
     let mut ranked: Vec<Ranked> = files
         .iter()
         .zip(&tallies)
-        .map(|((rel, _), tally)| {
+        .enumerate()
+        .map(|(file, ((rel, _), tally))| {
             let lower = rel.to_ascii_lowercase();
             let (dir, name) = lower.rsplit_once('/').unwrap_or(("", &lower));
             let path = if tally.texts.iter().any(|t| name.contains(t.as_str())) {
@@ -431,6 +435,7 @@ fn score_files(files: &[(String, FileHits)], patterns: &PatternSet, w: &Weights)
                 patterns: tally.lines.iter().filter(|l| l.0 + l.1 > 0).count(),
             };
             Ranked {
+                file,
                 path: rel.clone(),
                 score: score * prior,
                 features,
@@ -514,12 +519,8 @@ pub fn emit(
     let pattern_set = PatternSet::new(patterns, fixed, ci);
     let ranked = score_files(&files, &pattern_set, &opts.weights);
     let keep = keep_count(&ranked, opts);
-    let by_path: BTreeMap<&str, &FileHits> = files
-        .iter()
-        .map(|(rel, hits)| (rel.as_str(), hits))
-        .collect();
     for (rank, r) in ranked.iter().take(keep).enumerate() {
-        let hits = by_path[r.path.as_str()];
+        let hits = &files[r.file].1;
         writer.set_path_display(hits.display.clone());
         writer.write_rank_record(&r.path, rank + 1, r.score, &r.features, opts.explain)?;
         if let Some(offset) = hits.binary {
