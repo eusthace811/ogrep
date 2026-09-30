@@ -32,7 +32,7 @@ const ENTRY: usize = 16 + 8 + 4;
 /// the index may still use one, and deleting a store under a running process
 /// cannot be made safe with file locks alone. They are only disk space;
 /// removing one by hand is safe when no other ogrep version is running.
-pub const STRUCTURE: &str = "structure-v2";
+pub const STRUCTURE: &str = "structure-v3";
 
 /// A new entry for a store: content id and payload.
 pub type NewFact = (ContentId, Vec<u8>);

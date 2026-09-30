@@ -1156,7 +1156,7 @@ exit code determined by the search alone. Suppress the message with
 | `index.bin` | Concatenated posting lists: `file_id(u32)` per entry |
 | `files.bin` | Version 3 header, then `file_id(u32) + path_len(u16) + path_bytes`; legacy headerless tables remain readable |
 | `files-extra.bin` | Version 2 filename-only paths, visibility, and file-table identity |
-| `facts/structure-v2/` | Cache of parsed file structure, keyed by grammar and content: `index.bin` (sorted key, offset, length) and `data.bin` (payloads). A store with another version (such as `structure-v1`) belongs to another ogrep release and is never read by this one; it is left in place in case that release still shares the index, and can be deleted when none is running |
+| `facts/structure-v3/` | Cache of parsed file structure, keyed by grammar and content: `index.bin` (sorted key, offset, length) and `data.bin` (payloads). A store with another version (such as `structure-v1`) belongs to another ogrep release and is never read by this one; it is left in place in case that release still shares the index, and can be deleted when none is running |
 | `rank-weights.json` | Weights fitted by `--rank-fit`, used by `--rank` |
 | `graph/graph.bin` | File graph (`ogrep index --graph`): files, links, PageRank, definitions |
 | `history/` | History index (`ogrep index --history`): an index of commit diffs, `history.json` and `chunks.json` |

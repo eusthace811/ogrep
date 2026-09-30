@@ -160,6 +160,11 @@ impl FileStructure {
             let (start, end, start_line, end_line, name_start, name_end) =
                 (c.num()?, c.num()?, c.num()?, c.num()?, c.num()?, c.num()?);
             let parent = c.num()?;
+            // A parent precedes its children; anything else is corrupt, and
+            // would make `enclosing` index out of bounds or loop.
+            if parent != usize::MAX && parent >= symbols.len() {
+                return None;
+            }
             let len = c.num()?;
             let name = String::from_utf8(c.take(len)?.to_vec()).ok()?;
             symbols.push(Symbol {
@@ -333,13 +338,17 @@ fn declarator_name<'t>(node: Node<'t>) -> Option<Node<'t>> {
     let mut at = node.child_by_field_name("declarator")?;
     loop {
         match at.kind() {
-            "identifier"
-            | "field_identifier"
-            | "type_identifier"
-            | "qualified_identifier"
-            | "destructor_name"
+            "identifier" | "field_identifier" | "type_identifier" | "destructor_name"
             | "operator_name" => return Some(at),
-            _ => at = at.child_by_field_name("declarator")?,
+            // `Store::save`: the name is the last part.
+            "qualified_identifier" => at = at.child_by_field_name("name")?,
+            // Reference and parenthesized declarators (`&name()`, `(*cb)`)
+            // hold theirs as a plain child, not a `declarator` field.
+            _ => {
+                at = at
+                    .child_by_field_name("declarator")
+                    .or_else(|| at.named_child(0))?
+            }
         }
     }
 }
@@ -363,25 +372,39 @@ fn definition<'t>(
             | "body_statement"
             | "field_declaration_list"
     );
+    // A body's own parent decides: a Rust `declaration_list` is a method
+    // body under `impl`/`trait` but not in `mod {}` or `extern {}`; a Python
+    // method's block belongs to a class, with a decorator in between.
+    let grandparent = || Some(node.parent()?.parent()?.kind());
     match (language, node.kind()) {
-        ("rust", "function_item" | "function_signature_item") => {
-            named(if parent_kind == "declaration_list" {
+        ("rust", "function_item" | "function_signature_item") => named(
+            if parent_kind == "declaration_list"
+                && matches!(grandparent(), Some("impl_item" | "trait_item"))
+            {
                 Method
             } else {
                 Function
-            })
-        }
+            },
+        ),
         ("rust", "struct_item" | "enum_item" | "union_item" | "type_item") => named(Type),
         ("rust", "trait_item") => named(Interface),
         ("rust", "mod_item") => named(Module),
         ("rust", "const_item" | "static_item") => named(Constant),
         ("rust", "macro_definition") => named(Macro),
         ("rust", "impl_item") => node.child_by_field_name("type").map(|n| (Impl, n)),
-        ("python", "function_definition") => named(if parent_kind == "block" {
-            Method
-        } else {
-            Function
-        }),
+        ("python", "function_definition") => {
+            let body = {
+                let mut up = node.parent();
+                while up.is_some_and(|p| p.kind() == "decorated_definition") {
+                    up = up.and_then(|p| p.parent());
+                }
+                up
+            };
+            let method = body.is_some_and(|b| {
+                b.kind() == "block" && b.parent().is_some_and(|c| c.kind() == "class_definition")
+            });
+            named(if method { Method } else { Function })
+        }
         ("python", "class_definition") => named(Class),
         ("go", "function_declaration") => named(Function),
         ("go", "method_declaration") => named(Method),
@@ -495,10 +518,12 @@ pub fn analyze(path: &str, text: &[u8]) -> Option<FileStructure> {
         let node = walk.node();
         let kind = node.kind();
         let mut descend = true;
-        if kind.contains("comment") {
+        // Named nodes only: TypeScript's and PHP's `string` type keyword is an
+        // anonymous token, not a string literal.
+        if node.is_named() && kind.contains("comment") {
             zones.push((node.start_byte(), node.end_byte(), Zone::Comment));
             descend = false;
-        } else if is_string_kind(kind) {
+        } else if node.is_named() && is_string_kind(kind) {
             zones.push((node.start_byte(), node.end_byte(), Zone::String));
             descend = false;
         } else if let Some((sym_kind, name)) =
@@ -609,6 +634,56 @@ fn caller() { QuerySet{n:1}.bulk_update(); }
         assert_eq!(fs.zone_at(text.find("in a string").unwrap()), Zone::String);
         assert_eq!(fs.zone_at(call), Zone::Code);
         assert_eq!(fs.zone_at(1), Zone::Comment);
+    }
+
+    #[test]
+    fn kinds_names_and_zones_in_awkward_places() {
+        let kinds = |path: &str, src: &str| -> Vec<(String, SymbolKind)> {
+            analyze(path, src.as_bytes())
+                .unwrap()
+                .symbols
+                .iter()
+                .map(|s| (s.name.clone(), s.kind))
+                .collect()
+        };
+        // A free function in an inline module is not a method.
+        let rust = kinds(
+            "x.rs",
+            "mod tests { fn helper() {} }\nimpl A { fn m(&self) {} }\n",
+        );
+        assert!(
+            rust.contains(&("helper".into(), SymbolKind::Function)),
+            "{rust:?}"
+        );
+        assert!(rust.contains(&("m".into(), SymbolKind::Method)), "{rust:?}");
+        // A decorated method is a method; a nested function is not.
+        let py = kinds(
+            "x.py",
+            "class A:\n    @property\n    def x(self):\n        def inner():\n            pass\n",
+        );
+        assert!(py.contains(&("x".into(), SymbolKind::Method)), "{py:?}");
+        assert!(
+            py.contains(&("inner".into(), SymbolKind::Function)),
+            "{py:?}"
+        );
+        // Out-of-line and reference-returning C++ definitions are named.
+        let cpp = kinds(
+            "x.cpp",
+            "void Store::save() {}\nconst std::string& name() { return s; }\n",
+        );
+        assert!(cpp.iter().any(|(n, _)| n == "save"), "{cpp:?}");
+        assert!(cpp.iter().any(|(n, _)| n == "name"), "{cpp:?}");
+        // TypeScript's `string` type keyword is code, not a string literal.
+        let ts = "let s: string = x;\n";
+        let fs = analyze("x.ts", ts.as_bytes()).unwrap();
+        assert_eq!(fs.zone_at(ts.find("string").unwrap()), Zone::Code);
+    }
+
+    #[test]
+    fn decode_rejects_a_parent_that_does_not_precede_its_child() {
+        let mut fs = analyze("x.rs", b"fn a() {}\n").unwrap();
+        fs.symbols[0].parent = Some(0);
+        assert!(FileStructure::decode(&fs.encode()).is_none());
     }
 
     #[test]

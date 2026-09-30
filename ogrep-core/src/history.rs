@@ -247,9 +247,11 @@ pub fn ls_files(repo: &Path, untracked: bool) -> Result<Vec<String>> {
     if untracked {
         args.extend(["--others", "--exclude-standard"]);
     }
+    // A conflicted path is listed once per merge stage; keep one.
+    let mut seen = HashSet::new();
     Ok(git_output(repo, &args)?
         .split('\0')
-        .filter(|p| !p.is_empty())
+        .filter(|p| !p.is_empty() && seen.insert(*p))
         .map(String::from)
         .collect())
 }
@@ -477,6 +479,11 @@ fn unquote(s: &str) -> String {
         match c {
             b'n' => out.push(b'\n'),
             b't' => out.push(b'\t'),
+            b'a' => out.push(0x07),
+            b'b' => out.push(0x08),
+            b'f' => out.push(0x0c),
+            b'r' => out.push(b'\r'),
+            b'v' => out.push(0x0b),
             b'"' => out.push(b'"'),
             b'\\' => out.push(b'\\'),
             b'0'..=b'7' if i + 4 <= bytes.len() => {
@@ -766,7 +773,9 @@ pub fn build_or_update(
         }
     }
 
-    let commits = list_commits(root, "HEAD", opts)?;
+    // From the resolved head: a commit landing mid-build must not be indexed
+    // under an older recorded head, or the next update indexes it twice.
+    let commits = list_commits(root, &head, opts)?;
     let (truncated, chunks) = index_commits(root, &staging, &commits, true)?;
     write_chunks(&staging, &chunks)?;
     let meta = HistoryMeta {
@@ -870,6 +879,7 @@ mod tests {
             Some("caf\u{e9}")
         );
         assert_eq!(header_path(b"/dev/null", b"b/"), None);
+        assert_eq!(header_path(b"\"b/a\\rb\"", b"b/").as_deref(), Some("a\rb"));
     }
 
     fn parse(output: &str) -> Vec<CommitDoc> {
