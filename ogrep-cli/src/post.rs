@@ -303,8 +303,19 @@ fn emit_plain(
             .as_deref()
             .map(|t| t.lines().collect())
             .unwrap_or_default();
-        let shown: std::collections::HashSet<usize> =
-            hits.matches.iter().map(|m| m.line_number).collect();
+        let mut shown: Vec<usize> = hits.matches.iter().map(|m| m.line_number).collect();
+        shown.sort_unstable();
+        // A context line is kept when a shown match is within reach: the
+        // nearest shown lines on either side decide.
+        let near = |line: usize| {
+            let i = shown.partition_point(|&s| s < line);
+            let close = |j: usize| {
+                shown
+                    .get(j)
+                    .is_some_and(|&s| line.abs_diff(s) <= context_reach)
+            };
+            close(i) || i.checked_sub(1).is_some_and(close)
+        };
         let mut rows: Vec<Row> = hits
             .matches
             .iter()
@@ -314,12 +325,7 @@ fn emit_plain(
         rows.extend(
             hits.contexts
                 .iter()
-                .filter(|c| {
-                    !shown.contains(&c.line_number)
-                        && shown
-                            .iter()
-                            .any(|&s| c.line_number.abs_diff(s) <= context_reach)
-                })
+                .filter(|c| shown.binary_search(&c.line_number).is_err() && near(c.line_number))
                 .map(|c| (c.line_number, Err(c))),
         );
         rows.sort_by_key(|(line, _)| *line);
