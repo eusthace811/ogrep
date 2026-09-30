@@ -50,6 +50,11 @@ impl PostOptions {
             || self.callers
     }
 
+    /// Whether matches are placed in their file's parsed structure.
+    pub fn parses(&self) -> bool {
+        self.scope || self.filters_matches()
+    }
+
     /// Whether --kind or --in picks among the matches.
     fn filters_matches(&self) -> bool {
         self.kind.is_some() || self.zone.is_some()
@@ -414,7 +419,7 @@ pub fn emit(
     post: &PostOptions,
     writer: &mut OutputWriter,
 ) -> Result<bool> {
-    let parses = post.scope || post.filters_matches();
+    let parses = post.parses();
     let mut inputs: Vec<(String, FileHits, PathBuf, usize)> = Vec::new();
     let mut caches: Vec<(Option<PathBuf>, Option<ogrep_core::facts::FactStore>)> = Vec::new();
     for c in captured {

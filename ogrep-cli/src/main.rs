@@ -1284,6 +1284,7 @@ impl Cli {
             glob_case_insensitive: self.glob_case_insensitive,
             all_spans: false,
             binary_lines: false,
+            offsets: false,
             only_paths: None,
             types: self.file_type.clone(),
             types_not: self.type_not.clone(),
@@ -1683,7 +1684,8 @@ fn run_cli() {
         // replaced line's matches are neither.
         (
             cli.replace.is_some() && post.active(),
-            "--replace cannot be combined with --rank, --scope, --kind, --in or --callers",
+            "--replace cannot be combined with --rank (or --budget, --per-file, --rank-cutoff, \
+             --explain-rank), --scope, --kind, --in or --callers",
         ),
     ];
     if let Some((_, message)) = shapes.iter().find(|(set, _)| *set) {
@@ -2343,6 +2345,9 @@ fn run_postprocessed_search(
     // file lists and counts are derived afterwards instead of during it.
     let inner = search::SearchOptions {
         sort: None,
+        // The structure is looked up where each match is, and JSON prints
+        // where it is.
+        offsets: post_opts.parses() || opts.json,
         ..opts.for_capture()
     };
     let mut capture = search::new_capturing_writer(&inner);

@@ -276,3 +276,36 @@ fn files_uses_the_live_server_filename_index() {
         "the client did not use the server's filename index: {listed:?}"
     );
 }
+
+#[test]
+fn reshaped_searches_through_the_server_place_matches_in_the_file() {
+    let temp = TempDir::new().unwrap();
+    let root = temp.path().join("repo");
+    let index = temp.path().join("index");
+    fs::create_dir_all(&root).unwrap();
+    fs::write(
+        root.join("d.rs"),
+        "fn alpha() {}\n\nfn beta() {\n    foo();\n}\nconst S: &str = \"foo\";\n",
+    )
+    .unwrap();
+    build_index(&root, &index);
+    let _server = start_server(&root, &index);
+    let run = |args: &[&str]| {
+        output_lines(
+            ogrep()
+                .args(args)
+                .arg(root.to_str().unwrap())
+                .args(["--index-path", index.to_str().unwrap()]),
+        )
+        .join("\n")
+    };
+    // Zones, definitions and scopes are looked up where each match is, which
+    // needs the server to send every row's offset.
+    assert!(run(&["--in", "strings", "foo"]).ends_with(r#"const S: &str = "foo";"#));
+    assert!(run(&["--kind", "def", "beta"]).ends_with("fn beta() {"));
+    let scoped = run(&["--scope", "foo"]);
+    assert!(scoped.contains("=3=fn beta() {"), "{scoped}");
+    assert!(!scoped.contains("alpha"), "{scoped}");
+    let ranked = run(&["--json", "--rank", "foo"]);
+    assert!(ranked.contains(r#""absolute_offset":27"#), "{ranked}");
+}

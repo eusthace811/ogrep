@@ -78,6 +78,8 @@ pub struct SearchOptions {
     /// that counts, filters or prints them as a plain search would) or only
     /// its note (for tools that want text lines).
     pub binary_lines: bool,
+    /// Whether a capture needs each match's offset in its file.
+    pub offsets: bool,
     /// `--changed-since`: search only these paths, relative to the search
     /// root. Set per path argument.
     pub only_paths: Option<std::sync::Arc<std::collections::HashSet<String>>>,
@@ -345,7 +347,7 @@ impl SearchOptions {
     /// JSON needs source offsets and exact line termination, just as explicit
     /// byte-offset and maximum-column output need their positional metadata.
     fn wants_position_detail(&self) -> bool {
-        self.json || self.byte_offset || self.max_columns.is_some()
+        self.json || self.byte_offset || self.max_columns.is_some() || self.offsets
     }
 
     /// `--only-matching` as the search should actually apply it.
