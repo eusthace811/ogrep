@@ -415,3 +415,44 @@ fn multi_document_manifests_and_cronjobs_are_read() {
         "{blast:?}"
     );
 }
+
+#[test]
+fn tool_flags_are_exclusive_and_parse_as_documented() {
+    use predicates::prelude::PredicateBooleanExt;
+    let dir = TempDir::new().unwrap();
+    let refused = [
+        &["--near", "--entities", "x"][..],
+        &["--blast", "-e", "api", "."],
+        &["-q", "--entities", "."],
+        &["--callers", "--kind", "def", "x"],
+        &["--history", "--multiline-dotall", "a.b", "."],
+    ];
+    for args in refused {
+        ogrep(dir.path()).args(args).assert().code(2).stderr(
+            predicates::str::contains("cannot be combined")
+                .or(predicates::str::contains("takes its subject")),
+        );
+    }
+    // --map takes its budget only as --map=N, so the pattern after it is a
+    // pattern: this fails for want of a graph, not as a bad --map value.
+    ogrep(dir.path())
+        .args(["--map", "Foo", "."])
+        .assert()
+        .code(2)
+        .stderr(predicates::str::contains("no file graph"));
+}
+
+#[test]
+fn binary_files_count_the_same_with_and_without_reshaping() {
+    let dir = TempDir::new().unwrap();
+    fs::write(dir.path().join("b.bin"), b"hello world\nhello\0x\nhello\n").unwrap();
+    for extra in [&[][..], &["--scope"], &["--rank"]] {
+        let out = stdout(
+            ogrep(dir.path())
+                .args(["--no-index", "-c"])
+                .args(extra)
+                .args(["hello", "b.bin"]),
+        );
+        assert_eq!(out, "3\n", "with {extra:?}");
+    }
+}

@@ -492,12 +492,9 @@ fn doc_drift(
 ) -> Result<bool> {
     let files = ogrep_core::history::ls_files(repo, false)?;
     // Release notes and changelogs name removed things on purpose.
-    // By file name, or a directory that holds only such notes: a name word
-    // elsewhere in the path (`docs/history/README.md`) is ordinary docs.
     let historical = |f: &str| {
         let l = f.to_ascii_lowercase();
-        let (dirs, name) = l.rsplit_once('/').unwrap_or(("", &l));
-        let by_name = [
+        [
             "release",
             "changelog",
             "changes",
@@ -508,18 +505,7 @@ fn doc_drift(
             "migrat",
         ]
         .iter()
-        .any(|k| name.contains(k));
-        let notes_dir = [
-            "releases",
-            "release-notes",
-            "releasenotes",
-            "changelog",
-            "changelogs",
-            "changes",
-            "newsfragments",
-            "migrations",
-        ];
-        by_name || dirs.split('/').any(|d| notes_dir.contains(&d))
+        .any(|k| l.contains(k))
     };
     let docs: Vec<&String> = files
         .iter()

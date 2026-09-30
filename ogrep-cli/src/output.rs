@@ -477,6 +477,11 @@ impl OutputWriter {
         self.total_matched_lines += matched_lines;
     }
 
+    /// Whether results are recorded rather than printed.
+    pub fn is_capturing(&self) -> bool {
+        self.capture.is_some()
+    }
+
     pub fn is_json(&self) -> bool {
         self.config.format == OutputFormat::Json
     }

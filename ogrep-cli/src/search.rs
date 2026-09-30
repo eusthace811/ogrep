@@ -635,9 +635,13 @@ pub fn captured_matches(
     opts: &SearchOptions,
     ci: bool,
 ) -> Result<Vec<crate::output::Match>> {
-    // Callers use the lines, not their spans.
+    // Callers use the lines, not their spans or anything that shapes output.
     let opts = SearchOptions {
         all_spans: false,
+        color: crate::output::ColorMode::Never,
+        column: false,
+        only_matching: false,
+        stats: false,
         ..opts.for_capture()
     };
     let mut capture = new_capturing_writer(&opts);
@@ -2522,9 +2526,10 @@ fn search_decoded_file(
     // Never dump raw binary to a terminal; ripgrep reports a note instead.
     // JSON has no such note — the matches are emitted normally and the offset
     // rides along on the `end` message — so only stop early for text output.
+    // A capture records the matches too: what it prints is decided later.
     if let Some(off) = binary_offset {
         writer.write_binary_note(rel_path, off)?;
-        if !writer.is_json() {
+        if !writer.is_json() && !writer.is_capturing() {
             return Ok(FileOutcome::Matched);
         }
     }

@@ -4,9 +4,11 @@
 //! numbers and durations in them. This groups lines the way Drain (He et al.,
 //! 2017) does: tokens that look variable (numbers, hex, UUIDs, IP addresses,
 //! paths with digits) are masked up front; lines with the same number of tokens
-//! and the same first token are compared position by position, and a line joins
-//! the first template it matches in at least [`SIMILARITY`] of its positions,
-//! turning the positions that differ into `<*>`.
+//! and the same first token are compared position by position. A line joins
+//! the template whose constant tokens it matches in the most positions (at
+//! least [`SIMILARITY`] of them; a template's `<*>` positions count for
+//! neither side, as in Drain), preferring the more general one on a tie, and
+//! the positions that differ become `<*>`.
 //!
 //! A leading timestamp (ISO 8601, with or without `T`, zone or fraction) is
 //! read, not templated, so each template knows when it was first and last seen.
@@ -154,15 +156,17 @@ impl Drain {
         }
         let key = (tokens.len(), tokens[0].clone());
         let slots = self.groups.entry(key).or_default();
-        // As in Drain: similarity counts equal tokens only, and the most
-        // similar template wins (then the one with more wildcards), not the
-        // first above the threshold.
+        // As in Drain: similarity counts equal constant tokens only (a
+        // template's `<*>` counts for neither side), and the most similar
+        // template wins, then the one with more wildcards.
         let best = slots
             .iter()
             .map(|&i| {
                 let t = &self.templates[i];
                 let pairs = || t.tokens.iter().zip(&tokens);
-                let same = pairs().filter(|(a, b)| a == b).count();
+                let same = pairs()
+                    .filter(|(a, b)| a == b && a.as_str() != WILDCARD)
+                    .count();
                 let wild = pairs().filter(|(a, _)| a.as_str() == WILDCARD).count();
                 (same, wild, i)
             })

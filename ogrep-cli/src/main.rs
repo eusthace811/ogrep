@@ -166,7 +166,14 @@ struct Cli {
     /// Print an outline (definition lines) of the files most related to what
     /// PATTERN matches, within about TOKENS tokens (default 1024). Needs
     /// `ogrep index --graph`.
-    #[arg(long = "map", value_name = "TOKENS", num_args = 0..=1, default_missing_value = "1024")]
+    // `--map=N` only: a bare value would swallow the pattern (`--map Foo .`).
+    #[arg(
+        long = "map",
+        value_name = "TOKENS",
+        num_args = 0..=1,
+        require_equals = true,
+        default_missing_value = "1024"
+    )]
     map: Option<usize>,
 
     /// List the definitions (functions, methods, ...) that use PATTERN, once
@@ -1117,8 +1124,12 @@ impl Cli {
     /// The `--rank` settings, when ranking was asked for (directly or through a
     /// flag that implies it).
     fn rank_options(&self) -> Option<rank::RankOptions> {
+        // --budget is the result count of --near, --related-tests, --similar
+        // and --similar-incidents; only elsewhere does it imply --rank.
+        let budget_is_rank =
+            !(self.near || self.related_tests || self.similar || self.similar_incidents);
         let wanted = self.rank
-            || self.budget.is_some()
+            || (self.budget.is_some() && budget_is_rank)
             || self.per_file.is_some()
             || self.rank_cutoff.is_some()
             || self.explain_rank;
@@ -1446,6 +1457,66 @@ fn run_cli() {
         eprintln!("ogrep: --at cannot be combined with --history, --introduced or --changed-since");
         process::exit(2);
     }
+    // Each tool answers its own question; two at once would silently run
+    // one of them.
+    let tools = [
+        (cli.history, "--history"),
+        (cli.introduced, "--introduced"),
+        (cli.near, "--near"),
+        (cli.map.is_some(), "--map"),
+        (cli.callees, "--callees"),
+        (cli.related_tests, "--related-tests"),
+        (cli.similar, "--similar"),
+        (cli.conflicts, "--conflicts"),
+        (cli.doc_drift, "--doc-drift"),
+        (cli.entities, "--entities"),
+        (cli.blast, "--blast"),
+        (cli.suspects, "--suspects"),
+        (cli.timeline, "--timeline"),
+        (cli.stack_trace, "--stack-trace"),
+        (cli.log_templates, "--log-templates"),
+        (cli.similar_incidents, "--similar-incidents"),
+        (cli.rank_fit.is_some(), "--rank-fit"),
+    ];
+    let chosen: Vec<&str> = tools.iter().filter(|t| t.0).map(|t| t.1).collect();
+    if let [first, second, ..] = chosen[..] {
+        eprintln!("ogrep: {first} cannot be combined with {second}");
+        process::exit(2);
+    }
+    // History has its own checks below; the other tools print their own
+    // results, so the search's reshaping and -q do not apply to them.
+    if let Some(&tool) = chosen
+        .first()
+        .filter(|t| !matches!(**t, "--history" | "--introduced"))
+    {
+        let post = cli.post_options();
+        let refused = [
+            (post.active(), "--rank, --scope, --kind, --in or --callers"),
+            (cli.quiet, "-q/--quiet"),
+        ];
+        if let Some((_, flags)) = refused.iter().find(|(set, _)| *set) {
+            eprintln!("ogrep: {tool} cannot be combined with {flags}");
+            process::exit(2);
+        }
+        // These take one name, path or service as the pattern argument.
+        let one_subject = [
+            "--callees",
+            "--related-tests",
+            "--similar",
+            "--blast",
+            "--suspects",
+            "--timeline",
+            "--stack-trace",
+            "--similar-incidents",
+        ];
+        if one_subject.contains(&tool) && cli.pattern_from_flags() {
+            eprintln!(
+                "ogrep: {tool} takes its subject as the pattern argument, not -e, -f or --ident"
+            );
+            process::exit(2);
+        }
+    }
+
     // --changed-since and --at narrow or move the files a search reads. The
     // graph, repository and operations tools gather their own inputs from
     // the working tree, so rather than ignore either silently they refuse it.
@@ -1529,7 +1600,7 @@ fn run_cli() {
             ),
             // A commit's changed lines are searched as one text: a multiline
             // match would span unrelated hunks and files.
-            (cli.multiline, "-U/--multiline"),
+            (cli.multiline || cli.multiline_dotall, "-U/--multiline"),
         ];
         if let Some((_, flag)) = conflicts.iter().find(|(set, _)| *set) {
             eprintln!("ogrep: --history cannot be combined with {flag}");
@@ -1553,7 +1624,9 @@ fn run_cli() {
             ),
         ];
         if let Some((_, flag)) = conflicts.iter().find(|(set, _)| *set) {
-            eprintln!("ogrep: --rank, --scope, --kind and --in cannot be combined with {flag}");
+            eprintln!(
+                "ogrep: --rank, --scope, --kind, --in and --callers cannot be combined with {flag}"
+            );
             process::exit(2);
         }
     }
@@ -1573,6 +1646,11 @@ fn run_cli() {
         (
             cli.callers && (cli.count || cli.count_matches || cli.files_only),
             "--callers cannot be combined with -c, --count-matches or -l",
+        ),
+        // --callers is the references of a name; --kind would be overridden.
+        (
+            cli.callers && cli.kind.is_some(),
+            "--callers cannot be combined with --kind",
         ),
     ];
     if let Some((_, message)) = shapes.iter().find(|(set, _)| *set) {
@@ -1720,6 +1798,10 @@ fn run_cli() {
                 let opts = cli.build_search_opts(String::new(), &resolved);
                 let paths = list_files_paths(&cli);
                 list_files(&cli, &paths, &opts)
+            } else if cli.conflicts && !cli.pattern_from_flags() {
+                // --conflicts takes no pattern: a positional is the path.
+                let paths: Vec<String> = cli.pattern.iter().chain(&cli.paths).cloned().collect();
+                run_search(&cli, ".".to_string(), &paths, &resolved)
             } else if cli.pattern.is_some() || cli.pattern_from_flags() {
                 let (pattern, paths) =
                     cli.split_pattern_and_paths(cli.pattern.as_ref(), &cli.paths);
@@ -1973,6 +2055,20 @@ fn run_search(
     } else {
         None
     };
+    // The repository and operations tools work on one path; more would be
+    // dropped without a word.
+    let one_root = extras_mode.is_some()
+        || cli.entities
+        || cli.blast
+        || cli.suspects
+        || cli.timeline
+        || cli.stack_trace
+        || cli.log_templates
+        || cli.similar_incidents;
+    if one_root && targets.len() > 1 {
+        eprintln!("ogrep: the repository and operations tools take one path at a time");
+        process::exit(2);
+    }
     if let Some(mode) = extras_mode {
         let root = targets
             .first()
@@ -2006,8 +2102,8 @@ fn run_search(
         None
     };
     if let Some(mode) = ops_mode {
-        // --log-templates searches its path arguments; the others work on the
-        // repository around the first one.
+        // --log-templates searches its path; the others work on the
+        // repository around it.
         let root = targets
             .first()
             .map_or_else(|| PathBuf::from("."), |t| t.path.clone());
