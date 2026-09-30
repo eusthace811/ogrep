@@ -104,8 +104,12 @@ impl FactStore {
             return Ok(());
         }
         let dir = store_dir(index_dir, name);
-        std::fs::create_dir_all(&dir)?;
-        remove_older_versions(index_dir, name);
+        if !dir.is_dir() {
+            std::fs::create_dir_all(&dir)?;
+            // This build's store is new: an upgrade. The earlier version's
+            // store is dead weight to it.
+            remove_older_versions(index_dir, name);
+        }
         let lock = std::fs::OpenOptions::new()
             .create(true)
             .truncate(false)
@@ -163,10 +167,12 @@ impl FactStore {
     }
 }
 
-/// Delete earlier versions of the store `name` (`structure-v1` next to
-/// `structure-v2`): nothing this build reads. Newer versions are left alone,
-/// since a newer ogrep may share the index. A listing of a few entries,
-/// beside the fsync every put does anyway.
+/// Delete earlier versions of the store `name` (`structure-v1` when
+/// `structure-v2` is created): nothing this build reads. Each is deleted
+/// under its own lock, so an older build writing to it finishes first.
+/// Newer versions are left alone, since a newer ogrep may share the index; an
+/// older build that later recreates its store keeps it, rather than the two
+/// deleting each other's caches in turn.
 fn remove_older_versions(index_dir: &Path, name: &str) {
     let version = |n: &str| {
         let (stem, v) = n.rsplit_once("-v")?;
@@ -182,7 +188,12 @@ fn remove_older_versions(index_dir: &Path, name: &str) {
         let older = version(&entry.file_name().to_string_lossy())
             .is_some_and(|(s, v)| s == stem && v < current);
         if older {
-            let _ = std::fs::remove_dir_all(entry.path());
+            let path = entry.path();
+            let lock = std::fs::File::open(path.join("lock")).ok();
+            if let Some(lock) = &lock {
+                let _ = lock_exclusive(lock);
+            }
+            let _ = std::fs::remove_dir_all(&path);
         }
     }
 }
@@ -196,22 +207,34 @@ mod tests {
     use super::*;
 
     #[test]
-    fn a_put_removes_older_versions_of_its_store_only() {
+    fn creating_a_store_removes_older_versions_of_it_only() {
         let dir = tempfile::tempdir().unwrap();
+        let facts = dir.path().join("facts");
+        let stores = || {
+            let mut left: Vec<String> = std::fs::read_dir(&facts)
+                .unwrap()
+                .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
+                .collect();
+            left.sort();
+            left
+        };
         for store in ["structure-v1", "structure-v3", "other-v1", "structure-vx"] {
-            std::fs::create_dir_all(dir.path().join("facts").join(store)).unwrap();
+            std::fs::create_dir_all(facts.join(store)).unwrap();
         }
-        let id = ContentId::from_indexed_bytes(b"x");
-        FactStore::put(dir.path(), "structure-v2", vec![(id, b"payload".to_vec())]).unwrap();
-        let mut left: Vec<String> = std::fs::read_dir(dir.path().join("facts"))
-            .unwrap()
-            .map(|e| e.unwrap().file_name().to_string_lossy().into_owned())
-            .collect();
-        left.sort();
+        let put = |bytes: &[u8]| {
+            let id = ContentId::from_indexed_bytes(bytes);
+            FactStore::put(dir.path(), "structure-v2", vec![(id, bytes.to_vec())]).unwrap();
+        };
+        put(b"first");
         assert_eq!(
-            left,
+            stores(),
             ["other-v1", "structure-v2", "structure-v3", "structure-vx"]
         );
+        // An older build recreating its store later keeps it: deleting on
+        // every put would have two builds wipe each other's caches in turn.
+        std::fs::create_dir_all(facts.join("structure-v1")).unwrap();
+        put(b"second");
+        assert!(stores().contains(&"structure-v1".to_string()));
     }
 
     #[test]

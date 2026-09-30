@@ -663,32 +663,42 @@ type Changed = Option<std::collections::HashSet<String>>;
 /// `--changed-since` for one invocation: the files changed since a point,
 /// asked of git once per repository however many path arguments share it.
 pub struct ChangedSets {
-    since: String,
+    since: Option<String>,
     by_repo: std::collections::HashMap<std::path::PathBuf, Changed>,
 }
 
 impl ChangedSets {
-    /// For `since` (a revision, or a date or duration as for `--since`);
-    /// unused when `None`.
+    /// For `since` (a revision, or a date or duration as for `--since`), or
+    /// for no restriction at all when `None`.
     pub fn new(since: Option<&str>) -> Self {
         Self {
-            since: since.unwrap_or_default().to_string(),
+            since: since.map(String::from),
             by_repo: Default::default(),
         }
+    }
+
+    /// Whether `--changed-since` was given.
+    pub fn is_active(&self) -> bool {
+        self.since.is_some()
     }
 
     /// Files changed since the point, relative to `root`: every tracked file
     /// that differs between it and the working tree, including uncommitted
     /// changes, plus untracked files that are not ignored. `None` when the
-    /// point predates the history, so every file counts as changed.
+    /// point predates the history, so every file counts as changed, or when
+    /// there is no restriction.
     pub fn under(&mut self, root: &Path) -> Result<Option<std::collections::HashSet<String>>> {
-        let repo =
-            history::repo_root(root).map_err(|e| anyhow::anyhow!("needs a git repository: {e}"))?;
-        if !self.by_repo.contains_key(&repo) {
-            let changed = changed_in_repo(&repo, &self.since)?;
-            self.by_repo.insert(repo.clone(), changed);
-        }
-        let Some(changed) = &self.by_repo[&repo] else {
+        let Some(since) = &self.since else {
+            return Ok(None);
+        };
+        let repo = history::repo_root(root).context("needs a git repository")?;
+        let changed = match self.by_repo.entry(repo.clone()) {
+            std::collections::hash_map::Entry::Occupied(e) => e.into_mut(),
+            std::collections::hash_map::Entry::Vacant(e) => {
+                e.insert(changed_in_repo(&repo, since)?)
+            }
+        };
+        let Some(changed) = changed else {
             return Ok(None);
         };
         let prefix = scope_prefix(&repo, root);

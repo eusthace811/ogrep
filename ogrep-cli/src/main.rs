@@ -1772,7 +1772,7 @@ fn list_files(cli: &Cli, paths: &[String], opts: &search::SearchOptions) -> anyh
             continue;
         }
         opts.path_display = target.display();
-        let restricted = restrict_to_changed(cli, &mut changed, &opts, &target.path);
+        let restricted = restrict_to_changed(&mut changed, &opts, &target.path);
         search::list_files(
             &target.path,
             cli.index_path.as_deref(),
@@ -1816,12 +1816,13 @@ fn exit_with(result: anyhow::Result<bool>) -> ! {
 /// changed since the given revision or time (`None` when the flag is absent).
 /// Exits on a git error, like any other argument error.
 fn restrict_to_changed(
-    cli: &Cli,
     changed: &mut history_search::ChangedSets,
     opts: &search::SearchOptions,
     target: &Path,
 ) -> Option<search::SearchOptions> {
-    cli.changed_since.as_ref()?;
+    if !changed.is_active() {
+        return None;
+    }
     // A named file is searched whole or not at all: ask about its directory.
     let (dir, file) = match target.file_name() {
         Some(name) if target.is_file() => (
@@ -2002,7 +2003,7 @@ fn run_search(
             continue;
         }
         writer.set_path_display(target.display());
-        let restricted = restrict_to_changed(cli, &mut changed, &opts, &target.path);
+        let restricted = restrict_to_changed(&mut changed, &opts, &target.path);
         let result = search::run(
             &target.path,
             cli.index_path.as_deref(),
@@ -2171,7 +2172,7 @@ fn run_postprocessed_search(
         }
         let display = target.display();
         capture.set_path_display(display.clone());
-        let restricted = restrict_to_changed(cli, &mut changed, &inner, &target.path);
+        let restricted = restrict_to_changed(&mut changed, &inner, &target.path);
         if let Err(e) = search::run(
             &target.path,
             cli.index_path.as_deref(),
