@@ -87,14 +87,8 @@ struct Cli {
     #[arg(short = 'v', long = "invert-match", global = true)]
     invert_match: bool,
 
-    /// Additional patterns (can be specified multiple times). As in ripgrep,
-    /// the value may start with `-`: `-e -x` searches for "-x".
-    #[arg(
-        short = 'e',
-        long = "regexp",
-        global = true,
-        allow_hyphen_values = true
-    )]
+    /// Additional patterns (can be specified multiple times).
+    #[arg(short = 'e', long = "regexp", global = true)]
     regexp: Vec<String>,
 
     /// Read patterns from FILE, one per line; `-` reads standard input
@@ -333,11 +327,11 @@ struct Cli {
     ///
     /// With an index, globs filter the indexed corpus. Use --no-index to let
     /// positive globs reinclude ignored files.
-    #[arg(short = 'g', long = "glob", global = true, action = clap::ArgAction::Append, allow_hyphen_values = true)]
+    #[arg(short = 'g', long = "glob", global = true, action = clap::ArgAction::Append)]
     glob: Vec<String>,
 
     /// Like --glob, but case-insensitive.
-    #[arg(long = "iglob", global = true, action = clap::ArgAction::Append, allow_hyphen_values = true)]
+    #[arg(long = "iglob", global = true, action = clap::ArgAction::Append)]
     iglob: Vec<String>,
 
     /// Treat all --glob patterns as case-insensitive.
@@ -531,13 +525,7 @@ struct Cli {
     dfa_size_limit: Option<String>,
 
     /// Replace each match with TEXT. Capture groups are available as $1, ${name}.
-    #[arg(
-        short = 'r',
-        long = "replace",
-        value_name = "TEXT",
-        global = true,
-        allow_hyphen_values = true
-    )]
+    #[arg(short = 'r', long = "replace", value_name = "TEXT", global = true)]
     replace: Option<String>,
 
     /// Print both matching and non-matching lines.
@@ -981,7 +969,20 @@ impl Cli {
         I: IntoIterator<Item = T>,
         T: Into<std::ffi::OsString> + Clone,
     {
-        let mut command = Self::command();
+        // ripgrep takes the next argument as a flag's value whatever it
+        // starts with (`-e -x`, `--without -debug`, `-r -`), so every flag that
+        // requires a value does too. Flags whose value is optional (`--map`)
+        // keep clap's rule, or they would swallow the flag after them.
+        let mut command = Self::command().mut_args(|arg| {
+            let requires_value = !arg.is_positional()
+                && arg.get_action().takes_values()
+                && arg.get_num_args().is_none_or(|n| n.min_values() > 0);
+            if requires_value {
+                arg.allow_hyphen_values(true)
+            } else {
+                arg
+            }
+        });
         let matches = command.try_get_matches_from_mut(args)?;
         // Clap conflicts are unconditional; this one depends on the mode's
         // value and must not treat the inherited budget as an explicit flag.

@@ -119,7 +119,12 @@ fn flag_values_may_start_with_a_dash() {
         .assert()
         .success()
         .stdout(predicate::str::contains("-dash.txt"))
-        .stdout(predicate::str::contains("notes.txt").not());
+        .stdout(predicate::str::contains("notes.txt").not()); // Every flag that takes a value, not only ripgrep's own.
+    ogrep()
+        .args(["--no-index", "-l", "--without", "-v", "-e", "note", root])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("notes.txt"));
 }
 
 #[test]
