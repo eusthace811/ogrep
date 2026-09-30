@@ -156,7 +156,13 @@ impl Drain {
         let slots = self.groups.entry(key).or_default();
         for &i in slots.iter() {
             let t = &mut self.templates[i];
-            let same = t.tokens.iter().zip(&tokens).filter(|(a, b)| a == b).count();
+            // A position the template already generalised matches anything.
+            let same = t
+                .tokens
+                .iter()
+                .zip(&tokens)
+                .filter(|(a, b)| a == b || a.as_str() == WILDCARD)
+                .count();
             if same as f64 / tokens.len() as f64 >= SIMILARITY {
                 for (a, b) in t.tokens.iter_mut().zip(&tokens) {
                     if a != b {
@@ -196,6 +202,22 @@ impl Drain {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn generalised_positions_match_any_token() {
+        let mut drain = Drain::default();
+        for (i, line) in ["A b c d", "A b e f", "A g h i"].iter().enumerate() {
+            drain.add("app.log", i + 1, line);
+        }
+        let templates = drain.sorted();
+        assert_eq!(
+            templates.len(),
+            1,
+            "{:?}",
+            templates.iter().map(|t| t.text()).collect::<Vec<_>>()
+        );
+        assert_eq!(templates[0].count, 3);
+    }
 
     #[test]
     fn timestamps_parse_with_zones_and_fractions() {

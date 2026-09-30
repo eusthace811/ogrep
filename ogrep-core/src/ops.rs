@@ -397,9 +397,18 @@ impl Builder<'_> {
             let line = find_line(&lines, 0, lines.len(), &format!("name: {name}")).unwrap_or(1);
             self.entity("service", name, file, line);
             let mut env_refs = Vec::new();
+            // A pod spec sits at spec (Pod), spec.template.spec (Deployment
+            // and the like) or spec.jobTemplate.spec.template.spec (CronJob).
+            fn pod(s: &serde_yaml::Value) -> Option<&serde_yaml::Value> {
+                let s = s
+                    .get("jobTemplate")
+                    .and_then(|j| j.get("spec"))
+                    .unwrap_or(s);
+                s.get("template").and_then(|t| t.get("spec")).or(Some(s))
+            }
             let containers = doc
                 .get("spec")
-                .and_then(|s| s.get("template").and_then(|t| t.get("spec")).or(Some(s)))
+                .and_then(pod)
                 .and_then(|s| s.get("containers"))
                 .and_then(|c| c.as_sequence())
                 .cloned()
@@ -475,12 +484,14 @@ impl Builder<'_> {
         }
     }
 
-    fn prometheus(&mut self, file: &str, text: &str) {
+    /// Read a Prometheus rules file; false when `text` is not one (a
+    /// multi-document manifest that merely mentions `groups:` and `alert:`).
+    fn prometheus(&mut self, file: &str, text: &str) -> bool {
         let Ok(doc) = serde_yaml::from_str::<serde_yaml::Value>(text) else {
-            return;
+            return false;
         };
         let Some(groups) = doc.get("groups").and_then(|g| g.as_sequence()) else {
-            return;
+            return false;
         };
         let lines: Vec<&str> = text.lines().collect();
         let label =
@@ -513,6 +524,7 @@ impl Builder<'_> {
                 }
             }
         }
+        true
     }
 }
 
@@ -538,8 +550,7 @@ pub fn scan(root: &Path, paths: &[String]) -> OpsModel {
             b.compose(path, &text, &mut services_seen);
         } else if file_name(path).starts_with("catalog-info") {
             b.backstage(path, &text);
-        } else if text.contains("groups:") && text.contains("alert:") {
-            b.prometheus(path, &text);
+        } else if text.contains("groups:") && text.contains("alert:") && b.prometheus(path, &text) {
         } else if text.contains("kind:") && text.contains("apiVersion:") {
             b.kubernetes(path, &text, &mut services_seen);
         }

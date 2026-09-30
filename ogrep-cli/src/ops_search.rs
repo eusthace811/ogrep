@@ -467,18 +467,20 @@ fn emitter(repo: &Path, constant: &str) -> Option<(String, usize, String)> {
         let prose = [
             ".log:", ".txt:", ".md:", ".rst:", ".adoc:", ".html:", ".po:",
         ];
-        let found = text
-            .lines()
-            .filter(|l| !prose.iter().any(|p| l.contains(p)))
-            .find_map(|l| {
-                let mut parts = l.splitn(3, ':');
-                let (path, line, text) = (parts.next()?, parts.next()?, parts.next()?);
-                Some((
-                    path.to_string(),
-                    line.parse().ok()?,
-                    text.trim().to_string(),
-                ))
-            });
+        // By path only: the code line itself may well say "report.txt: ...".
+        let found = text.lines().find_map(|l| {
+            let mut parts = l.splitn(3, ':');
+            let (path, line, text) = (parts.next()?, parts.next()?, parts.next()?);
+            let as_prose = format!("{path}:");
+            if prose.iter().any(|p| as_prose.ends_with(p)) {
+                return None;
+            }
+            Some((
+                path.to_string(),
+                line.parse().ok()?,
+                text.trim().to_string(),
+            ))
+        });
         if found.is_some() {
             return found;
         }

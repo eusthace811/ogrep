@@ -402,3 +402,16 @@ fn shapes_that_would_be_ignored_are_refused() {
             .stderr(predicates::str::contains("cannot be combined"));
     }
 }
+
+#[test]
+fn multi_document_manifests_and_cronjobs_are_read() {
+    let manifest = "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: checkout\nspec:\n  template:\n    spec:\n      containers:\n        - name: c\n          env:\n            - name: CART_URL\n              value: http://cart:7070\n---\napiVersion: v1\nkind: Service\nmetadata:\n  name: cart\n---\napiVersion: batch/v1\nkind: CronJob\nmetadata:\n  name: nightly-sync\nspec:\n  jobTemplate:\n    spec:\n      template:\n        spec:\n          containers:\n            - name: j\n              env:\n                - name: CART_URL\n                  value: http://cart:7070\n---\napiVersion: monitoring.coreos.com/v1\nkind: PrometheusRule\nmetadata:\n  name: rules\nspec:\n  groups:\n    - name: g\n      rules:\n        - alert: CartDown\n          expr: up{job=\"cart\"} == 0\n";
+    let dir = repo(&[("deploy/all.yaml", manifest)]);
+    let entities = stdout(ogrep(dir.path()).args(["--entities", "."]));
+    assert!(entities.contains("checkout"), "{entities:?}");
+    let blast = stdout(ogrep(dir.path()).args(["--blast", "cart"]));
+    assert!(
+        blast.contains("checkout") && blast.contains("nightly-sync"),
+        "{blast:?}"
+    );
+}

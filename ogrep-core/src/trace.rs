@@ -27,7 +27,8 @@ pub fn frames(trace: &str) -> Vec<Frame> {
         // Java / Kotlin / Scala: at a.b.C.m(C.java:12)
         Regex::new(r"at ([\w$.<>]+)\(([\w$.-]+\.(?:java|kt|scala|groovy)):(\d+)\)").unwrap(),
         // JavaScript / TypeScript: at fn (path:12:3)  or  at path:12:3
-        Regex::new(r"at (?:(\S+) \()?((?:[A-Za-z]:)?[^\s():]+\.(?:js|mjs|cjs|ts|tsx|jsx)):(\d+)(?::\d+)?\)?").unwrap(),
+        // (also `at async fn (...)`, `at new Foo (...)` and file:// URLs)
+        Regex::new(r"at (?:(?:async |new )?(\S+) \()?(?:file://)?((?:[A-Za-z]:)?[^\s():]+\.(?:js|mjs|cjs|ts|tsx|jsx)):(\d+)(?::\d+)?\)?").unwrap(),
         // Generic path:line[:col] (Go, Rust, C, Ruby, PHP, compilers)
         Regex::new(r"((?:[A-Za-z]:)?[\w./\\-]+\.(?:go|rs|c|cc|cpp|h|hpp|rb|php|py|cs|swift|m|mm|ex|exs|erl|clj|lua|pl)):(\d+)").unwrap(),
     ];
@@ -110,6 +111,26 @@ pub fn resolve<'p>(raw: &str, paths: &'p [String]) -> Option<&'p str> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn javascript_async_and_constructor_frames_are_read() {
+        let trace = "Error: boom\n    at async handler (/app/src/api/routes.ts:12:7)\n    at new Cart (file:///app/src/cart.js:5:3)\n";
+        let found: Vec<(String, usize, Option<String>)> = frames(trace)
+            .into_iter()
+            .map(|f| (f.raw_path, f.line, f.function))
+            .collect();
+        assert_eq!(
+            found,
+            [
+                (
+                    "/app/src/api/routes.ts".to_string(),
+                    12,
+                    Some("handler".to_string())
+                ),
+                ("/app/src/cart.js".to_string(), 5, Some("Cart".to_string())),
+            ]
+        );
+    }
 
     #[test]
     fn parses_common_frame_formats() {

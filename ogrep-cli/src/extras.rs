@@ -53,9 +53,12 @@ fn repo_relative(repo: &Path, arg: &str) -> String {
         .unwrap_or_else(|_| arg.trim_start_matches("./").to_string())
 }
 
+/// A file name without extensions (`query` for `query.test.ts`); a dotfile
+/// keeps its name (`.eslintrc` for `.eslintrc.js`), never an empty stem.
 fn stem(path: &str) -> &str {
     let name = path.rsplit('/').next().unwrap_or(path);
-    name.split('.').next().unwrap_or(name)
+    let dot = name.char_indices().skip(1).find(|&(_, c)| c == '.');
+    dot.map_or(name, |(i, _)| &name[..i])
 }
 
 // ---------------------------------------------------------------- tests
@@ -288,12 +291,15 @@ fn similar(repo: &Path, idx: &Path, opts: &SearchOptions, out: &mut impl Write) 
         }
     }
     let need = idents.len().clamp(1, 2);
-    let mut candidates: Vec<String> = hits
+    // Most shared identifiers first (then by path, for a stable order), so the
+    // cap below keeps the likeliest near-duplicates, not the first by name.
+    let mut candidates: Vec<(usize, String)> = hits
         .into_iter()
         .filter(|(_, n)| *n >= need)
-        .map(|(p, _)| p)
+        .map(|(p, n)| (n, p))
         .collect();
-    candidates.sort();
+    candidates.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
+    let candidates: Vec<String> = candidates.into_iter().map(|(_, p)| p).collect();
     let span = end + 1 - start;
     let mut found: Vec<(f64, String, usize, usize, String)> = Vec::new();
     for path in candidates.iter().take(2000) {
@@ -387,11 +393,11 @@ fn hunks(repo: &Path, from: &str, to: Option<&str>) -> Result<BTreeMap<String, V
             let old = rest.split(' ').next().unwrap_or("0");
             let (s, n) = old.split_once(',').map_or((old, "1"), |(s, n)| (s, n));
             let (s, n): (u32, u32) = (s.parse().unwrap_or(0), n.parse().unwrap_or(1));
-            let end = s + n.max(1) - 1;
+            // An insertion (n = 0) sits after line s: line 0 at the top.
+            let start = s.max(1);
+            let end = (s + n.max(1) - 1).max(start);
             if !file.is_empty() {
-                out.entry(file.clone())
-                    .or_default()
-                    .push((s.max(1), end.max(s)));
+                out.entry(file.clone()).or_default().push((start, end));
             }
         }
     }
@@ -411,13 +417,19 @@ fn conflicts(repo: &Path, opts: &SearchOptions, out: &mut impl Write) -> Result<
     .filter(|b| *b != current)
     .collect();
     let mut any = false;
+    let mut ours_by_base: BTreeMap<String, BTreeMap<String, Vec<(u32, u32)>>> = BTreeMap::new();
     for branch in branches {
         let Ok(base) = git_output(repo, &["merge-base", "HEAD", &branch]) else {
             continue;
         };
-        let base = base.trim();
-        // Ours: committed since the base plus uncommitted edits.
-        let ours = hunks(repo, base, None)?;
+        let base = base.trim().to_string();
+        // Ours: committed since the base plus uncommitted edits. Branches
+        // usually share a base, so it is computed once per base.
+        if !ours_by_base.contains_key(&base) {
+            ours_by_base.insert(base.clone(), hunks(repo, &base, None)?);
+        }
+        let ours = &ours_by_base[&base];
+        let base = base.as_str();
         let theirs = hunks(repo, base, Some(&branch))?;
         for (file, theirs_ranges) in &theirs {
             let Some(ours_ranges) = ours.get(file) else {
@@ -480,8 +492,9 @@ fn doc_drift(
 ) -> Result<bool> {
     let files = ogrep_core::history::ls_files(repo, false)?;
     // Release notes and changelogs name removed things on purpose.
+    // By file name: `docs/history/README.md` is ordinary documentation.
     let historical = |f: &str| {
-        let l = f.to_ascii_lowercase();
+        let l = f.rsplit('/').next().unwrap_or(f).to_ascii_lowercase();
         [
             "release",
             "changelog",
