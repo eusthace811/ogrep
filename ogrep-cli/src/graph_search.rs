@@ -20,23 +20,7 @@ pub enum Mode {
     Callees,
 }
 
-fn kind_name(kind: u8) -> &'static str {
-    [
-        "function",
-        "method",
-        "class",
-        "interface",
-        "module",
-        "macro",
-        "constant",
-        "type",
-        "impl",
-        "other",
-    ]
-    .get(usize::from(kind))
-    .copied()
-    .unwrap_or("other")
-}
+use ogrep_core::graph::kind_name;
 
 /// Every matching line as (path relative to the index root, line number).
 fn matched_lines(

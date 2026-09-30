@@ -42,6 +42,8 @@ const MAX_FILE: u64 = 4 << 20;
 #[derive(Clone, Debug, PartialEq)]
 pub struct Def {
     pub file: u32,
+    /// A symbol kind, by position in the structure module's order; see
+    /// [`kind_name`].
     pub kind: u8,
     pub name: String,
     pub line: u32,
@@ -104,6 +106,25 @@ fn identifiers(text: &[u8], skip: &dyn Fn(usize) -> bool) -> Vec<String> {
 struct Scanned {
     defs: Vec<Def>,
     idents: Vec<String>,
+}
+
+/// The name of a [`Def::kind`], as `SymbolKind` serialises it ("function",
+/// "class", ...). Kept here, outside the parser-gated structure module, so
+/// readers built without the parsers can name kinds too.
+pub fn kind_name(kind: u8) -> &'static str {
+    const NAMES: &[&str] = &[
+        "function",
+        "method",
+        "class",
+        "interface",
+        "module",
+        "macro",
+        "constant",
+        "type",
+        "impl",
+        "other",
+    ];
+    NAMES.get(usize::from(kind)).copied().unwrap_or("other")
 }
 
 /// A newly parsed structure for the fact cache.

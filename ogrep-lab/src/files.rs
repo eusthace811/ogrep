@@ -22,24 +22,7 @@ fn require_graph(ws: &Workspace) -> Result<Arc<GraphView>> {
 /// Files larger than this are shown truncated.
 const MAX_SHOWN: usize = 2 << 20;
 
-pub fn kind_name(kind: u8) -> &'static str {
-    // The order of `ogrep_core::structure`'s kinds, as ogrep prints them.
-    [
-        "function",
-        "method",
-        "class",
-        "interface",
-        "module",
-        "macro",
-        "constant",
-        "type",
-        "impl",
-        "other",
-    ]
-    .get(usize::from(kind))
-    .copied()
-    .unwrap_or("other")
-}
+use ogrep_core::graph::kind_name;
 
 /// The entries of one directory: subdirectories with their file counts, then
 /// files.

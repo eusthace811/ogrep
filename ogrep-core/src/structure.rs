@@ -568,6 +568,15 @@ mod tests {
     use super::*;
 
     #[test]
+    fn graph_kind_names_follow_symbol_kinds() {
+        for (i, kind) in KINDS.iter().enumerate() {
+            assert_eq!(*kind as usize, i, "KINDS is in SymbolKind order");
+            let name = serde_json::to_value(kind).unwrap();
+            assert_eq!(crate::graph::kind_name(i as u8), name.as_str().unwrap());
+        }
+    }
+
+    #[test]
     fn rust_symbols_nest_and_zones_are_found() {
         let src = br#"// top comment
 pub struct QuerySet { n: u32 }
