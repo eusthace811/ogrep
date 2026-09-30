@@ -113,6 +113,21 @@ fn date(time: i64) -> String {
     format!("{y:04}-{m:02}-{d:02}")
 }
 
+/// The index holding the history: the nearest `.ogrep` with one, from the
+/// searched path up to the repository root, else the root's. History covers
+/// the whole repository with repository-relative paths, whichever directory
+/// `ogrep index --history` was given.
+fn history_index_dir(search_root: &Path, repo: &Path) -> std::path::PathBuf {
+    let canonical = |p: &Path| std::fs::canonicalize(p).unwrap_or_else(|_| p.to_path_buf());
+    let (start, repo) = (canonical(search_root), canonical(repo));
+    start
+        .ancestors()
+        .take_while(|dir| dir.starts_with(&repo))
+        .map(ogrep_core::builder::default_index_dir)
+        .find(|dir| history::has_history(dir))
+        .unwrap_or_else(|| ogrep_core::builder::default_index_dir(&repo))
+}
+
 /// Author and subject for each commit, from one `git log --no-walk`.
 fn describe(root: &Path, commits: &mut [CommitHits]) -> Result<()> {
     if commits.is_empty() {
@@ -185,7 +200,7 @@ pub fn run(
         .map_err(|e| anyhow::anyhow!("--history needs a git repository: {e}"))?;
     let index_dir = index_path
         .map(Path::to_path_buf)
-        .unwrap_or_else(|| ogrep_core::builder::default_index_dir(&repo));
+        .unwrap_or_else(|| history_index_dir(search_root, &repo));
     let hist = HistoryIndex::open(&index_dir).map_err(|_| {
         anyhow::anyhow!(
             "no history index in {}; build it with `ogrep index --history`",

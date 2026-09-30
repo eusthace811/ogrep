@@ -59,7 +59,9 @@ fn repo(steps: &[(&str, &str)]) -> TempDir {
     };
     git(&["init", "-q", "-b", "main"]);
     for (i, (path, text)) in steps.iter().enumerate() {
-        fs::write(dir.path().join(path), text).unwrap();
+        let file = dir.path().join(path);
+        fs::create_dir_all(file.parent().unwrap()).unwrap();
+        fs::write(file, text).unwrap();
         git(&["add", "."]);
         git(&["commit", "-q", "-m", &format!("step {i}")]);
     }
@@ -180,4 +182,16 @@ fn stack_trace_scopes_are_right_in_crlf_files() {
     .unwrap();
     let out = stdout(ogrep(dir.path()).args(["--stack-trace", "trace.txt"]));
     assert!(out.contains("[second]"), "{out:?}");
+}
+
+#[test]
+fn history_is_found_where_index_history_put_it() {
+    let dir = repo(&[("top.txt", "needle_x\n"), ("sub/f.txt", "needle_x\n")]);
+    ogrep(dir.path())
+        .args(["index", "--history", "sub"])
+        .assert()
+        .success();
+
+    let out = stdout(ogrep(dir.path()).args(["--history", "needle_x", "sub"]));
+    assert!(out.contains("sub/f.txt:1:+needle_x"), "{out:?}");
 }

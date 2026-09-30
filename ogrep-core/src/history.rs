@@ -208,6 +208,11 @@ pub fn history_dir(index_dir: &Path) -> PathBuf {
     index_dir.join(HISTORY_DIR)
 }
 
+/// Whether `index_dir` holds a history index (cheap: one file check).
+pub fn has_history(index_dir: &Path) -> bool {
+    history_dir(index_dir).join(META_FILE).is_file()
+}
+
 /// `git -C ROOT` with paths printed unquoted (non-ASCII names come back as
 /// UTF-8, not `"caf\303\251"`), no colour and no standard input. Every git
 /// call ogrep makes starts here.
