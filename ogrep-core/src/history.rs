@@ -443,7 +443,7 @@ struct DiffParser {
 /// Decode a path from a `---`/`+++` header, which git quotes when it holds
 /// special characters. An unquoted path with a space is followed by a tab
 /// (so tools can find its end); a real tab in a name would have been quoted.
-fn header_path(raw: &[u8], prefix: &[u8]) -> Option<String> {
+pub fn header_path(raw: &[u8], prefix: &[u8]) -> Option<String> {
     let text = String::from_utf8_lossy(raw);
     let text = text.strip_suffix('\t').unwrap_or(&text);
     if text == "/dev/null" {

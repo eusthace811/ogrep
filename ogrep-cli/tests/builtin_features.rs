@@ -227,3 +227,29 @@ fn doc_drift_filters_names_with_the_search_options() {
     let out = stdout(ogrep(dir.path()).args(["--doc-drift", "-i", "PARSE_HEADER"]));
     assert!(out.contains("Parse_Header"), "{out:?}");
 }
+
+#[test]
+fn conflicts_name_files_with_spaces_cleanly() {
+    let dir = repo(&[("x y.txt", "l1\nl2\nl3\n")]);
+    let run = |args: &[&str]| {
+        let ok = std::process::Command::new("git")
+            .current_dir(dir.path())
+            .args(["-c", "user.name=t", "-c", "user.email=t@t"])
+            .args(args)
+            .status()
+            .unwrap()
+            .success();
+        assert!(ok, "git {args:?}");
+    };
+    run(&["checkout", "-qb", "other"]);
+    fs::write(dir.path().join("x y.txt"), "l1\nOTHER\nl3\n").unwrap();
+    run(&["commit", "-qam", "other"]);
+    run(&["checkout", "-q", "main"]);
+    run(&["checkout", "-qb", "mine"]);
+    fs::write(dir.path().join("x y.txt"), "l1\nMINE\nl3\n").unwrap();
+    run(&["commit", "-qam", "mine"]);
+
+    let out = stdout(ogrep(dir.path()).args(["--conflicts", "."]));
+    assert!(out.contains("other: x y.txt  overlapping"), "{out:?}");
+    assert!(!out.contains('\t'), "{out:?}");
+}

@@ -373,13 +373,18 @@ fn hunks(repo: &Path, from: &str, to: Option<&str>) -> Result<BTreeMap<String, V
     let diff = git(repo, &args)?;
     let mut out: BTreeMap<String, Vec<(u32, u32)>> = BTreeMap::new();
     let mut file = String::new();
+    let path = |raw: &str, side: &[u8]| {
+        ogrep_core::history::header_path(raw.as_bytes(), side).unwrap_or_default()
+    };
     for line in diff.lines() {
-        if let Some(p) = line.strip_prefix("--- a/") {
-            file = p.to_string();
-        } else if let Some(p) = line.strip_prefix("+++ b/")
+        // The old path names the file; a new file's is /dev/null, so its
+        // new path does.
+        if let Some(raw) = line.strip_prefix("--- ") {
+            file = path(raw, b"a/");
+        } else if let Some(raw) = line.strip_prefix("+++ ")
             && file.is_empty()
         {
-            file = p.to_string();
+            file = path(raw, b"b/");
         } else if line.starts_with("diff --git ") {
             file.clear();
         } else if let Some(rest) = line.strip_prefix("@@ -") {
