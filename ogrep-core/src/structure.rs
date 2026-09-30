@@ -459,6 +459,34 @@ fn definition<'t>(
     }
 }
 
+/// A new fact-cache entry: content id and encoded structure.
+pub type NewFact = (crate::meta::ContentId, Vec<u8>);
+
+/// `path`'s structure: from `cache` when this exact text was parsed before by
+/// the same grammar, otherwise parsed now, with the entry to add to the cache
+/// (only when there is a cache). Content alone does not decide: the same
+/// bytes in `util.js` and `util.ts` parse differently.
+pub fn analyze_cached(
+    path: &str,
+    text: &[u8],
+    cache: Option<&crate::facts::FactStore>,
+) -> (Option<FileStructure>, Option<NewFact>) {
+    let Some(grammar) = grammar_for(path) else {
+        return (None, None);
+    };
+    let id = crate::meta::ContentId::from_indexed_bytes(text);
+    if let Some(found) = cache
+        .and_then(|c| c.get(&id))
+        .and_then(FileStructure::decode)
+        .filter(|f| f.language == grammar.name)
+    {
+        return (Some(found), None);
+    }
+    let parsed = analyze(path, text);
+    let fact = cache.and(parsed.as_ref()).map(|p| (id, p.encode()));
+    (parsed, fact)
+}
+
 /// Analyse a file's text. `None` for an unsupported language or unparsable
 /// input.
 pub fn analyze(path: &str, text: &[u8]) -> Option<FileStructure> {

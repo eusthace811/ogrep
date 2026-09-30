@@ -116,23 +116,8 @@ fn scan(
     text: &[u8],
     cache: &crate::facts::FactStore,
 ) -> (Scanned, Option<NewFact>) {
-    use crate::structure::{self, FileStructure, SymbolKind, Zone};
-    let mut fact = None;
-    let parsed = if structure::supports(path) {
-        let id = crate::meta::ContentId::from_indexed_bytes(text);
-        match cache.get(&id).and_then(FileStructure::decode) {
-            Some(found) => Some(found),
-            None => {
-                let parsed = structure::analyze(path, text);
-                if let Some(p) = &parsed {
-                    fact = Some((id, p.encode()));
-                }
-                parsed
-            }
-        }
-    } else {
-        None
-    };
+    use crate::structure::{self, SymbolKind, Zone};
+    let (parsed, fact) = structure::analyze_cached(path, text, Some(cache));
     let mut defs = Vec::new();
     if let Some(fs) = &parsed {
         let lines: Vec<&[u8]> = text.split(|&b| b == b'\n').collect();

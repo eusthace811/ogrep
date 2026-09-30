@@ -67,45 +67,15 @@ type Structure = ogrep_core::structure::FileStructure;
 #[cfg(not(feature = "structure"))]
 struct Structure;
 
-/// A file's structure: from the fact cache when this exact text was parsed
-/// before, otherwise parsed now, with the new entry to add to the cache.
 #[cfg(feature = "structure")]
-fn analyze(
-    rel: &str,
-    text: &[u8],
-    cache: Option<&ogrep_core::facts::FactStore>,
-) -> (
-    Option<Structure>,
-    Option<(ogrep_core::meta::ContentId, Vec<u8>)>,
-) {
-    use ogrep_core::structure::{self, FileStructure};
-    if !structure::supports(rel) {
-        return (None, None);
-    }
-    let id = ogrep_core::meta::ContentId::from_indexed_bytes(text);
-    if let Some(found) = cache
-        .and_then(|c| c.get(&id))
-        .and_then(FileStructure::decode)
-    {
-        return (Some(found), None);
-    }
-    let parsed = structure::analyze(rel, text);
-    let entry = match (&parsed, cache) {
-        (Some(p), Some(_)) => Some((id, p.encode())),
-        _ => None,
-    };
-    (parsed, entry)
-}
+use ogrep_core::structure::analyze_cached;
 
 #[cfg(not(feature = "structure"))]
-fn analyze(
+fn analyze_cached(
     _rel: &str,
     _text: &[u8],
     _cache: Option<&ogrep_core::facts::FactStore>,
-) -> (
-    Option<Structure>,
-    Option<(ogrep_core::meta::ContentId, Vec<u8>)>,
-) {
+) -> (Option<Structure>, Option<NewFact>) {
     (None, None)
 }
 
@@ -162,86 +132,29 @@ fn facts(_structure: &Structure, _m: &Match) -> MatchFacts {
 struct Prepared {
     rel: String,
     hits: FileHits,
-    /// A newly parsed structure for the fact cache.
-    new_fact: Option<(ogrep_core::meta::ContentId, Vec<u8>)>,
     /// Per remaining match: its scope, when `--scope` asked for it.
     scopes: Vec<Option<(usize, serde_json::Value)>>,
     /// The file's lines, for printing scope headers.
     text: Option<String>,
 }
 
-/// A matched file's text and, when the cache had it, its structure.
+/// A matched file's text and, in a parsed language, its structure.
+#[derive(Default)]
 struct Loaded {
     text: Option<String>,
     structure: Option<Structure>,
-    new_fact: Option<(ogrep_core::meta::ContentId, Vec<u8>)>,
-    /// The file is in a parsed language, is valid UTF-8, and missed the cache.
-    needs_parse: bool,
 }
 
-/// Read a matched file and look its structure up in the cache. Cheap; the
-/// expensive parse of cache misses happens afterwards, in parallel.
-fn load(rel: &str, root: &Path, cache: Option<&ogrep_core::facts::FactStore>) -> Loaded {
+/// A matched file's text, when it is valid UTF-8: offsets are only comparable
+/// when the searched text is the file's bytes, which is also what the parsers
+/// take.
+fn read_text(rel: &str, root: &Path) -> Option<String> {
     let path = if root.is_file() {
         root.to_path_buf()
     } else {
         root.join(rel)
     };
-    // Offsets are only comparable when the searched text is the file's bytes:
-    // valid UTF-8, which is also what the parsers take.
-    let Some(text) = std::fs::read(&path)
-        .ok()
-        .and_then(|b| String::from_utf8(b).ok())
-    else {
-        return Loaded {
-            text: None,
-            structure: None,
-            new_fact: None,
-            needs_parse: false,
-        };
-    };
-    let cached = cached_structure(rel, text.as_bytes(), cache);
-    let needs_parse = cached.is_none() && supported(rel);
-    Loaded {
-        text: Some(text),
-        structure: cached,
-        new_fact: None,
-        needs_parse,
-    }
-}
-
-#[cfg(feature = "structure")]
-fn supported(rel: &str) -> bool {
-    ogrep_core::structure::supports(rel)
-}
-
-#[cfg(not(feature = "structure"))]
-fn supported(_rel: &str) -> bool {
-    false
-}
-
-#[cfg(feature = "structure")]
-fn cached_structure(
-    rel: &str,
-    text: &[u8],
-    cache: Option<&ogrep_core::facts::FactStore>,
-) -> Option<Structure> {
-    if !ogrep_core::structure::supports(rel) {
-        return None;
-    }
-    let id = ogrep_core::meta::ContentId::from_indexed_bytes(text);
-    cache?
-        .get(&id)
-        .and_then(ogrep_core::structure::FileStructure::decode)
-}
-
-#[cfg(not(feature = "structure"))]
-fn cached_structure(
-    _rel: &str,
-    _text: &[u8],
-    _cache: Option<&ogrep_core::facts::FactStore>,
-) -> Option<Structure> {
-    None
+    String::from_utf8(std::fs::read(&path).ok()?).ok()
 }
 
 /// Annotate and filter one file's matches. `None` when no match survives.
@@ -251,12 +164,7 @@ fn prepare(
     loaded: Loaded,
     post: &PostOptions,
 ) -> Option<Prepared> {
-    let Loaded {
-        text,
-        structure,
-        new_fact,
-        ..
-    } = loaded;
+    let Loaded { text, structure } = loaded;
     let facts: Vec<Option<MatchFacts>> = hits
         .matches
         .iter()
@@ -306,7 +214,6 @@ fn prepare(
     Some(Prepared {
         rel,
         hits,
-        new_fact,
         scopes,
         text: if post.scope { text } else { None },
     })
@@ -466,55 +373,33 @@ pub fn emit(
             inputs.push((rel, hits, c.root.clone(), slot));
         }
     }
-    // Reading and cache lookups are cheap and run in order; parsing the cache
-    // misses is spread over threads when there is more than one.
-    let mut loaded: Vec<Loaded> = inputs
-        .iter()
-        .map(|(rel, _, root, slot)| {
-            if parses {
-                load(rel, root, caches[*slot].1.as_ref())
-            } else {
-                Loaded {
-                    text: None,
-                    structure: None,
-                    new_fact: None,
-                    needs_parse: false,
-                }
-            }
-        })
-        .collect();
-    let misses: Vec<usize> = (0..loaded.len())
-        .filter(|&i| loaded[i].needs_parse)
-        .collect();
-    let parse = |i: usize| {
-        let text = loaded[i].text.as_deref().unwrap_or("").as_bytes();
-        let (structure, fact) = analyze(&inputs[i].0, text, caches[inputs[i].3].1.as_ref());
-        (i, structure, fact)
+    // Reading, cache lookups and parsing the misses run on all threads when
+    // there is more than one file.
+    let load = |i: usize| -> (Loaded, Option<NewFact>) {
+        let (rel, _, root, slot) = &inputs[i];
+        let Some(text) = parses.then(|| read_text(rel, root)).flatten() else {
+            return Default::default();
+        };
+        let (structure, fact) = analyze_cached(rel, text.as_bytes(), caches[*slot].1.as_ref());
+        let loaded = Loaded {
+            text: Some(text),
+            structure,
+        };
+        (loaded, fact)
     };
-    let parsed: Vec<(usize, Option<Structure>, Option<NewFact>)> = if misses.len() > 1 {
-        misses.par_iter().map(|&i| parse(i)).collect()
+    let loaded: Vec<(Loaded, Option<NewFact>)> = if parses && inputs.len() > 1 {
+        (0..inputs.len()).into_par_iter().map(load).collect()
     } else {
-        misses.iter().map(|&i| parse(i)).collect()
+        (0..inputs.len()).map(load).collect()
     };
-    for (i, structure, fact) in parsed {
-        loaded[i].structure = structure;
-        loaded[i].new_fact = fact;
-    }
-    let prepared: Vec<(usize, Prepared)> = inputs
+    // New parses go to the cache for next time; a failure only costs a re-parse.
+    let mut new_facts: Vec<Vec<NewFact>> = vec![Vec::new(); caches.len()];
+    let prepared: Vec<Prepared> = inputs
         .into_iter()
         .zip(loaded)
-        .filter_map(|((rel, hits, _, slot), l)| prepare(rel, hits, l, post).map(|p| (slot, p)))
-        .collect();
-    // New parses go to the cache for next time; a failure only costs a re-parse.
-    let mut new_facts: Vec<Vec<(ogrep_core::meta::ContentId, Vec<u8>)>> =
-        vec![Vec::new(); caches.len()];
-    let prepared: Vec<Prepared> = prepared
-        .into_iter()
-        .map(|(slot, mut p)| {
-            if let Some(fact) = p.new_fact.take() {
-                new_facts[slot].push(fact);
-            }
-            p
+        .filter_map(|((rel, hits, _, slot), (l, fact))| {
+            new_facts[slot].extend(fact);
+            prepare(rel, hits, l, post)
         })
         .collect();
     #[cfg(feature = "structure")]

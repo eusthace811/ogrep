@@ -139,3 +139,19 @@ fn repository_tools_read_non_ascii_paths() {
     assert!(out.contains("test_café.py"), "{out:?}");
     assert!(!out.contains("\\303"), "{out:?}");
 }
+
+#[test]
+fn cached_structure_is_per_language_not_just_per_content() {
+    // The same bytes are a definition in TypeScript and a parse error in
+    // JavaScript; whichever is parsed first must not decide for the other.
+    let dir = TempDir::new().unwrap();
+    let text = "interface Widget {\n  size: number;\n}\n";
+    fs::write(dir.path().join("a.js"), text).unwrap();
+    fs::write(dir.path().join("b.ts"), text).unwrap();
+    ogrep(dir.path()).args(["index", "."]).assert().success();
+
+    let ts = stdout(ogrep(dir.path()).args(["--kind", "def", "-g", "*.ts", "Widget", "."]));
+    assert!(ts.contains("b.ts"), "{ts:?}");
+    let js = stdout(ogrep(dir.path()).args(["--kind", "def", "-g", "*.js", "Widget", "."]));
+    assert_eq!(js, "", "the TypeScript parse must not be reused for a.js");
+}
