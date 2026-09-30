@@ -56,7 +56,7 @@ pub const KEY_BASE: u32 = 1 << 24;
 /// Reserved key listing the grams a full build left out because they occur in
 /// too many files to narrow a search ([`prune_threshold`]). Its "postings" are
 /// those gram keys, one per entry's file-id field. It sorts after every gram,
-/// is never produced by [`key`], and travels with `lookup.bin`/`index.bin`, so
+/// is never produced by [`key_folding`], and travels with `lookup.bin`/`index.bin`, so
 /// whatever publishes or merges an index carries the list along with the
 /// postings it describes. A planner must not read a listed gram's absence as
 /// "no file contains it".
