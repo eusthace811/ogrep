@@ -7,6 +7,7 @@
 //! and the survivors are printed in the order the search found them or, with
 //! `--rank`, ranked. Every printed line is a real match.
 
+use ogrep_core::encoding::EncodingMode;
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
@@ -181,18 +182,25 @@ struct Loaded {
     structure: Option<Structure>,
 }
 
-/// A matched file's text, when it is valid UTF-8: offsets are only comparable
-/// when the searched text is the file's bytes, which is also what the parsers
-/// take. A UTF-8 byte-order mark is dropped, as the search drops it before
-/// counting offsets.
-fn read_text(rel: &str, root: &Path) -> Option<String> {
+/// A matched file's text, when it is valid UTF-8 and searched as such:
+/// offsets are only comparable when the searched text is the file's bytes,
+/// which is also what the parsers take. A UTF-8 byte-order mark is dropped
+/// unless `-E none` searched it, as the search drops it before counting
+/// offsets; a file read through another encoding is not parsed.
+fn read_text(rel: &str, root: &Path, encoding: EncodingMode) -> Option<String> {
+    let strip_bom = match encoding {
+        EncodingMode::Auto => true,
+        EncodingMode::None => false,
+        EncodingMode::Explicit(e) if e.name() == "UTF-8" => true,
+        EncodingMode::Explicit(_) => return None,
+    };
     let path = if root.is_file() {
         root.to_path_buf()
     } else {
         root.join(rel)
     };
     let mut text = String::from_utf8(std::fs::read(&path).ok()?).ok()?;
-    if text.starts_with('\u{feff}') {
+    if strip_bom && text.starts_with('\u{feff}') {
         text.drain(..'\u{feff}'.len_utf8());
     }
     Some(text)
@@ -204,6 +212,7 @@ fn prepare(
     mut hits: FileHits,
     loaded: Loaded,
     post: &PostOptions,
+    keep_dropped: bool,
 ) -> Option<Prepared> {
     let Loaded { text, structure } = loaded;
     let facts: Vec<Option<MatchFacts>> = hits
@@ -263,7 +272,9 @@ fn prepare(
         return None;
     }
     hits.matches = kept;
-    hits.dropped = dropped;
+    if keep_dropped {
+        hits.dropped = dropped;
+    }
     hits.defs = structure.is_some().then_some(defs);
     Some(Prepared {
         rel,
@@ -363,40 +374,35 @@ pub(crate) fn emit_file(
     };
     // Lines that matched but are not shown (--rank picked others, --kind or
     // --in dropped them) are context like any other line near a shown one.
-    // Under -o a match row holds only the matched text, so the line is read
-    // from the file, when it was loaded.
-    let mut is_shown = vec![false; hits.matches.len()];
-    for &i in shown {
-        is_shown[i] = true;
-    }
-    let mut unshown_lines = std::collections::HashSet::new();
-    let unshown: Vec<crate::output::ContextLine> = hits
-        .matches
-        .iter()
-        .zip(&is_shown)
-        .filter(|(_, shown)| !**shown)
-        .map(|(m, _)| m)
-        .chain(&hits.dropped)
-        .filter(|m| {
-            shown_lines.binary_search(&m.line_number).is_err()
-                && near(m.line_number)
-                && unshown_lines.insert(m.line_number)
-        })
-        .filter_map(|m| {
-            let content = if opts.only_matching {
-                lines.get(m.line_number.checked_sub(1)?)?.to_string()
-            } else {
-                m.content.clone()
-            };
-            Some(crate::output::ContextLine {
+    // Under -o a match row holds only the matched text, not the line.
+    let mut unshown: Vec<crate::output::ContextLine> = Vec::new();
+    if (before > 0 || after > 0) && !opts.only_matching {
+        let mut is_shown = vec![false; hits.matches.len()];
+        for &i in shown {
+            is_shown[i] = true;
+        }
+        let mut seen = std::collections::HashSet::new();
+        unshown = hits
+            .matches
+            .iter()
+            .zip(&is_shown)
+            .filter(|(_, shown)| !**shown)
+            .map(|(m, _)| m)
+            .chain(&hits.dropped)
+            .filter(|m| {
+                shown_lines.binary_search(&m.line_number).is_err()
+                    && near(m.line_number)
+                    && seen.insert(m.line_number)
+            })
+            .map(|m| crate::output::ContextLine {
                 file: m.file.clone(),
                 line_number: m.line_number,
-                content,
+                content: m.content.clone(),
                 absolute_offset: m.absolute_offset,
                 terminator_len: m.terminator_len,
             })
-        })
-        .collect();
+            .collect();
+    }
     let mut rows: Vec<Row> = shown
         .iter()
         .map(|&i| (hits.matches[i].line_number, Ok((i, &hits.matches[i]))))
@@ -409,29 +415,17 @@ pub(crate) fn emit_file(
             .map(|c| (c.line_number, Err(c))),
     );
     rows.sort_by_key(|(line, _)| *line);
-    // Each row's scope: a match's own; a context line's is that of the match
-    // it follows (within -A lines), else of the match it leads into, so a
-    // scope's header comes before the context leading into its first match.
-    let scope_of = |row: &Row| match row.1 {
-        Ok((i, _)) => scopes.get(i).and_then(Option::as_ref),
-        Err(_) => None,
-    };
+    // A scope's header comes before its first row: a match in it, or a
+    // context line leading into that match from inside the scope.
     let mut row_scopes: Vec<Option<&(usize, serde_json::Value)>> = vec![None; rows.len()];
     let mut next = None;
-    for (k, row) in rows.iter().enumerate().rev() {
-        if row.1.is_ok() {
-            next = scope_of(row);
-        }
-        row_scopes[k] = next;
-    }
-    let mut prev: Option<(usize, Option<&(usize, serde_json::Value)>)> = None;
-    for (k, row) in rows.iter().enumerate() {
-        if row.1.is_ok() {
-            prev = Some((row.0, scope_of(row)));
-        } else if let Some((line, scope)) = prev
-            && row.0 - line <= after
-        {
-            row_scopes[k] = scope;
+    for (k, (line, row)) in rows.iter().enumerate().rev() {
+        match row {
+            Ok((i, _)) => {
+                next = scopes.get(*i).and_then(Option::as_ref);
+                row_scopes[k] = next;
+            }
+            Err(_) => row_scopes[k] = next.filter(|(start, _)| start <= line),
         }
     }
     let mut last_scope: Option<usize> = None;
@@ -442,10 +436,6 @@ pub(crate) fn emit_file(
             last_scope = Some(*start);
             let header = lines.get(start - 1).copied().unwrap_or("");
             writer.write_scope(rel, *start, header, chain)?;
-        }
-        // The header already shows its own line.
-        if row.is_err() && scope.is_some_and(|(start, _)| *start == line) {
-            continue;
         }
         writer.write_context_separator(rel, line)?;
         match row {
@@ -496,6 +486,8 @@ pub fn emit(
     writer: &mut OutputWriter,
 ) -> Result<bool> {
     let parses = post.parses();
+    // Matches --kind and --in drop are kept only to show as context.
+    let context = opts.before_ctx() > 0 || opts.after_ctx() > 0;
     let mut inputs: Vec<(String, FileHits, PathBuf, usize)> = Vec::new();
     let mut caches: Vec<(Option<PathBuf>, Option<ogrep_core::facts::FactStore>)> = Vec::new();
     for c in captured {
@@ -514,7 +506,10 @@ pub fn emit(
     // there is more than one file.
     let load = |i: usize| -> (Loaded, Option<NewFact>) {
         let (rel, _, root, slot) = &inputs[i];
-        let Some(text) = parses.then(|| read_text(rel, root)).flatten() else {
+        let Some(text) = parses
+            .then(|| read_text(rel, root, opts.encoding))
+            .flatten()
+        else {
             return Default::default();
         };
         let (structure, fact) = analyze_cached(rel, text.as_bytes(), caches[*slot].1.as_ref());
@@ -536,7 +531,7 @@ pub fn emit(
         .zip(loaded)
         .filter_map(|((rel, hits, _, slot), (l, fact))| {
             new_facts[slot].extend(fact);
-            prepare(rel, hits, l, post)
+            prepare(rel, hits, l, post, context)
         })
         .collect();
     // Unmap every store first: put replaces index.bin, which Windows refuses

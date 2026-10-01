@@ -491,10 +491,10 @@ fn select_lines(
         if picked.len() >= per_file {
             break;
         }
-        // Under -o a row is just the matched text, so only a repeat of the
-        // same row is dropped.
+        // Under -o a row is just the matched text, so rows are told apart
+        // by where they are.
         let key = if only_matching {
-            format!("{}:{}", m.line_number, m.content)
+            format!("{}:{:?}", m.line_number, m.columns.first())
         } else {
             norm(&m.content)
         };

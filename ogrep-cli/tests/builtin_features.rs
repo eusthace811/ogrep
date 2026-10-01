@@ -607,11 +607,19 @@ fn reshaped_output_keeps_structure_context_and_callers_straight() {
         run(&["-n", "--in", "strings", "-A1", "foo", "c.rs"]),
         "2:    let s = \"x foo\";\n3-    foo();\n"
     );
-    // The scope header comes first and stands for its own line.
+    // The scope header comes before the context inside the scope, never
+    // before lines above it.
     assert_eq!(
         run(&["-n", "--scope", "-C1", "foo", "c.rs"]),
-        "1=fn crlf2() {\n2:    let s = \"x foo\";\n3:    foo();\n4-}\n"
+        "1=fn crlf2() {\n1-fn crlf2() {\n2:    let s = \"x foo\";\n3:    foo();\n4-}\n"
     );
+    write("e.rs", b"// top\nfn e() {\n    foo();\n}\n");
+    assert_eq!(
+        run(&["-n", "--scope", "-B2", "foo", "e.rs"]),
+        "1-// top\n2=fn e() {\n2-fn e() {\n3:    foo();\n"
+    );
+    // -E none searches the byte-order mark, so it stays in place.
+    assert!(run(&["-E", "none", "--kind", "def", "foo", "bom.rs"]).contains("fn foo()"));
     // Under -o, rows on different lines are not duplicates.
     assert_eq!(
         run(&["--rank", "-n", "-o", "foo", "c.rs"]),
