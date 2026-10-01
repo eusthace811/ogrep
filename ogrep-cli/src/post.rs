@@ -57,7 +57,7 @@ impl PostOptions {
     }
 
     /// Whether --kind or --in picks among the matches.
-    pub fn filters_matches(&self) -> bool {
+    fn filters_matches(&self) -> bool {
         self.kind.is_some() || self.zone.is_some()
     }
 

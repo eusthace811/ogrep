@@ -2348,10 +2348,6 @@ fn run_postprocessed_search(
         // The structure is looked up where each match is, and JSON prints
         // where it is.
         offsets: post_opts.parses() || opts.json,
-        // Every match on a line, when --kind/--in judge each one or the
-        // output shows them; otherwise the first is enough, and a line with
-        // thousands costs no more.
-        all_spans: post_opts.filters_matches() || opts.wants_match_detail(),
         ..opts.for_capture()
     };
     let mut capture = search::new_capturing_writer(&inner);

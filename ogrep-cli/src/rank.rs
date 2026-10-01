@@ -193,38 +193,6 @@ pub(crate) fn group(captures: Vec<(PathDisplay, Vec<Captured>)>) -> Vec<(String,
 /// Whether the match starting at byte `start` of `line` is a definition of the
 /// matched name: the word before it is a definition keyword.
 pub fn is_definition(line: &str, start: usize) -> bool {
-    const KEYWORDS: &[&str] = &[
-        "fn",
-        "def",
-        "class",
-        "struct",
-        "enum",
-        "trait",
-        "type",
-        "interface",
-        "func",
-        "function",
-        "const",
-        "let",
-        "var",
-        "val",
-        "impl",
-        "module",
-        "mod",
-        "macro_rules!",
-        "#define",
-        "union",
-        "record",
-        "object",
-        "protocol",
-        "extension",
-        "typedef",
-        "sub",
-        "procedure",
-        "method",
-        "static",
-        "async",
-    ];
     let before = line.get(..start).unwrap_or("").trim_end();
     if before.len() == line.get(..start).unwrap_or("").len() && !before.is_empty() {
         // No whitespace between the previous token and the match: `foo.bar`,
@@ -235,7 +203,40 @@ pub fn is_definition(line: &str, start: usize) -> bool {
         .rsplit(|c: char| c.is_whitespace() || c == '(' || c == '{')
         .next()
         .unwrap_or("");
-    KEYWORDS.contains(&word)
+    // A match on the word, not a scan of a keyword list: this runs for
+    // every match on a line that has no parsed structure.
+    matches!(
+        word,
+        "fn" | "def"
+            | "class"
+            | "struct"
+            | "enum"
+            | "trait"
+            | "type"
+            | "interface"
+            | "func"
+            | "function"
+            | "const"
+            | "let"
+            | "var"
+            | "val"
+            | "impl"
+            | "module"
+            | "mod"
+            | "macro_rules!"
+            | "#define"
+            | "union"
+            | "record"
+            | "object"
+            | "protocol"
+            | "extension"
+            | "typedef"
+            | "sub"
+            | "procedure"
+            | "method"
+            | "static"
+            | "async"
+    )
 }
 
 pub(crate) fn is_test_path(path: &str) -> bool {
@@ -363,10 +364,18 @@ fn score_files(files: &[(String, FileHits)], patterns: &PatternSet, w: &Weights)
                 let parsed_def = hits.defs.as_ref().and_then(|d| d.get(i).copied());
                 let mut seen = vec![false; n];
                 let mut def = vec![false; n];
+                let mut last: Option<(&str, usize)> = None;
                 for &(s, e) in &m.spans {
                     let Some(text) = m.content.get(s..e) else {
                         continue;
                     };
+                    // Runs of the same text are common; they skip the lookup.
+                    if let Some((prev, p)) = last
+                        && prev == text
+                        && (def[p] || parsed_def.is_some())
+                    {
+                        continue;
+                    }
                     let p = *pattern_of.entry(text).or_insert_with(|| {
                         if text.len() >= 3 {
                             texts.push(text.to_ascii_lowercase());
@@ -377,19 +386,7 @@ fn score_files(files: &[(String, FileHits)], patterns: &PatternSet, w: &Weights)
                     if !def[p] {
                         def[p] = parsed_def.unwrap_or_else(|| is_definition(&m.content, s));
                     }
-                }
-                // With several patterns, every one the line has counts, even
-                // when only its first match was captured.
-                if n > 1 {
-                    for (p, re) in patterns.regexes.iter().enumerate() {
-                        if !seen[p]
-                            && let Some(found) = re.as_ref().and_then(|re| re.find(&m.content))
-                        {
-                            seen[p] = true;
-                            def[p] = parsed_def
-                                .unwrap_or_else(|| is_definition(&m.content, found.start()));
-                        }
-                    }
+                    last = Some((text, p));
                 }
                 if m.spans.is_empty() {
                     seen[0] = true;
@@ -496,7 +493,7 @@ fn select_lines(matches: &[Match], defs: Option<&[bool]>, per_file: usize) -> Ve
             .collect()
     };
     let mut order: Vec<(usize, &Match)> = matches.iter().enumerate().collect();
-    order.sort_by_key(|&(i, m)| {
+    order.sort_by_cached_key(|&(i, m)| {
         let def = defs
             .and_then(|d| d.get(i).copied())
             .unwrap_or_else(|| m.spans.iter().any(|&(s, _)| is_definition(&m.content, s)));

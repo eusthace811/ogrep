@@ -330,7 +330,7 @@ impl SearchOptions {
     /// line as the server rendered it, so the arrays would be built, sent,
     /// parsed and dropped. The check is conservative — when in doubt the data
     /// is requested, because missing spans degrade output silently.
-    pub(crate) fn wants_match_detail(&self) -> bool {
+    fn wants_match_detail(&self) -> bool {
         self.color.is_enabled()      // highlighting brackets each span
             || self.json             // reports them as `submatches`
             || self.vimgrep          // one row per column
