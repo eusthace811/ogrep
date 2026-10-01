@@ -1285,6 +1285,7 @@ impl Cli {
             all_spans: false,
             binary_lines: false,
             offsets: false,
+            first_span: false,
             only_paths: None,
             types: self.file_type.clone(),
             types_not: self.type_not.clone(),
@@ -2348,6 +2349,11 @@ fn run_postprocessed_search(
         // The structure is looked up where each match is, and JSON prints
         // where it is.
         offsets: post_opts.parses() || opts.json,
+        // Every match on a line when --kind/--in judge each one or the output
+        // shows them; otherwise each line's first is enough (ranking and
+        // scopes go by it), and a line with thousands costs no more, locally
+        // or in a server's reply.
+        all_spans: post_opts.filters_matches() || opts.wants_match_detail(),
         ..opts.for_capture()
     };
     let mut capture = search::new_capturing_writer(&inner);

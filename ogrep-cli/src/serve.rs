@@ -862,6 +862,12 @@ struct SearchOpts {
     /// They dominate the size of a reply, so a client that only prints lines
     /// asks for them to be left out.
     detail: bool,
+    /// With `detail`, whether every match on a line is wanted or only the
+    /// first (a reshaping client that places each line by its first match).
+    all_spans: bool,
+    /// With `detail`, whether the client reads `columns` too (spans alone do
+    /// for a reshaping client that prints no columns).
+    columns: bool,
     /// Whether the client will read per-row `offset` and `term`.
     ///
     /// JSON, `-b/--byte-offset` and `-M/--max-columns` consume them.
@@ -888,7 +894,7 @@ impl SearchOpts {
             replace: self.replace.clone(),
             stop_on_nonmatch: self.stop_on_nonmatch,
             vimgrep: self.vimgrep,
-            all_spans: self.detail || self.stats,
+            all_spans: (self.detail && self.all_spans) || self.stats,
         }
     }
 }
@@ -1853,6 +1859,16 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
         .get("positions")
         .and_then(|v| v.as_bool())
         .unwrap_or(true);
+    // Absent from older clients, which want every match and its column
+    // with `detail`.
+    let all_spans = params
+        .get("all_spans")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(true);
+    let columns = params
+        .get("columns")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(true);
     let encoding = ogrep_core::encoding::parse_encoding(
         params
             .get("encoding")
@@ -1953,6 +1969,8 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
             stop_on_nonmatch,
             vimgrep,
             detail,
+            all_spans,
+            columns,
             positions,
             stats,
         },
@@ -2422,10 +2440,20 @@ fn search_file_matches(
         matcher,
         rel_path,
         fixups,
-        opts.detail,
-        opts.positions,
+        RowFields {
+            spans: opts.detail,
+            columns: opts.detail && opts.columns,
+            positions: opts.positions,
+        },
     )?);
     Ok(result)
+}
+
+/// Which optional fields a match row carries (see `SearchOpts::detail`).
+struct RowFields {
+    spans: bool,
+    columns: bool,
+    positions: bool,
 }
 
 /// Turn a file's matches into the protocol's `match`/`context` rows.
@@ -2435,8 +2463,7 @@ fn collect_match_rows(
     matcher: &crate::matching::SearchMatcher,
     rel_path: &str,
     fixups: &ogrep_core::encoding::LossyFixups,
-    detail: bool,
-    positions: bool,
+    fields: RowFields,
 ) -> anyhow::Result<Vec<serde_json::Value>> {
     use crate::matching::Emit;
 
@@ -2469,12 +2496,14 @@ fn collect_match_rows(
                     "content": content,
                 });
                 // The two arrays are what make a reply large; see `SearchOpts::detail`.
-                if detail {
+                if fields.spans {
                     entry["spans"] =
                         serde_json::json!(spans.iter().map(|&(s, e)| [s, e]).collect::<Vec<_>>());
+                }
+                if fields.columns {
                     entry["columns"] = serde_json::json!(columns);
                 }
-                if positions {
+                if fields.positions {
                     entry["offset"] = serde_json::json!(offset);
                     entry["term"] = serde_json::json!(terminator_len);
                 }
@@ -2492,7 +2521,7 @@ fn collect_match_rows(
                     "line": line_number,
                     "content": content,
                 });
-                if positions {
+                if fields.positions {
                     entry["offset"] = serde_json::json!(fixups.to_source_offset(absolute_offset));
                     entry["term"] = serde_json::json!(terminator_len);
                 }

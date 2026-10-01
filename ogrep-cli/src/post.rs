@@ -57,7 +57,7 @@ impl PostOptions {
     }
 
     /// Whether --kind or --in picks among the matches.
-    fn filters_matches(&self) -> bool {
+    pub fn filters_matches(&self) -> bool {
         self.kind.is_some() || self.zone.is_some()
     }
 
@@ -132,7 +132,6 @@ type Row<'a> = (
 
 /// What the structure says about one match.
 struct MatchFacts {
-    def: bool,
     /// Per match on the line: whether it names a definition, and its zone.
     spans: Vec<(bool, ZoneFilter)>,
 }
@@ -154,18 +153,18 @@ fn facts(structure: &Structure, m: &Match) -> MatchFacts {
             (structure.defines(s, e), zone)
         })
         .collect();
-    let def = spans.iter().any(|&(def, _)| def);
-    MatchFacts { def, spans }
+    MatchFacts { spans }
 }
 
 /// The definitions enclosing `offset`, built once per innermost one.
 #[cfg(feature = "structure")]
-fn scope_at(structure: &Structure, offset: usize, built: &mut Vec<Option<Scope>>) -> Option<Scope> {
+fn scope_at(
+    structure: &Structure,
+    offset: usize,
+    built: &mut std::collections::HashMap<usize, Scope>,
+) -> Option<Scope> {
     let innermost = structure.innermost(offset)?;
-    if built.is_empty() {
-        built.resize(structure.symbols.len(), None);
-    }
-    if let Some(scope) = &built[innermost] {
+    if let Some(scope) = built.get(&innermost) {
         return Some(scope.clone());
     }
     let chain = structure.chain(Some(innermost));
@@ -184,7 +183,7 @@ fn scope_at(structure: &Structure, offset: usize, built: &mut Vec<Option<Scope>>
         end: inner.end_line,
         chain: std::sync::Arc::new(serde_json::Value::from(json)),
     };
-    built[innermost] = Some(scope.clone());
+    built.insert(innermost, scope.clone());
     Some(scope)
 }
 
@@ -197,7 +196,7 @@ fn facts(_structure: &Structure, _m: &Match) -> MatchFacts {
 fn scope_at(
     _structure: &Structure,
     _offset: usize,
-    _built: &mut Vec<Option<Scope>>,
+    _built: &mut std::collections::HashMap<usize, Scope>,
 ) -> Option<Scope> {
     unreachable!("no structure without the feature")
 }
@@ -278,7 +277,7 @@ fn prepare(
     // string).
     let filtered = post.filters_matches();
     let mut scopes = Vec::new();
-    let mut built_scopes = Vec::new();
+    let mut built_scopes = std::collections::HashMap::new();
     let mut defs = Vec::new();
     let mut kept = Vec::new();
     let mut dropped = Vec::new();
@@ -294,9 +293,10 @@ fn prepare(
                 // The line is a definition only through the matches kept.
                 f.spans.iter().zip(&keep).any(|(&(d, _), &k)| k && d)
             }
-            Some(f) => f.def,
+            // A line is a definition by its first match, as ranking goes.
+            Some(f) => f.spans.first().is_some_and(|&(d, _)| d),
             None => {
-                let def = wants_facts
+                let def = filtered
                     && m.spans
                         .iter()
                         .any(|&(s, _)| rank::is_definition(&m.content, s));
@@ -586,7 +586,9 @@ pub fn emit(
             .map(|t| lookup_cached(rel, t.as_bytes(), caches[*slot].1.as_ref()));
         (text, cached)
     };
-    let looked_up: Vec<_> = if parses && inputs.len() > 4096 {
+    // -j1 keeps all of it on one thread.
+    let parallel = opts.threads != Some(1);
+    let looked_up: Vec<_> = if parallel && parses && inputs.len() > 4096 {
         inputs.par_iter().map(lookup).collect()
     } else {
         inputs.iter().map(lookup).collect()
@@ -612,7 +614,7 @@ pub fn emit(
             parse_miss(rel, text.as_bytes(), id, caches[*slot].1.is_some()),
         )
     };
-    let parsed: Vec<_> = if misses.len() > 1 {
+    let parsed: Vec<_> = if parallel && misses.len() > 1 {
         misses.par_iter().map(parse).collect()
     } else {
         misses.iter().map(parse).collect()

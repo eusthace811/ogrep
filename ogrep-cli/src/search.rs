@@ -80,6 +80,9 @@ pub struct SearchOptions {
     pub binary_lines: bool,
     /// Whether a capture needs each match's offset in its file.
     pub offsets: bool,
+    /// Whether a capture needs each line's first match (its span) even when
+    /// it does not need them all: reshaping places and ranks lines by it.
+    pub first_span: bool,
     /// `--changed-since`: search only these paths, relative to the search
     /// root. Set per path argument.
     pub only_paths: Option<std::sync::Arc<std::collections::HashSet<String>>>,
@@ -330,7 +333,7 @@ impl SearchOptions {
     /// line as the server rendered it, so the arrays would be built, sent,
     /// parsed and dropped. The check is conservative — when in doubt the data
     /// is requested, because missing spans degrade output silently.
-    fn wants_match_detail(&self) -> bool {
+    pub(crate) fn wants_match_detail(&self) -> bool {
         self.color.is_enabled()      // highlighting brackets each span
             || self.json             // reports them as `submatches`
             || self.vimgrep          // one row per column
@@ -631,6 +634,7 @@ impl SearchOptions {
             count_matches: false,
             // Whole lines: reshaping needs them, and -o is applied on output.
             only_matching: false,
+            first_span: true,
             json: false,
             vimgrep: false,
             quiet: false,
@@ -653,6 +657,7 @@ pub fn captured_matches(
     let opts = SearchOptions {
         all_spans: false,
         binary_lines: false,
+        first_span: false,
         color: crate::output::ColorMode::Never,
         column: false,
         only_matching: false,
@@ -1135,7 +1140,7 @@ fn search_via_server(
     // match — and most searches never read them. Asking for them only when
     // something will consume them keeps a 21k-hit query from building, sending
     // and parsing 21k arrays that are then dropped.
-    let detail = opts.wants_match_detail();
+    let detail = opts.wants_match_detail() || opts.first_span;
     let positions = opts.wants_position_detail();
     // A plain `-l` listing needs only paths: ask for them as one string array,
     // which is far cheaper to build, send and parse than an object per file.
@@ -1191,6 +1196,10 @@ fn search_via_server(
         },
         "id": 1,
     });
+    // Every match, or only each line's first (see `SearchOptions::first_span`),
+    // and columns only for output that prints them.
+    request["params"]["all_spans"] = opts.all_spans.into();
+    request["params"]["columns"] = opts.wants_match_detail().into();
     request["params"]["hidden"] = serde_json::json!(opts.hidden);
     request["params"]["with"] = serde_json::json!(opts.with_patterns);
     request["params"]["without"] = serde_json::json!(opts.without_patterns);

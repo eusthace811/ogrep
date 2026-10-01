@@ -357,41 +357,31 @@ fn score_files(files: &[(String, FileHits)], patterns: &PatternSet, w: &Weights)
         .map(|(_, hits)| {
             let mut lines = vec![(0usize, 0usize); n];
             let mut texts = Vec::new();
-            // A line can hold thousands of matches of a few texts: each text
-            // is attributed to a pattern, and kept, once.
+            // Each text is attributed to a pattern, and kept, once.
             let mut pattern_of: std::collections::HashMap<&str, usize> = Default::default();
             for (i, m) in hits.matches.iter().enumerate() {
                 let parsed_def = hits.defs.as_ref().and_then(|d| d.get(i).copied());
                 let mut seen = vec![false; n];
                 let mut def = vec![false; n];
-                let mut last: Option<(&str, usize)> = None;
-                for &(s, e) in &m.spans {
-                    let Some(text) = m.content.get(s..e) else {
-                        continue;
-                    };
-                    // Runs of the same text are common; they skip the lookup.
-                    if let Some((prev, p)) = last
-                        && prev == text
-                    {
-                        if !def[p] && parsed_def.is_none() {
-                            def[p] = is_definition(&m.content, s);
-                        }
-                        continue;
-                    }
-                    let p = *pattern_of.entry(text).or_insert_with(|| {
-                        if text.len() >= 3 {
-                            texts.push(text.to_ascii_lowercase());
-                        }
-                        patterns.of(text)
-                    });
-                    seen[p] = true;
-                    if !def[p] {
+                // A line is scored by its first match, whatever else the
+                // output asked the search to collect, so the order never
+                // depends on output flags.
+                match m
+                    .spans
+                    .first()
+                    .and_then(|&(s, e)| Some((s, m.content.get(s..e)?)))
+                {
+                    Some((s, text)) => {
+                        let p = *pattern_of.entry(text).or_insert_with(|| {
+                            if text.len() >= 3 {
+                                texts.push(text.to_ascii_lowercase());
+                            }
+                            patterns.of(text)
+                        });
+                        seen[p] = true;
                         def[p] = parsed_def.unwrap_or_else(|| is_definition(&m.content, s));
                     }
-                    last = Some((text, p));
-                }
-                if m.spans.is_empty() {
-                    seen[0] = true;
+                    None => seen[0] = true,
                 }
                 for ((line, &seen), &def) in lines.iter_mut().zip(&seen).zip(&def) {
                     if seen {
@@ -496,9 +486,11 @@ fn select_lines(matches: &[Match], defs: Option<&[bool]>, per_file: usize) -> Ve
     };
     let mut order: Vec<(usize, &Match)> = matches.iter().enumerate().collect();
     order.sort_by_cached_key(|&(i, m)| {
-        let def = defs
-            .and_then(|d| d.get(i).copied())
-            .unwrap_or_else(|| m.spans.iter().any(|&(s, _)| is_definition(&m.content, s)));
+        let def = defs.and_then(|d| d.get(i).copied()).unwrap_or_else(|| {
+            m.spans
+                .first()
+                .is_some_and(|&(s, _)| is_definition(&m.content, s))
+        });
         (!def, m.line_number)
     });
     let mut seen = std::collections::HashSet::new();

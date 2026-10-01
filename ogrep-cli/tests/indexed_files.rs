@@ -308,6 +308,9 @@ fn reshaped_searches_through_the_server_place_matches_in_the_file() {
     assert!(!scoped.contains("alpha"), "{scoped}");
     let ranked = run(&["--json", "--rank", "foo"]);
     assert!(ranked.contains(r#""absolute_offset":27"#), "{ranked}");
+    // Ranking sees each line's first match, so it finds the definition.
+    let explained = run(&["--rank", "--explain-rank", "beta"]);
+    assert!(explained.contains("def_lines=1"), "{explained}");
     // And the server answered them.
     let stats = ogrep()
         .args(["--stats", "--scope", "foo"])
