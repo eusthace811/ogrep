@@ -132,8 +132,7 @@ pub(crate) struct FileHits {
     pub(crate) defs: Option<Vec<bool>>,
     /// Matching lines --kind or --in dropped: context, if near a shown match.
     pub(crate) dropped: Vec<Match>,
-    /// The file's text, when loaded: scope headers and, under -o, the lines
-    /// of matches shown as context are read from it.
+    /// The file's text, when loaded for scope headers.
     pub(crate) text: Option<String>,
 }
 
@@ -470,12 +469,7 @@ fn keep_count(ranked: &[Ranked], opts: &RankOptions) -> usize {
 
 /// Pick the lines to show for one file: definitions first, then the earliest,
 /// skipping lines that differ from a kept one only in whitespace or digits.
-fn select_lines(
-    matches: &[Match],
-    defs: Option<&[bool]>,
-    per_file: usize,
-    only_matching: bool,
-) -> Vec<usize> {
+fn select_lines(matches: &[Match], defs: Option<&[bool]>, per_file: usize) -> Vec<usize> {
     let norm = |s: &str| -> String {
         s.chars()
             .filter(|c| !c.is_whitespace() && !c.is_ascii_digit())
@@ -490,25 +484,12 @@ fn select_lines(
     });
     let mut seen = std::collections::HashSet::new();
     let mut picked: Vec<usize> = Vec::new();
-    if only_matching {
-        // Under -o a row is one match: --per-file counts the lines picked,
-        // and a picked line shows all of its matches.
-        let mut lines = std::collections::HashSet::new();
-        for (_, m) in &order {
-            if lines.len() >= per_file && !lines.contains(&m.line_number) {
-                continue;
-            }
-            lines.insert(m.line_number);
+    for (i, m) in order {
+        if picked.len() >= per_file {
+            break;
         }
-        picked.extend((0..matches.len()).filter(|&i| lines.contains(&matches[i].line_number)));
-    } else {
-        for (i, m) in order {
-            if picked.len() >= per_file {
-                break;
-            }
-            if seen.insert(norm(&m.content)) {
-                picked.push(i);
-            }
+        if seen.insert(norm(&m.content)) {
+            picked.push(i);
         }
     }
     picked.sort_by_key(|&i| matches[i].line_number);
@@ -537,12 +518,7 @@ pub fn emit(
         let hits = &files[r.file].1;
         writer.set_path_display(hits.display.clone());
         writer.write_rank_record(&r.path, rank + 1, r.score, &r.features, opts.explain)?;
-        let shown = select_lines(
-            &hits.matches,
-            hits.defs.as_deref(),
-            opts.per_file,
-            search.only_matching,
-        );
+        let shown = select_lines(&hits.matches, hits.defs.as_deref(), opts.per_file);
         crate::post::emit_file(&r.path, hits, &shown, &[], search, writer)?;
     }
     Ok(keep > 0)

@@ -138,10 +138,9 @@ fn facts(structure: &Structure, m: &Match) -> MatchFacts {
     MatchFacts { def, spans }
 }
 
-/// The definitions enclosing `offset`, innermost last: `(first line of the
-/// innermost, chain as JSON)`.
+/// The definitions enclosing `offset`.
 #[cfg(feature = "structure")]
-fn scope_at(structure: &Structure, offset: usize) -> Option<(usize, serde_json::Value)> {
+fn scope_at(structure: &Structure, offset: usize) -> Option<Scope> {
     let chain = structure.enclosing(offset);
     let inner = chain.last()?;
     let json = chain
@@ -153,7 +152,11 @@ fn scope_at(structure: &Structure, offset: usize) -> Option<(usize, serde_json::
             })
         })
         .collect::<Vec<_>>();
-    Some((inner.start_line, serde_json::Value::from(json)))
+    Some(Scope {
+        start: inner.start_line,
+        end: inner.end_line,
+        chain: serde_json::Value::from(json),
+    })
 }
 
 #[cfg(not(feature = "structure"))]
@@ -162,7 +165,7 @@ fn facts(_structure: &Structure, _m: &Match) -> MatchFacts {
 }
 
 #[cfg(not(feature = "structure"))]
-fn scope_at(_structure: &Structure, _offset: usize) -> Option<(usize, serde_json::Value)> {
+fn scope_at(_structure: &Structure, _offset: usize) -> Option<Scope> {
     unreachable!("no structure without the feature")
 }
 
@@ -170,7 +173,16 @@ struct Prepared {
     rel: String,
     hits: FileHits,
     /// Per remaining match: its scope, when `--scope` asked for it.
-    scopes: Vec<Option<(usize, serde_json::Value)>>,
+    scopes: Vec<Option<Scope>>,
+}
+
+/// The innermost definition enclosing a match, and the chain to it.
+pub(crate) struct Scope {
+    /// First and last line of the innermost definition.
+    start: usize,
+    end: usize,
+    /// Every enclosing definition, outermost first, as JSON.
+    chain: serde_json::Value,
 }
 
 /// A matched file's text and, in a parsed language, its structure.
@@ -266,12 +278,11 @@ fn prepare(
     }
     hits.matches = kept;
     // Dropped matches and the text are kept only for what will print them.
-    let lines_as_context = opts.has_context() && opts.only_matching;
     if opts.has_context() {
         hits.dropped = dropped;
     }
     hits.defs = structure.is_some().then_some(defs);
-    hits.text = text.filter(|_| post.scope || lines_as_context);
+    hits.text = text.filter(|_| post.scope);
     Some(Prepared { rel, hits, scopes })
 }
 
@@ -292,7 +303,7 @@ fn emit_callers(
         let mut uses: std::collections::BTreeMap<usize, (usize, serde_json::Value)> =
             Default::default();
         for scope in file.scopes.into_iter().flatten() {
-            let entry = uses.entry(scope.0).or_insert((0, scope.1));
+            let entry = uses.entry(scope.start).or_insert((0, scope.chain));
             entry.0 += 1;
         }
         writer.set_path_display(file.hits.display.clone());
@@ -324,7 +335,7 @@ pub(crate) fn emit_file(
     rel: &str,
     hits: &FileHits,
     shown: &[usize],
-    scopes: &[Option<(usize, serde_json::Value)>],
+    scopes: &[Option<Scope>],
     opts: &crate::search::SearchOptions,
     writer: &mut OutputWriter,
 ) -> Result<()> {
@@ -369,8 +380,6 @@ pub(crate) fn emit_file(
     };
     // Lines that matched but are not shown (--rank picked others, --kind or
     // --in dropped them) are context like any other line near a shown one.
-    // Under -o a match row holds only the matched text, so the line is read
-    // from the file's text.
     let unshown: Vec<crate::output::ContextLine> = if opts.has_context() {
         let mut is_shown = vec![false; hits.matches.len()];
         for &i in shown {
@@ -388,21 +397,12 @@ pub(crate) fn emit_file(
                     && near(m.line_number)
                     && seen.insert(m.line_number)
             })
-            .filter_map(|m| {
-                let (content, absolute_offset) = if opts.only_matching {
-                    let line = lines.get(m.line_number.checked_sub(1)?)?;
-                    let column = m.columns.first().map_or(0, |c| c - 1);
-                    (line.to_string(), m.absolute_offset.saturating_sub(column))
-                } else {
-                    (m.content.clone(), m.absolute_offset)
-                };
-                Some(crate::output::ContextLine {
-                    file: m.file.clone(),
-                    line_number: m.line_number,
-                    content,
-                    absolute_offset,
-                    terminator_len: m.terminator_len,
-                })
+            .map(|m| crate::output::ContextLine {
+                file: m.file.clone(),
+                line_number: m.line_number,
+                content: m.content.clone(),
+                absolute_offset: m.absolute_offset,
+                terminator_len: m.terminator_len,
             })
             .collect()
     } else {
@@ -420,56 +420,71 @@ pub(crate) fn emit_file(
             .map(|c| (c.line_number, Err(c))),
     );
     rows.sort_by_key(|(line, _)| *line);
-    // A context line belongs to the scope of the match before it while it is
-    // inside that scope, else to that of the match after it once inside that
-    // one, else to none (no header is printed for it).
-    type Scope<'s> = Option<&'s (usize, serde_json::Value)>;
-    let scope_of = |row: &Row| -> Scope {
+    // A context line belongs to the innermost of the scopes of the matches
+    // before and after it that contain it, and to none if neither does (no
+    // header is printed for it).
+    let scope_of = |row: &Row| -> Option<&Scope> {
         match row.1 {
             Ok((i, _)) => scopes.get(i).and_then(Option::as_ref),
             Err(_) => None,
         }
     };
-    let contains = |scope: Scope, line: usize| {
-        scope.is_some_and(|(start, chain)| {
-            let end = chain
-                .as_array()
-                .and_then(|c| c.last())
-                .and_then(|s| s["end_line"].as_u64())
-                .map_or(*start, |e| e as usize);
-            (*start..=end).contains(&line)
-        })
-    };
-    let mut row_scopes: Vec<Scope> = vec![None; rows.len()];
-    let mut next: Scope = None;
+    fn inside(scope: Option<&Scope>, line: usize) -> Option<&Scope> {
+        scope.filter(|s| (s.start..=s.end).contains(&line))
+    }
+    let mut row_scopes: Vec<Option<&Scope>> = vec![None; rows.len()];
+    let mut next = None;
     for (k, row) in rows.iter().enumerate().rev() {
         if row.1.is_ok() {
             next = scope_of(row);
             row_scopes[k] = next;
-        } else if contains(next, row.0) {
-            row_scopes[k] = next;
+        } else {
+            row_scopes[k] = inside(next, row.0);
         }
     }
-    let mut prev: Scope = None;
+    let mut prev = None;
     for (k, row) in rows.iter().enumerate() {
         if row.1.is_ok() {
             prev = scope_of(row);
-        } else if contains(prev, row.0) {
-            row_scopes[k] = prev;
+        } else if let Some(p) = inside(prev, row.0)
+            && row_scopes[k].is_none_or(|n| n.start <= p.start)
+        {
+            row_scopes[k] = Some(p);
         }
     }
+    let only_matching = opts.effective_only_matching();
     let mut last_scope: Option<usize> = None;
+    let mut last_line: Option<usize> = None;
     for ((line, row), scope) in rows.into_iter().zip(row_scopes) {
-        // A gap is marked before the header that opens the next block.
+        // A gap is marked before the header that opens the next block, and
+        // a block after a gap names its scope again.
+        if opts.has_context() && last_line.is_some_and(|l| line > l + 1) {
+            last_scope = None;
+        }
+        last_line = Some(line);
         writer.write_context_separator(rel, line)?;
-        if let Some((start, chain)) = scope
-            && last_scope != Some(*start)
+        if let Some(scope) = scope
+            && last_scope != Some(scope.start)
         {
-            last_scope = Some(*start);
-            let header = lines.get(start - 1).copied().unwrap_or("");
-            writer.write_scope(rel, *start, header, chain)?;
+            last_scope = Some(scope.start);
+            let header = lines.get(scope.start - 1).copied().unwrap_or("");
+            writer.write_scope(rel, scope.start, header, &scope.chain)?;
         }
         match row {
+            // -o prints each match on its own row, as the search does.
+            Ok((_, m)) if only_matching && !m.spans.is_empty() => {
+                for (k, &(s, e)) in m.spans.iter().enumerate() {
+                    let column = m.columns.get(k).copied().unwrap_or(s + 1);
+                    writer.write_match(&Match {
+                        content: m.content[s..e].to_string(),
+                        spans: vec![(0, e - s)],
+                        columns: vec![column],
+                        absolute_offset: m.absolute_offset + column - 1,
+                        terminator_len: 0,
+                        ..m.clone()
+                    })?;
+                }
+            }
             Ok((_, m)) => writer.write_match(m)?,
             Err(c) => writer.write_context_line(c)?,
         }
@@ -509,8 +524,6 @@ pub fn emit(
     writer: &mut OutputWriter,
 ) -> Result<bool> {
     let parses = post.parses();
-    // Under -o, matches shown as context are printed from the file's lines.
-    let reads = parses || (opts.only_matching && opts.has_context());
     let mut inputs: Vec<(String, FileHits, PathBuf, usize)> = Vec::new();
     let mut caches: Vec<(Option<PathBuf>, Option<ogrep_core::facts::FactStore>)> = Vec::new();
     for c in captured {
@@ -529,21 +542,20 @@ pub fn emit(
     // there is more than one file.
     let load = |i: usize| -> (Loaded, Option<NewFact>) {
         let (rel, _, root, slot) = &inputs[i];
-        let Some(text) = reads.then(|| read_text(rel, root, opts.encoding)).flatten() else {
+        let Some(text) = parses
+            .then(|| read_text(rel, root, opts.encoding))
+            .flatten()
+        else {
             return Default::default();
         };
-        let (structure, fact) = if parses {
-            analyze_cached(rel, text.as_bytes(), caches[*slot].1.as_ref())
-        } else {
-            (None, None)
-        };
+        let (structure, fact) = analyze_cached(rel, text.as_bytes(), caches[*slot].1.as_ref());
         let loaded = Loaded {
             text: Some(text),
             structure,
         };
         (loaded, fact)
     };
-    let loaded: Vec<(Loaded, Option<NewFact>)> = if reads && inputs.len() > 1 {
+    let loaded: Vec<(Loaded, Option<NewFact>)> = if parses && inputs.len() > 1 {
         (0..inputs.len()).into_par_iter().map(load).collect()
     } else {
         (0..inputs.len()).map(load).collect()

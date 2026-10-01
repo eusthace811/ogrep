@@ -357,7 +357,7 @@ impl SearchOptions {
     /// and `--json` produce byte-identical streams. Fanning a line out into one
     /// event per match here would both reshape the stream and inflate
     /// `matched_lines`, which counts distinct lines.
-    fn effective_only_matching(&self) -> bool {
+    pub(crate) fn effective_only_matching(&self) -> bool {
         self.only_matching && !self.json
     }
 
@@ -629,6 +629,8 @@ impl SearchOptions {
             files_without_match: false,
             count: false,
             count_matches: false,
+            // Whole lines: reshaping needs them, and -o is applied on output.
+            only_matching: false,
             json: false,
             vimgrep: false,
             quiet: false,

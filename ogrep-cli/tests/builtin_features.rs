@@ -649,7 +649,33 @@ fn reshaped_output_keeps_structure_context_and_callers_straight() {
         run(&["-n", "--scope", "-B1", "foo", "g.rs"]),
         "1=fn a() {\n1-fn a() {\n2:    foo();\n--\n5=fn b() {\n5-fn b() {\n6:    foo();\n"
     );
-    // Under -o, a dropped matching line is context, read from the file.
+    // A nested scope's header comes before its own lines, and a block after
+    // a gap names its scope again.
+    write(
+        "i.rs",
+        b"impl T {\n    fn a() {\n        x;\n    }\n    // zz\n    fn b() {\n        y;\n        zz;\n    }\n}\n",
+    );
+    assert_eq!(
+        run(&["-n", "--scope", "-B2", "zz", "i.rs"]),
+        "1=impl T {\n3-        x;\n4-    }\n5:    // zz\n6=    fn b() {\n6-    fn b() {\n7-        y;\n8:        zz;\n"
+    );
+    write(
+        "j.rs",
+        b"fn a() {\n    qq();\n    x;\n    y;\n    z;\n    qq();\n}\n",
+    );
+    assert_eq!(
+        run(&["-n", "--scope", "-A1", "qq", "j.rs"]),
+        "1=fn a() {\n2:    qq();\n3-    x;\n--\n1=fn a() {\n6:    qq();\n7-}\n"
+    );
+    // Under -o, reshaping still sees whole lines: --rank finds the
+    // definition, and JSON reports whole lines, as without reshaping.
+    write("k.rs", b"let x = foo;\nfn foo() {}\n");
+    assert_eq!(
+        run(&["--rank", "--per-file", "1", "-n", "-o", "foo", "k.rs"]),
+        "2:foo\n"
+    );
+    assert!(run(&["--rank", "--json", "-o", "foo", "k.rs"]).contains(r#""text":"fn foo() {}\n""#));
+    // Under -o, a dropped matching line is context, as a whole line.
     write("h.rs", b"fn foo() {\n    foo();\n    x\n}\n");
     assert_eq!(
         run(&["-n", "--kind", "def", "-o", "-A2", "foo", "h.rs"]),
