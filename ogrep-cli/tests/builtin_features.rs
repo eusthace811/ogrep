@@ -620,9 +620,39 @@ fn reshaped_output_keeps_structure_context_and_callers_straight() {
     );
     // -E none searches the byte-order mark, so it stays in place.
     assert!(run(&["-E", "none", "--kind", "def", "foo", "bom.rs"]).contains("fn foo()"));
-    // Under -o, rows on different lines are not duplicates.
+    // Under -o, rows on different lines are not duplicates; --per-file
+    // counts lines, each shown with all its matches.
     assert_eq!(
         run(&["--rank", "-n", "-o", "foo", "c.rs"]),
         "2:foo\n3:foo\n"
+    );
+    write("f.txt", b"foo foo\nbar\nfoo\n");
+    assert_eq!(
+        run(&["--rank", "--per-file", "1", "-n", "-o", "foo", "f.txt"]),
+        "1:foo\n1:foo\n"
+    );
+    // A context line stays under the scope it is in.
+    write(
+        "n.py",
+        b"class C:\n    def m(self):\n        foo()\n        return 1\n\n    x = foo\n",
+    );
+    assert_eq!(
+        run(&["-n", "--scope", "-C2", "foo", "n.py"]),
+        "1-class C:\n2=    def m(self):\n2-    def m(self):\n3:        foo()\n4-        return 1\n1=class C:\n5-\n6:    x = foo\n"
+    );
+    // The separator comes before the header that opens a block.
+    write(
+        "g.rs",
+        b"fn a() {\n    foo();\n}\n\nfn b() {\n    foo();\n}\n",
+    );
+    assert_eq!(
+        run(&["-n", "--scope", "-B1", "foo", "g.rs"]),
+        "1=fn a() {\n1-fn a() {\n2:    foo();\n--\n5=fn b() {\n5-fn b() {\n6:    foo();\n"
+    );
+    // Under -o, a dropped matching line is context, read from the file.
+    write("h.rs", b"fn foo() {\n    foo();\n    x\n}\n");
+    assert_eq!(
+        run(&["-n", "--kind", "def", "-o", "-A2", "foo", "h.rs"]),
+        "1:foo\n2-    foo();\n3-    x\n"
     );
 }

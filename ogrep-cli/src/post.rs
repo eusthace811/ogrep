@@ -171,8 +171,6 @@ struct Prepared {
     hits: FileHits,
     /// Per remaining match: its scope, when `--scope` asked for it.
     scopes: Vec<Option<(usize, serde_json::Value)>>,
-    /// The file's lines, for printing scope headers.
-    text: Option<String>,
 }
 
 /// A matched file's text and, in a parsed language, its structure.
@@ -182,28 +180,23 @@ struct Loaded {
     structure: Option<Structure>,
 }
 
-/// A matched file's text, when it is valid UTF-8 and searched as such:
-/// offsets are only comparable when the searched text is the file's bytes,
-/// which is also what the parsers take. A UTF-8 byte-order mark is dropped
-/// unless `-E none` searched it, as the search drops it before counting
-/// offsets; a file read through another encoding is not parsed.
+/// A matched file's text as the search read it, when that is the file's own
+/// UTF-8 (less any byte-order mark the search dropped): match offsets are
+/// only comparable then, and that is what the parsers take. Transcoded text
+/// is not returned.
 fn read_text(rel: &str, root: &Path, encoding: EncodingMode) -> Option<String> {
-    let strip_bom = match encoding {
-        EncodingMode::Auto => true,
-        EncodingMode::None => false,
-        EncodingMode::Explicit(e) if e.name() == "UTF-8" => true,
-        EncodingMode::Explicit(_) => return None,
-    };
     let path = if root.is_file() {
         root.to_path_buf()
     } else {
         root.join(rel)
     };
-    let mut text = String::from_utf8(std::fs::read(&path).ok()?).ok()?;
-    if strip_bom && text.starts_with('\u{feff}') {
-        text.drain(..'\u{feff}'.len_utf8());
-    }
-    Some(text)
+    let mut bytes = std::fs::read(&path).ok()?;
+    let skipped = match ogrep_core::encoding::decode_bytes(&bytes, encoding) {
+        std::borrow::Cow::Borrowed(body) => bytes.len() - body.len(),
+        std::borrow::Cow::Owned(_) => return None,
+    };
+    bytes.drain(..skipped);
+    String::from_utf8(bytes).ok()
 }
 
 /// Annotate and filter one file's matches. `None` when no match survives.
@@ -212,7 +205,7 @@ fn prepare(
     mut hits: FileHits,
     loaded: Loaded,
     post: &PostOptions,
-    keep_dropped: bool,
+    opts: &crate::search::SearchOptions,
 ) -> Option<Prepared> {
     let Loaded { text, structure } = loaded;
     let facts: Vec<Option<MatchFacts>> = hits
@@ -272,16 +265,14 @@ fn prepare(
         return None;
     }
     hits.matches = kept;
-    if keep_dropped {
+    // Dropped matches and the text are kept only for what will print them.
+    let lines_as_context = opts.has_context() && opts.only_matching;
+    if opts.has_context() {
         hits.dropped = dropped;
     }
     hits.defs = structure.is_some().then_some(defs);
-    Some(Prepared {
-        rel,
-        hits,
-        scopes,
-        text: if post.scope { text } else { None },
-    })
+    hits.text = text.filter(|_| post.scope || lines_as_context);
+    Some(Prepared { rel, hits, scopes })
 }
 
 /// `--callers`: each definition enclosing a use, once, with its number of uses.
@@ -293,6 +284,7 @@ fn emit_callers(
     let mut printed = false;
     for file in files {
         let lines: Vec<&str> = file
+            .hits
             .text
             .as_deref()
             .map(|t| t.lines().collect())
@@ -327,13 +319,12 @@ fn emit_callers(
 /// Print one file's result: its binary note, then its path (-l), its count
 /// (-c, over all its matches) or the `shown` matches (indices into
 /// `hits.matches`) with the context around them and, when `scopes` has
-/// them, scope headers read from `text`.
+/// them, scope headers read from the file's text.
 pub(crate) fn emit_file(
     rel: &str,
     hits: &FileHits,
     shown: &[usize],
     scopes: &[Option<(usize, serde_json::Value)>],
-    text: Option<&str>,
     opts: &crate::search::SearchOptions,
     writer: &mut OutputWriter,
 ) -> Result<()> {
@@ -358,7 +349,11 @@ pub(crate) fn emit_file(
     {
         return Ok(());
     }
-    let lines: Vec<&str> = text.map(|t| t.lines().collect()).unwrap_or_default();
+    let lines: Vec<&str> = hits
+        .text
+        .as_deref()
+        .map(|t| t.lines().collect())
+        .unwrap_or_default();
     let mut shown_lines: Vec<usize> = shown.iter().map(|&i| hits.matches[i].line_number).collect();
     shown_lines.sort_unstable();
     // A context line belongs to a shown match up to -B lines below it or -A
@@ -374,16 +369,15 @@ pub(crate) fn emit_file(
     };
     // Lines that matched but are not shown (--rank picked others, --kind or
     // --in dropped them) are context like any other line near a shown one.
-    // Under -o a match row holds only the matched text, not the line.
-    let mut unshown: Vec<crate::output::ContextLine> = Vec::new();
-    if (before > 0 || after > 0) && !opts.only_matching {
+    // Under -o a match row holds only the matched text, so the line is read
+    // from the file's text.
+    let unshown: Vec<crate::output::ContextLine> = if opts.has_context() {
         let mut is_shown = vec![false; hits.matches.len()];
         for &i in shown {
             is_shown[i] = true;
         }
         let mut seen = std::collections::HashSet::new();
-        unshown = hits
-            .matches
+        hits.matches
             .iter()
             .zip(&is_shown)
             .filter(|(_, shown)| !**shown)
@@ -394,15 +388,26 @@ pub(crate) fn emit_file(
                     && near(m.line_number)
                     && seen.insert(m.line_number)
             })
-            .map(|m| crate::output::ContextLine {
-                file: m.file.clone(),
-                line_number: m.line_number,
-                content: m.content.clone(),
-                absolute_offset: m.absolute_offset,
-                terminator_len: m.terminator_len,
+            .filter_map(|m| {
+                let (content, absolute_offset) = if opts.only_matching {
+                    let line = lines.get(m.line_number.checked_sub(1)?)?;
+                    let column = m.columns.first().map_or(0, |c| c - 1);
+                    (line.to_string(), m.absolute_offset.saturating_sub(column))
+                } else {
+                    (m.content.clone(), m.absolute_offset)
+                };
+                Some(crate::output::ContextLine {
+                    file: m.file.clone(),
+                    line_number: m.line_number,
+                    content,
+                    absolute_offset,
+                    terminator_len: m.terminator_len,
+                })
             })
-            .collect();
-    }
+            .collect()
+    } else {
+        Vec::new()
+    };
     let mut rows: Vec<Row> = shown
         .iter()
         .map(|&i| (hits.matches[i].line_number, Ok((i, &hits.matches[i]))))
@@ -415,21 +420,48 @@ pub(crate) fn emit_file(
             .map(|c| (c.line_number, Err(c))),
     );
     rows.sort_by_key(|(line, _)| *line);
-    // A scope's header comes before its first row: a match in it, or a
-    // context line leading into that match from inside the scope.
-    let mut row_scopes: Vec<Option<&(usize, serde_json::Value)>> = vec![None; rows.len()];
-    let mut next = None;
-    for (k, (line, row)) in rows.iter().enumerate().rev() {
-        match row {
-            Ok((i, _)) => {
-                next = scopes.get(*i).and_then(Option::as_ref);
-                row_scopes[k] = next;
-            }
-            Err(_) => row_scopes[k] = next.filter(|(start, _)| start <= line),
+    // A context line belongs to the scope of the match before it while it is
+    // inside that scope, else to that of the match after it once inside that
+    // one, else to none (no header is printed for it).
+    type Scope<'s> = Option<&'s (usize, serde_json::Value)>;
+    let scope_of = |row: &Row| -> Scope {
+        match row.1 {
+            Ok((i, _)) => scopes.get(i).and_then(Option::as_ref),
+            Err(_) => None,
+        }
+    };
+    let contains = |scope: Scope, line: usize| {
+        scope.is_some_and(|(start, chain)| {
+            let end = chain
+                .as_array()
+                .and_then(|c| c.last())
+                .and_then(|s| s["end_line"].as_u64())
+                .map_or(*start, |e| e as usize);
+            (*start..=end).contains(&line)
+        })
+    };
+    let mut row_scopes: Vec<Scope> = vec![None; rows.len()];
+    let mut next: Scope = None;
+    for (k, row) in rows.iter().enumerate().rev() {
+        if row.1.is_ok() {
+            next = scope_of(row);
+            row_scopes[k] = next;
+        } else if contains(next, row.0) {
+            row_scopes[k] = next;
+        }
+    }
+    let mut prev: Scope = None;
+    for (k, row) in rows.iter().enumerate() {
+        if row.1.is_ok() {
+            prev = scope_of(row);
+        } else if contains(prev, row.0) {
+            row_scopes[k] = prev;
         }
     }
     let mut last_scope: Option<usize> = None;
     for ((line, row), scope) in rows.into_iter().zip(row_scopes) {
+        // A gap is marked before the header that opens the next block.
+        writer.write_context_separator(rel, line)?;
         if let Some((start, chain)) = scope
             && last_scope != Some(*start)
         {
@@ -437,7 +469,6 @@ pub(crate) fn emit_file(
             let header = lines.get(start - 1).copied().unwrap_or("");
             writer.write_scope(rel, *start, header, chain)?;
         }
-        writer.write_context_separator(rel, line)?;
         match row {
             Ok((_, m)) => writer.write_match(m)?,
             Err(c) => writer.write_context_line(c)?,
@@ -455,15 +486,7 @@ fn emit_plain(
     let printed = !files.is_empty();
     for file in files {
         let shown: Vec<usize> = (0..file.hits.matches.len()).collect();
-        emit_file(
-            &file.rel,
-            &file.hits,
-            &shown,
-            &file.scopes,
-            file.text.as_deref(),
-            opts,
-            writer,
-        )?;
+        emit_file(&file.rel, &file.hits, &shown, &file.scopes, opts, writer)?;
     }
     Ok(printed)
 }
@@ -486,8 +509,8 @@ pub fn emit(
     writer: &mut OutputWriter,
 ) -> Result<bool> {
     let parses = post.parses();
-    // Matches --kind and --in drop are kept only to show as context.
-    let context = opts.before_ctx() > 0 || opts.after_ctx() > 0;
+    // Under -o, matches shown as context are printed from the file's lines.
+    let reads = parses || (opts.only_matching && opts.has_context());
     let mut inputs: Vec<(String, FileHits, PathBuf, usize)> = Vec::new();
     let mut caches: Vec<(Option<PathBuf>, Option<ogrep_core::facts::FactStore>)> = Vec::new();
     for c in captured {
@@ -506,20 +529,21 @@ pub fn emit(
     // there is more than one file.
     let load = |i: usize| -> (Loaded, Option<NewFact>) {
         let (rel, _, root, slot) = &inputs[i];
-        let Some(text) = parses
-            .then(|| read_text(rel, root, opts.encoding))
-            .flatten()
-        else {
+        let Some(text) = reads.then(|| read_text(rel, root, opts.encoding)).flatten() else {
             return Default::default();
         };
-        let (structure, fact) = analyze_cached(rel, text.as_bytes(), caches[*slot].1.as_ref());
+        let (structure, fact) = if parses {
+            analyze_cached(rel, text.as_bytes(), caches[*slot].1.as_ref())
+        } else {
+            (None, None)
+        };
         let loaded = Loaded {
             text: Some(text),
             structure,
         };
         (loaded, fact)
     };
-    let loaded: Vec<(Loaded, Option<NewFact>)> = if parses && inputs.len() > 1 {
+    let loaded: Vec<(Loaded, Option<NewFact>)> = if reads && inputs.len() > 1 {
         (0..inputs.len()).into_par_iter().map(load).collect()
     } else {
         (0..inputs.len()).map(load).collect()
@@ -531,7 +555,7 @@ pub fn emit(
         .zip(loaded)
         .filter_map(|((rel, hits, _, slot), (l, fact))| {
             new_facts[slot].extend(fact);
-            prepare(rel, hits, l, post, context)
+            prepare(rel, hits, l, post, opts)
         })
         .collect();
     // Unmap every store first: put replaces index.bin, which Windows refuses

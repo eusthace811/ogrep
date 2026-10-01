@@ -460,6 +460,10 @@ impl SearchOptions {
     pub fn before_ctx(&self) -> usize {
         self.before_context.or(self.context).unwrap_or(0)
     }
+    /// Whether lines around the matches are printed.
+    pub fn has_context(&self) -> bool {
+        self.before_ctx() > 0 || self.after_ctx() > 0
+    }
 
     fn make_output_config(&self) -> OutputConfig {
         let format = if self.json {

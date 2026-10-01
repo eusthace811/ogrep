@@ -132,6 +132,9 @@ pub(crate) struct FileHits {
     pub(crate) defs: Option<Vec<bool>>,
     /// Matching lines --kind or --in dropped: context, if near a shown match.
     pub(crate) dropped: Vec<Match>,
+    /// The file's text, when loaded: scope headers and, under -o, the lines
+    /// of matches shown as context are read from it.
+    pub(crate) text: Option<String>,
 }
 
 /// Per-file scoring inputs, reported by `--explain-rank`.
@@ -487,19 +490,25 @@ fn select_lines(
     });
     let mut seen = std::collections::HashSet::new();
     let mut picked: Vec<usize> = Vec::new();
-    for (i, m) in order {
-        if picked.len() >= per_file {
-            break;
+    if only_matching {
+        // Under -o a row is one match: --per-file counts the lines picked,
+        // and a picked line shows all of its matches.
+        let mut lines = std::collections::HashSet::new();
+        for (_, m) in &order {
+            if lines.len() >= per_file && !lines.contains(&m.line_number) {
+                continue;
+            }
+            lines.insert(m.line_number);
         }
-        // Under -o a row is just the matched text, so rows are told apart
-        // by where they are.
-        let key = if only_matching {
-            format!("{}:{:?}", m.line_number, m.columns.first())
-        } else {
-            norm(&m.content)
-        };
-        if seen.insert(key) {
-            picked.push(i);
+        picked.extend((0..matches.len()).filter(|&i| lines.contains(&matches[i].line_number)));
+    } else {
+        for (i, m) in order {
+            if picked.len() >= per_file {
+                break;
+            }
+            if seen.insert(norm(&m.content)) {
+                picked.push(i);
+            }
         }
     }
     picked.sort_by_key(|&i| matches[i].line_number);
@@ -534,7 +543,7 @@ pub fn emit(
             opts.per_file,
             search.only_matching,
         );
-        crate::post::emit_file(&r.path, hits, &shown, &[], None, search, writer)?;
+        crate::post::emit_file(&r.path, hits, &shown, &[], search, writer)?;
     }
     Ok(keep > 0)
 }
