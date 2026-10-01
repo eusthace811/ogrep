@@ -30,6 +30,23 @@ impl Match {
         self.columns.first().copied()
     }
 
+    /// The rows `-o` prints for this whole-line match: one per match, holding
+    /// only the matched text, placed as the search places them.
+    pub fn only_matching_rows(&self) -> impl Iterator<Item = Match> + '_ {
+        self.spans.iter().enumerate().map(move |(k, &(s, e))| {
+            let column = self.columns.get(k).copied().unwrap_or(s + 1);
+            Match {
+                file: self.file.clone(),
+                line_number: self.line_number,
+                content: self.content[s..e].to_string(),
+                columns: vec![column],
+                spans: vec![(0, e - s)],
+                absolute_offset: self.absolute_offset + column - 1,
+                terminator_len: 0,
+            }
+        })
+    }
+
     /// Keep the matches (spans, and their columns) whose `keep` is true.
     /// Columns that do not run parallel to the spans (a reply that left some
     /// out) are taken from the kept spans instead.

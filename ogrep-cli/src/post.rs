@@ -300,14 +300,12 @@ fn emit_callers(
             .as_deref()
             .map(|t| t.lines().collect())
             .unwrap_or_default();
-        let mut uses: std::collections::BTreeMap<usize, (usize, serde_json::Value)> =
-            Default::default();
+        let mut uses: std::collections::BTreeMap<usize, (usize, Scope)> = Default::default();
         for scope in file.scopes.into_iter().flatten() {
-            let entry = uses.entry(scope.start).or_insert((0, scope.chain));
-            entry.0 += 1;
+            uses.entry(scope.start).or_insert((0, scope)).0 += 1;
         }
         writer.set_path_display(file.hits.display.clone());
-        for (line, (count, chain)) in uses {
+        for (line, (count, Scope { chain, .. })) in uses {
             printed = true;
             let header = lines.get(line - 1).copied().unwrap_or("").trim();
             if opts.json {
@@ -473,16 +471,8 @@ pub(crate) fn emit_file(
         match row {
             // -o prints each match on its own row, as the search does.
             Ok((_, m)) if only_matching && !m.spans.is_empty() => {
-                for (k, &(s, e)) in m.spans.iter().enumerate() {
-                    let column = m.columns.get(k).copied().unwrap_or(s + 1);
-                    writer.write_match(&Match {
-                        content: m.content[s..e].to_string(),
-                        spans: vec![(0, e - s)],
-                        columns: vec![column],
-                        absolute_offset: m.absolute_offset + column - 1,
-                        terminator_len: 0,
-                        ..m.clone()
-                    })?;
+                for row in m.only_matching_rows() {
+                    writer.write_match(&row)?;
                 }
             }
             Ok((_, m)) => writer.write_match(m)?,
