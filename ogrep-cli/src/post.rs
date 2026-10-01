@@ -57,7 +57,7 @@ impl PostOptions {
     }
 
     /// Whether --kind or --in picks among the matches.
-    fn filters_matches(&self) -> bool {
+    pub fn filters_matches(&self) -> bool {
         self.kind.is_some() || self.zone.is_some()
     }
 
@@ -92,13 +92,33 @@ type Structure = ogrep_core::structure::FileStructure;
 struct Structure;
 
 #[cfg(feature = "structure")]
-use ogrep_core::structure::analyze_cached;
+use ogrep_core::structure::{Cached, lookup_cached, parse_miss};
+
+/// Stand-ins when structure support is compiled out: nothing is cached or
+/// parsed.
+#[cfg(not(feature = "structure"))]
+#[allow(dead_code)]
+enum Cached {
+    Found(Structure),
+    Miss(ogrep_core::meta::ContentId),
+    Unsupported,
+}
 
 #[cfg(not(feature = "structure"))]
-fn analyze_cached(
+fn lookup_cached(
     _rel: &str,
     _text: &[u8],
     _cache: Option<&ogrep_core::facts::FactStore>,
+) -> Cached {
+    Cached::Unsupported
+}
+
+#[cfg(not(feature = "structure"))]
+fn parse_miss(
+    _rel: &str,
+    _text: &[u8],
+    _id: ogrep_core::meta::ContentId,
+    _caching: bool,
 ) -> (Option<Structure>, Option<NewFact>) {
     (None, None)
 }
@@ -138,10 +158,18 @@ fn facts(structure: &Structure, m: &Match) -> MatchFacts {
     MatchFacts { def, spans }
 }
 
-/// The definitions enclosing `offset`.
+/// The definitions enclosing `offset`, built once per innermost one.
 #[cfg(feature = "structure")]
-fn scope_at(structure: &Structure, offset: usize) -> Option<Scope> {
-    let chain = structure.enclosing(offset);
+fn scope_at(
+    structure: &Structure,
+    offset: usize,
+    built: &mut std::collections::HashMap<usize, Scope>,
+) -> Option<Scope> {
+    let innermost = structure.innermost(offset)?;
+    if let Some(scope) = built.get(&innermost) {
+        return Some(scope.clone());
+    }
+    let chain = structure.chain(Some(innermost));
     let inner = chain.last()?;
     let json = chain
         .iter()
@@ -152,11 +180,13 @@ fn scope_at(structure: &Structure, offset: usize) -> Option<Scope> {
             })
         })
         .collect::<Vec<_>>();
-    Some(Scope {
+    let scope = Scope {
         start: inner.start_line,
         end: inner.end_line,
-        chain: serde_json::Value::from(json),
-    })
+        chain: std::sync::Arc::new(serde_json::Value::from(json)),
+    };
+    built.insert(innermost, scope.clone());
+    Some(scope)
 }
 
 #[cfg(not(feature = "structure"))]
@@ -165,7 +195,11 @@ fn facts(_structure: &Structure, _m: &Match) -> MatchFacts {
 }
 
 #[cfg(not(feature = "structure"))]
-fn scope_at(_structure: &Structure, _offset: usize) -> Option<Scope> {
+fn scope_at(
+    _structure: &Structure,
+    _offset: usize,
+    _built: &mut std::collections::HashMap<usize, Scope>,
+) -> Option<Scope> {
     unreachable!("no structure without the feature")
 }
 
@@ -176,13 +210,15 @@ struct Prepared {
     scopes: Vec<Option<Scope>>,
 }
 
-/// The innermost definition enclosing a match, and the chain to it.
+/// The innermost definition enclosing a match, and the chain to it. Matches
+/// in the same definition share one.
+#[derive(Clone)]
 pub(crate) struct Scope {
     /// First and last line of the innermost definition.
     start: usize,
     end: usize,
     /// Every enclosing definition, outermost first, as JSON.
-    chain: serde_json::Value,
+    chain: std::sync::Arc<serde_json::Value>,
 }
 
 /// A matched file's text and, in a parsed language, its structure.
@@ -220,10 +256,18 @@ fn prepare(
     opts: &crate::search::SearchOptions,
 ) -> Option<Prepared> {
     let Loaded { text, structure } = loaded;
+    // Per-match facts serve --kind, --in and ranking; --scope alone needs
+    // only where each kept line's first match is.
+    let wants_facts = post.filters_matches() || post.rank.is_some();
     let facts: Vec<Option<MatchFacts>> = hits
         .matches
         .iter()
-        .map(|m| structure.as_ref().map(|s| facts(s, m)))
+        .map(|m| {
+            structure
+                .as_ref()
+                .filter(|_| wants_facts)
+                .map(|s| facts(s, m))
+        })
         .collect();
 
     // A match passes when it is of the kind and in the zone asked for, and
@@ -235,6 +279,7 @@ fn prepare(
     // string).
     let filtered = post.filters_matches();
     let mut scopes = Vec::new();
+    let mut built_scopes = std::collections::HashMap::new();
     let mut defs = Vec::new();
     let mut kept = Vec::new();
     let mut dropped = Vec::new();
@@ -252,10 +297,10 @@ fn prepare(
             }
             Some(f) => f.def,
             None => {
-                let def = m
-                    .spans
-                    .iter()
-                    .any(|&(s, _)| rank::is_definition(&m.content, s));
+                let def = wants_facts
+                    && m.spans
+                        .iter()
+                        .any(|&(s, _)| rank::is_definition(&m.content, s));
                 if filtered && !post.passes(def, ZoneFilter::Code) {
                     dropped.push(m);
                     continue;
@@ -266,7 +311,8 @@ fn prepare(
         // The scope is where the first kept match starts.
         scopes.push(match &structure {
             Some(s) if post.scope => {
-                scope_at(s, m.absolute_offset + m.spans.first().map_or(0, |s| s.0))
+                let offset = m.absolute_offset + m.spans.first().map_or(0, |s| s.0);
+                scope_at(s, offset, &mut built_scopes)
             }
             _ => None,
         });
@@ -528,28 +574,45 @@ pub fn emit(
             inputs.push((rel, hits, c.root.clone(), slot));
         }
     }
-    // Reading, cache lookups and parsing the misses run on all threads when
-    // there is more than one file.
-    let load = |i: usize| -> (Loaded, Option<NewFact>) {
-        let (rel, _, root, slot) = &inputs[i];
-        let Some(text) = parses
+    // Reading and cache lookups are cheap and run in turn; parsing the
+    // misses runs on all threads when there is more than one (starting the
+    // pool would cost more than a warm cache's whole lookup).
+    let mut loaded: Vec<(Loaded, Option<NewFact>)> = Vec::with_capacity(inputs.len());
+    let mut misses: Vec<(usize, ogrep_core::meta::ContentId)> = Vec::new();
+    for (i, (rel, _, root, slot)) in inputs.iter().enumerate() {
+        let text = parses
             .then(|| read_text(rel, root, opts.encoding))
-            .flatten()
-        else {
-            return Default::default();
+            .flatten();
+        let structure = match &text {
+            Some(t) => match lookup_cached(rel, t.as_bytes(), caches[*slot].1.as_ref()) {
+                Cached::Found(found) => Some(found),
+                Cached::Miss(id) => {
+                    misses.push((i, id));
+                    None
+                }
+                Cached::Unsupported => None,
+            },
+            None => None,
         };
-        let (structure, fact) = analyze_cached(rel, text.as_bytes(), caches[*slot].1.as_ref());
-        let loaded = Loaded {
-            text: Some(text),
-            structure,
-        };
-        (loaded, fact)
+        loaded.push((Loaded { text, structure }, None));
+    }
+    let parse = |&(i, id): &(usize, ogrep_core::meta::ContentId)| {
+        let (rel, _, _, slot) = &inputs[i];
+        let text = loaded[i].0.text.as_deref().unwrap_or_default();
+        (
+            i,
+            parse_miss(rel, text.as_bytes(), id, caches[*slot].1.is_some()),
+        )
     };
-    let loaded: Vec<(Loaded, Option<NewFact>)> = if parses && inputs.len() > 1 {
-        (0..inputs.len()).into_par_iter().map(load).collect()
+    let parsed: Vec<_> = if misses.len() > 1 {
+        misses.par_iter().map(parse).collect()
     } else {
-        (0..inputs.len()).map(load).collect()
+        misses.iter().map(parse).collect()
     };
+    for (i, (structure, fact)) in parsed {
+        loaded[i].0.structure = structure;
+        loaded[i].1 = fact;
+    }
     // New parses go to the cache for next time; a failure only costs a re-parse.
     let mut new_facts: Vec<Vec<NewFact>> = vec![Vec::new(); caches.len()];
     let prepared: Vec<Prepared> = inputs

@@ -356,6 +356,9 @@ fn score_files(files: &[(String, FileHits)], patterns: &PatternSet, w: &Weights)
         .map(|(_, hits)| {
             let mut lines = vec![(0usize, 0usize); n];
             let mut texts = Vec::new();
+            // A line can hold thousands of matches of a few texts: each text
+            // is attributed to a pattern, and kept, once.
+            let mut pattern_of: std::collections::HashMap<&str, usize> = Default::default();
             for (i, m) in hits.matches.iter().enumerate() {
                 let parsed_def = hits.defs.as_ref().and_then(|d| d.get(i).copied());
                 let mut seen = vec![false; n];
@@ -364,11 +367,28 @@ fn score_files(files: &[(String, FileHits)], patterns: &PatternSet, w: &Weights)
                     let Some(text) = m.content.get(s..e) else {
                         continue;
                     };
-                    let p = patterns.of(text);
+                    let p = *pattern_of.entry(text).or_insert_with(|| {
+                        if text.len() >= 3 {
+                            texts.push(text.to_ascii_lowercase());
+                        }
+                        patterns.of(text)
+                    });
                     seen[p] = true;
-                    def[p] |= parsed_def.unwrap_or_else(|| is_definition(&m.content, s));
-                    if text.len() >= 3 {
-                        texts.push(text.to_ascii_lowercase());
+                    if !def[p] {
+                        def[p] = parsed_def.unwrap_or_else(|| is_definition(&m.content, s));
+                    }
+                }
+                // With several patterns, every one the line has counts, even
+                // when only its first match was captured.
+                if n > 1 {
+                    for (p, re) in patterns.regexes.iter().enumerate() {
+                        if !seen[p]
+                            && let Some(found) = re.as_ref().and_then(|re| re.find(&m.content))
+                        {
+                            seen[p] = true;
+                            def[p] = parsed_def
+                                .unwrap_or_else(|| is_definition(&m.content, found.start()));
+                        }
                     }
                 }
                 if m.spans.is_empty() {

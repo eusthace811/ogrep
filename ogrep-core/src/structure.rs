@@ -59,20 +59,47 @@ pub struct FileStructure {
     pub symbols: Vec<Symbol>,
     /// Non-overlapping comment and string ranges, sorted by start.
     zones: Vec<(usize, usize, Zone)>,
+    /// Every symbol's name range, sorted, for [`Self::defines`].
+    names: Vec<(usize, usize)>,
 }
 
 impl FileStructure {
+    fn new(language: &'static str, symbols: Vec<Symbol>, zones: Vec<(usize, usize, Zone)>) -> Self {
+        let mut names: Vec<(usize, usize)> =
+            symbols.iter().map(|s| (s.name_start, s.name_end)).collect();
+        names.sort_unstable();
+        Self {
+            language,
+            symbols,
+            zones,
+            names,
+        }
+    }
+
+    /// The index of the innermost symbol containing `offset`.
+    pub fn innermost(&self, offset: usize) -> Option<usize> {
+        // Symbols nest, so whatever contains `offset` contains the last
+        // symbol starting at or before it, or is that symbol: the innermost
+        // is the first of it and its parents that reaches past `offset`.
+        let mut innermost = self
+            .symbols
+            .partition_point(|s| s.start <= offset)
+            .checked_sub(1);
+        while let Some(i) = innermost
+            && offset >= self.symbols[i].end
+        {
+            innermost = self.symbols[i].parent;
+        }
+        innermost
+    }
+
     /// The symbols containing `offset`, outermost first.
     pub fn enclosing(&self, offset: usize) -> Vec<&Symbol> {
-        let mut innermost = None;
-        for (i, s) in self.symbols.iter().enumerate() {
-            if s.start > offset {
-                break;
-            }
-            if offset < s.end {
-                innermost = Some(i);
-            }
-        }
+        self.chain(self.innermost(offset))
+    }
+
+    /// Symbol `innermost` and its parents, outermost first.
+    pub fn chain(&self, innermost: Option<usize>) -> Vec<&Symbol> {
         let mut chain = Vec::new();
         let mut at = innermost;
         while let Some(i) = at {
@@ -190,20 +217,18 @@ impl FileStructure {
             };
             zones.push((start, end, zone));
         }
-        Some(Self {
-            language,
-            symbols,
-            zones,
-        })
+        Some(Self::new(language, symbols, zones))
     }
 
     /// Whether `start..end` covers the whole name of a definition: the match is
     /// where that name is defined. Part of a longer name does not count:
     /// `bulk_update` inside `def test_bulk_update` defines something else.
     pub fn defines(&self, start: usize, end: usize) -> bool {
-        self.symbols
+        let first = self.names.partition_point(|&(s, _)| s < start);
+        self.names[first..]
             .iter()
-            .any(|s| start <= s.name_start && s.name_end <= end)
+            .take_while(|&&(s, _)| s < end)
+            .any(|&(_, e)| e <= end)
     }
 }
 
@@ -487,18 +512,51 @@ pub fn analyze_cached(
     text: &[u8],
     cache: Option<&crate::facts::FactStore>,
 ) -> (Option<FileStructure>, Option<crate::facts::NewFact>) {
+    match lookup_cached(path, text, cache) {
+        Cached::Found(found) => (Some(found), None),
+        Cached::Miss(id) => parse_miss(path, text, id, cache.is_some()),
+        Cached::Unsupported => (None, None),
+    }
+}
+
+/// What the cache holds for a file (see [`analyze_cached`]).
+pub enum Cached {
+    Found(FileStructure),
+    /// Not cached; the key to cache its parse under.
+    Miss(crate::meta::ContentId),
+    /// No grammar for the file.
+    Unsupported,
+}
+
+/// The cheap half of [`analyze_cached`]: hash and look up, no parsing, so
+/// callers can parse the misses together.
+pub fn lookup_cached(path: &str, text: &[u8], cache: Option<&crate::facts::FactStore>) -> Cached {
     let Some(grammar) = grammar_for(path) else {
-        return (None, None);
+        return Cached::Unsupported;
     };
     let id = crate::meta::ContentId::of_derived(grammar.name.as_bytes(), text);
-    if let Some(found) = cache
+    match cache
         .and_then(|c| c.get(&id))
         .and_then(FileStructure::decode)
     {
-        return (Some(found), None);
+        Some(found) => Cached::Found(found),
+        None => Cached::Miss(id),
     }
+}
+
+/// Parse a file [`lookup_cached`] missed, with the entry to cache when
+/// `caching`.
+pub fn parse_miss(
+    path: &str,
+    text: &[u8],
+    id: crate::meta::ContentId,
+    caching: bool,
+) -> (Option<FileStructure>, Option<crate::facts::NewFact>) {
     let parsed = analyze(path, text);
-    let fact = cache.and(parsed.as_ref()).map(|p| (id, p.encode()));
+    let fact = parsed
+        .as_ref()
+        .filter(|_| caching)
+        .map(|p| (id, p.encode()));
     (parsed, fact)
 }
 
@@ -573,11 +631,7 @@ pub fn analyze(path: &str, text: &[u8]) -> Option<FileStructure> {
         open.push(i);
     }
     zones.sort_unstable_by_key(|&(start, _, _)| start);
-    Some(FileStructure {
-        language: grammar.name,
-        symbols,
-        zones,
-    })
+    Some(FileStructure::new(grammar.name, symbols, zones))
 }
 
 #[cfg(test)]
@@ -634,6 +688,65 @@ fn caller() { QuerySet{n:1}.bulk_update(); }
         assert_eq!(fs.zone_at(text.find("in a string").unwrap()), Zone::String);
         assert_eq!(fs.zone_at(call), Zone::Code);
         assert_eq!(fs.zone_at(1), Zone::Comment);
+    }
+
+    #[test]
+    fn indexed_lookups_agree_with_a_scan_of_every_symbol() {
+        let sources = [
+            (
+                "x.rs",
+                "mod m { fn a() { foo(); }\n    fn b() {} }\nimpl T {\n    fn c(&self) { let x = 1; }\n}\nfn d() {}\n",
+            ),
+            (
+                "x.py",
+                "class A:\n    @property\n    def x(self):\n        def inner():\n            pass\n\ndef f():\n    return 1\n",
+            ),
+            (
+                "x.go",
+                "package p\n\ntype S struct{}\n\nfunc (s S) M() {}\nfunc F() { M() }\n",
+            ),
+        ];
+        for (path, src) in sources {
+            let f = analyze(path, src.as_bytes()).unwrap();
+            let scan_enclosing = |offset: usize| {
+                let innermost = f
+                    .symbols
+                    .iter()
+                    .enumerate()
+                    .take_while(|(_, s)| s.start <= offset)
+                    .filter(|(_, s)| offset < s.end)
+                    .map(|(i, _)| i)
+                    .last();
+                let mut chain = Vec::new();
+                let mut at = innermost;
+                while let Some(i) = at {
+                    chain.push(&f.symbols[i]);
+                    at = f.symbols[i].parent;
+                }
+                chain.reverse();
+                chain
+            };
+            let scan_defines = |start: usize, end: usize| {
+                f.symbols
+                    .iter()
+                    .any(|s| start <= s.name_start && s.name_end <= end)
+            };
+            for offset in 0..=src.len() {
+                assert_eq!(
+                    f.enclosing(offset),
+                    scan_enclosing(offset),
+                    "{path} @{offset}"
+                );
+                for len in 0..12 {
+                    let end = (offset + len).min(src.len());
+                    assert_eq!(
+                        f.defines(offset, end),
+                        scan_defines(offset, end),
+                        "{path} {offset}..{end}"
+                    );
+                }
+            }
+        }
     }
 
     #[test]
