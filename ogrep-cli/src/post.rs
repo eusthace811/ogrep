@@ -160,13 +160,12 @@ fn facts(structure: &Structure, m: &Match) -> MatchFacts {
 
 /// The definitions enclosing `offset`, built once per innermost one.
 #[cfg(feature = "structure")]
-fn scope_at(
-    structure: &Structure,
-    offset: usize,
-    built: &mut std::collections::HashMap<usize, Scope>,
-) -> Option<Scope> {
+fn scope_at(structure: &Structure, offset: usize, built: &mut Vec<Option<Scope>>) -> Option<Scope> {
     let innermost = structure.innermost(offset)?;
-    if let Some(scope) = built.get(&innermost) {
+    if built.is_empty() {
+        built.resize(structure.symbols.len(), None);
+    }
+    if let Some(scope) = &built[innermost] {
         return Some(scope.clone());
     }
     let chain = structure.chain(Some(innermost));
@@ -185,7 +184,7 @@ fn scope_at(
         end: inner.end_line,
         chain: std::sync::Arc::new(serde_json::Value::from(json)),
     };
-    built.insert(innermost, scope.clone());
+    built[innermost] = Some(scope.clone());
     Some(scope)
 }
 
@@ -198,7 +197,7 @@ fn facts(_structure: &Structure, _m: &Match) -> MatchFacts {
 fn scope_at(
     _structure: &Structure,
     _offset: usize,
-    _built: &mut std::collections::HashMap<usize, Scope>,
+    _built: &mut Vec<Option<Scope>>,
 ) -> Option<Scope> {
     unreachable!("no structure without the feature")
 }
@@ -279,7 +278,7 @@ fn prepare(
     // string).
     let filtered = post.filters_matches();
     let mut scopes = Vec::new();
-    let mut built_scopes = std::collections::HashMap::new();
+    let mut built_scopes = Vec::new();
     let mut defs = Vec::new();
     let mut kept = Vec::new();
     let mut dropped = Vec::new();
@@ -327,7 +326,7 @@ fn prepare(
     if opts.has_context() {
         hits.dropped = dropped;
     }
-    hits.defs = structure.is_some().then_some(defs);
+    hits.defs = (structure.is_some() && wants_facts).then_some(defs);
     hits.text = text.filter(|_| post.scope);
     Some(Prepared { rel, hits, scopes })
 }
@@ -574,25 +573,34 @@ pub fn emit(
             inputs.push((rel, hits, c.root.clone(), slot));
         }
     }
-    // Reading and cache lookups are cheap and run in turn; parsing the
-    // misses runs on all threads when there is more than one (starting the
-    // pool would cost more than a warm cache's whole lookup).
-    let mut loaded: Vec<(Loaded, Option<NewFact>)> = Vec::with_capacity(inputs.len());
-    let mut misses: Vec<(usize, ogrep_core::meta::ContentId)> = Vec::new();
-    for (i, (rel, _, root, slot)) in inputs.iter().enumerate() {
+    // Reading and cache lookups are cheap: they run in turn unless there are
+    // thousands of files (on django, 500-1,700 matched files were looked up
+    // faster in turn than on the thread pool; 20,000 small ones were not).
+    // Parsing the misses runs on all threads when there is more than one.
+    let lookup = |(rel, _, root, slot): &(String, FileHits, PathBuf, usize)| {
         let text = parses
             .then(|| read_text(rel, root, opts.encoding))
             .flatten();
-        let structure = match &text {
-            Some(t) => match lookup_cached(rel, t.as_bytes(), caches[*slot].1.as_ref()) {
-                Cached::Found(found) => Some(found),
-                Cached::Miss(id) => {
-                    misses.push((i, id));
-                    None
-                }
-                Cached::Unsupported => None,
-            },
-            None => None,
+        let cached = text
+            .as_ref()
+            .map(|t| lookup_cached(rel, t.as_bytes(), caches[*slot].1.as_ref()));
+        (text, cached)
+    };
+    let looked_up: Vec<_> = if parses && inputs.len() > 4096 {
+        inputs.par_iter().map(lookup).collect()
+    } else {
+        inputs.iter().map(lookup).collect()
+    };
+    let mut loaded: Vec<(Loaded, Option<NewFact>)> = Vec::with_capacity(inputs.len());
+    let mut misses: Vec<(usize, ogrep_core::meta::ContentId)> = Vec::new();
+    for (i, (text, cached)) in looked_up.into_iter().enumerate() {
+        let structure = match cached {
+            Some(Cached::Found(found)) => Some(found),
+            Some(Cached::Miss(id)) => {
+                misses.push((i, id));
+                None
+            }
+            _ => None,
         };
         loaded.push((Loaded { text, structure }, None));
     }

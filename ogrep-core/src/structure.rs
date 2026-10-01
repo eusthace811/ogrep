@@ -59,20 +59,18 @@ pub struct FileStructure {
     pub symbols: Vec<Symbol>,
     /// Non-overlapping comment and string ranges, sorted by start.
     zones: Vec<(usize, usize, Zone)>,
-    /// Every symbol's name range, sorted, for [`Self::defines`].
-    names: Vec<(usize, usize)>,
+    /// Every symbol's name range, sorted, for [`Self::defines`]; built on
+    /// first use.
+    names: std::sync::OnceLock<Vec<(usize, usize)>>,
 }
 
 impl FileStructure {
     fn new(language: &'static str, symbols: Vec<Symbol>, zones: Vec<(usize, usize, Zone)>) -> Self {
-        let mut names: Vec<(usize, usize)> =
-            symbols.iter().map(|s| (s.name_start, s.name_end)).collect();
-        names.sort_unstable();
         Self {
             language,
             symbols,
             zones,
-            names,
+            names: Default::default(),
         }
     }
 
@@ -224,10 +222,21 @@ impl FileStructure {
     /// where that name is defined. Part of a longer name does not count:
     /// `bulk_update` inside `def test_bulk_update` defines something else.
     pub fn defines(&self, start: usize, end: usize) -> bool {
-        let first = self.names.partition_point(|&(s, _)| s < start);
-        self.names[first..]
+        let names = self.names.get_or_init(|| {
+            let mut names: Vec<(usize, usize)> = self
+                .symbols
+                .iter()
+                .map(|s| (s.name_start, s.name_end))
+                .collect();
+            names.sort_unstable();
+            names
+        });
+        let first = names.partition_point(|&(s, _)| s < start);
+        // A name can be empty (a parser's placeholder in broken code), so one
+        // starting at `end` still counts.
+        names[first..]
             .iter()
-            .take_while(|&&(s, _)| s < end)
+            .take_while(|&&(s, _)| s <= end)
             .any(|&(_, e)| e <= end)
     }
 }
@@ -704,6 +713,11 @@ fn caller() { QuerySet{n:1}.bulk_update(); }
             (
                 "x.go",
                 "package p\n\ntype S struct{}\n\nfunc (s S) M() {}\nfunc F() { M() }\n",
+            ),
+            // Broken code: the namespace's name is an empty placeholder.
+            (
+                "x.cs",
+                "namespace  { class C { int M(cint x) { return x; } interface I* { void F(); } } struct S {} enum E { A } }",
             ),
         ];
         for (path, src) in sources {

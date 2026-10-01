@@ -372,8 +372,10 @@ fn score_files(files: &[(String, FileHits)], patterns: &PatternSet, w: &Weights)
                     // Runs of the same text are common; they skip the lookup.
                     if let Some((prev, p)) = last
                         && prev == text
-                        && (def[p] || parsed_def.is_some())
                     {
+                        if !def[p] && parsed_def.is_none() {
+                            def[p] = is_definition(&m.content, s);
+                        }
                         continue;
                     }
                     let p = *pattern_of.entry(text).or_insert_with(|| {
