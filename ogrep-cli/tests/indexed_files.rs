@@ -285,7 +285,7 @@ fn reshaped_searches_through_the_server_place_matches_in_the_file() {
     fs::create_dir_all(&root).unwrap();
     fs::write(
         root.join("d.rs"),
-        "fn alpha() {}\n\nfn beta() {\n    foo();\n}\nconst S: &str = \"foo\";\n",
+        "fn alpha() {}\n\nfn beta() {\n    foo();\n}\nconst S: &str = \"foo\";\n// foo foo\n",
     )
     .unwrap();
     build_index(&root, &index);
@@ -311,6 +311,13 @@ fn reshaped_searches_through_the_server_place_matches_in_the_file() {
     // Ranking sees each line's first match, so it finds the definition.
     let explained = run(&["--rank", "--explain-rank", "beta"]);
     assert!(explained.contains("def_lines=1"), "{explained}");
+    // Plain searches through the server still see every match on a line.
+    assert!(
+        run(&["--count-matches", "foo"]).ends_with(":4"),
+        "{}",
+        run(&["--count-matches", "foo"])
+    );
+    assert_eq!(run(&["-o", "foo"]).lines().count(), 4);
     // And the server answered them.
     let stats = ogrep()
         .args(["--stats", "--scope", "foo"])

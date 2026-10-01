@@ -290,8 +290,13 @@ fn prepare(
                     continue;
                 }
                 m.retain_matches(&keep);
-                // The line is a definition only through the matches kept.
-                f.spans.iter().zip(&keep).any(|(&(d, _), &k)| k && d)
+                // The line is a definition by its first kept match, as
+                // without a filter it is by its first.
+                f.spans
+                    .iter()
+                    .zip(&keep)
+                    .find(|(_, k)| **k)
+                    .is_some_and(|(&(d, _), _)| d)
             }
             // A line is a definition by its first match, as ranking goes.
             Some(f) => f.spans.first().is_some_and(|&(d, _)| d),
