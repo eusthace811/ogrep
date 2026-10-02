@@ -48,11 +48,16 @@ impl Match {
     }
 
     /// Keep the matches (spans, and their columns) whose `keep` is true.
+    /// Columns that do not run parallel to the spans (a reply that sent
+    /// none) cannot be told apart, so they are dropped rather than misplaced.
     pub fn retain_matches(&mut self, keep: &[bool]) {
         debug_assert_eq!(self.spans.len(), keep.len());
-        debug_assert_eq!(self.columns.len(), self.spans.len());
-        let mut flags = keep.iter();
-        self.columns.retain(|_| *flags.next().unwrap_or(&false));
+        if self.columns.len() == self.spans.len() {
+            let mut flags = keep.iter();
+            self.columns.retain(|_| *flags.next().unwrap_or(&false));
+        } else {
+            self.columns.clear();
+        }
         let mut flags = keep.iter();
         self.spans.retain(|_| *flags.next().unwrap_or(&false));
     }

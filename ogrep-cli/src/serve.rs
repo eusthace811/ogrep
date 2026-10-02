@@ -2435,7 +2435,7 @@ fn search_file_matches(
         RowFields {
             spans: opts.detail,
             // Only each line's first span, for a reshaping client, comes
-            // without columns: it prints none and fills them from the span.
+            // without columns: it prints none.
             columns: opts.detail && opts.all_spans,
             positions: opts.positions,
         },

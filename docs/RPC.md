@@ -10,6 +10,8 @@ For `search`, set both `files_only: true` and `compact_files: true` to receive o
 
 Compaction changes presentation only. It does not request full-file statistics: ordinary file listings still stop matching after the first selected line. Combining file listings with `stats: true` continues to request original per-file totals and compact rows as before. Compact binary listings return the binary marker alone even when `binary_lines` is true.
 
+`all_spans` defaults to true. With `detail: true`, false asks for each match row's first span only and no `columns`: a reshaping client (`--rank`, `--scope`) places and ranks lines by their first match and prints no columns, so the rest only enlarges the reply. Older servers ignore it and send every span with its column; clients must accept either.
+
 Example request:
 
 ```json

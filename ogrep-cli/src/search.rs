@@ -1434,9 +1434,8 @@ fn search_via_server(
                     file: file.to_string(),
                     line_number: line,
                     content: content.to_string(),
-                    // A reply with spans but no columns (a reshaping capture
-                    // asked for none) gets them from the spans, so they run
-                    // parallel as everywhere else.
+                    // Absent when a reshaping capture asked for first spans
+                    // only; it prints no columns.
                     columns: m
                         .get("columns")
                         .and_then(|c| c.as_array())
@@ -1445,8 +1444,7 @@ fn search_via_server(
                                 .filter_map(|c| c.as_u64().map(|c| c as usize))
                                 .collect()
                         })
-                        .filter(|c: &Vec<usize>| c.len() == spans.len())
-                        .unwrap_or_else(|| spans.iter().map(|&(s, _)| s + 1).collect()),
+                        .unwrap_or_default(),
                     spans,
                     absolute_offset: offset,
                     terminator_len,
