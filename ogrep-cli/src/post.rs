@@ -296,6 +296,9 @@ fn prepare(
                     .collect::<Vec<_>>()
                     .into(),
             };
+            // Every captured match has spans (-v, which has none, is refused
+            // with --kind and --in).
+            debug_assert!(!m.spans.is_empty());
             let keep: Vec<bool> = spans.iter().map(|&(d, z)| post.passes(d, z)).collect();
             if !keep.contains(&true) {
                 dropped.push(m);

@@ -578,9 +578,9 @@ fn kind_and_zone_filters_decide_per_match() {
     );
     assert_eq!(unparsed(&["--kind", "ref", "-o", "foo"]), "foo\n");
     let json = unparsed(&["--kind", "def", "--json", "foo"]);
-    assert_eq!(
-        json.matches(r#""match":{"text":"foo"}"#).count(),
-        1,
+    // The definition (bytes 14..17) is kept, not the call.
+    assert!(
+        json.contains(r#""submatches":[{"end":17,"match":{"text":"foo"},"start":14}]"#),
         "{json}"
     );
 
