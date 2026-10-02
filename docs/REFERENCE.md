@@ -506,7 +506,9 @@ index still uses it and says so.
   1024): a repository map for an agent's context. Definitions around the
   matches, and names the matched files mention, come first.
 - **`--callers`** lists each definition that uses PATTERN once, with its number
-  of uses in code (not in strings or comments; parsed languages).
+  of uses in code (not in strings or comments; parsed languages), counted as
+  lines: several uses on one line count once, under the definition around the
+  first.
 - **`--callees NAME`** lists, for each definition named NAME, the names it calls
   or uses as types that are defined in the repository, preferring definitions
   in the same file or in files it links to, and skipping names too ambiguous to
@@ -981,7 +983,8 @@ whole-file buffer. The match counts themselves agree.
 `-U/--multiline` lets a match cross line boundaries, and every line a match
 covers is printed. `--vimgrep` is the exception: it reports one row per match
 so editors get one jump target each, so a match spanning several lines is
-reported only on the line it starts on.
+reported only on the line it starts on. (Under `--rank`, `--scope`, `--kind`
+or `--in`, each line a match covers gets a row.)
 
 Two divergences, both cases where ripgrep names a column that doesn't exist on
 the line it prints — `rg -U --column` reports the same column for every line of

@@ -615,16 +615,23 @@ fn reshaped_output_keeps_structure_context_and_callers_straight() {
     // A byte-order mark does not shift where matches are looked up.
     assert!(run(&["--in", "strings", "foo", "bom.rs"]).contains("let a"));
     assert!(run(&["--kind", "def", "foo", "bom.rs"]).contains("fn foo()"));
-    // A name in a string is not a use; two calls on a line are two.
+    // A name in a string is not a use.
     assert_eq!(
         run(&["--callers", "foo", "b.py"]),
         "4=def beta():  (1 use)\n"
     );
-    write("u.py", b"def twice():\n    foo(); foo()\n");
-    assert_eq!(
-        run(&["--callers", "foo", "u.py"]),
-        "1=def twice():  (2 uses)\n"
-    );
+    // --vimgrep shapes output only: --rank orders files the same with it.
+    write("one.txt", b"x foo\nfoo\n");
+    write("many.txt", b"start foo\nbar\nbaz\nqux\nend\n");
+    let ranked = |extra: &[&str]| {
+        stdout(
+            ogrep(dir.path())
+                .args(["--no-index", "-U", "--rank", "-l"])
+                .args(extra)
+                .args([r"foo(\n[a-z]+)*", "one.txt", "many.txt"]),
+        )
+    };
+    assert_eq!(ranked(&[]), ranked(&["--vimgrep"]));
     // A matching line that --in dropped is still context.
     assert_eq!(
         run(&["-n", "--in", "strings", "-A1", "foo", "c.rs"]),

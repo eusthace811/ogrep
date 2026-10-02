@@ -355,11 +355,11 @@ fn emit_callers(
             .map(|t| t.lines().collect())
             .unwrap_or_default();
         let mut uses: std::collections::BTreeMap<usize, (usize, Scope)> = Default::default();
-        // Each kept match is a use; a line can hold several.
-        for (m, scope) in file.hits.matches.iter().zip(file.scopes) {
-            if let Some(scope) = scope {
-                uses.entry(scope.start).or_insert((0, scope)).0 += m.spans.len().max(1);
-            }
+        // A use is a line with a kept match, placed by that match: counting
+        // spans instead would count a multiline match's continuation lines
+        // and credit a line's other matches to the first one's definition.
+        for scope in file.scopes.into_iter().flatten() {
+            uses.entry(scope.start).or_insert((0, scope)).0 += 1;
         }
         writer.set_path_display(file.hits.display.clone());
         for (line, (count, Scope { chain, .. })) in uses {

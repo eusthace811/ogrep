@@ -1682,9 +1682,9 @@ fn run_cli() {
                     || cli.column
                     || cli.byte_offset
                     || cli.vimgrep
-                    || cli.context.is_some()
-                    || cli.before_context.is_some()
-                    || cli.after_context.is_some()),
+                    || [cli.context, cli.before_context, cli.after_context]
+                        .iter()
+                        .any(|n| n.is_some_and(|n| n > 0))),
             "--callers cannot be combined with -o, --column, -b, --vimgrep or -A/-B/-C",
         ),
         // These read each match's text or place it in the file, and a
