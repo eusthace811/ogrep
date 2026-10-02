@@ -344,6 +344,17 @@ impl PatternSet {
     }
 }
 
+/// Whether line `i` of a file defines what it matches: from the parsed
+/// structure (`defs`) when there is one, else by the keyword heuristic, and
+/// in both cases by the line's first match.
+fn line_is_definition(defs: Option<&[bool]>, i: usize, m: &Match) -> bool {
+    defs.and_then(|d| d.get(i).copied()).unwrap_or_else(|| {
+        m.spans
+            .first()
+            .is_some_and(|&(s, _)| is_definition(&m.content, s))
+    })
+}
+
 /// Score and order grouped files.
 fn score_files(files: &[(String, FileHits)], patterns: &PatternSet, w: &Weights) -> Vec<Ranked> {
     let n = patterns.len();
@@ -360,37 +371,23 @@ fn score_files(files: &[(String, FileHits)], patterns: &PatternSet, w: &Weights)
             // Each text is attributed to a pattern, and kept, once.
             let mut pattern_of: std::collections::HashMap<&str, usize> = Default::default();
             for (i, m) in hits.matches.iter().enumerate() {
-                let parsed_def = hits.defs.as_ref().and_then(|d| d.get(i).copied());
-                let mut seen = vec![false; n];
-                let mut def = vec![false; n];
                 // A line is scored by its first match, whatever else the
                 // output asked the search to collect, so the order never
                 // depends on output flags.
-                match m
-                    .spans
-                    .first()
-                    .and_then(|&(s, e)| Some((s, m.content.get(s..e)?)))
-                {
-                    Some((s, text)) => {
-                        let p = *pattern_of.entry(text).or_insert_with(|| {
-                            if text.len() >= 3 {
-                                texts.push(text.to_ascii_lowercase());
-                            }
-                            patterns.of(text)
-                        });
-                        seen[p] = true;
-                        def[p] = parsed_def.unwrap_or_else(|| is_definition(&m.content, s));
-                    }
-                    None => seen[0] = true,
-                }
-                for ((line, &seen), &def) in lines.iter_mut().zip(&seen).zip(&def) {
-                    if seen {
-                        if def {
-                            line.0 += 1;
-                        } else {
-                            line.1 += 1;
+                let p = match m.spans.first().and_then(|&(s, e)| m.content.get(s..e)) {
+                    Some(text) => *pattern_of.entry(text).or_insert_with(|| {
+                        if text.len() >= 3 {
+                            texts.push(text.to_ascii_lowercase());
                         }
-                    }
+                        patterns.of(text)
+                    }),
+                    None => 0,
+                };
+                let line = &mut lines[p];
+                if line_is_definition(hits.defs.as_deref(), i, m) {
+                    line.0 += 1;
+                } else {
+                    line.1 += 1;
                 }
             }
             texts.sort();
@@ -485,14 +482,7 @@ fn select_lines(matches: &[Match], defs: Option<&[bool]>, per_file: usize) -> Ve
             .collect()
     };
     let mut order: Vec<(usize, &Match)> = matches.iter().enumerate().collect();
-    order.sort_by_cached_key(|&(i, m)| {
-        let def = defs.and_then(|d| d.get(i).copied()).unwrap_or_else(|| {
-            m.spans
-                .first()
-                .is_some_and(|&(s, _)| is_definition(&m.content, s))
-        });
-        (!def, m.line_number)
-    });
+    order.sort_by_cached_key(|&(i, m)| (!line_is_definition(defs, i, m), m.line_number));
     let mut seen = std::collections::HashSet::new();
     let mut picked: Vec<usize> = Vec::new();
     for (i, m) in order {

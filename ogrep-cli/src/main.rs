@@ -1283,9 +1283,8 @@ impl Cli {
             iglob: self.iglob.clone(),
             glob_case_insensitive: self.glob_case_insensitive,
             all_spans: false,
-            binary_lines: false,
+            reshaping: false,
             offsets: false,
-            first_span: false,
             only_paths: None,
             types: self.file_type.clone(),
             types_not: self.type_not.clone(),
@@ -1561,21 +1560,16 @@ fn run_cli() {
             eprintln!("ogrep: {flag} cannot be combined with {}", tool.flag);
             process::exit(2);
         }
-        if cli.pattern_from_flags() {
-            match tool.takes {
-                Takes::Pattern => {}
-                Takes::Subject => {
-                    eprintln!(
-                        "ogrep: {} takes its subject as the pattern argument, not -e, -f or --ident",
-                        tool.flag
-                    );
-                    process::exit(2);
-                }
-                Takes::Nothing => {
-                    eprintln!("ogrep: {} takes no pattern", tool.flag);
-                    process::exit(2);
-                }
+        let wrong_pattern = match tool.takes {
+            Takes::Pattern => None,
+            Takes::Subject => {
+                Some("takes its subject as the pattern argument, not -e, -f or --ident")
             }
+            Takes::Nothing => Some("takes no pattern"),
+        };
+        if let Some(problem) = wrong_pattern.filter(|_| cli.pattern_from_flags()) {
+            eprintln!("ogrep: {} {problem}", tool.flag);
+            process::exit(2);
         }
     }
 

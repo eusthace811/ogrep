@@ -130,18 +130,15 @@ type Row<'a> = (
     Result<(usize, &'a Match), &'a crate::output::ContextLine>,
 );
 
-/// What the structure says about one match.
-struct MatchFacts {
-    /// Per match on the line: whether it names a definition, and its zone.
-    spans: Vec<(bool, ZoneFilter)>,
-}
+/// What the structure says about each match on a line: whether it names a
+/// definition, and its zone.
+type MatchFacts = Vec<(bool, ZoneFilter)>;
 
 /// What the structure says about each match of `m`.
 #[cfg(feature = "structure")]
 fn facts(structure: &Structure, m: &Match) -> MatchFacts {
     use ogrep_core::structure::Zone;
-    let spans: Vec<(bool, ZoneFilter)> = m
-        .spans
+    m.spans
         .iter()
         .map(|&(s, e)| {
             let (s, e) = (m.absolute_offset + s, m.absolute_offset + e);
@@ -152,8 +149,18 @@ fn facts(structure: &Structure, m: &Match) -> MatchFacts {
             };
             (structure.defines(s, e), zone)
         })
-        .collect();
-    MatchFacts { spans }
+        .collect()
+}
+
+/// Whether ogrep can parse `rel`'s language.
+#[cfg(feature = "structure")]
+fn has_grammar(rel: &str) -> bool {
+    ogrep_core::structure::supports(rel)
+}
+
+#[cfg(not(feature = "structure"))]
+fn has_grammar(_rel: &str) -> bool {
+    false
 }
 
 /// The definitions enclosing `offset`, built once per innermost one.
@@ -168,7 +175,7 @@ fn scope_at(
         return Some(scope.clone());
     }
     let chain = structure.chain(Some(innermost));
-    let inner = chain.last()?;
+    let inner = &structure.symbols[innermost];
     let json = chain
         .iter()
         .map(|s| {
@@ -285,7 +292,7 @@ fn prepare(
     for (mut m, f) in hits.matches.drain(..).zip(facts) {
         let def = if filtered {
             let spans: std::borrow::Cow<[(bool, ZoneFilter)]> = match &f {
-                Some(f) => (&f.spans[..]).into(),
+                Some(f) => f.as_slice().into(),
                 None => m
                     .spans
                     .iter()
@@ -305,15 +312,9 @@ fn prepare(
                 continue;
             }
             m.retain_matches(&keep);
-            spans
-                .iter()
-                .zip(&keep)
-                .find(|(_, k)| **k)
-                .is_some_and(|(&(d, _), _)| d)
+            keep.iter().position(|&k| k).is_some_and(|i| spans[i].0)
         } else {
-            f.as_ref()
-                .and_then(|f| f.spans.first())
-                .is_some_and(|&(d, _)| d)
+            f.as_ref().and_then(|f| f.first()).is_some_and(|&(d, _)| d)
         };
         // The scope is where the first kept match starts.
         scopes.push(match &structure {
@@ -432,16 +433,11 @@ pub(crate) fn emit_file(
     // Lines that matched but are not shown (--rank picked others, --kind or
     // --in dropped them) are context like any other line near a shown one.
     let unshown: Vec<crate::output::ContextLine> = if opts.has_context() {
-        let mut is_shown = vec![false; hits.matches.len()];
-        for &i in shown {
-            is_shown[i] = true;
-        }
+        // A shown match's line is in `shown_lines`, so the filter below
+        // leaves it out.
         let mut seen = std::collections::HashSet::new();
         hits.matches
             .iter()
-            .zip(&is_shown)
-            .filter(|(_, shown)| !**shown)
-            .map(|(m, _)| m)
             .chain(&hits.dropped)
             .filter(|m| {
                 shown_lines.binary_search(&m.line_number).is_err()
@@ -586,7 +582,8 @@ pub fn emit(
     // faster in turn than on the thread pool; 20,000 small ones were not).
     // Parsing the misses runs on all threads when there is more than one.
     let lookup = |(rel, _, root, slot): &(String, FileHits, PathBuf, usize)| {
-        let text = parses
+        // A file in a language without a grammar has nothing to parse.
+        let text = (parses && has_grammar(rel))
             .then(|| read_text(rel, root, opts.encoding))
             .flatten();
         let cached = text

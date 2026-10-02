@@ -151,50 +151,93 @@ fn is_variable(token: &str) -> bool {
 /// Groups lines into templates.
 #[derive(Default)]
 pub struct Drain {
-    groups: HashMap<(usize, String), Vec<usize>>,
+    /// Templates by length, then by first token as shown.
+    groups: HashMap<usize, HashMap<String, Vec<usize>>>,
     pub templates: Vec<Template>,
+}
+
+/// A line's token, borrowed from the line until it starts a template.
+#[derive(Clone, Copy)]
+enum LineToken<'a> {
+    Word(&'a str),
+    Masked,
+}
+
+impl LineToken<'_> {
+    fn as_str(&self) -> &str {
+        match self {
+            LineToken::Word(w) => w,
+            LineToken::Masked => WILDCARD,
+        }
+    }
+
+    /// Whether a template's token matches it: a generalised position
+    /// matches nothing, as a line never has one.
+    fn matches(self, t: &Token) -> bool {
+        match (t, self) {
+            (Token::Word(a), LineToken::Word(b)) => a == b,
+            (Token::Masked, LineToken::Masked) => true,
+            _ => false,
+        }
+    }
+
+    fn to_owned(self) -> Token {
+        match self {
+            LineToken::Word(w) => Token::Word(w.to_string()),
+            LineToken::Masked => Token::Masked,
+        }
+    }
 }
 
 impl Drain {
     pub fn add(&mut self, file: &str, line_number: usize, line: &str) {
         let (time, rest) = leading_timestamp(line);
-        let tokens: Vec<Token> = rest
+        let tokens: Vec<LineToken> = rest
             .split_whitespace()
             .map(|t| {
                 // A literal `<*>` prints like a masked value, so it is one.
                 if is_variable(t) || t == WILDCARD {
-                    Token::Masked
+                    LineToken::Masked
                 } else {
-                    Token::Word(t.to_string())
+                    LineToken::Word(t)
                 }
             })
             .collect();
-        if tokens.is_empty() {
+        let Some(first) = tokens.first().map(LineToken::as_str) else {
             return;
+        };
+        let by_first = self.groups.entry(tokens.len()).or_default();
+        if !by_first.contains_key(first) {
+            by_first.insert(first.to_string(), Vec::new());
         }
-        let key = (tokens.len(), tokens[0].as_str().to_string());
-        let slots = self.groups.entry(key).or_default();
+        let slots = by_first.get_mut(first).expect("just inserted");
         // As in Drain3: similarity counts equal tokens (a line has no
         // generalised position, so those count for neither side), and the
         // most similar template wins, then the more general one.
         let best = slots
             .iter()
-            .map(|&i| {
+            .filter_map(|&i| {
                 let t = &self.templates[i];
-                let same = t.tokens.iter().zip(&tokens).filter(|(a, b)| a == b).count();
-                let wild = t
+                let same = t
                     .tokens
                     .iter()
-                    .filter(|a| **a == Token::Generalised)
+                    .zip(&tokens)
+                    .filter(|(a, b)| b.matches(a))
                     .count();
-                (same, wild, i)
+                (same as f64 / tokens.len() as f64 >= SIMILARITY).then(|| {
+                    let wild = t
+                        .tokens
+                        .iter()
+                        .filter(|a| **a == Token::Generalised)
+                        .count();
+                    (same, wild, i)
+                })
             })
-            .filter(|&(same, ..)| same as f64 / tokens.len() as f64 >= SIMILARITY)
             .max_by_key(|&(same, wild, i)| (same, wild, std::cmp::Reverse(i)));
         if let Some((_, _, i)) = best {
             let t = &mut self.templates[i];
             for (a, b) in t.tokens.iter_mut().zip(&tokens) {
-                if a != b {
+                if !b.matches(a) {
                     *a = Token::Generalised;
                 }
             }
@@ -207,7 +250,7 @@ impl Drain {
         }
         slots.push(self.templates.len());
         self.templates.push(Template {
-            tokens,
+            tokens: tokens.into_iter().map(LineToken::to_owned).collect(),
             count: 1,
             first_seen: time,
             last_seen: time,

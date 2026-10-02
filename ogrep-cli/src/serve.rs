@@ -865,9 +865,6 @@ struct SearchOpts {
     /// With `detail`, whether every match on a line is wanted or only the
     /// first (a reshaping client that places each line by its first match).
     all_spans: bool,
-    /// With `detail`, whether the client reads `columns` too (spans alone do
-    /// for a reshaping client that prints no columns).
-    columns: bool,
     /// Whether the client will read per-row `offset` and `term`.
     ///
     /// JSON, `-b/--byte-offset` and `-M/--max-columns` consume them.
@@ -1865,10 +1862,6 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
         .get("all_spans")
         .and_then(|v| v.as_bool())
         .unwrap_or(true);
-    let columns = params
-        .get("columns")
-        .and_then(|v| v.as_bool())
-        .unwrap_or(true);
     let encoding = ogrep_core::encoding::parse_encoding(
         params
             .get("encoding")
@@ -1970,7 +1963,6 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
             vimgrep,
             detail,
             all_spans,
-            columns,
             positions,
             stats,
         },
@@ -2442,7 +2434,9 @@ fn search_file_matches(
         fixups,
         RowFields {
             spans: opts.detail,
-            columns: opts.detail && opts.columns,
+            // Only each line's first span, for a reshaping client, comes
+            // without columns: it prints none and fills them from the span.
+            columns: opts.detail && opts.all_spans,
             positions: opts.positions,
         },
     )?);

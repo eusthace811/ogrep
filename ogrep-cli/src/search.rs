@@ -74,15 +74,14 @@ pub struct SearchOptions {
     /// need them: a captured search is reshaped afterwards (--kind and --in
     /// judge each match, --count-matches counts them), not printed.
     pub all_spans: bool,
-    /// Whether a capture keeps a binary file's matching lines (for output
-    /// that counts, filters or prints them as a plain search would) or only
-    /// its note (for tools that want text lines).
-    pub binary_lines: bool,
+    /// A capture for reshaped output (`for_capture`): it keeps binary
+    /// files' matching lines, which reshaping counts, filters or prints as a
+    /// plain search would (tools that want text lines keep only the note),
+    /// and each line's first match even when it needs no others, since
+    /// reshaping places and ranks lines by it.
+    pub reshaping: bool,
     /// Whether a capture needs each match's offset in its file.
     pub offsets: bool,
-    /// Whether a capture needs each line's first match (its span) even when
-    /// it does not need them all: reshaping places and ranks lines by it.
-    pub first_span: bool,
     /// `--changed-since`: search only these paths, relative to the search
     /// root. Set per path argument.
     pub only_paths: Option<std::sync::Arc<std::collections::HashSet<String>>>,
@@ -489,7 +488,7 @@ impl SearchOptions {
             trim: self.trim,
             no_filename: self.no_filename,
             no_line_number: self.no_line_number,
-            context: self.after_ctx() > 0 || self.before_ctx() > 0,
+            context: self.has_context(),
             column: self.column,
             byte_offset: self.byte_offset,
             max_columns: self.max_columns,
@@ -616,9 +615,9 @@ pub(crate) fn index_dir_for(root: &Path, index_path: Option<&Path>) -> PathBuf {
 }
 
 /// A writer that records what `opts` finds instead of printing it, keeping
-/// binary files' lines only as `opts.binary_lines` says.
+/// binary files' lines only for reshaping (`opts.reshaping`).
 pub fn new_capturing_writer(opts: &SearchOptions) -> OutputWriter {
-    OutputWriter::capturing(opts.make_output_config(), opts.binary_lines)
+    OutputWriter::capturing(opts.make_output_config(), opts.reshaping)
 }
 
 impl SearchOptions {
@@ -634,12 +633,11 @@ impl SearchOptions {
             count_matches: false,
             // Whole lines: reshaping needs them, and -o is applied on output.
             only_matching: false,
-            first_span: true,
+            reshaping: true,
             json: false,
             vimgrep: false,
             quiet: false,
             all_spans: true,
-            binary_lines: true,
             ..self.clone()
         }
     }
@@ -656,8 +654,7 @@ pub fn captured_matches(
     // Callers use the lines, not their spans or anything that shapes output.
     let opts = SearchOptions {
         all_spans: false,
-        binary_lines: false,
-        first_span: false,
+        reshaping: false,
         color: crate::output::ColorMode::Never,
         column: false,
         only_matching: false,
@@ -1140,7 +1137,7 @@ fn search_via_server(
     // match — and most searches never read them. Asking for them only when
     // something will consume them keeps a 21k-hit query from building, sending
     // and parsing 21k arrays that are then dropped.
-    let detail = opts.wants_match_detail() || opts.first_span;
+    let detail = opts.wants_match_detail() || opts.reshaping;
     let positions = opts.wants_position_detail();
     // A plain `-l` listing needs only paths: ask for them as one string array,
     // which is far cheaper to build, send and parse than an object per file.
@@ -1178,7 +1175,7 @@ fn search_via_server(
             // the matching lines plus a `binary_offset` — so ask the server to
             // send the lines alongside the marker. An older server ignores this
             // and returns the marker alone. A capture that keeps them asks too.
-            "binary_lines": opts.json || opts.binary_lines,
+            "binary_lines": opts.json || opts.reshaping,
             "max_filesize": opts.max_filesize,
             "encoding": opts.encoding.label(),
             "line_regexp": opts.line_regexp,
@@ -1198,9 +1195,8 @@ fn search_via_server(
     });
     // Every match (and its column), by the local search's rule for
     // `MatchOptions::all_spans`, or only each line's first for a capture
-    // that needs no more (see `SearchOptions::first_span`).
+    // that needs no more (see `SearchOptions::reshaping`).
     request["params"]["all_spans"] = opts.wants_match_detail().into();
-    request["params"]["columns"] = opts.wants_match_detail().into();
     request["params"]["hidden"] = serde_json::json!(opts.hidden);
     request["params"]["with"] = serde_json::json!(opts.with_patterns);
     request["params"]["without"] = serde_json::json!(opts.without_patterns);
@@ -1438,6 +1434,9 @@ fn search_via_server(
                     file: file.to_string(),
                     line_number: line,
                     content: content.to_string(),
+                    // A reply with spans but no columns (a reshaping capture
+                    // asked for none) gets them from the spans, so they run
+                    // parallel as everywhere else.
                     columns: m
                         .get("columns")
                         .and_then(|c| c.as_array())
@@ -1446,7 +1445,8 @@ fn search_via_server(
                                 .filter_map(|c| c.as_u64().map(|c| c as usize))
                                 .collect()
                         })
-                        .unwrap_or_default(),
+                        .filter(|c: &Vec<usize>| c.len() == spans.len())
+                        .unwrap_or_else(|| spans.iter().map(|&(s, _)| s + 1).collect()),
                     spans,
                     absolute_offset: offset,
                     terminator_len,
