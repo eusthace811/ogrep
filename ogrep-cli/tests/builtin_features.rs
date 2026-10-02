@@ -626,6 +626,17 @@ fn reshaped_output_keeps_structure_context_and_callers_straight() {
         run(&["--callers", "-C0", "foo", "u.py"]),
         "1=def twice():  (1 use)\n"
     );
+    // -q prints nothing for reshaped output either; the exit code answers.
+    for shape in [&["--callers"][..], &["--scope"], &["--rank"]] {
+        ogrep(dir.path())
+            .arg("--no-index")
+            .arg("-q")
+            .args(shape)
+            .args(["foo", "u.py"])
+            .assert()
+            .code(0)
+            .stdout("");
+    }
     // --vimgrep shapes output only: --rank orders files the same with it.
     write("one.txt", b"x foo\nfoo\n");
     write("many.txt", b"start foo\nbar\nbaz\nqux\nend\n");

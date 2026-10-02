@@ -456,11 +456,11 @@ impl SearchOptions {
 
     /// Effective after-context lines.
     pub fn after_ctx(&self) -> usize {
-        self.after_context.or(self.context).unwrap_or(0)
+        context_lines(self.after_context, self.context)
     }
     /// Effective before-context lines.
     pub fn before_ctx(&self) -> usize {
-        self.before_context.or(self.context).unwrap_or(0)
+        context_lines(self.before_context, self.context)
     }
     /// Whether lines around the matches are printed.
     pub fn has_context(&self) -> bool {
@@ -612,6 +612,11 @@ pub(crate) fn index_dir_for(root: &Path, index_path: Option<&Path>) -> PathBuf {
             &std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf()),
         )
     })
+}
+
+/// Context lines on one side: -A or -B, else -C, else none.
+pub fn context_lines(side: Option<usize>, both: Option<usize>) -> usize {
+    side.or(both).unwrap_or(0)
 }
 
 /// A writer that records what `opts` finds instead of printing it, keeping

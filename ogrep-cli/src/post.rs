@@ -652,6 +652,16 @@ pub fn emit(
             let _ = ogrep_core::facts::FactStore::put(dir, ogrep_core::facts::STRUCTURE, facts);
         }
     }
+    // -q prints nothing; the exit code says whether anything would.
+    if opts.quiet {
+        return Ok(if post.callers {
+            prepared
+                .iter()
+                .any(|p| p.scopes.iter().any(Option::is_some))
+        } else {
+            !prepared.is_empty()
+        });
+    }
     match &post.rank {
         Some(rank_opts) => {
             // A repository's fitted weights (`--rank-fit`) replace the defaults.

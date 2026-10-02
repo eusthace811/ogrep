@@ -1142,11 +1142,11 @@ impl Cli {
         self.budget.map_or(default, |b| b as usize)
     }
 
-    /// Whether context lines would be printed: -A/-B, else -C, above zero
-    /// (as `SearchOptions::has_context` decides).
+    /// Whether context lines would be printed (as `SearchOptions::has_context`
+    /// decides).
     fn has_context(&self) -> bool {
-        let lines = |n: Option<usize>| n.or(self.context).is_some_and(|n| n > 0);
-        lines(self.before_context) || lines(self.after_context)
+        search::context_lines(self.before_context, self.context) > 0
+            || search::context_lines(self.after_context, self.context) > 0
     }
 
     /// Whether a flag (`-e`, `-f`, `--ident`) supplies the pattern, so every
