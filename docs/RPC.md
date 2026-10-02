@@ -1,6 +1,6 @@
 # Server protocol
 
-The server speaks newline-delimited JSON-RPC 2.0 over loopback TCP. A client finds it through `serve.json` in the index directory, which records the server's PID and port. This document describes compact file listings, admission limits and refresh; see the [operations guide](OPERATIONS.md) for the deployment scope.
+The server speaks newline-delimited JSON-RPC 2.0 over loopback TCP. A client finds it through `serve.json` in the index directory, which records the server's PID and port. This document describes compact file listings, first-span replies, admission limits and refresh; see the [operations guide](OPERATIONS.md) for the deployment scope.
 
 ## Compact file listings
 
@@ -9,7 +9,6 @@ For `search`, set both `files_only: true` and `compact_files: true` to receive o
 `compact_files` defaults to false and has no effect when `files_only` is false. Legacy callers retain their existing detailed match rows. Older servers ignore this optional parameter and return the detailed representation; new clients must accept either. The CLI requests compaction for `-l` and already accepts both forms.
 
 Compaction changes presentation only. It does not request full-file statistics: ordinary file listings still stop matching after the first selected line. Combining file listings with `stats: true` continues to request original per-file totals and compact rows as before. Compact binary listings return the binary marker alone even when `binary_lines` is true.
-
 
 Example request:
 
@@ -45,4 +44,4 @@ A single refresh worker handles at most one active and one pending pass. New cal
 
 ## First spans only
 
-`detail` (default true) asks for each match row's `spans` and `columns`. With it, `all_spans: false` (default true) asks for each row's first span only and no `columns`: a reshaping client (`--rank`, `--scope`) places and ranks lines by their first match and prints no columns, so the rest only enlarges the reply. It does not apply with `only_matching` (one row per match) or `stats` (match totals), which keep every span and column. Older servers ignore it and send every span with its column; clients must accept either.
+`detail` (default true) asks for each match row's `spans` and `columns`. With it, `all_spans: false` (default true) asks for each row's first span only (multiline and `replace` rows keep theirs) and no `columns`: a reshaping client (`--rank`, `--scope`) places and ranks lines by their first match and prints no columns, so the rest only enlarges the reply. It does not apply with `only_matching` (one row per match) or `stats` (match totals), which keep every span and column. Older servers ignore it and send every span with its column; clients must accept either.

@@ -874,14 +874,14 @@ struct SearchOpts {
 }
 
 impl SearchOpts {
-    /// The matching-relevant subset, shared with the local search path.
-    /// Whether every match on a line is wanted: `all_spans: false` asks for
-    /// each line's first only, which -o (one row per match) and stats (match
-    /// totals) cannot do with.
+    /// Whether every match on a line is found: what `detail` reads, unless
+    /// `all_spans: false` asks for each line's first only; -o (one row per
+    /// match) and stats (match totals) always need them all.
     fn every_span(&self) -> bool {
-        self.all_spans || self.only_matching || self.stats
+        (self.detail && self.all_spans) || self.only_matching || self.stats
     }
 
+    /// The matching-relevant subset, shared with the local search path.
     fn match_options(&self) -> crate::matching::MatchOptions {
         crate::matching::MatchOptions {
             invert_match: self.invert_match,
@@ -898,7 +898,7 @@ impl SearchOpts {
             replace: self.replace.clone(),
             stop_on_nonmatch: self.stop_on_nonmatch,
             vimgrep: self.vimgrep,
-            all_spans: (self.detail && self.every_span()) || self.stats,
+            all_spans: self.every_span(),
         }
     }
 }

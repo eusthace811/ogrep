@@ -325,7 +325,6 @@ impl SearchOptions {
         .restricted_to(self.only_paths.clone()))
     }
 
-    /// The matching-relevant subset, shared with the server path.
     /// Whether the reply has to carry per-match spans and columns.
     ///
     /// Every consumer of that data is listed here; anything else prints the
@@ -389,6 +388,7 @@ impl SearchOptions {
             && self.max_count != Some(0)
     }
 
+    /// The matching-relevant subset, shared with the server path.
     pub(crate) fn match_options(&self) -> crate::matching::MatchOptions {
         crate::matching::MatchOptions {
             invert_match: self.invert_match,

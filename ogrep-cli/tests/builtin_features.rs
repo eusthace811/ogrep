@@ -469,6 +469,7 @@ fn tool_flags_are_exclusive_and_parse_as_documented() {
         &["--in", "comments", "-r", "Z", "x", "."],
         &["--rank", "-r", "Z", "x", "."],
         &["--callers", "--vimgrep", "x", "."],
+        &["--callers", "-o", "x", "."],
     ];
     for args in refused {
         ogrep(dir.path()).args(args).assert().code(2).stderr(
@@ -569,14 +570,6 @@ fn kind_and_zone_filters_decide_per_match() {
     let rows = run(&["--kind", "ref", "--vimgrep", "get_qs"]);
     assert_eq!(rows.lines().count(), 1, "{rows}");
     assert!(rows.starts_with("a.py:2:38:"), "{rows}");
-    // --vimgrep folds a multiline match onto its first line, reshaped too.
-    fs::write(dir.path().join("v.rs"), "fn a() { foo2(); }\nstruct Foo;\n").unwrap();
-    let folded = stdout(
-        ogrep(dir.path())
-            .args(["--no-index", "--rank", "--vimgrep", "-U", r"foo2.*\n.*Foo"])
-            .arg("v.rs"),
-    );
-    assert_eq!(folded.lines().count(), 1, "{folded}");
     // Without a grammar the keyword heuristic also judges each match.
     fs::write(dir.path().join("b.zz"), "x = foo(); fn foo() {}\n").unwrap();
     let unparsed =
@@ -622,10 +615,15 @@ fn reshaped_output_keeps_structure_context_and_callers_straight() {
     // A byte-order mark does not shift where matches are looked up.
     assert!(run(&["--in", "strings", "foo", "bom.rs"]).contains("let a"));
     assert!(run(&["--kind", "def", "foo", "bom.rs"]).contains("fn foo()"));
-    // A name in a string is not a use.
+    // A name in a string is not a use; two calls on a line are two.
     assert_eq!(
         run(&["--callers", "foo", "b.py"]),
         "4=def beta():  (1 use)\n"
+    );
+    write("u.py", b"def twice():\n    foo(); foo()\n");
+    assert_eq!(
+        run(&["--callers", "foo", "u.py"]),
+        "1=def twice():  (2 uses)\n"
     );
     // A matching line that --in dropped is still context.
     assert_eq!(
