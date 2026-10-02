@@ -355,9 +355,10 @@ fn emit_callers(
             .map(|t| t.lines().collect())
             .unwrap_or_default();
         let mut uses: std::collections::BTreeMap<usize, (usize, Scope)> = Default::default();
-        // A use is a line with a kept match, placed by that match: counting
-        // spans instead would count a multiline match's continuation lines
-        // and credit a line's other matches to the first one's definition.
+        // A use is a line with a kept match, placed by that match (counting
+        // spans would credit a line's other matches to the first one's
+        // definition). A -U match counts once for each line it covers, as
+        // --count-matches does.
         for scope in file.scopes.into_iter().flatten() {
             uses.entry(scope.start).or_insert((0, scope)).0 += 1;
         }

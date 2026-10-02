@@ -620,6 +620,12 @@ fn reshaped_output_keeps_structure_context_and_callers_straight() {
         run(&["--callers", "foo", "b.py"]),
         "4=def beta():  (1 use)\n"
     );
+    // Uses are counted by line; zero context is accepted.
+    write("u.py", b"def twice():\n    foo(); foo()\n");
+    assert_eq!(
+        run(&["--callers", "-C0", "foo", "u.py"]),
+        "1=def twice():  (1 use)\n"
+    );
     // --vimgrep shapes output only: --rank orders files the same with it.
     write("one.txt", b"x foo\nfoo\n");
     write("many.txt", b"start foo\nbar\nbaz\nqux\nend\n");

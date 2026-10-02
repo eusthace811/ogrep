@@ -1142,6 +1142,13 @@ impl Cli {
         self.budget.map_or(default, |b| b as usize)
     }
 
+    /// Whether context lines would be printed: -A/-B, else -C, above zero
+    /// (as `SearchOptions::has_context` decides).
+    fn has_context(&self) -> bool {
+        let lines = |n: Option<usize>| n.or(self.context).is_some_and(|n| n > 0);
+        lines(self.before_context) || lines(self.after_context)
+    }
+
     /// Whether a flag (`-e`, `-f`, `--ident`) supplies the pattern, so every
     /// positional argument is a path.
     fn pattern_from_flags(&self) -> bool {
@@ -1610,12 +1617,7 @@ fn run_cli() {
                 cli.sort.is_some() || cli.sortr.is_some() || cli.sort_files,
                 "--sort",
             ),
-            (
-                cli.context.is_some()
-                    || cli.after_context.is_some()
-                    || cli.before_context.is_some(),
-                "context lines (-A/-B/-C)",
-            ),
+            (cli.has_context(), "context lines (-A/-B/-C)"),
             (cli.vimgrep, "--vimgrep"),
             (
                 !cli.with.is_empty() || !cli.without.is_empty(),
@@ -1682,9 +1684,7 @@ fn run_cli() {
                     || cli.column
                     || cli.byte_offset
                     || cli.vimgrep
-                    || [cli.context, cli.before_context, cli.after_context]
-                        .iter()
-                        .any(|n| n.is_some_and(|n| n > 0))),
+                    || cli.has_context()),
             "--callers cannot be combined with -o, --column, -b, --vimgrep or -A/-B/-C",
         ),
         // These read each match's text or place it in the file, and a
