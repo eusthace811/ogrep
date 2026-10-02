@@ -300,17 +300,33 @@ fn prepare(
             }
             // A line is a definition by its first match, as ranking goes.
             Some(f) => f.spans.first().is_some_and(|&(d, _)| d),
-            None => {
-                let def = filtered
-                    && m.spans
-                        .iter()
-                        .any(|&(s, _)| rank::is_definition(&m.content, s));
-                if filtered && !post.passes(def, ZoneFilter::Code) {
+            // Without the file's structure the kind comes from a keyword
+            // heuristic per match, and the zone is taken to be code.
+            None if filtered && !m.spans.is_empty() => {
+                let defs: Vec<bool> = m
+                    .spans
+                    .iter()
+                    .map(|&(s, _)| rank::is_definition(&m.content, s))
+                    .collect();
+                let keep: Vec<bool> = defs
+                    .iter()
+                    .map(|&d| post.passes(d, ZoneFilter::Code))
+                    .collect();
+                if !keep.contains(&true) {
                     dropped.push(m);
                     continue;
                 }
-                def
+                m.retain_matches(&keep);
+                defs.iter()
+                    .zip(&keep)
+                    .find(|(_, k)| **k)
+                    .is_some_and(|(&d, _)| d)
             }
+            None if filtered && !post.passes(false, ZoneFilter::Code) => {
+                dropped.push(m);
+                continue;
+            }
+            None => false,
         };
         // The scope is where the first kept match starts.
         scopes.push(match &structure {

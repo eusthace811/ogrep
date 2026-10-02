@@ -1196,10 +1196,10 @@ fn search_via_server(
         },
         "id": 1,
     });
-    // Every match, or only each line's first for a capture that needs no
-    // more (see `SearchOptions::first_span`), and columns only for output
-    // that prints them.
-    request["params"]["all_spans"] = (opts.all_spans || !opts.first_span).into();
+    // Every match (and its column), by the local search's rule for
+    // `MatchOptions::all_spans`, or only each line's first for a capture
+    // that needs no more (see `SearchOptions::first_span`).
+    request["params"]["all_spans"] = opts.wants_match_detail().into();
     request["params"]["columns"] = opts.wants_match_detail().into();
     request["params"]["hidden"] = serde_json::json!(opts.hidden);
     request["params"]["with"] = serde_json::json!(opts.with_patterns);

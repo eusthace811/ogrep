@@ -568,6 +568,15 @@ fn kind_and_zone_filters_decide_per_match() {
     let rows = run(&["--kind", "ref", "--vimgrep", "get_qs"]);
     assert_eq!(rows.lines().count(), 1, "{rows}");
     assert!(rows.starts_with("a.py:2:38:"), "{rows}");
+    // Without a grammar the keyword heuristic also judges each match.
+    fs::write(dir.path().join("b.zz"), "x = foo(); fn foo() {}\n").unwrap();
+    let unparsed =
+        |args: &[&str]| stdout(ogrep(dir.path()).arg("--no-index").args(args).arg("b.zz"));
+    assert_eq!(
+        unparsed(&["--kind", "def", "--count-matches", "foo"]),
+        "1\n"
+    );
+    assert_eq!(unparsed(&["--kind", "ref", "-o", "foo"]), "foo\n");
     // The line has the word in a string and in a comment.
     assert!(run(&["--in", "comments", "token"]).contains("# token here"));
     let json = run(&["--in", "comments", "--json", "token"]);
