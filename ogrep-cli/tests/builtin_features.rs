@@ -577,6 +577,20 @@ fn kind_and_zone_filters_decide_per_match() {
         "1\n"
     );
     assert_eq!(unparsed(&["--kind", "ref", "-o", "foo"]), "foo\n");
+    let json = unparsed(&["--kind", "def", "--json", "foo"]);
+    assert_eq!(
+        json.matches(r#""match":{"text":"foo"}"#).count(),
+        1,
+        "{json}"
+    );
+    // -m counts the lines that pass the filter.
+    fs::write(dir.path().join("m.zz"), "fn foo() {}\nfoo();\n").unwrap();
+    let limited = stdout(
+        ogrep(dir.path())
+            .args(["--no-index", "--kind", "ref", "-m1", "foo"])
+            .arg("m.zz"),
+    );
+    assert_eq!(limited, "foo();\n");
     // The line has the word in a string and in a comment.
     assert!(run(&["--in", "comments", "token"]).contains("# token here"));
     let json = run(&["--in", "comments", "--json", "token"]);

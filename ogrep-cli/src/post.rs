@@ -269,12 +269,13 @@ fn prepare(
         .collect();
 
     // A match passes when it is of the kind and in the zone asked for, and
-    // a line is kept when one of its matches passes. With the file's
-    // structure that is decided per match, and the matches that fail are
-    // dropped from the kept line (-o, --count-matches and ranking must not
-    // see them); without it the kind comes from a keyword heuristic over the
-    // line, and the zone is taken to be code (never claiming a comment or
-    // string).
+    // a line is kept when one of its matches passes; the matches that fail
+    // are dropped from the kept line (-o, --count-matches and ranking must
+    // not see them). Each match's kind and zone come from the file's
+    // structure; without it the kind comes from a keyword heuristic before
+    // the match (only when --kind asks), and the zone is taken to be code
+    // (never claiming a comment or string). A line is a definition by its
+    // first kept match, as ranking goes.
     let filtered = post.filters_matches();
     let mut scopes = Vec::new();
     let mut built_scopes = std::collections::HashMap::new();
@@ -282,51 +283,42 @@ fn prepare(
     let mut kept = Vec::new();
     let mut dropped = Vec::new();
     for (mut m, f) in hits.matches.drain(..).zip(facts) {
-        let def = match &f {
-            Some(f) if filtered => {
-                let keep: Vec<bool> = f.spans.iter().map(|&(d, z)| post.passes(d, z)).collect();
-                if !keep.contains(&true) {
-                    dropped.push(m);
-                    continue;
-                }
-                m.retain_matches(&keep);
-                // The line is a definition by its first kept match, as
-                // without a filter it is by its first.
-                f.spans
-                    .iter()
-                    .zip(&keep)
-                    .find(|(_, k)| **k)
-                    .is_some_and(|(&(d, _), _)| d)
-            }
-            // A line is a definition by its first match, as ranking goes.
-            Some(f) => f.spans.first().is_some_and(|&(d, _)| d),
-            // Without the file's structure the kind comes from a keyword
-            // heuristic per match, and the zone is taken to be code.
-            None if filtered && !m.spans.is_empty() => {
-                let defs: Vec<bool> = m
+        let def = if filtered {
+            let spans: std::borrow::Cow<[(bool, ZoneFilter)]> = match &f {
+                Some(f) => (&f.spans[..]).into(),
+                None => m
                     .spans
                     .iter()
-                    .map(|&(s, _)| rank::is_definition(&m.content, s))
-                    .collect();
-                let keep: Vec<bool> = defs
-                    .iter()
-                    .map(|&d| post.passes(d, ZoneFilter::Code))
-                    .collect();
-                if !keep.contains(&true) {
-                    dropped.push(m);
-                    continue;
-                }
-                m.retain_matches(&keep);
-                defs.iter()
-                    .zip(&keep)
-                    .find(|(_, k)| **k)
-                    .is_some_and(|(&d, _)| d)
-            }
-            None if filtered && !post.passes(false, ZoneFilter::Code) => {
+                    .map(|&(s, _)| {
+                        let def = post.kind.is_some() && rank::is_definition(&m.content, s);
+                        (def, ZoneFilter::Code)
+                    })
+                    .collect::<Vec<_>>()
+                    .into(),
+            };
+            let keep: Vec<bool> = spans.iter().map(|&(d, z)| post.passes(d, z)).collect();
+            // A line with no spans (-v) stands for one match of no kind.
+            let kept_line = if spans.is_empty() {
+                post.passes(false, ZoneFilter::Code)
+            } else {
+                keep.contains(&true)
+            };
+            if !kept_line {
                 dropped.push(m);
                 continue;
             }
-            None => false,
+            if !spans.is_empty() {
+                m.retain_matches(&keep);
+            }
+            spans
+                .iter()
+                .zip(&keep)
+                .find(|(_, k)| **k)
+                .is_some_and(|(&(d, _), _)| d)
+        } else {
+            f.as_ref()
+                .and_then(|f| f.spans.first())
+                .is_some_and(|&(d, _)| d)
         };
         // The scope is where the first kept match starts.
         scopes.push(match &structure {
@@ -338,6 +330,13 @@ fn prepare(
         });
         defs.push(def);
         kept.push(m);
+    }
+    // -m counts the lines that pass --kind/--in (the capture was not
+    // limited, see `run_postprocessed_search`).
+    if filtered && let Some(max) = opts.max_count {
+        kept.truncate(max);
+        defs.truncate(max);
+        scopes.truncate(max);
     }
     if kept.is_empty() {
         return None;

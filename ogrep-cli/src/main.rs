@@ -2354,6 +2354,12 @@ fn run_postprocessed_search(
         // scopes go by it), and a line with thousands costs no more, locally
         // or in a server's reply.
         all_spans: post_opts.filters_matches() || opts.wants_match_detail(),
+        // -m counts lines that pass --kind/--in, so it applies after them.
+        max_count: if post_opts.filters_matches() {
+            None
+        } else {
+            opts.max_count
+        },
         ..opts.for_capture()
     };
     let mut capture = search::new_capturing_writer(&inner);

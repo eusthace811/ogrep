@@ -71,8 +71,8 @@ pub struct SearchOptions {
     pub iglob: Vec<String>,
     pub glob_case_insensitive: bool,
     /// Report every match span of a line even when the output would not
-    /// need them: a captured search is reshaped afterwards (--rank's pattern
-    /// counts, --in's zones, --count-matches), not printed.
+    /// need them: a captured search is reshaped afterwards (--kind and --in
+    /// judge each match, --count-matches counts them), not printed.
     pub all_spans: bool,
     /// Whether a capture keeps a binary file's matching lines (for output
     /// that counts, filters or prints them as a plain search would) or only
