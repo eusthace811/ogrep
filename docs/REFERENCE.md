@@ -460,8 +460,9 @@ Rust, Python, Go, JavaScript, TypeScript/TSX, Java, C, C++, C#, Ruby and PHP.
 passes, and the matches that fail are dropped from it (for `-o`, `--column`,
 `--count-matches` and `--rank`). `--scope` names the definition around the
 first match kept, and a matching line that is not shown is still context.
-`-m` counts the lines that pass `--kind`/`--in`; `--stats` still reports what
-the search itself found.
+`-m` and `--stats` apply to the search itself, before `--kind`/`--in` pick
+among its matches: `-m` stops the search early, so lines it did not reach are
+not considered.
 These flags place matches in the file as it is, so they cannot be combined
 with `-r/--replace`, and a file that is not UTF-8 (UTF-16, `--encoding`) is
 treated as unparsed.

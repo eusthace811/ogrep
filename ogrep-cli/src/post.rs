@@ -297,19 +297,11 @@ fn prepare(
                     .into(),
             };
             let keep: Vec<bool> = spans.iter().map(|&(d, z)| post.passes(d, z)).collect();
-            // A line with no spans (-v) stands for one match of no kind.
-            let kept_line = if spans.is_empty() {
-                post.passes(false, ZoneFilter::Code)
-            } else {
-                keep.contains(&true)
-            };
-            if !kept_line {
+            if !keep.contains(&true) {
                 dropped.push(m);
                 continue;
             }
-            if !spans.is_empty() {
-                m.retain_matches(&keep);
-            }
+            m.retain_matches(&keep);
             spans
                 .iter()
                 .zip(&keep)
@@ -330,13 +322,6 @@ fn prepare(
         });
         defs.push(def);
         kept.push(m);
-    }
-    // -m counts the lines that pass --kind/--in (the capture was not
-    // limited, see `run_postprocessed_search`).
-    if filtered && let Some(max) = opts.max_count {
-        kept.truncate(max);
-        defs.truncate(max);
-        scopes.truncate(max);
     }
     if kept.is_empty() {
         return None;
