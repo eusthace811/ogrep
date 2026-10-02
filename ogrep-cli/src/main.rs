@@ -1675,6 +1675,11 @@ fn run_cli() {
             cli.callers && cli.kind.is_some(),
             "--callers cannot be combined with --kind",
         ),
+        // --callers prints definitions, not match rows.
+        (
+            cli.callers && cli.vimgrep,
+            "--callers cannot be combined with --vimgrep",
+        ),
         // These read each match's text or place it in the file, and a
         // replaced line's matches are neither.
         (
@@ -2348,6 +2353,9 @@ fn run_postprocessed_search(
         // scopes go by it), and a line with thousands costs no more, locally
         // or in a server's reply.
         all_spans: post_opts.filters_matches() || opts.wants_match_detail(),
+        // --vimgrep folds a multiline match onto the line it starts on,
+        // which the search does; the rows are printed afterwards.
+        vimgrep: opts.vimgrep,
         ..opts.for_capture()
     };
     let mut capture = search::new_capturing_writer(&inner);

@@ -468,6 +468,7 @@ fn tool_flags_are_exclusive_and_parse_as_documented() {
         &["--history", "--multiline-dotall", "a.b", "."],
         &["--in", "comments", "-r", "Z", "x", "."],
         &["--rank", "-r", "Z", "x", "."],
+        &["--callers", "--vimgrep", "x", "."],
     ];
     for args in refused {
         ogrep(dir.path()).args(args).assert().code(2).stderr(
@@ -568,6 +569,14 @@ fn kind_and_zone_filters_decide_per_match() {
     let rows = run(&["--kind", "ref", "--vimgrep", "get_qs"]);
     assert_eq!(rows.lines().count(), 1, "{rows}");
     assert!(rows.starts_with("a.py:2:38:"), "{rows}");
+    // --vimgrep folds a multiline match onto its first line, reshaped too.
+    fs::write(dir.path().join("v.rs"), "fn a() { foo2(); }\nstruct Foo;\n").unwrap();
+    let folded = stdout(
+        ogrep(dir.path())
+            .args(["--no-index", "--rank", "--vimgrep", "-U", r"foo2.*\n.*Foo"])
+            .arg("v.rs"),
+    );
+    assert_eq!(folded.lines().count(), 1, "{folded}");
     // Without a grammar the keyword heuristic also judges each match.
     fs::write(dir.path().join("b.zz"), "x = foo(); fn foo() {}\n").unwrap();
     let unparsed =

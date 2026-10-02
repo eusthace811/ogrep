@@ -875,6 +875,13 @@ struct SearchOpts {
 
 impl SearchOpts {
     /// The matching-relevant subset, shared with the local search path.
+    /// Whether every match on a line is wanted: `all_spans: false` asks for
+    /// each line's first only, which -o (one row per match) and stats (match
+    /// totals) cannot do with.
+    fn every_span(&self) -> bool {
+        self.all_spans || self.only_matching || self.stats
+    }
+
     fn match_options(&self) -> crate::matching::MatchOptions {
         crate::matching::MatchOptions {
             invert_match: self.invert_match,
@@ -891,7 +898,7 @@ impl SearchOpts {
             replace: self.replace.clone(),
             stop_on_nonmatch: self.stop_on_nonmatch,
             vimgrep: self.vimgrep,
-            all_spans: (self.detail && self.all_spans) || self.stats,
+            all_spans: (self.detail && self.every_span()) || self.stats,
         }
     }
 }
@@ -2436,7 +2443,7 @@ fn search_file_matches(
             spans: opts.detail,
             // Only each line's first span, for a reshaping client, comes
             // without columns: it prints none.
-            columns: opts.detail && opts.all_spans,
+            columns: opts.detail && opts.every_span(),
             positions: opts.positions,
         },
     )?);

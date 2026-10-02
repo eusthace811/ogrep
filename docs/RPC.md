@@ -10,7 +10,6 @@ For `search`, set both `files_only: true` and `compact_files: true` to receive o
 
 Compaction changes presentation only. It does not request full-file statistics: ordinary file listings still stop matching after the first selected line. Combining file listings with `stats: true` continues to request original per-file totals and compact rows as before. Compact binary listings return the binary marker alone even when `binary_lines` is true.
 
-`all_spans` defaults to true. With `detail: true`, false asks for each match row's first span only and no `columns`: a reshaping client (`--rank`, `--scope`) places and ranks lines by their first match and prints no columns, so the rest only enlarges the reply. Older servers ignore it and send every span with its column; clients must accept either.
 
 Example request:
 
@@ -43,3 +42,7 @@ Both parameters are optional. `timeout_ms` defaults to 30000 and accepts integer
 Incomplete traversal, read failure, publication failure, incomplete coverage or a detected concurrent tracked-membership change return `-32003`. The old index may remain searchable and partial progress may have been published; an error never acknowledges freshness. A wait deadline returns `-32004`; a queued or running pass may continue afterwards. The caller must retry before relying on indexed freshness. Disconnection likewise does not cancel the pass. Older servers reject the method; callers must not substitute an indexing-complete flag or `reload` success.
 
 A single refresh worker handles at most one active and one pending pass. New callers can share the pending pass, but cannot join one already started. The wait deadline includes initial-build and queue waits. `status.manual_refresh` exposes `running` and `pending`; neither establishes freshness. Refresh bypasses search admission and remains subject to the global connection limit. Rereading and merging the whole eligible tree can be expensive; use it at edit/search boundaries where the completion contract is needed.
+
+## First spans only
+
+`detail` (default true) asks for each match row's `spans` and `columns`. With it, `all_spans: false` (default true) asks for each row's first span only and no `columns`: a reshaping client (`--rank`, `--scope`) places and ranks lines by their first match and prints no columns, so the rest only enlarges the reply. It does not apply with `only_matching` (one row per match) or `stats` (match totals), which keep every span and column. Older servers ignore it and send every span with its column; clients must accept either.
