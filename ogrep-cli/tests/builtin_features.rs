@@ -729,3 +729,81 @@ fn reshaped_output_keeps_structure_context_and_callers_straight() {
         "1:foo\n2-    foo();\n3-    x\n"
     );
 }
+
+#[test]
+fn template_to_code_finds_the_writer_despite_filled_in_words() {
+    // The logger name and a non-numeric value are not template variables to
+    // Drain, so the whole constant text appears nowhere in the code; two-word
+    // windows of it still do, and the file holding the rarer ones wins over
+    // one that shares a common phrase. Prose quoting the message is skipped.
+    let dir = repo(&[
+        (
+            "src/pool.py",
+            "def take():\n    log.error(\"pool exhausted for tenant %s after %d waits\", t, n)\n",
+        ),
+        ("src/other.py", "log.info(\"for tenant %s\", t)\n"),
+        (
+            "docs/ops.md",
+            "If you see pool exhausted for tenant, raise the limit.\n",
+        ),
+    ]);
+    fs::write(
+        dir.path().join("app.log"),
+        "2026-10-03T10:00:00Z ERROR payments.db pool exhausted for tenant acme after 17 waits\n",
+    )
+    .unwrap();
+    let out = stdout(ogrep(dir.path()).args([
+        "--no-index",
+        "--log-templates",
+        "--template-to-code",
+        "ERROR",
+        "app.log",
+    ]));
+    assert!(
+        out.contains("<- src/pool.py:2:"),
+        "the writer is found: {out:?}"
+    );
+}
+
+#[test]
+fn about_ranks_files_by_the_words_of_a_description() {
+    let dir = TempDir::new().unwrap();
+    fs::create_dir_all(dir.path().join("admin")).unwrap();
+    fs::write(
+        dir.path().join("admin/main.py"),
+        "class ChangeList:\n    def date_hierarchy(self, year):\n        if year > 9999:\n            raise ValueError\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.path().join("admin/forms.py"),
+        "# admin forms\nclass AdminForm: pass\n",
+    )
+    .unwrap();
+    fs::write(dir.path().join("notes.txt"), "nothing relevant here\n").unwrap();
+    let out = stdout(ogrep(dir.path()).args([
+        "--no-index",
+        "--about",
+        "Handled out-of-range year in admin date_hierarchy.",
+        "-l",
+    ]));
+    let files: Vec<&str> = out.lines().collect();
+    assert_eq!(files, ["admin/main.py", "admin/forms.py"], "{out:?}");
+    // The text is the query: every positional argument is a path, and a
+    // description with no searchable word is an error.
+    let scoped = stdout(ogrep(dir.path()).args([
+        "--no-index",
+        "--about",
+        "date_hierarchy year",
+        "-l",
+        "admin",
+    ]));
+    assert_eq!(scoped, "admin/main.py\n");
+    ogrep(dir.path())
+        .args(["--about", "fix it in the", "-l"])
+        .assert()
+        .code(2);
+    ogrep(dir.path())
+        .args(["--about", "date_hierarchy", "-e", "x"])
+        .assert()
+        .code(2);
+}

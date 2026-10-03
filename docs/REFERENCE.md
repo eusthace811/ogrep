@@ -425,6 +425,42 @@ from a commit message; the file the commit changed is the answer; see
 `scripts/eval/localize.py`), the right file came first 58% of the time with
 `--rank`, against 27% (django) and 41% (rust) in ogrep's default order.
 
+#### Searching with a description: `--about`
+
+`--about TEXT` finds the files a description is about: a task, a bug report, a
+commit message. It needs no pattern; every positional argument is a path.
+
+```bash
+ogrep --about "Handled out-of-range year in admin date_hierarchy" .
+ogrep --about "$(cat issue.txt)" -l --budget 10 src/
+```
+
+The text's words become case-insensitive search terms: identifiers are split
+into their parts and also kept whole (`date_hierarchy` gives `date_hierarchy`,
+`date` and `hierarchy`; `getUserId` gives `getuserid`, `get` and `user`), and
+numbers, words under three letters and words that say nothing about where code
+lives (`the`, `fixed`, `allowed`, `handle`, ...) are dropped. One search finds
+every file holding any term; files are scored with BM25 over the terms (a rare
+term counts for more, repeated lines with diminishing returns, mild length
+normalisation, a term in the file's path counting five lines) and the same
+priors as `--rank`. Output is `--rank`'s: `--budget`, `--per-file`,
+`--rank-cutoff`, `--explain-rank`, `-l`, `-c` and `--json` apply, and each
+file shows the lines holding the most different terms. `--about` cannot be
+combined with `-e`, `-f`, `--ident`, `-w` or `-x`.
+
+On the localization tasks with the commit subject as the description (ticket
+prefix removed), the right file came first more often than with `--rank` on the
+subject's most specific identifier:
+
+| Repository | `--rank` (identifier) | `--about` (subject) |
+|------------|-----------------------|---------------------|
+| django (300 commits) | 57.7% | 67.7% |
+| rust (300 commits) | 58.3% | 67.0% |
+| llama.cpp (300 commits, not used for tuning) | 49.7% | 71.7% |
+
+A description's common words make it a broader search than a name: p50 127 ms
+on django (7K files), 169 ms on llama.cpp (3.6K) and 537 ms on rust (63K).
+
 With the default traversal rules, `--files` reads the live server or the local
 index instead of walking the repository. The local result is an index snapshot;
 use `--no-index` to inspect the filesystem as it exists now. Flags that change
@@ -608,9 +644,18 @@ its enclosing definition.
 Each template shows its count and, when lines start with an ISO 8601 timestamp,
 when it was first and last seen. `--new-since WHEN` keeps templates first seen
 after WHEN, the classic signal that something new started happening.
-`--template-to-code` finds the code that writes each message (its constant text,
-without the level word, in a tracked code file). Log files are read directly,
-not through the index.
+`--template-to-code` finds the code that writes each message. A template's
+constant text, without the level word or a bracketed logger name, is cut into
+windows of two words, the pieces code writes literally whatever values sit
+around them; all windows are looked up in one fixed-string search of the
+repository (through its index when it has one), and the file holding the most,
+and the rarest, of a template's windows wins, at its line holding the most.
+Prose and log files are skipped. On log lines mined from the code they come
+from, with values filled in (`scripts/eval/template_eval.py`), it found the
+writing file for 96.7% of 150 django lines, 96.9% of 127 OpenTelemetry demo
+lines and 89.3% of 150 llama.cpp lines (not used for tuning), against 84.0%,
+79.5% and 70.7% when it looked up the longest constant run whole. Log files are
+read directly, not through the index.
 
 **`--similar-incidents TEXT`** (or a file, or `-`) ranks write-ups under paths
 containing `postmortem`, `incident`, `rca`, `retro` or `outage` by BM25 over the
@@ -761,6 +806,7 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `--per-file <LINES>` | With `--rank`: at most this many lines per file (default 3) |
 | `--rank-cutoff <auto\|none>` | With `--rank`: also stop where scores fall away (`auto`) |
 | `--explain-rank` | With `--rank`: print each file's score and features |
+| `--about <TEXT>` | Rank files by the words of a description (see [Searching with a description](#searching-with-a-description---about)) |
 | `--scope` | Show the definition enclosing each match (`path=line=text`); see [Structure](#structure-scopes-definitions-comments) |
 | `--kind <def\|ref>` | Keep matches that define the matched name, or the others |
 | `--in <code\|comments\|strings>` | Keep matches in code, comments or string literals |

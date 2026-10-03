@@ -61,6 +61,15 @@ impl Template {
         shown.join(" ")
     }
 
+    /// The runs of constant tokens between the variable ones, in order.
+    pub fn constant_runs(&self) -> Vec<Vec<&str>> {
+        self.tokens
+            .split(|t| !matches!(t, Token::Word(_)))
+            .filter(|run| !run.is_empty())
+            .map(|run| run.iter().map(Token::as_str).collect())
+            .collect()
+    }
+
     /// The longest run of constant tokens, the part most likely to be written
     /// literally in the code that logs it.
     pub fn constant_part(&self) -> String {

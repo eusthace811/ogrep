@@ -15,6 +15,8 @@ where the first relevant file lands.
   path    --sort=path
   count   most matches first (from -c), ties by path
   rank    --rank --budget 100000
+  about   --about SUBJECT --budget 100000: the commit subject itself, minus a
+          ticket prefix ("Fixed #123 --", "gh-123:"), as a description
 
 Metrics: Acc@1, Acc@5, Acc@10, MRR, and the median number of files printed.
 
@@ -29,6 +31,7 @@ import json
 import re
 import statistics
 import subprocess
+import time
 from pathlib import Path
 
 CODE_EXT = {".py", ".rs", ".c", ".h", ".cc", ".cpp", ".go", ".js", ".ts", ".java", ".rb", ".php"}
@@ -94,6 +97,14 @@ def build(args):
     print(f"{len(items)} items -> {args.out}")
 
 
+TICKET = re.compile(r"^(?:(?:(?:Fixed|Refs|Fixes|Closes)\s+#?\d+(?:\s*,\s*#?\d+)*\s*--|gh-\d+:|bpo-\d+:)\s*)+", re.I)
+
+
+def description(subject):
+    """A commit subject as a task description: without its ticket prefix."""
+    return TICKET.sub("", subject).strip()
+
+
 def files_of(argv, cwd):
     out = subprocess.run(argv, cwd=cwd, capture_output=True, text=True, errors="replace").stdout
     return [line for line in out.splitlines() if line and not line.startswith("#")]
@@ -105,7 +116,7 @@ def run(args):
     base = [str(Path(args.bin).resolve()), "--index-path", str(Path(args.index).resolve())]
     extra = args.extra.split() if args.extra else []
 
-    def order(variant, q):
+    def order(variant, q, item):
         if variant == "plain":
             return files_of(base + ["-l", "-F", "--", q], root)
         if variant == "path":
@@ -119,13 +130,18 @@ def run(args):
             return [p for _, p in sorted(counted)]
         if variant == "rank":
             return files_of(base + ["-l", "-F", "--rank", "--budget", "100000", *extra, "--", q], root)
+        if variant == "about":
+            return files_of(base + ["-l", "--about", description(item["subject"]), "--budget", "100000",
+                                    *extra], root)
         raise SystemExit(f"unknown variant {variant}")
 
     report = {}
     for variant in args.variants.split(","):
-        ranks, printed = [], []
+        ranks, printed, times = [], [], []
         for item in items:
-            files = order(variant, item["query"])
+            t0 = time.perf_counter()
+            files = order(variant, item["query"], item)
+            times.append(time.perf_counter() - t0)
             printed.append(len(files))
             relevant = set(item["relevant"])
             pos = next((i + 1 for i, f in enumerate(files) if f in relevant), None)
@@ -135,11 +151,13 @@ def run(args):
         mrr = sum(1 / r for r in ranks if r) / n
         report[variant] = {"n": n, "acc@1": acc(1), "acc@5": acc(5), "acc@10": acc(10),
                            "mrr": mrr, "found": sum(1 for r in ranks if r) / n,
-                           "median_files": statistics.median(printed)}
+                           "median_files": statistics.median(printed),
+                           "p50_ms": round(statistics.median(times) * 1000, 1),
+                           "p95_ms": round(sorted(times)[int(0.95 * (n - 1))] * 1000, 1)}
         r = report[variant]
         print(f"{variant:>6}: n={n} acc@1 {r['acc@1']:.3f} acc@5 {r['acc@5']:.3f} "
               f"acc@10 {r['acc@10']:.3f} MRR {r['mrr']:.3f} found {r['found']:.3f} "
-              f"median files {r['median_files']}")
+              f"median files {r['median_files']} p50 {r['p50_ms']} ms p95 {r['p95_ms']} ms")
     if args.json_out:
         Path(args.json_out).write_text(json.dumps(report, indent=1))
 

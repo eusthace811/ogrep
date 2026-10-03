@@ -577,7 +577,17 @@ pub fn emit(
             .map(|dir| ogrep_core::facts::FactStore::open(dir, ogrep_core::facts::STRUCTURE));
         let slot = caches.len();
         caches.push((c.index_dir, store));
-        for (rel, hits) in rank::group(vec![(c.display, c.events)]) {
+        let about = post.rank.as_ref().is_some_and(|r| r.about);
+        for (rel, mut hits) in rank::group(vec![(c.display, c.events)]) {
+            if about {
+                // --about normalises by file length.
+                let path = if c.root.is_file() {
+                    c.root.clone()
+                } else {
+                    c.root.join(&rel)
+                };
+                hits.size = std::fs::metadata(path).ok().map(|m| m.len());
+            }
             inputs.push((rel, hits, c.root.clone(), slot));
         }
     }
@@ -666,8 +676,13 @@ pub fn emit(
         Some(rank_opts) => {
             // A repository's fitted weights (`--rank-fit`) replace the defaults.
             let mut rank_opts = rank_opts.clone();
-            rank_opts.weights =
-                rank::Weights::for_index(caches.iter().find_map(|(d, _)| d.as_deref()));
+            let index_dir = caches.iter().find_map(|(d, _)| d.as_deref());
+            rank_opts.weights = rank::Weights::for_index(index_dir);
+            if rank_opts.about {
+                rank_opts.corpus_files = index_dir
+                    .and_then(|d| ogrep_core::meta::IndexMeta::load(d).ok())
+                    .map_or(0, |m| m.num_files);
+            }
             let rank_opts = &rank_opts;
             let files: Vec<(String, FileHits)> =
                 prepared.into_iter().map(|p| (p.rel, p.hits)).collect();

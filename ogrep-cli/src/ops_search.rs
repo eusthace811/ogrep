@@ -366,22 +366,8 @@ fn log_templates(
         .into_iter()
         .filter(|t| cutoff.is_none_or(|c| t.first_seen.is_some_and(|f| f >= c)))
         .collect();
-    // Each template's search of the code is independent: run a few at a
-    // time (git grep is itself multi-threaded, so more would oversubscribe).
     let codes: Vec<Option<(String, usize, String)>> = match (to_code, repo) {
-        (true, Some(repo)) => {
-            use rayon::prelude::*;
-            let threads = opts.threads.unwrap_or(4).clamp(1, 4);
-            let pool = rayon::ThreadPoolBuilder::new()
-                .num_threads(threads)
-                .build()?;
-            pool.install(|| {
-                templates
-                    .par_iter()
-                    .map(|t| emitter(repo, &t.constant_part()))
-                    .collect()
-            })
-        }
+        (true, Some(repo)) => emitters(repo, &templates, opts),
         _ => vec![None; templates.len()],
     };
     for (t, code) in templates.iter().zip(codes) {
@@ -441,54 +427,190 @@ const LEVELS: &[&str] = &[
     "SEVERE",
 ];
 
-/// Code that writes a log message: the first tracked non-log file containing
-/// its constant text. The level word and bracketed logger names are not part
-/// of what the code writes, so they are dropped, and shorter runs are tried if
-/// the whole text is not found (a message may be built from pieces).
-fn emitter(repo: &Path, constant: &str) -> Option<(String, usize, String)> {
-    let tokens: Vec<&str> = constant
-        .split_whitespace()
-        .skip_while(|t| {
-            let bare = t.trim_matches(|c: char| "[]():".contains(c));
-            LEVELS.contains(&bare.to_ascii_uppercase().as_str())
-                || (t.starts_with('[') && t.ends_with(']'))
-        })
-        .collect();
-    let mut tries: Vec<String> = vec![tokens.join(" ")];
-    for cut in 1..tokens.len().saturating_sub(1).min(4) {
-        tries.push(tokens[..tokens.len() - cut].join(" "));
-        tries.push(tokens[cut..].join(" "));
+/// Code that writes each template's message.
+///
+/// A template's constant runs are cut into windows of two words: the pieces
+/// code writes literally whatever the values around them, even when the line
+/// also carries words the template could not tell were variable (a logger
+/// name, a status word, a path). Every window of every template is looked up
+/// in one fixed-string search of the repository, through its index when it
+/// has one. For each template, a file scores the windows it contains, each
+/// worth its length divided by the square root of how many files contain it,
+/// so long and rare pieces count most; the best file's line with the most of
+/// the template's windows is the answer. Prose and log files are skipped: they
+/// quote messages rather than write them.
+///
+/// On log lines mined from the code that writes them, with values filled in
+/// (`scripts/eval/template_eval.py`): the right file for 96.7% of django's,
+/// 96.9% of the OpenTelemetry demo's and 89.3% of llama.cpp's (not used for
+/// tuning), against 84.0%, 79.5% and 70.7% for looking up the longest constant
+/// run whole.
+fn emitters(
+    repo: &Path,
+    templates: &[ogrep_core::logs::Template],
+    opts: &SearchOptions,
+) -> Vec<Option<(String, usize, String)>> {
+    let per_template: Vec<Vec<String>> = templates.iter().map(message_windows).collect();
+    let mut all: Vec<String> = per_template.iter().flatten().cloned().collect();
+    all.sort();
+    all.dedup();
+    if all.is_empty() {
+        return vec![None; templates.len()];
     }
-    for needle in tries.into_iter().filter(|n| n.len() >= 8) {
-        let out = ogrep_core::history::git(repo)
-            .args(["grep", "-n", "-F", "-I", "--", &needle])
-            .output()
-            .ok()?;
-        let text = String::from_utf8_lossy(&out.stdout);
-        // Code writes log messages; prose that happens to contain the text
-        // does not.
-        let prose = [
-            ".log:", ".txt:", ".md:", ".rst:", ".adoc:", ".html:", ".po:",
-        ];
-        // By path only: the code line itself may well say "report.txt: ...".
-        let found = text.lines().find_map(|l| {
-            let mut parts = l.splitn(3, ':');
-            let (path, line, text) = (parts.next()?, parts.next()?, parts.next()?);
-            let as_prose = format!("{path}:");
-            if prose.iter().any(|p| as_prose.ends_with(p)) {
-                return None;
-            }
-            Some((
-                path.to_string(),
-                line.parse().ok()?,
-                text.trim().to_string(),
-            ))
-        });
-        if found.is_some() {
-            return found;
+    let matches = crate::search::captured_matches(repo, None, &code_search(opts, &all), false)
+        .unwrap_or_default();
+    let skip = |path: &str| {
+        let p = path.to_ascii_lowercase();
+        [".log", ".txt", ".md", ".rst", ".adoc", ".html", ".po"]
+            .iter()
+            .any(|e| p.ends_with(e))
+    };
+    // Per code line, the windows it holds; per window, the files holding it.
+    let lines: Vec<(&crate::output::Match, Vec<usize>)> = matches
+        .iter()
+        .filter(|m| !skip(&m.file))
+        .map(|m| {
+            let held = (0..all.len())
+                .filter(|&w| m.content.contains(all[w].as_str()))
+                .collect::<Vec<_>>();
+            (m, held)
+        })
+        .filter(|(_, held)| !held.is_empty())
+        .collect();
+    let mut holders: Vec<std::collections::BTreeSet<&str>> = vec![Default::default(); all.len()];
+    for (m, held) in &lines {
+        for &w in held {
+            holders[w].insert(m.file.as_str());
         }
     }
-    None
+    per_template
+        .iter()
+        .map(|windows| {
+            let wanted: Vec<usize> = windows
+                .iter()
+                .filter_map(|w| all.binary_search(w).ok())
+                .collect();
+            // Per file: the template's windows it holds, and its best line as
+            // (how many of them the line holds, line number, text).
+            type Best<'a> = Option<(usize, usize, &'a str)>;
+            let mut files: std::collections::BTreeMap<&str, (Vec<usize>, Best)> =
+                Default::default();
+            for (m, held) in &lines {
+                let mine: Vec<usize> = held
+                    .iter()
+                    .copied()
+                    .filter(|w| wanted.contains(w))
+                    .collect();
+                if mine.is_empty() {
+                    continue;
+                }
+                let entry = files.entry(m.file.as_str()).or_default();
+                entry.0.extend(&mine);
+                let better = entry.1.is_none_or(|(n, line, _)| {
+                    mine.len() > n || (mine.len() == n && m.line_number < line)
+                });
+                if better {
+                    entry.1 = Some((mine.len(), m.line_number, m.content.as_str()));
+                }
+            }
+            let score = |seen: &[usize]| -> i64 {
+                let mut seen = seen.to_vec();
+                seen.sort_unstable();
+                seen.dedup();
+                let s: f64 = seen
+                    .iter()
+                    .map(|&w| all[w].len() as f64 / (holders[w].len() as f64).sqrt())
+                    .sum();
+                (s * 1e6).round() as i64
+            };
+            // Highest score first; on a tie the earlier path, so the answer
+            // never depends on the order a parallel search reported files in.
+            let mut best: Option<(i64, &str, (usize, usize, &str))> = None;
+            for (file, (seen, line)) in &files {
+                let s = score(seen);
+                if best.is_none_or(|(b, _, _)| s > b) {
+                    best = line.map(|l| (s, *file, l));
+                }
+            }
+            best.map(|(_, file, (_, line, text))| (file.to_string(), line, text.trim().to_string()))
+        })
+        .collect()
+}
+
+/// Two-word windows over a template's constant runs, as [`emitter`] looks them
+/// up. A leading level word or bracketed logger name is not part of what the
+/// code writes, so it is dropped; a run of one or two words is kept whole.
+/// Windows shorter than eight characters match too much to tell code apart.
+fn message_windows(template: &ogrep_core::logs::Template) -> Vec<String> {
+    const WORDS: usize = 2;
+    const MIN_LEN: usize = 8;
+    const MAX_WINDOWS: usize = 32;
+    let mut runs = template.constant_runs();
+    if let Some(first) = runs.first_mut() {
+        let lead = first
+            .iter()
+            .take_while(|t| {
+                let bare = t.trim_matches(|c: char| "[]():".contains(c));
+                LEVELS.contains(&bare.to_ascii_uppercase().as_str())
+                    || (t.starts_with('[') && t.ends_with(']'))
+            })
+            .count();
+        first.drain(..lead);
+    }
+    let mut out: Vec<String> = Vec::new();
+    for run in runs.iter().filter(|r| !r.is_empty()) {
+        let pieces: Vec<String> = if run.len() <= WORDS {
+            vec![run.join(" ")]
+        } else {
+            run.windows(WORDS).map(|w| w.join(" ")).collect()
+        };
+        for piece in pieces {
+            let piece = piece
+                .trim_matches(|c: char| " :,.=".contains(c))
+                .to_string();
+            if piece.len() >= MIN_LEN && !out.contains(&piece) {
+                out.push(piece);
+            }
+        }
+    }
+    out.truncate(MAX_WINDOWS);
+    out
+}
+
+/// A plain fixed-string search of the repository for `patterns`, keeping only
+/// what decides which files are searched from the user's options (ignore
+/// rules, hidden files, size limit), not what shaped the log search.
+fn code_search(opts: &SearchOptions, patterns: &[String]) -> SearchOptions {
+    SearchOptions {
+        pattern: patterns[0].clone(),
+        extra_patterns: patterns[1..].to_vec(),
+        with_patterns: Vec::new(),
+        without_patterns: Vec::new(),
+        file_patterns: None,
+        case_insensitive: false,
+        case_sensitive: true,
+        smart_case: false,
+        fixed_string: true,
+        word_boundary: false,
+        line_regexp: false,
+        invert_match: false,
+        max_count: None,
+        no_index: false,
+        glob: Vec::new(),
+        iglob: Vec::new(),
+        types: Vec::new(),
+        types_not: Vec::new(),
+        only_paths: None,
+        at_rev: None,
+        multiline: false,
+        multiline_dotall: false,
+        passthru: false,
+        stop_on_nonmatch: false,
+        encoding: Default::default(),
+        path_display: Default::default(),
+        max_depth: None,
+        ..opts.clone()
+    }
 }
 
 const STOP: &[&str] = &[

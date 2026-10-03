@@ -133,6 +133,14 @@ struct Cli {
     #[arg(long = "rank")]
     rank: bool,
 
+    /// Find the files a description is about: a task, a bug report, a commit
+    /// message. Its words (identifiers split into their parts) are searched
+    /// case-insensitively and files are ranked by how many of the rarer words
+    /// they hold, as --rank prints them (--budget, --per-file and
+    /// --explain-rank apply). Every positional argument is a path.
+    #[arg(long = "about", value_name = "TEXT")]
+    about: Option<String>,
+
     /// With --rank: print at most this many files (default 20). Implies --rank,
     /// except with --near, --related-tests, --similar and --similar-incidents,
     /// where it is how many results they print (default 20, 15, 15 and 10).
@@ -1152,7 +1160,10 @@ impl Cli {
     /// Whether a flag (`-e`, `-f`, `--ident`) supplies the pattern, so every
     /// positional argument is a path.
     fn pattern_from_flags(&self) -> bool {
-        !self.regexp.is_empty() || !self.pattern_file.is_empty() || !self.ident.is_empty()
+        !self.regexp.is_empty()
+            || !self.pattern_file.is_empty()
+            || !self.ident.is_empty()
+            || self.about.is_some()
     }
 
     /// Split the positional arguments into a pattern and a list of paths.
@@ -1203,6 +1214,7 @@ impl Cli {
         // elsewhere does it imply --rank.
         let budget_is_rank = !self.tools().iter().any(|t| t.budget.is_some());
         let wanted = self.rank
+            || self.about.is_some()
             || (self.budget.is_some() && budget_is_rank)
             || self.per_file.is_some()
             || self.rank_cutoff.is_some()
@@ -1220,6 +1232,8 @@ impl Cli {
             },
             explain: self.explain_rank,
             weights: rank::Weights::default(),
+            about: self.about.is_some(),
+            corpus_files: 0,
         })
     }
 
@@ -1269,14 +1283,16 @@ impl Cli {
                         .iter()
                         .map(|name| search::identifier_pattern(name)),
                 )
+                .chain(self.about.iter().flat_map(|text| rank::about_terms(text)))
                 .collect(),
             file_patterns: None,
             with_patterns: self.with.clone(),
             without_patterns: self.without.clone(),
-            case_insensitive: self.ignore_case,
-            case_sensitive: self.case_sensitive,
-            smart_case: self.smart_case,
-            fixed_string: self.fixed_strings,
+            // --about's terms are words, lower-cased, matched in any case.
+            case_insensitive: self.ignore_case || self.about.is_some(),
+            case_sensitive: self.case_sensitive && self.about.is_none(),
+            smart_case: self.smart_case && self.about.is_none(),
+            fixed_string: self.fixed_strings || self.about.is_some(),
             files_only: self.files_only,
             files_without_match: self.files_without_match,
             count: self.count,
@@ -1500,6 +1516,26 @@ fn run_cli() {
     if !cli.ident.is_empty() && cli.fixed_strings {
         eprintln!("ogrep: --ident cannot be combined with -F/--fixed-strings");
         process::exit(2);
+    }
+
+    // --about's text is the whole query: other pattern sources would be scored
+    // as words of it, and -w/-x would change what a word matches.
+    if let Some(text) = &cli.about {
+        let conflicts = [
+            (!cli.regexp.is_empty(), "-e/--regexp"),
+            (!cli.pattern_file.is_empty(), "-f/--file"),
+            (!cli.ident.is_empty(), "--ident"),
+            (cli.word_regexp, "-w/--word-regexp"),
+            (cli.line_regexp, "-x/--line-regexp"),
+        ];
+        if let Some((_, flag)) = conflicts.iter().find(|(set, _)| *set) {
+            eprintln!("ogrep: --about cannot be combined with {flag}");
+            process::exit(2);
+        }
+        if rank::about_terms(text).is_empty() {
+            eprintln!("ogrep: --about: no words to search for in {text:?}");
+            process::exit(2);
+        }
     }
 
     // `--files` lists what would be searched without reading any content, so

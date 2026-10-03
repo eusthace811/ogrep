@@ -105,6 +105,12 @@ pub struct RankOptions {
     /// Print each file's score and features.
     pub explain: bool,
     pub weights: Weights,
+    /// `--about`: the patterns are a description's words, scored as a bag of
+    /// words (see [`score_about`]) instead of as names.
+    pub about: bool,
+    /// How many files the index holds, for `--about`'s inverse document
+    /// frequencies; 0 when unknown.
+    pub corpus_files: u64,
 }
 
 impl Default for RankOptions {
@@ -115,6 +121,8 @@ impl Default for RankOptions {
             cutoff: Cutoff::None,
             explain: false,
             weights: Weights::default(),
+            about: false,
+            corpus_files: 0,
         }
     }
 }
@@ -134,6 +142,8 @@ pub(crate) struct FileHits {
     pub(crate) dropped: Vec<Match>,
     /// The file's text, when loaded for scope headers.
     pub(crate) text: Option<String>,
+    /// The file's size in bytes, read for `--about`'s length normalisation.
+    pub(crate) size: Option<u64>,
 }
 
 /// Per-file scoring inputs, reported by `--explain-rank`.
@@ -512,17 +522,336 @@ pub fn emit(
     if files.is_empty() {
         return Ok(false);
     }
-    let pattern_set = PatternSet::new(patterns, fixed, ci);
-    let ranked = score_files(&files, &pattern_set, &opts.weights);
+    let ranked = if opts.about {
+        score_about(&files, patterns, opts.corpus_files, &opts.weights)
+    } else {
+        score_files(&files, &PatternSet::new(patterns, fixed, ci), &opts.weights)
+    };
     let keep = keep_count(&ranked, opts);
     for (rank, r) in ranked.iter().take(keep).enumerate() {
         let hits = &files[r.file].1;
         writer.set_path_display(hits.display.clone());
         writer.write_rank_record(&r.path, rank + 1, r.score, &r.features, opts.explain)?;
-        let shown = select_lines(&hits.matches, hits.defs.as_deref(), opts.per_file);
+        let shown = if opts.about {
+            select_about_lines(&hits.matches, patterns, opts.per_file)
+        } else {
+            select_lines(&hits.matches, hits.defs.as_deref(), opts.per_file)
+        };
         crate::post::emit_file(&r.path, hits, &shown, &[], search, writer)?;
     }
     Ok(keep > 0)
+}
+
+/// `--about`'s scoring constants, chosen on the localization sets in
+/// `scripts/eval` with the description (the commit subject) as the query, over
+/// every indexed file: plain BM25 (k1 1.2) with mild length normalisation
+/// (b 0.3 beat 0, 0.5 and 0.75 on both django and rust), a term found in the
+/// file's path adding five matching lines, and the same priors as `--rank`.
+/// Every term is kept, however common: dropping terms found in more than a
+/// fifth of the files lost accuracy.
+const ABOUT_K1: f64 = 1.2;
+const ABOUT_B: f64 = 0.3;
+const ABOUT_PATH: f64 = 5.0;
+
+/// Words that carry no meaning about where code lives: English function words
+/// and the verbs of commit messages and bug reports.
+const ABOUT_STOP: &[&str] = &[
+    "a",
+    "an",
+    "the",
+    "of",
+    "in",
+    "on",
+    "for",
+    "to",
+    "and",
+    "or",
+    "with",
+    "by",
+    "from",
+    "is",
+    "are",
+    "be",
+    "was",
+    "were",
+    "as",
+    "at",
+    "it",
+    "its",
+    "this",
+    "that",
+    "not",
+    "no",
+    "into",
+    "via",
+    "when",
+    "if",
+    "else",
+    "than",
+    "then",
+    "so",
+    "do",
+    "does",
+    "did",
+    "made",
+    "make",
+    "use",
+    "used",
+    "using",
+    "added",
+    "removed",
+    "fixed",
+    "changed",
+    "allowed",
+    "handled",
+    "corrected",
+    "improved",
+    "updated",
+    "support",
+    "supported",
+    "refs",
+    "fix",
+    "fixes",
+    "avoid",
+    "avoided",
+    "ensure",
+    "ensured",
+    "prevent",
+    "prevented",
+    "add",
+    "adds",
+    "remove",
+    "removes",
+    "change",
+    "changes",
+    "update",
+    "updates",
+    "handle",
+    "handles",
+    "allow",
+    "allows",
+    "correct",
+    "uses",
+    "new",
+    "old",
+    "more",
+    "less",
+    "only",
+    "also",
+    "all",
+    "any",
+    "some",
+    "can",
+    "cannot",
+    "should",
+    "would",
+    "will",
+    "may",
+    "might",
+    "must",
+    "now",
+    "after",
+    "before",
+    "during",
+    "without",
+    "within",
+    "between",
+    "over",
+    "under",
+];
+
+/// The search terms of a description, in order and without repeats: each word
+/// lower-cased, identifiers split into their parts (`date_hierarchy` gives
+/// `date` and `hierarchy`, `getUserId` gives `get`, `user`, `id`) and also
+/// kept whole when six characters or longer, dropping numbers, words under
+/// three characters and [`ABOUT_STOP`] words.
+pub fn about_terms(text: &str) -> Vec<String> {
+    let mut out: Vec<String> = Vec::new();
+    let mut push = |t: String| {
+        if t.len() >= 3
+            && !t.bytes().all(|b| b.is_ascii_digit())
+            && !ABOUT_STOP.contains(&t.as_str())
+            && !out.contains(&t)
+        {
+            out.push(t);
+        }
+    };
+    let is_word = |c: char| c.is_ascii_alphanumeric() || c == '_';
+    for token in text.split(|c: char| !is_word(c)) {
+        let token = token.trim_start_matches(|c: char| c.is_ascii_digit());
+        if token.is_empty() {
+            continue;
+        }
+        let parts = identifier_parts(token);
+        if parts.len() > 1 && token.len() >= 6 {
+            push(token.to_ascii_lowercase());
+        }
+        for part in parts {
+            push(part);
+        }
+    }
+    out
+}
+
+/// The lower-cased parts of an identifier: split at underscores, at a change
+/// from lower to upper case, before the last capital of an acronym followed by
+/// lower case (`HTTPServer` gives `http`, `server`), and between letters and
+/// digits.
+fn identifier_parts(token: &str) -> Vec<String> {
+    let chars: Vec<char> = token.chars().collect();
+    let mut parts = Vec::new();
+    let mut cur = String::new();
+    for (i, &c) in chars.iter().enumerate() {
+        if c == '_' {
+            if !cur.is_empty() {
+                parts.push(std::mem::take(&mut cur));
+            }
+            continue;
+        }
+        if let Some(&prev) = cur.chars().last().as_ref() {
+            let next = chars.get(i + 1).copied();
+            let boundary = (prev.is_ascii_lowercase() && c.is_ascii_uppercase())
+                || (prev.is_ascii_uppercase()
+                    && c.is_ascii_uppercase()
+                    && next.is_some_and(|n| n.is_ascii_lowercase()))
+                || (prev.is_ascii_digit() != c.is_ascii_digit());
+            if boundary {
+                parts.push(std::mem::take(&mut cur));
+            }
+        }
+        cur.push(c);
+    }
+    if !cur.is_empty() {
+        parts.push(cur);
+    }
+    parts.into_iter().map(|p| p.to_ascii_lowercase()).collect()
+}
+
+/// Score files for `--about` with BM25 over the description's terms.
+///
+/// A term's frequency in a file is the number of its matching lines that hold
+/// the term (case-insensitively), plus [`ABOUT_PATH`] when the term is in the
+/// file's path. Document frequencies are exact: the search matched every
+/// file holding any term. File length is the size in bytes, against the mean
+/// size of the files scored. The total is multiplied by `--rank`'s prior.
+fn score_about(
+    files: &[(String, FileHits)],
+    terms: &[String],
+    corpus_files: u64,
+    w: &Weights,
+) -> Vec<Ranked> {
+    let lower: Vec<String> = terms.iter().map(|t| t.to_ascii_lowercase()).collect();
+    // Per file, per term: matching lines holding it.
+    let tallies: Vec<Vec<usize>> = files
+        .iter()
+        .map(|(_, hits)| {
+            let mut tf = vec![0usize; lower.len()];
+            for m in &hits.matches {
+                let line = m.content.to_ascii_lowercase();
+                for (t, term) in lower.iter().enumerate() {
+                    if line.contains(term.as_str()) {
+                        tf[t] += 1;
+                    }
+                }
+            }
+            tf
+        })
+        .collect();
+    let n = (corpus_files as f64).max(files.len() as f64);
+    let idf: Vec<f64> = (0..lower.len())
+        .map(|t| {
+            let df = tallies.iter().filter(|tf| tf[t] > 0).count() as f64;
+            (1.0 + (n - df + 0.5) / (df + 0.5)).ln()
+        })
+        .collect();
+    let sizes: Vec<f64> = files
+        .iter()
+        .map(|(_, h)| h.size.unwrap_or(0).max(1) as f64)
+        .collect();
+    let avg = sizes.iter().sum::<f64>() / sizes.len().max(1) as f64;
+    let mut ranked: Vec<Ranked> = files
+        .iter()
+        .zip(&tallies)
+        .zip(&sizes)
+        .enumerate()
+        .map(|(file, (((rel, hits), tf), &size))| {
+            let path = rel.to_ascii_lowercase();
+            let norm = ABOUT_K1 * (1.0 - ABOUT_B + ABOUT_B * size / avg);
+            let mut score = 0.0;
+            let mut in_path = 0usize;
+            let mut found = 0usize;
+            for (t, term) in lower.iter().enumerate() {
+                let boost = if path.contains(term.as_str()) {
+                    in_path += 1;
+                    ABOUT_PATH
+                } else {
+                    0.0
+                };
+                let f = tf[t] as f64 + boost;
+                if tf[t] > 0 {
+                    found += 1;
+                }
+                if f > 0.0 {
+                    score += idf[t] * f * (ABOUT_K1 + 1.0) / (f + norm);
+                }
+            }
+            let prior = prior(rel, w);
+            Ranked {
+                file,
+                path: rel.clone(),
+                score: score * prior,
+                features: Features {
+                    def_lines: 0,
+                    body_lines: hits.matches.len(),
+                    path: in_path as f64,
+                    prior,
+                    patterns: found,
+                },
+            }
+        })
+        .collect();
+    ranked.sort_by(|a, b| {
+        round(b.score)
+            .cmp(&round(a.score))
+            .then_with(|| a.path.cmp(&b.path))
+    });
+    ranked
+}
+
+/// Pick the lines to show for one `--about` file: those holding the most
+/// different terms first, then the earliest, skipping near-duplicates as
+/// [`select_lines`] does.
+fn select_about_lines(matches: &[Match], terms: &[String], per_file: usize) -> Vec<usize> {
+    let held = |m: &Match| {
+        let line = m.content.to_ascii_lowercase();
+        terms
+            .iter()
+            .filter(|t| line.contains(t.to_ascii_lowercase().as_str()))
+            .count()
+    };
+    let norm = |s: &str| -> String {
+        s.chars()
+            .filter(|c| !c.is_whitespace() && !c.is_ascii_digit())
+            .collect()
+    };
+    let mut order: Vec<(usize, usize, usize)> = matches
+        .iter()
+        .enumerate()
+        .map(|(i, m)| (usize::MAX - held(m), m.line_number, i))
+        .collect();
+    order.sort_unstable();
+    let mut seen = std::collections::HashSet::new();
+    let mut picked: Vec<usize> = Vec::new();
+    for (_, _, i) in order {
+        if picked.len() >= per_file {
+            break;
+        }
+        if seen.insert(norm(&matches[i].content)) {
+            picked.push(i);
+        }
+    }
+    picked.sort_by_key(|&i| matches[i].line_number);
+    picked
 }
 
 /// One `--rank-fit` example: a query's grouped results and the files that
@@ -593,6 +922,63 @@ mod tests {
         assert!(!is_definition("        qs.bulk_update(objs)", 11));
         assert!(!is_definition("x = bulk_update(objs)", 4));
         assert!(!is_definition("self.bulk_update()", 5));
+    }
+
+    #[test]
+    fn about_terms_split_identifiers_and_drop_noise() {
+        assert_eq!(
+            about_terms("Handled out-of-range year in admin date_hierarchy."),
+            [
+                "out",
+                "range",
+                "year",
+                "admin",
+                "date_hierarchy",
+                "date",
+                "hierarchy"
+            ]
+        );
+        assert_eq!(
+            about_terms("Fixed #37339 -- Allowed ipaddress objects in GenericIPAddressField."),
+            [
+                "ipaddress",
+                "objects",
+                "genericipaddressfield",
+                "generic",
+                "address",
+                "field"
+            ]
+        );
+        assert_eq!(
+            about_terms("HTTPServer getUserId"),
+            ["httpserver", "http", "server", "getuserid", "get", "user"]
+        );
+        assert!(about_terms("fix the a to").is_empty());
+    }
+
+    #[test]
+    fn about_ranks_the_file_holding_the_rare_terms_first() {
+        let caps = vec![(
+            PathDisplay::Bare,
+            vec![
+                Captured::Match(m("a/common.py", 1, "the admin view", "admin")),
+                Captured::Match(m(
+                    "b/hier.py",
+                    2,
+                    "date_hierarchy year range",
+                    "date_hierarchy",
+                )),
+                Captured::Match(m("c/admin.py", 3, "admin admin", "admin")),
+            ],
+        )];
+        let files = group(caps);
+        let terms = about_terms("out-of-range year in admin date_hierarchy");
+        let ranked = score_about(&files, &terms, 1000, &Weights::default());
+        assert_eq!(ranked[0].path, "b/hier.py");
+        // Same input, same order.
+        let again = score_about(&files, &terms, 1000, &Weights::default());
+        let paths = |r: &[Ranked]| r.iter().map(|x| x.path.clone()).collect::<Vec<_>>();
+        assert_eq!(paths(&ranked), paths(&again));
     }
 
     #[test]
