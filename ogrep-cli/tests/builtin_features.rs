@@ -807,3 +807,72 @@ fn about_ranks_files_by_the_words_of_a_description() {
         .assert()
         .code(2);
 }
+
+#[test]
+fn cards_show_outline_and_matches_within_the_budget() {
+    let dir = TempDir::new().unwrap();
+    fs::write(
+        dir.path().join("pool.py"),
+        "\"\"\"Connection pooling for the payments service.\"\"\"\n\nclass Pool:\n    def take(self):\n        raise PoolExhausted()\n\n    def give(self, c):\n        pass\n",
+    )
+    .unwrap();
+    fs::write(
+        dir.path().join("RUNBOOK.md"),
+        "# Payments runbook\n\n## Pool exhausted\n\nRaise the pool size.\n",
+    )
+    .unwrap();
+    let out = stdout(ogrep(dir.path()).args([
+        "--no-index",
+        "--rank",
+        "--cards",
+        "-i",
+        "pool exhausted|PoolExhausted",
+    ]));
+    assert!(
+        out.contains("pool.py — Connection pooling for the payments service."),
+        "{out:?}"
+    );
+    assert!(out.contains("      3  class Pool:"), "the outline: {out:?}");
+    assert!(
+        out.contains("      5>     raise PoolExhausted()"),
+        "the match, nested: {out:?}"
+    );
+    assert!(out.contains("RUNBOOK.md — Payments runbook"), "{out:?}");
+    assert!(out.contains("      3>   ## Pool exhausted"), "{out:?}");
+    // The same input gives the same cards; a tiny budget still prints the
+    // best card, and only that one.
+    let again = stdout(ogrep(dir.path()).args([
+        "--no-index",
+        "--rank",
+        "--cards",
+        "-i",
+        "pool exhausted|PoolExhausted",
+    ]));
+    assert_eq!(out, again);
+    let one = stdout(ogrep(dir.path()).args([
+        "--no-index",
+        "--rank",
+        "--cards=1",
+        "-i",
+        "pool exhausted|PoolExhausted",
+    ]));
+    assert_eq!(
+        one.lines().filter(|l| !l.starts_with(' ')).count(),
+        1,
+        "{one:?}"
+    );
+    // JSON carries the same card.
+    let json = stdout(ogrep(dir.path()).args([
+        "--no-index",
+        "--rank",
+        "--cards",
+        "--json",
+        "PoolExhausted",
+    ]));
+    assert!(json.contains("\"type\":\"card\""), "{json:?}");
+    // Cards replace lines, so line-shaped output is refused.
+    ogrep(dir.path())
+        .args(["--no-index", "--cards", "-l", "Pool"])
+        .assert()
+        .code(2);
+}

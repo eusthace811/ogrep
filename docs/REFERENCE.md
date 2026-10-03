@@ -461,6 +461,65 @@ subject's most specific identifier:
 A description's common words make it a broader search than a name: p50 127 ms
 on django (7K files), 169 ms on llama.cpp (3.6K) and 537 ms on rust (63K).
 
+#### Cards: `--cards[=TOKENS]`
+
+`--cards` prints each ranked file as a card instead of its lines: the path and a
+one-line summary from the file's own words (its first docstring or leading
+comment sentence, or a document's first heading), then one list in line order of
+its outline, indented by nesting, and its matching lines, marked `>`. The outline
+is the file's definitions (from the built-in parsers, or definition keywords for
+other languages), those enclosing a match first, up to twelve; for Markdown,
+reStructuredText, AsciiDoc and text files it is the heading tree. Cards stop at
+about TOKENS tokens in all (default 2000; the first card is always printed).
+
+```bash
+ogrep --about "pool exhausted under load" --cards .
+ogrep --rank --cards=800 bulk_update .
+```
+
+```
+django/db/models/query.py — The main QuerySet implementation. This provides the public API for the ORM.
+     70  def _get_from_db(model_cls, fetch_mode):
+     95  class BaseIterable:
+    ...
+    352  class PreventQuerySetCloning:
+    374  class QuerySet(AltersData):
+   1020>   def bulk_update(self, objs, fields, batch_size=None):
+   1027>     raise ValueError("Field names must be given to bulk_update().")
+   1030>     raise ValueError("All bulk_update() objects must have a primary key set.")
+   2437  class InstanceCheckMeta(type):
+django/db/migrations/state.py
+     26  def _get_app_label_and_model_name(model, app_label=""):
+    ...
+```
+
+(abridged at `...`)
+
+`--cards` implies `--rank`, works with `--about`, `--budget`, `--per-file` (the
+matching lines per card) and `--explain-rank`, and with `--json` prints
+`{"type":"card","data":{"path","rank","score","summary","lines"}}`, each line
+with `line`, `depth`, `text` and `matched`. Only the files kept are read, after
+ranking, so the order is `--rank`'s. It cannot be combined with `-l`, `-c`,
+`--count-matches`, `-o`, `--vimgrep` or context lines.
+
+Given the same token budget, cards show the reader what a change touched more
+often than ranked lines do. On the localization tasks queried with `--about`
+(`scripts/eval/cards_eval.py`), the share where the output shows, for a file the
+commit changed, the name of a function the commit changed (from its diff's hunk
+headers):
+
+| Budget | Output | django | rust | llama.cpp |
+|--------|--------|--------|------|-----------|
+| 500 tokens | lines, 3 per file | 31% | 40% | 37% |
+| | lines, 8 per file | 35% | 47% | 42% |
+| | cards | 60% | 60% | 63% |
+| 1000 tokens | lines, 3 per file | 32% | 42% | 37% |
+| | lines, 8 per file | 38% | 50% | 46% |
+| | cards | 68% | 67% | 74% |
+| 2000 tokens | lines, 3 per file | 32% | 43% | 38% |
+| | lines, 8 per file | 39% | 52% | 49% |
+| | cards | 70% | 71% | 78% |
+
 With the default traversal rules, `--files` reads the live server or the local
 index instead of walking the repository. The local result is an index snapshot;
 use `--no-index` to inspect the filesystem as it exists now. Flags that change
@@ -807,6 +866,7 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `--rank-cutoff <auto\|none>` | With `--rank`: also stop where scores fall away (`auto`) |
 | `--explain-rank` | With `--rank`: print each file's score and features |
 | `--about <TEXT>` | Rank files by the words of a description (see [Searching with a description](#searching-with-a-description---about)) |
+| `--cards[=TOKENS]` | Print ranked files as cards: summary, outline and marked matches within a token budget (see [Cards](#cards---cardstokens)) |
 | `--scope` | Show the definition enclosing each match (`path=line=text`); see [Structure](#structure-scopes-definitions-comments) |
 | `--kind <def\|ref>` | Keep matches that define the matched name, or the others |
 | `--in <code\|comments\|strings>` | Keep matches in code, comments or string literals |

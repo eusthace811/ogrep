@@ -578,15 +578,19 @@ pub fn emit(
         let slot = caches.len();
         caches.push((c.index_dir, store));
         let about = post.rank.as_ref().is_some_and(|r| r.about);
+        let cards = post.rank.as_ref().is_some_and(|r| r.cards.is_some());
         for (rel, mut hits) in rank::group(vec![(c.display, c.events)]) {
-            if about {
-                // --about normalises by file length.
+            if about || cards {
                 let path = if c.root.is_file() {
                     c.root.clone()
                 } else {
                     c.root.join(&rel)
                 };
-                hits.size = std::fs::metadata(path).ok().map(|m| m.len());
+                // --about normalises by file length; --cards reads the file.
+                if about {
+                    hits.size = std::fs::metadata(&path).ok().map(|m| m.len());
+                }
+                hits.disk = Some(path);
             }
             inputs.push((rel, hits, c.root.clone(), slot));
         }

@@ -111,6 +111,8 @@ pub struct RankOptions {
     /// How many files the index holds, for `--about`'s inverse document
     /// frequencies; 0 when unknown.
     pub corpus_files: u64,
+    /// `--cards`: print each file as a card, within about this many tokens.
+    pub cards: Option<usize>,
 }
 
 impl Default for RankOptions {
@@ -123,6 +125,7 @@ impl Default for RankOptions {
             weights: Weights::default(),
             about: false,
             corpus_files: 0,
+            cards: None,
         }
     }
 }
@@ -144,6 +147,8 @@ pub(crate) struct FileHits {
     pub(crate) text: Option<String>,
     /// The file's size in bytes, read for `--about`'s length normalisation.
     pub(crate) size: Option<u64>,
+    /// Where the file is on disk, for `--about` and `--cards`.
+    pub(crate) disk: Option<std::path::PathBuf>,
 }
 
 /// Per-file scoring inputs, reported by `--explain-rank`.
@@ -528,6 +533,9 @@ pub fn emit(
         score_files(&files, &PatternSet::new(patterns, fixed, ci), &opts.weights)
     };
     let keep = keep_count(&ranked, opts);
+    if let Some(budget) = opts.cards {
+        return emit_cards(&files, &ranked[..keep], patterns, opts, budget, writer);
+    }
     for (rank, r) in ranked.iter().take(keep).enumerate() {
         let hits = &files[r.file].1;
         writer.set_path_display(hits.display.clone());
@@ -852,6 +860,50 @@ fn select_about_lines(matches: &[Match], terms: &[String], per_file: usize) -> V
     }
     picked.sort_by_key(|&i| matches[i].line_number);
     picked
+}
+
+/// Print the kept files as cards (`--cards`), best first, until the token
+/// budget is spent; the first card is always printed. A file that cannot be
+/// read as text gets a card of its matching lines alone.
+fn emit_cards(
+    files: &[(String, FileHits)],
+    ranked: &[Ranked],
+    patterns: &[String],
+    opts: &RankOptions,
+    budget: usize,
+    writer: &mut OutputWriter,
+) -> Result<bool> {
+    let mut used = 0usize;
+    let mut printed = false;
+    for (rank, r) in ranked.iter().enumerate() {
+        let hits = &files[r.file].1;
+        let shown = if opts.about {
+            select_about_lines(&hits.matches, patterns, opts.per_file)
+        } else {
+            select_lines(&hits.matches, hits.defs.as_deref(), opts.per_file)
+        };
+        let matches: Vec<(usize, String)> = shown
+            .iter()
+            .map(|&i| (hits.matches[i].line_number, hits.matches[i].content.clone()))
+            .collect();
+        let text = hits.disk.as_deref().and_then(crate::cards::read);
+        let card = crate::cards::build(&r.path, text.as_deref().unwrap_or(""), &matches);
+        let cost = card.tokens(&r.path);
+        if printed && used + cost > budget {
+            break;
+        }
+        used += cost;
+        printed = true;
+        writer.set_path_display(hits.display.clone());
+        writer.write_card(
+            &r.path,
+            rank + 1,
+            r.score,
+            &card,
+            opts.explain.then_some(&r.features),
+        )?;
+    }
+    Ok(printed)
 }
 
 /// One `--rank-fit` example: a query's grouped results and the files that

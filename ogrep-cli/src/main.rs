@@ -6,6 +6,7 @@
 ///   ogrep <pattern> [path]       Search (auto-delegates to server)
 ///   ogrep status [path]          Show index/server status
 mod admission;
+mod cards;
 mod cpu;
 mod extras;
 mod glob_filter;
@@ -140,6 +141,20 @@ struct Cli {
     /// --explain-rank apply). Every positional argument is a path.
     #[arg(long = "about", value_name = "TEXT")]
     about: Option<String>,
+
+    /// Print each ranked file as a card: its path, a one-line summary, its
+    /// outline (definitions, or headings for prose) with the matching lines
+    /// marked `>`, within about TOKENS tokens in all (default 2000). Implies
+    /// --rank; works with --about
+    #[arg(
+        long = "cards",
+        value_name = "TOKENS",
+        num_args = 0..=1,
+        require_equals = true,
+        default_missing_value = "2000",
+        value_parser = clap::value_parser!(u64).range(1..)
+    )]
+    cards: Option<u64>,
 
     /// With --rank: print at most this many files (default 20). Implies --rank,
     /// except with --near, --related-tests, --similar and --similar-incidents,
@@ -1215,6 +1230,7 @@ impl Cli {
         let budget_is_rank = !self.tools().iter().any(|t| t.budget.is_some());
         let wanted = self.rank
             || self.about.is_some()
+            || self.cards.is_some()
             || (self.budget.is_some() && budget_is_rank)
             || self.per_file.is_some()
             || self.rank_cutoff.is_some()
@@ -1234,6 +1250,7 @@ impl Cli {
             weights: rank::Weights::default(),
             about: self.about.is_some(),
             corpus_files: 0,
+            cards: self.cards.map(|t| t as usize),
         })
     }
 
@@ -1534,6 +1551,24 @@ fn run_cli() {
         }
         if rank::about_terms(text).is_empty() {
             eprintln!("ogrep: --about: no words to search for in {text:?}");
+            process::exit(2);
+        }
+    }
+
+    // A card replaces a file's lines; these ask for a different shape.
+    if cli.cards.is_some() {
+        let conflicts = [
+            (cli.files_only, "-l/--files-with-matches"),
+            (
+                cli.count || cli.count_matches,
+                "-c/--count or --count-matches",
+            ),
+            (cli.only_matching, "-o/--only-matching"),
+            (cli.vimgrep, "--vimgrep"),
+            (cli.has_context(), "context lines (-A/-B/-C)"),
+        ];
+        if let Some((_, flag)) = conflicts.iter().find(|(set, _)| *set) {
+            eprintln!("ogrep: --cards cannot be combined with {flag}");
             process::exit(2);
         }
     }

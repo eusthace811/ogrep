@@ -462,6 +462,62 @@ impl OutputWriter {
             self.display_path(file)
         )
     }
+    /// One `--cards` card: JSON as `{"type":"card",...}`, text as the path and
+    /// summary, then outline lines indented by depth and matching lines marked
+    /// `>`, each with its line number.
+    pub fn write_card(
+        &mut self,
+        file: &str,
+        rank: usize,
+        score: f64,
+        card: &crate::cards::Card,
+        features: Option<&impl serde::Serialize>,
+    ) -> io::Result<()> {
+        let path = self.display_path(file);
+        if self.is_json() {
+            let msg = serde_json::json!({
+                "type": "card",
+                "data": {
+                    "path": { "text": path },
+                    "rank": rank,
+                    "score": (score * 1e6).round() / 1e6,
+                    "summary": card.summary,
+                    "lines": card.lines,
+                    "features": features.map(|f| serde_json::to_value(f).unwrap_or_default()),
+                },
+            });
+            return writeln!(self.stdout, "{msg}");
+        }
+        match &card.summary {
+            Some(summary) => writeln!(self.stdout, "{path} — {summary}")?,
+            None => writeln!(self.stdout, "{path}")?,
+        }
+        if let Some(features) = features {
+            let detail = serde_json::to_value(features)
+                .ok()
+                .and_then(|v| v.as_object().cloned())
+                .map(|o| {
+                    o.iter()
+                        .map(|(k, v)| format!("{k}={v}"))
+                        .collect::<Vec<_>>()
+                        .join(" ")
+                })
+                .unwrap_or_default();
+            writeln!(self.stdout, "# rank {rank} score {score:.3} {detail}")?;
+        }
+        for l in &card.lines {
+            let mark = if l.matched { '>' } else { ' ' };
+            writeln!(
+                self.stdout,
+                "{:>7}{mark} {}{}",
+                l.line,
+                "  ".repeat(l.depth),
+                l.text
+            )?;
+        }
+        Ok(())
+    }
+
     pub fn new(config: OutputConfig) -> Self {
         let is_tty = atty_check();
         let use_color = match config.color {
