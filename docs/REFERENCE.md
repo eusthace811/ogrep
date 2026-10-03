@@ -792,7 +792,7 @@ reading git's object store directly: no index and no checkout. Globs, types,
 as in a working-tree search, hidden files are skipped unless `--hidden` is
 given, though `.ignore` files are not applied. Paths must exist in the working
 tree. Whatever reads the working tree after the search refuses `--at`:
-`--files`, `--scope`, `--kind`, `--in`, `--callers`, and the graph,
+`--files`, `--scope`, `--kind`, `--in`, `--callers`, `--about`, `--cards`, and the graph,
 repository and operations tools.
 
 ### Check status

@@ -1660,6 +1660,10 @@ fn run_cli() {
             (cli.kind.is_some(), "--kind"),
             (cli.in_zone.is_some(), "--in"),
             (cli.callers, "--callers"),
+            // Both read the files themselves: sizes and outlines would come
+            // from the working tree, not the revision searched.
+            (cli.about.is_some(), "--about"),
+            (cli.cards.is_some(), "--cards"),
             (
                 [&cli.sort, &cli.sortr]
                     .iter()

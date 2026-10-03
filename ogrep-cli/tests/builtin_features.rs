@@ -870,9 +870,18 @@ fn cards_show_outline_and_matches_within_the_budget() {
         "PoolExhausted",
     ]));
     assert!(json.contains("\"type\":\"card\""), "{json:?}");
-    // Cards replace lines, so line-shaped output is refused.
+    // Cards replace lines, so line-shaped output is refused, and so is a
+    // past revision, whose files a card would not read.
     ogrep(dir.path())
         .args(["--no-index", "--cards", "-l", "Pool"])
+        .assert()
+        .code(2);
+    ogrep(dir.path())
+        .args(["--cards", "--at", "HEAD", "Pool"])
+        .assert()
+        .code(2);
+    ogrep(dir.path())
+        .args(["--about", "pool exhausted", "--at", "HEAD"])
         .assert()
         .code(2);
 }
