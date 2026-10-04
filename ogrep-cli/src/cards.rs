@@ -221,28 +221,50 @@ fn keyword_definitions(lines: &[&str]) -> Vec<Entry> {
         .collect()
 }
 
-/// Markdown `#` headings and reStructuredText underlined titles, with their
-/// depth, each covering the lines up to the next heading at its depth or
-/// shallower. In a .txt file (reStructuredText, or plain notes such as a
-/// CMakeLists.txt) a line starting with `#` is a comment, not a heading.
+/// Markdown `#` headings, AsciiDoc `=` headings and underlined titles
+/// (reStructuredText, Markdown setext), with their depth, each covering the
+/// lines up to the next heading at its depth or shallower. In a .txt file
+/// (reStructuredText, or plain notes such as a CMakeLists.txt) a line starting
+/// with `#` is a comment, not a heading.
 fn headings(path: &str, lines: &[&str]) -> Vec<Entry> {
-    let hash_headings = !path.to_ascii_lowercase().ends_with(".txt");
+    let lower = path.to_ascii_lowercase();
+    // The character repeated before a one-line heading's title, if any.
+    let prefix = if lower.ends_with(".txt") {
+        None
+    } else if lower.ends_with(".adoc") {
+        Some('=')
+    } else {
+        Some('#')
+    };
+    // ~~~ also opens a Markdown code fence; elsewhere it is a title underline.
+    let fences: &[&str] = if lower.ends_with(".md") || lower.ends_with(".markdown") {
+        &["```", "~~~"]
+    } else {
+        &["```"]
+    };
     let mut found: Vec<(usize, usize, String)> = Vec::new();
     let mut rst_levels: Vec<char> = Vec::new();
-    let mut in_fence = false;
+    // The open code fence: its lines are code.
+    let mut fence: Option<&str> = None;
     for (i, l) in lines.iter().enumerate() {
         let t = l.trim_end();
-        if t.trim_start().starts_with("```") {
-            in_fence = !in_fence;
+        if let Some(&f) = fences.iter().find(|f| t.trim_start().starts_with(*f)) {
+            match fence {
+                None => fence = Some(f),
+                Some(open) if open == f => fence = None,
+                Some(_) => {}
+            }
             continue;
         }
-        if in_fence {
+        if fence.is_some() {
             continue;
         }
-        let hashes = t.chars().take_while(|&c| c == '#').count();
-        if hash_headings && (1..=6).contains(&hashes) && t[hashes..].starts_with(' ') {
-            found.push((i + 1, hashes - 1, t.to_string()));
-            continue;
+        if let Some(p) = prefix {
+            let level = t.chars().take_while(|&c| c == p).count();
+            if (1..=6).contains(&level) && t[level..].starts_with(' ') {
+                found.push((i + 1, level - 1, t.to_string()));
+                continue;
+            }
         }
         // reStructuredText: a title line followed by an underline of one
         // punctuation character at least as long.
@@ -252,7 +274,7 @@ fn headings(path: &str, lines: &[&str]) -> Vec<Entry> {
             if !t.trim().is_empty()
                 && !t.starts_with(' ')
                 && "=-~^*+#\"'`".contains(c)
-                && n.len() >= t.len()
+                && n.chars().count() >= t.chars().count()
                 && n.len() >= 3
                 && n.chars().all(|x| x == c)
             {
@@ -320,7 +342,7 @@ pub fn sections(path: &str, text: &str) -> Vec<Section> {
         starts.get(last).copied().unwrap_or(offset)
             - starts.get(first - 1).copied().unwrap_or(offset)
     };
-    let title = |t: &str| t.trim().trim_start_matches('#').trim().to_string();
+    let title = |t: &str| t.trim().trim_start_matches(['#', '=']).trim().to_string();
     let mut out = Vec::with_capacity(heads.len() + 1);
     if heads[0].0 > 1 {
         out.push(Section {
@@ -423,7 +445,7 @@ fn prose_summary(lines: &[&str]) -> Option<String> {
         .iter()
         .map(|l| l.trim())
         .find(|l| !l.is_empty() && !l.chars().all(|c| "=-~^*+#\"'`".contains(c)))
-        .map(|l| clip(l.trim_start_matches('#').trim()))
+        .map(|l| clip(l.trim_start_matches(['#', '=']).trim()))
 }
 
 /// Read a file for its card. `None` for unreadable or non-UTF-8 files, which
@@ -461,7 +483,7 @@ mod tests {
 
     #[test]
     fn a_prose_card_outlines_markdown_and_rst_headings() {
-        let md = "# Runbook\n\nintro\n\n## Pool exhausted\n\nsteps\n\n```\n# not a heading\n```\n## Rollback\n";
+        let md = "# Runbook\n\nintro\n\n## Pool exhausted\n\nsteps\n\n```\n# not a heading\n~~~\n```\n~~~sh\n# nor this\n~~~\n## Rollback\n";
         let card = build("ops/runbook.md", md, &[(7, "steps".into())]);
         assert_eq!(card.summary.as_deref(), Some("Runbook"));
         let heads: Vec<(usize, usize)> = card
@@ -470,11 +492,11 @@ mod tests {
             .filter(|l| !l.matched)
             .map(|l| (l.line, l.depth))
             .collect();
-        assert_eq!(heads, [(1, 0), (5, 1), (12, 1)]);
-        let rst = "Title\n=====\n\nSection\n-------\n\ntext\n";
+        assert_eq!(heads, [(1, 0), (5, 1), (16, 1)]);
+        let rst = "Title\n=====\n\nSection\n-------\n\nSub\n~~~\n\nÉtude\n=====\n";
         let card = build("docs/x.rst", rst, &[]);
         let heads: Vec<(usize, usize)> = card.lines.iter().map(|l| (l.line, l.depth)).collect();
-        assert_eq!(heads, [(1, 0), (4, 1)]);
+        assert_eq!(heads, [(1, 0), (4, 1), (7, 2), (10, 0)]);
     }
 
     #[test]
@@ -496,6 +518,18 @@ mod tests {
         assert_eq!(secs.len(), 1);
         assert_eq!(secs[0].chain, [(1, 4, "Title".to_string())]);
         let rst = "Title\n=====\n\nSection\n-------\ntext\n";
+        let adoc = "= Guide\n\n== Install\nsteps\n=== Linux\napt\n";
+        let secs = sections("docs/guide.adoc", adoc);
+        let spans: Vec<(usize, usize)> = secs.iter().map(|s| (s.line, s.end)).collect();
+        assert_eq!(spans, [(1, 2), (3, 4), (5, 6)]);
+        assert_eq!(
+            secs[2]
+                .chain
+                .iter()
+                .map(|c| c.2.as_str())
+                .collect::<Vec<_>>(),
+            ["Guide", "Install", "Linux"]
+        );
         let secs = sections("docs/x.txt", rst);
         assert_eq!(secs.len(), 2);
         assert_eq!(secs[1].chain.last().unwrap().2, "Section");

@@ -31,19 +31,24 @@ from localize import description
 ADORN = "=-~^*+#\"'`"
 
 
-def headings(lines):
-    """Heading line numbers (1-based), as ogrep's cards find them: Markdown `#` headings and reST titles
+def headings(lines, path=""):
+    """Heading line numbers (1-based), as ogrep's cards find them, outside ``` fences (and ~~~ in Markdown):
+    Markdown `#` headings (not in .txt files, where `#` starts a comment), AsciiDoc `=` headings, and titles
     underlined by one repeated punctuation character, at least as long and 3+ characters."""
-    out, fence = [], False
+    out, fence = [], None
+    prefix = None if path.lower().endswith(".txt") else "=" if path.lower().endswith(".adoc") else "#"
+    # ~~~ also opens a Markdown fence; elsewhere it is a title underline.
+    fences = ("```", "~~~") if path.lower().endswith((".md", ".markdown")) else ("```",)
     for i, line in enumerate(lines):
         t = line.rstrip()
-        if t.lstrip().startswith("```"):
-            fence = not fence
+        marker = next((m for m in fences if t.lstrip().startswith(m)), None)
+        if marker:
+            fence = marker if fence is None else (None if fence == marker else fence)
             continue
         if fence:
             continue
-        hashes = len(t) - len(t.lstrip("#"))
-        if 1 <= hashes <= 6 and t[hashes:].startswith(" "):
+        level = len(t) - len(t.lstrip(prefix)) if prefix else 0
+        if 1 <= level <= 6 and t[level:].startswith(" "):
             out.append(i + 1)
             continue
         if i + 1 < len(lines):
@@ -76,7 +81,7 @@ def build(args):
             lines = p.read_text(errors="replace").split("\n")
             diff = subprocess.run(["git", "show", "--format=", "-U0", sha, "--", f], cwd=root, capture_output=True,
                                   text=True, errors="replace").stdout
-            heads = headings(lines)
+            heads = headings(lines, f)
             for a in (l[1:] for l in diff.split("\n") if l.startswith("+") and not l.startswith("+++")):
                 if len(a.strip()) < 25 or lines.count(a) != 1:
                     continue
@@ -122,7 +127,7 @@ def run(args):
                     lines = p.read_text(errors="replace").split("\n")
                 except OSError:
                     lines = []
-                above = [h for h in headings(lines) if h <= r["data"]["line_number"]]
+                above = [h for h in headings(lines, current) if h <= r["data"]["line_number"]]
                 if above:
                     sections.append((current, above[-1]))
                 scoped = True

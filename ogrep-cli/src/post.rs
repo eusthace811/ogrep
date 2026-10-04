@@ -606,22 +606,37 @@ pub fn emit(
             .map(|dir| ogrep_core::facts::FactStore::open(dir, ogrep_core::facts::STRUCTURE));
         let slot = caches.len();
         caches.push((c.index_dir, store));
-        let about = post.rank.as_ref().is_some_and(|r| r.about);
-        let cards = post.rank.as_ref().is_some_and(|r| r.cards.is_some());
+        let reads = post
+            .rank
+            .as_ref()
+            .is_some_and(|r| r.about || r.cards.is_some());
+        let single = reads && c.root.is_file();
         for (rel, mut hits) in rank::group(vec![(c.display, c.events)]) {
-            if about || cards {
-                let path = if c.root.is_file() {
+            // --about and --cards read the files.
+            if reads {
+                hits.disk = Some(if single {
                     c.root.clone()
                 } else {
                     c.root.join(&rel)
-                };
-                // --about normalises by file length; --cards reads the file.
-                if about {
-                    hits.size = std::fs::metadata(&path).ok().map(|m| m.len());
-                }
-                hits.disk = Some(path);
+                });
             }
             inputs.push((rel, hits, c.root.clone(), slot));
+        }
+    }
+    // --about normalises by file length; as with the lookups below, only
+    // thousands of files are worth the thread pool.
+    if post.rank.as_ref().is_some_and(|r| r.about) {
+        let stat = |(_, hits, _, _): &mut (String, FileHits, PathBuf, usize)| {
+            hits.size = hits
+                .disk
+                .as_deref()
+                .and_then(|p| std::fs::metadata(p).ok())
+                .map(|m| m.len());
+        };
+        if inputs.len() > 4096 {
+            inputs.par_iter_mut().for_each(stat);
+        } else {
+            inputs.iter_mut().for_each(stat);
         }
     }
     // Reading and cache lookups are cheap: they run in turn unless there are

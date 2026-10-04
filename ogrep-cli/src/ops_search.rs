@@ -525,14 +525,16 @@ fn emitters(
             };
             // Highest score first; on a tie the earlier path, so the answer
             // never depends on the order a parallel search reported files in.
-            let mut best: Option<(i64, &str, (usize, usize, &str))> = None;
+            let mut best: Option<(i64, &str, usize, &str)> = None;
             for (file, (seen, line)) in &files {
                 let s = score(seen);
-                if best.is_none_or(|(b, _, _)| s > b) {
-                    best = line.map(|l| (s, *file, l));
+                if let Some((_, line, text)) = *line
+                    && best.is_none_or(|(b, ..)| s > b)
+                {
+                    best = Some((s, *file, line, text));
                 }
             }
-            best.map(|(_, file, (_, line, text))| (file.to_string(), line, text.trim().to_string()))
+            best.map(|(_, file, line, text)| (file.to_string(), line, text.trim().to_string()))
         })
         .collect()
 }
