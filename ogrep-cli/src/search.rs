@@ -176,6 +176,16 @@ pub enum SortKey {
     Created,
 }
 
+/// Whether `error` is a write to a closed pipe (`ogrep ... | head`). ripgrep
+/// stops quietly with status 0 then; so does ogrep, and a server search that
+/// hit it must not be retried against the local index.
+pub fn is_broken_pipe(error: &anyhow::Error) -> bool {
+    error.chain().any(|e| {
+        e.downcast_ref::<std::io::Error>()
+            .is_some_and(|e| e.kind() == ErrorKind::BrokenPipe)
+    })
+}
+
 fn flush_before_stats(writer: &mut OutputWriter) -> Result<()> {
     match writer.flush() {
         Ok(()) => Ok(()),
@@ -1044,7 +1054,9 @@ pub fn run(
     {
         match search_via_server(&info, &root, &index_root, &scope, opts, ci, writer) {
             Ok(had_matches) => return Ok(had_matches),
-            Err(error) if error.is::<ServerOverloaded>() => return Err(error),
+            Err(error) if error.is::<ServerOverloaded>() || is_broken_pipe(&error) => {
+                return Err(error);
+            }
             Err(_) => {}
         }
         eprintln!("Server unavailable or index coverage not ready, falling back to local index");

@@ -1936,6 +1936,9 @@ fn run_cli() {
     };
 
     if let Err(e) = result {
+        if search::is_broken_pipe(&e) {
+            process::exit(0);
+        }
         eprintln!("ogrep: {e}");
         process::exit(2);
     }
@@ -2061,6 +2064,7 @@ fn report_missing_path(path: &std::path::Path, no_messages: bool) {
 fn exit_with(result: anyhow::Result<bool>) -> ! {
     match result {
         Ok(found) => process::exit(if found { 0 } else { 1 }),
+        Err(e) if search::is_broken_pipe(&e) => process::exit(0),
         Err(e) => {
             eprintln!("ogrep: {e:#}");
             process::exit(2);
@@ -2285,6 +2289,7 @@ fn run_search(
                 }
             }
             Ok(false) => {}
+            Err(e) if search::is_broken_pipe(&e) => process::exit(0),
             Err(e) => {
                 // --no-messages hides per-file search errors, as in ripgrep: a
                 // file that cannot be read, or a regex failing on one. Anything
@@ -2483,6 +2488,7 @@ fn run_postprocessed_search(
     writer.absorb_search_totals(&capture);
     let printed = match post::emit(captured, opts, ci, post_opts, &mut writer) {
         Ok(printed) => printed,
+        Err(e) if search::is_broken_pipe(&e) => process::exit(0),
         Err(e) => {
             eprintln!("ogrep: {e}");
             process::exit(2);
