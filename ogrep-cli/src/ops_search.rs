@@ -537,7 +537,7 @@ fn emitters(
         .collect()
 }
 
-/// Two-word windows over a template's constant runs, as [`emitter`] looks them
+/// Two-word windows over a template's constant runs, as [`emitters`] looks them
 /// up. A leading level word or bracketed logger name is not part of what the
 /// code writes, so it is dropped; a run of one or two words is kept whole.
 /// Windows shorter than eight characters match too much to tell code apart.

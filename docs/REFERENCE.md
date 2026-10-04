@@ -465,10 +465,10 @@ on django (7K files), 169 ms on llama.cpp (3.6K) and 537 ms on rust (63K).
 a README covering everything) mentions most words somewhere, so whole-file
 scores favour it over the page that covers the task in one place. For
 Markdown, reStructuredText, AsciiDoc and `.txt` files with headings, `--about`
-also scores each heading-delimited section on its own: the same BM25 over the
-section's matching lines, a term in the headings above it counting three
-lines, and stronger length normalisation (b 0.75). A prose file's score is
-√(whole-file score × best section score), and prose files are then scaled
+also scores each heading-delimited section that holds a matching line on its
+own: the same BM25 over the section's matching lines, a term in the headings
+above it counting three lines, and stronger length normalisation (b 0.75). A
+prose file's score is √(whole-file score × best section score), and prose files are then scaled
 together so that their geometric mean is unchanged. Sections reorder prose
 files among themselves, but they don't move prose as a whole against code.
 Code and other files score exactly as before, and their order among themselves
@@ -485,9 +485,9 @@ right file first and the right section first:
 
 | Docs set | File, before → after | Section, before → after |
 |----------|----------------------|-------------------------|
-| django `docs/` (reST `.txt`; tuning set) | 52.3% → 61.7% | 18.0% → 44.0% |
+| django `docs/` (reST `.txt`; tuning set) | 52.3% → 61.3% | 18.0% → 44.0% |
 | cpython `Doc/` (`.rst`, held out) | 69.0% → 76.0% | 28.7% → 49.3% |
-| llama.cpp `*.md` (Markdown, held out) | 60.7% → 70.3% | 25.0% → 33.0% |
+| llama.cpp `*.md` (Markdown, held out) | 60.7% → 70.3% | 25.0% → 33.3% |
 
 All six gains are significant (paired McNemar p ≤ 0.015). On the code
 localization tasks above, the order of code files is identical on all 900

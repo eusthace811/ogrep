@@ -881,6 +881,27 @@ fn about_scores_prose_by_its_best_section_and_prints_it() {
 }
 
 #[test]
+fn about_prints_a_section_only_above_its_own_lines() {
+    let dir = TempDir::new().unwrap();
+    // The short subsection holds no match of its own, only its parent's
+    // heading does: it must not be printed as the section of line 1.
+    let mut page = String::from("# Caching\n");
+    for i in 0..40 {
+        page.push_str(&format!(
+            "Plain words about nothing in particular, line {i}.\n"
+        ));
+    }
+    page.push_str("## Eviction\nshort\n");
+    fs::write(dir.path().join("guide.md"), page).unwrap();
+    let out = stdout(ogrep(dir.path()).args(["--no-index", "-n", "--about", "caching"]));
+    assert_eq!(
+        out.lines().collect::<Vec<_>>(),
+        ["guide.md=1=Caching", "guide.md:1:# Caching"],
+        "{out}"
+    );
+}
+
+#[test]
 fn about_reports_whether_its_first_file_stands_out() {
     let dir = TempDir::new().unwrap();
     fs::write(

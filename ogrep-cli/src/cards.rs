@@ -66,7 +66,7 @@ pub fn is_prose(path: &str) -> bool {
 pub fn build(path: &str, text: &str, matches: &[(usize, String)]) -> Card {
     let lines: Vec<&str> = text.lines().collect();
     let (summary, outline) = if is_prose(path) {
-        (prose_summary(&lines), headings(&lines))
+        (prose_summary(&lines), headings(path, &lines))
     } else {
         (code_summary(&lines), definitions(path, text, &lines))
     };
@@ -223,8 +223,10 @@ fn keyword_definitions(lines: &[&str]) -> Vec<Entry> {
 
 /// Markdown `#` headings and reStructuredText underlined titles, with their
 /// depth, each covering the lines up to the next heading at its depth or
-/// shallower.
-fn headings(lines: &[&str]) -> Vec<Entry> {
+/// shallower. In a .txt file (reStructuredText, or plain notes such as a
+/// CMakeLists.txt) a line starting with `#` is a comment, not a heading.
+fn headings(path: &str, lines: &[&str]) -> Vec<Entry> {
+    let hash_headings = !path.to_ascii_lowercase().ends_with(".txt");
     let mut found: Vec<(usize, usize, String)> = Vec::new();
     let mut rst_levels: Vec<char> = Vec::new();
     let mut in_fence = false;
@@ -238,7 +240,7 @@ fn headings(lines: &[&str]) -> Vec<Entry> {
             continue;
         }
         let hashes = t.chars().take_while(|&c| c == '#').count();
-        if (1..=6).contains(&hashes) && t[hashes..].starts_with(' ') {
+        if hash_headings && (1..=6).contains(&hashes) && t[hashes..].starts_with(' ') {
             found.push((i + 1, hashes - 1, t.to_string()));
             continue;
         }
@@ -302,12 +304,7 @@ pub fn sections(path: &str, text: &str) -> Vec<Section> {
         return Vec::new();
     }
     let lines: Vec<&str> = text.lines().collect();
-    let mut heads = headings(&lines);
-    // In a .txt file (reStructuredText, or plain notes such as a
-    // CMakeLists.txt) a line starting with `#` is a comment, not a heading.
-    if path.to_ascii_lowercase().ends_with(".txt") {
-        heads.retain(|h| !h.2.starts_with('#'));
-    }
+    let heads = headings(path, &lines);
     if heads.is_empty() {
         return Vec::new();
     }
@@ -495,6 +492,9 @@ mod tests {
         // Code has no sections; in a .txt file a `#` line is a comment.
         assert!(sections("src/guide.py", md).is_empty());
         assert!(sections("CMakeLists.txt", "# build\nproject(x)\n").is_empty());
+        let secs = sections("notes.txt", "Title\n=====\n# a comment\ntext\n");
+        assert_eq!(secs.len(), 1);
+        assert_eq!(secs[0].chain, [(1, 4, "Title".to_string())]);
         let rst = "Title\n=====\n\nSection\n-------\ntext\n";
         let secs = sections("docs/x.txt", rst);
         assert_eq!(secs.len(), 2);

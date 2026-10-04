@@ -843,10 +843,10 @@ const ABOUT_SECTION_WEIGHT: f64 = 0.5;
 /// file holding any term. File length is the size in bytes, against the mean
 /// size of the files scored. The total is multiplied by `--rank`'s prior.
 ///
-/// A prose file with headings is also scored by its best section: the same
-/// sum over the section's own matching lines, plus [`ABOUT_HEADING`] for a
-/// term in its headings, normalised by the section's size against the mean
-/// section size of the prose files scored. The two scores are blended by
+/// A prose file with headings is also scored by its best section holding a
+/// matching line: the same sum over the section's own matching lines, plus
+/// [`ABOUT_HEADING`] for a term in its headings, normalised by the section's
+/// size against the mean section size of the prose files scored. The two scores are blended by
 /// [`ABOUT_SECTION_WEIGHT`]. Other files score as before.
 fn score_about(
     files: &[(String, FileHits)],
@@ -956,7 +956,12 @@ fn score_about(
                 for sec in &sections[file] {
                     let mut f = boost.clone();
                     let from = lines.partition_point(|&l| l < sec.line);
-                    let to = lines.partition_point(|&l| l <= sec.end).max(from);
+                    let to = lines.partition_point(|&l| l <= sec.end);
+                    // A section is chosen for its own matching lines, which
+                    // are then the lines shown.
+                    if from >= to {
+                        continue;
+                    }
                     for &i in &order[from..to] {
                         for &t in &terms_of[i] {
                             f[t] += 1.0;
@@ -981,14 +986,19 @@ fn score_about(
                         best = Some((score, sec));
                     }
                 }
-                let (best, sec) = best.expect("a prose file with sections has one");
-                let score = if whole > 0.0 {
-                    whole * (best / whole).powf(ABOUT_SECTION_WEIGHT)
-                } else {
-                    best
-                };
-                blended.push((whole, score));
-                (score, Some(sec.clone()))
+                // None only when the file changed since it was searched.
+                match best {
+                    Some((best, sec)) => {
+                        let score = if whole > 0.0 {
+                            whole * (best / whole).powf(ABOUT_SECTION_WEIGHT)
+                        } else {
+                            best
+                        };
+                        blended.push((whole, score));
+                        (score, Some(sec.clone()))
+                    }
+                    None => (whole, None),
+                }
             };
             let prior = prior(rel, w);
             Ranked {
@@ -1030,46 +1040,42 @@ fn score_about(
 }
 
 /// The lines to show for one ranked file. For a prose file `--about` scored
-/// by a section, they come from that section when it has matching lines.
+/// by a section, they come from that section, which always has some.
 fn shown_lines(hits: &FileHits, r: &Ranked, patterns: &[String], opts: &RankOptions) -> Vec<usize> {
     if !opts.about {
         return select_lines(&hits.matches, hits.defs.as_deref(), opts.per_file);
     }
-    if let Some(sec) = &r.section {
-        let inside: Vec<usize> = (0..hits.matches.len())
+    let candidates: Vec<usize> = match &r.section {
+        Some(sec) => (0..hits.matches.len())
             .filter(|&i| (sec.line..=sec.end).contains(&hits.matches[i].line_number))
-            .collect();
-        if !inside.is_empty() {
-            let subset: Vec<Match> = inside.iter().map(|&i| hits.matches[i].clone()).collect();
-            return select_about_lines(&subset, patterns, opts.per_file)
-                .into_iter()
-                .map(|k| inside[k])
-                .collect();
-        }
-    }
-    select_about_lines(&hits.matches, patterns, opts.per_file)
+            .collect(),
+        None => (0..hits.matches.len()).collect(),
+    };
+    select_about_lines(&hits.matches, &candidates, patterns, opts.per_file)
 }
 
-/// Pick the lines to show for one `--about` file: those holding the most
-/// different terms first, then the earliest, skipping near-duplicates as
-/// [`select_lines`] does.
-fn select_about_lines(matches: &[Match], terms: &[String], per_file: usize) -> Vec<usize> {
+/// Pick the lines to show for one `--about` file among `candidates`: those
+/// holding the most different terms first, then the earliest, skipping
+/// near-duplicates as [`select_lines`] does.
+fn select_about_lines(
+    matches: &[Match],
+    candidates: &[usize],
+    terms: &[String],
+    per_file: usize,
+) -> Vec<usize> {
+    let terms: Vec<String> = terms.iter().map(|t| t.to_ascii_lowercase()).collect();
     let held = |m: &Match| {
         let line = m.content.to_ascii_lowercase();
-        terms
-            .iter()
-            .filter(|t| line.contains(t.to_ascii_lowercase().as_str()))
-            .count()
+        terms.iter().filter(|t| line.contains(t.as_str())).count()
     };
     let norm = |s: &str| -> String {
         s.chars()
             .filter(|c| !c.is_whitespace() && !c.is_ascii_digit())
             .collect()
     };
-    let mut order: Vec<(usize, usize, usize)> = matches
+    let mut order: Vec<(usize, usize, usize)> = candidates
         .iter()
-        .enumerate()
-        .map(|(i, m)| (usize::MAX - held(m), m.line_number, i))
+        .map(|&i| (usize::MAX - held(&matches[i]), matches[i].line_number, i))
         .collect();
     order.sort_unstable();
     let mut seen = std::collections::HashSet::new();
