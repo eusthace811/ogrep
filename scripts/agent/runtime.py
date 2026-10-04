@@ -20,7 +20,7 @@ import sys
 import threading
 import time
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 INSTRUCTIONS = (
     "Prefer search_code for repository content searches and find_files for file lookup. "
     "After edits, refresh_index waits for searchable publication before later indexed queries. "
