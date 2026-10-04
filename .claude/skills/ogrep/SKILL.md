@@ -262,7 +262,8 @@ it.
 
 With `--json`, each analysis flag prints its own record type alongside
 ripgrep's `begin`/`match`/`end`: `rank` and `card` (with a `confidence` object on
-the first one for `--about`), `scope`, `near`, `map`, `callee`, `entity`,
+the first one for `--about`), `scope` (`--scope`, and the best section of a
+documentation file for `--about`), `near`, `map`, `callee`, `entity`,
 `blast`, `suspect`, `event` (`--timeline`), `frame`, `template`, `incident`,
 `test`, `similar`, `conflict`, `drift`, `commit` and `introduced`. Parsers should
 skip types they do not know.

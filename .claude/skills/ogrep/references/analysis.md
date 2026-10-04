@@ -175,7 +175,7 @@ prints its own record types:
 |---|---|
 | `--rank`, `--about` | `rank` |
 | `--cards` | `card` |
-| `--scope` | `scope` |
+| `--scope`; `--about` on documentation (the best section) | `scope` |
 | `--near` | `near` |
 | `--map` | `map` |
 | `--callees` | `callee` |

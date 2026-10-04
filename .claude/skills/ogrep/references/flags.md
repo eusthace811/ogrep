@@ -64,7 +64,7 @@ described in detail in [analysis.md](analysis.md).
 | `--rank`, `--budget N`, `--per-file N` | best files first, a few telling lines each (20 files, 3 lines) |
 | `--rank-cutoff auto` / `--explain-rank` | stop where scores fall off / show each file's score |
 | `--rank-fit FILE` | tune ranking weights for this repository from examples |
-| `--about TEXT` | rank the files a description is about; reports `unsure` when the top two tie |
+| `--about TEXT` | rank the files a description is about; in docs, prints the best heading section; reports `unsure` when the top two tie |
 | `--cards[=TOKENS]` | ranked files as summary + outline + marked matches, within a token budget |
 | `--scope`, `--kind def\|ref`, `--in code\|comments\|strings` | structure-aware output and filters |
 | `--near`, `--map[=TOKENS]`, `--callees NAME` | related files, outline map, what a definition uses (need `index --graph`) |
