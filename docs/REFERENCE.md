@@ -882,7 +882,7 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `--per-file <LINES>` | With `--rank`: at most this many lines per file (default 3) |
 | `--rank-cutoff <auto\|none>` | With `--rank`: also stop where scores fall away (`auto`) |
 | `--explain-rank` | With `--rank`: print each file's score and features |
-| `--about <TEXT>` | Rank files by the words of a description (see [Searching with a description](#searching-with-a-description---about)) |
+| `--about <TEXT>` | Rank files by the words of a description, and say when the first file is uncertain (see [Searching with a description](#searching-with-a-description---about)) |
 | `--cards[=TOKENS]` | Print ranked files as cards: summary, outline and marked matches within a token budget (see [Cards](#cards---cardstokens)) |
 | `--scope` | Show the definition enclosing each match (`path=line=text`); see [Structure](#structure-scopes-definitions-comments) |
 | `--kind <def\|ref>` | Keep matches that define the matched name, or the others |

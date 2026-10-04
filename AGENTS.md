@@ -108,6 +108,41 @@ Rules of thumb for agents:
 - **Use `-C 2` or `-C 3`** when you need to read the surrounding code.
 - **Use `-q`** when you only need a yes/no answer; read the exit code.
 
+## Beyond text search
+
+Searching for text is only part of what ogrep does. These flags answer the
+questions an agent usually asks next, offline and deterministically, citing the
+file and line behind each answer. [docs/REFERENCE.md](docs/REFERENCE.md) has
+the details and measurements.
+
+```bash
+ogrep -n --rank -F bulk_update .            # files that define or mainly use a name, best first
+ogrep -l --about "$(cat issue.txt)" .       # files a task or bug report is about
+ogrep --about "pool exhausted" --cards .    # each ranked file as summary + outline + matches
+ogrep -n --kind def -F bulk_update .        # only the definition (--kind ref: only uses)
+ogrep -n --scope -F bulk_update .           # matches under their enclosing function
+ogrep --callers -w -F bulk_update .         # definitions that use it
+ogrep --related-tests src/pool.rs .         # tests to run after changing a file
+ogrep --history 'pool exhausted' .          # commits that added or removed a matching line
+ogrep --blast cart .                        # what depends on a service, during an incident
+ogrep --stack-trace crash.txt .             # a stack trace's frames, in this repository
+```
+
+- **Start from a description with `--about`, and read its confidence.** When
+  the first two files score within 5%, ogrep prints `--about: unsure` on stderr,
+  and with `--json` the first `rank` record carries
+  `"confidence": {"level": "unsure", "margin": ...}`. Then the first file is
+  right less than half the time, but a right file is in the top five 77-92% of
+  the time: read the top five, or add a name from the code to the text. A
+  confident first file is right about four times in five.
+- **Use `--cards` to choose files and `--map` to see the code around a name,
+  within a token budget.** Then open the file itself before editing.
+- **Some flags need an extra index.** `--near`, `--map` and `--callees` need
+  `ogrep index . --graph`, and `--history` and `--introduced` need
+  `ogrep index . --history`. Both take seconds and add to `.ogrep/`.
+- **`--at REV` searches a past revision.** Flags that read the working tree
+  after the search refuse it.
+
 ## Machine-readable output
 
 `--json` emits one JSON object per line, in ripgrep's format. Record types
@@ -133,6 +168,17 @@ that depends on the raw bytes of such lines will see repaired text instead.
 
 `--vimgrep` gives `file:line:col:text`, one row per match, which is the
 easiest format to feed into a "jump to location" step.
+
+The analysis flags add record types of their own:
+- `rank` and `card` (`--rank`, `--about`, `--cards`);
+- `scope`;
+- `near`, `map` and `callee`;
+- `entity`, `blast`, `suspect`, `event` (`--timeline`), `frame`, `template` and
+  `incident`;
+- `test`, `similar`, `conflict` and `drift`;
+- `commit` and `introduced` (`--history`, `--introduced`).
+
+A parser should skip record types it does not know.
 
 ## Exit codes
 

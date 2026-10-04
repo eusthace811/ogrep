@@ -41,6 +41,14 @@ It also does things plain grep cannot:
   `get_user_id`, `GetUserID`, `get-user-id` and `GET_USER_ID`.
 - **Explains itself.** `--explain` shows how many files the index ruled out and
   how long it took.
+- **Finds where things live, not just lines.** `--rank` puts the defining files
+  first, `--about "bug report text"` finds the files a description is about and
+  says when it is unsure, and `--cards` shows each file's outline within a token
+  budget.
+- **Knows code structure, history and operations.** Definitions and uses,
+  callers and callees, the tests to run, the commits that added a line, blast
+  radius and likely causes during an incident, stack traces and log messages
+  mapped back to code. Everything runs offline and deterministically.
 
 ## Install
 
@@ -124,6 +132,33 @@ With no index at all, ogrep scans every file like ripgrep does, and warns you.
 
 Put `--` before a pattern that starts with `-`: `ogrep -- '-v' .`
 
+### Beyond lines: ranking, structure, history, incidents
+
+| I want to... | Command |
+|---|---|
+| the files that define or mainly use a name | `ogrep --rank -F bulk_update .` |
+| the files a bug report or task is about | `ogrep --about "out-of-range year in admin date hierarchy" .` |
+| an outline of each ranked file, within ~1000 tokens | `ogrep --about "pool exhausted" --cards=1000 .` |
+| only the definition / only the uses | `ogrep --kind def -F bulk_update .` / `--kind ref` |
+| each match under its enclosing function | `ogrep --scope -F bulk_update .` |
+| matches in comments only | `ogrep --in comments TODO .` |
+| who calls it / what it calls | `ogrep --callers -w -F bulk_update .` / `ogrep --callees bulk_update .` |
+| a map of the related code | `ogrep index . --graph`, then `ogrep --map=1500 -F bulk_update .` |
+| the tests to run after a change | `ogrep --related-tests django/db/models/query.py .` |
+| code that looks like a definition | `ogrep --similar src/pool.rs:120 .` |
+| the commits that added or removed a line | `ogrep index . --history`, then `ogrep --history 'pool exhausted' .` |
+| only files changed in the last two hours | `ogrep --changed-since 2h 'panic' .` |
+| the tree as it was at a tag | `ogrep --at v1.4.0 parse_header .` |
+| what depends on a service | `ogrep --blast cart .` |
+| likely causes of an outage | `ogrep --suspects checkout,frontend --since 2h .` |
+| where a stack trace's frames are | `ogrep --stack-trace crash.txt .` |
+| new log messages and the code that writes them | `ogrep --log-templates --new-since 1h --template-to-code . logs/` |
+| related postmortems | `ogrep --similar-incidents "checkout timeouts, redis pool" .` |
+| names in docs that the code no longer has | `ogrep --doc-drift .` |
+
+[docs/REFERENCE.md](docs/REFERENCE.md) describes each one, with how it was
+measured.
+
 ### Keeping results current
 
 `ogrep serve` watches the repository and updates the index as files change, but
@@ -180,7 +215,10 @@ make install-skill       # Linux, macOS, WSL: ~/.claude/skills/ogrep
 ```
 
 **Codex and pi:** `./install-agent.sh` installs MCP search tools that start and
-share an ogrep server automatically. See
+share an ogrep server automatically. Results come back as compact text, each
+path once with its lines under it, which costs a model about a third to a half
+of the tokens of one JSON record per line. To update an existing installation,
+run `./install-agent.sh repair --agent codex,pi --root /path/to/repository`. See
 [scripts/agent/README.md](scripts/agent/README.md).
 
 [AGENTS.md](AGENTS.md) covers what an agent has to get right: freshness,

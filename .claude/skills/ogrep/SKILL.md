@@ -1,6 +1,6 @@
 ---
 name: ogrep
-description: Search code with `ogrep`, an indexed, ripgrep-compatible grep that answers searches in large repositories by reading only the files that can match. Use this skill whenever you need to search file contents in a repository that has a `.ogrep/` index directory, in any large repository (thousands of files, monorepos, compilers, kernels, browsers) when `ogrep` is installed, or when the user mentions ogrep, trigram search, indexed grep, `ogrep serve` or `ogrep refresh`. Also use it for search tasks plain grep cannot express: files that contain X and also Y (`--with`), files that contain X but never Y (`--without`), or an identifier across naming styles such as getUserId / get_user_id / GET_USER_ID (`--ident`). Prefer it to repeated `rg`/`grep` or Grep-tool calls in big trees.
+description: Search code with `ogrep`, an indexed, ripgrep-compatible grep that reads only the files that can match. Use it to search file contents in a repository with a `.ogrep/` directory, in any large repository (monorepos, compilers, kernels) when `ogrep` is installed, or when the user mentions ogrep, indexed grep, `ogrep serve` or `ogrep refresh`. Also use it for what plain grep cannot do, such as files with X and also Y (`--with`) or never Y (`--without`); an identifier in every naming style (`--ident`); the files a task or bug report is about (`--about`); where a name is defined or mainly used (`--rank`, `--kind def`); file outlines within a token budget (`--cards`, `--map`); callers, callees and the tests to run; near-duplicate code, stale doc names, branch conflicts; the commits that added a line (`--history`); and incident triage (blast radius, likely causes, stack traces, new log messages and the code writing them, similar postmortems). Prefer it to repeated `rg`/`grep` or Grep-tool calls in big trees.
 allowed-tools: Bash(ogrep:*)
 ---
 
@@ -94,6 +94,23 @@ ogrep --json 'pattern' .                   # machine-readable events
 **Put options before `--`.** `--` ends option parsing, so use
 `ogrep -n -F -- '-v' .`. In `ogrep -- '-v' . -n`, the `-n` is taken as a path.
 
+### Which flag for which question
+
+| You have / want | Use |
+|---|---|
+| exact text or a regex, every occurrence | plain search (above) |
+| a name; where it is defined or mainly used | `--rank -F NAME`, `--kind def` |
+| a task, bug report or commit message, not a name | `--about "TEXT"` |
+| to read many candidate files cheaply | `--cards` (with `--rank` or `--about`), `--map` |
+| who calls / what it calls | `--callers`, `--callees` (after `ogrep index . --graph`) |
+| the tests to run after changing a file | `--related-tests FILE` |
+| when a line was added or removed | `--history`, `--introduced` (after `ogrep index . --history`) |
+| an outage: what depends on what, what changed | `--entities`, `--blast`, `--suspects`, `--timeline` |
+| a stack trace, a log file | `--stack-trace FILE`, `--log-templates ... --template-to-code` |
+
+Each answer is computed from the repository's files and its git history, with
+file and line evidence; none of them uses a model or the network.
+
 ### Searching part of the repository
 
 The index is found in the **first path you pass**, so `ogrep 'x' src/` looks for
@@ -131,7 +148,9 @@ ogrep -n --explain-rank --budget 5 -F bulk_update .   # with each file's score
 ```
 
 Ranking only reorders and trims real matches, and its order is deterministic.
-Drop `--rank` when you need every occurrence.
+Drop `--rank` when you need every occurrence. `--rank-cutoff auto` also stops
+where the scores fall off sharply. `--rank-fit examples.json .` tunes the
+weights for one repository from `{"query", "relevant": [paths]}` examples.
 
 ### Starting from a task or bug report: `--about`
 
@@ -148,6 +167,23 @@ with `--json`), the first two files scored almost the same. The first file is
 then right less than half the time, but a right one is usually in the top
 five: read those, or rerun with a name from the code added to the text. When it
 is silent, the first file is right about four times in five.
+
+### Reading many files at once: `--cards`
+
+Instead of matching lines, `--cards` prints each ranked file as a card: its
+path, a one-line summary from its own docstring or heading, its outline
+(definitions, or the heading tree for Markdown and reStructuredText) and its
+matching lines marked `>`, within a token budget (default 2000):
+
+```bash
+ogrep --about "pool exhausted under load" --cards .
+ogrep --rank --cards=800 -F bulk_update .
+```
+
+At the same budget, cards showed the function a change touched 1.6-2 times as
+often as matching lines did. Use them to pick which files to open; open the file
+before editing it. `--cards` cannot be combined with `-l`, `-c`, `-o`,
+`--vimgrep` or context flags.
 
 ### Structure-aware filters
 
@@ -171,11 +207,29 @@ ogrep --callees bulk_update .            # what its definition uses, and where t
 ### Incidents: blast radius, suspects, traces, logs
 
 ```bash
+ogrep --entities .                                 # services, alerts and their dependencies, from compose/k8s/catalog files
 ogrep --blast cart .                               # who depends on cart (with evidence lines)
 ogrep --suspects checkout,frontend --since 2h .    # likely root causes, recent changes weighted
-ogrep --stack-trace trace.txt .                    # where each frame of a trace is in this repo
+ogrep --timeline checkout --since 3d .             # commits to checkout and to what it depends on
+ogrep --stack-trace trace.txt .                    # where each frame of a trace is in this repo (- for stdin)
+ogrep --log-templates . logs/app.log               # a log reduced to its message templates, with counts
 ogrep --log-templates --new-since 1h . logs/       # log messages that only started recently
 ogrep --log-templates --template-to-code ERROR logs/   # and the code that writes them
+ogrep --similar-incidents "checkout timeouts, redis pool" .   # related postmortems
+```
+
+`--template-to-code` found the writing file for 89-97% of log lines in tests on
+three repositories, with values filled in. Dependencies are marked declared or
+inferred, with the file and line each comes from: check the evidence before
+acting on it.
+
+### Before and after a change
+
+```bash
+ogrep --related-tests django/db/models/query.py .   # tests to run, best first
+ogrep --similar src/pool.rs:120 .                   # code like the definition at that line
+ogrep --conflicts .                                 # lines also changed on other local branches
+ogrep --doc-drift .                                 # names quoted in docs that no code has
 ```
 
 ### What changed, and when: history
@@ -186,10 +240,23 @@ ogrep --history -n 'pool exhausted' .    # commits that added/removed a matching
 ogrep --introduced 'pool exhausted' .    # first added, last removed, present now?
 ogrep --changed-since 2h -n 'panic' .    # only files changed recently (incl. uncommitted)
 ogrep --at v1.4.0 -n parse_header .      # the tree as it was at a revision
+ogrep --history --since 2w --author jane 'timeout' .   # filter commits
 ```
 
 `--history` finds exactly the commits `git log -G` finds, in milliseconds
-instead of seconds to minutes.
+instead of seconds to minutes. `--at` reads git's objects, not the working tree,
+so flags that read the working tree after the search (`--about`, `--cards`,
+`--scope`, `--kind`, `--in`, `--callers`, the graph and incident tools) refuse
+it.
+
+### JSON from the analysis flags
+
+With `--json`, each analysis flag prints its own record type alongside
+ripgrep's `begin`/`match`/`end`: `rank` and `card` (with a `confidence` object on
+the first one for `--about`), `scope`, `near`, `map`, `callee`, `entity`,
+`blast`, `suspect`, `event` (`--timeline`), `frame`, `template`, `incident`,
+`test`, `similar`, `conflict`, `drift`, `commit` and `introduced`. Parsers should
+skip types they do not know.
 
 ## What is and is not searched
 
@@ -227,4 +294,5 @@ Three flags only take effect on a scan, and an indexed search ignores them:
 
 * **Index, server, refresh, status and Windows notes:** [references/server.md](references/server.md)
 * **Every search flag, grouped by task:** [references/flags.md](references/flags.md)
+* **Ranking, structure, graph, incident and history flags in detail:** [references/analysis.md](references/analysis.md)
 * **Differences from ripgrep, errors and recovery:** [references/troubleshooting.md](references/troubleshooting.md)

@@ -20,6 +20,9 @@ server answered. `Brute-force search` means it scanned.
 ```bash
 ogrep index .                       # build or rebuild ./.ogrep
 ogrep index . --exclude vendor      # skip directories (repeatable)
+ogrep index . --graph               # also the file graph for --near, --map, --callees (seconds)
+ogrep index . --history             # also the git history index for --history, --introduced
+ogrep index . --history --history-depth 0   # every commit, not just the latest 20,000
 ogrep serve .                       # foreground server; builds the index if missing
 ogrep serve . --no-watch            # serve without following edits
 ogrep serve . --watch-mode poll     # for network or virtual filesystems without native events

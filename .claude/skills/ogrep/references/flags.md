@@ -1,6 +1,8 @@
 # Search flags by task
 
-Flags follow ripgrep. `ogrep --help` has the full list.
+Search flags follow ripgrep. `ogrep --help` has the full list. The flags ogrep
+adds beyond ripgrep are summarised under "Ranking and analysis" below, and
+described in detail in [analysis.md](analysis.md).
 
 ## What to match
 
@@ -54,6 +56,26 @@ Flags follow ripgrep. `ogrep --help` has the full list.
 | `--sort path` | deterministic order |
 | `-q` | no output, exit code only |
 | `--color never` | no ANSI colors |
+
+## Ranking and analysis
+
+| Flag | Effect |
+|---|---|
+| `--rank`, `--budget N`, `--per-file N` | best files first, a few telling lines each (20 files, 3 lines) |
+| `--rank-cutoff auto` / `--explain-rank` | stop where scores fall off / show each file's score |
+| `--rank-fit FILE` | tune ranking weights for this repository from examples |
+| `--about TEXT` | rank the files a description is about; reports `unsure` when the top two tie |
+| `--cards[=TOKENS]` | ranked files as summary + outline + marked matches, within a token budget |
+| `--scope`, `--kind def\|ref`, `--in code\|comments\|strings` | structure-aware output and filters |
+| `--near`, `--map[=TOKENS]`, `--callees NAME` | related files, outline map, what a definition uses (need `index --graph`) |
+| `--callers` | definitions that use the pattern |
+| `--related-tests FILE`, `--similar PATH:LINE` | tests to run; code like a definition |
+| `--conflicts`, `--doc-drift` | overlap with other local branches; names in docs missing from code |
+| `--entities`, `--blast S`, `--suspects A,B`, `--timeline S` | services and dependencies; dependents; likely causes; recent commits |
+| `--stack-trace FILE`, `--log-templates`, `--new-since`, `--template-to-code` | traces to code; log templates, new ones, and their writers |
+| `--similar-incidents TEXT` | related postmortems |
+| `--history`, `--introduced`, `--since`, `--until`, `--author` | commits that added/removed a matching line (need `index --history`) |
+| `--changed-since REV\|WHEN`, `--at REV` | only recently changed files; the tree at a revision |
 
 ## Index and diagnostics
 
