@@ -11,6 +11,7 @@ import json
 import math
 import os
 from pathlib import Path
+import re
 import selectors
 import signal
 import socket
@@ -25,7 +26,8 @@ INSTRUCTIONS = (
     "After edits, refresh_index waits for searchable publication before later indexed queries. "
     "Use freshness=current for a direct filesystem scan. Empty results are not errors. "
     "Use shell search only if these tools are unavailable or cannot express the query. "
-    "Indexed queries may lag filesystem changes. Narrow truncated queries by path or file type."
+    "Indexed queries may lag filesystem changes. Narrow truncated queries by path or file type. "
+    "Results list each path once, then its lines as line:text for matches and line-text for context."
 )
 COMMON = {
     "path": {"type": "string", "default": ".", "description": "Path beneath the repository root."},
@@ -284,9 +286,7 @@ class Runtime:
                 raise ValueError("Invalid refresh receipt for this repository")
         finally:
             reap_process(proc)
-        payload = {**receipt, "refresh_mode": "content_reconcile", "warnings": warnings.decode(errors="replace")}
-        return {"content": [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}],
-                "structuredContent": payload, "isError": False}
+        return {**receipt, "refresh_mode": "content_reconcile", "warnings": warnings.decode(errors="replace")}
 
     def command(self, name, args):
         path = (self.root / args["path"]).resolve(strict=True)
@@ -331,6 +331,13 @@ class Runtime:
         return cmd, mode
 
     def search(self, name, supplied, cancel=None):
+        """One tool call as its MCP result. The text is all a model reads: hosts such as Codex show a model
+        `structuredContent` instead of the text whenever it is present, so the result carries none."""
+        payload = self.run(name, supplied, cancel)
+        text = json.dumps(payload, ensure_ascii=False) if name == "refresh_index" else render(payload)
+        return {"content": [{"type": "text", "text": text}], "isError": False}
+
+    def run(self, name, supplied, cancel=None):
         args = validate(name, supplied)
         cancel = cancel or threading.Event()
         if name == "refresh_index":
@@ -425,8 +432,41 @@ class Runtime:
                    "search_mode": mode, "warnings": warnings.decode(errors="replace")}
         if truncated:
             payload["hint"] = "Output limited; narrow path, file_types or pattern. Context rows count toward max_results."
-        return {"content": [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}],
-                "structuredContent": payload, "isError": False}
+        return payload
+
+
+def render(payload):
+    """Search results as text, grouped the way `rg --heading` prints them: each path once, then
+    `line:text` for a match and `line-text` for context; `path:count` in count mode. The same results
+    cost about half the tokens of one JSON record per line, which repeats every key and path."""
+    out = [f"# root: {payload['root']}  mode: {payload['search_mode']}"]
+    last = None
+    for item in payload["results"]:
+        path = show_path(item["path"])
+        if "line" in item:
+            if item["path"] != last:
+                out.append(path)
+                last = item["path"]
+            out.append(f"{item['line']}{':' if item['kind'] == 'match' else '-'}{item['text']}")
+        elif "count" in item:
+            out.append(f"{path}:{item['count']}")
+        else:
+            out.append(path)
+    if not payload["results"]:
+        out.append("# no results")
+    if payload["truncated"]:
+        out.append("# truncated: " + payload["hint"])
+    if payload["warnings"].strip():
+        out.append("# warnings: " + " ".join(payload["warnings"].split()))
+    return "\n".join(out)
+
+
+def show_path(path):
+    """A path as one unambiguous line: quoted when it could read as a row, a comment or two lines."""
+    if (path != path.strip() or path.startswith("#") or re.match(r"\d+[:-]", path)
+            or any(ord(c) < 32 for c in path)):
+        return json.dumps(path, ensure_ascii=False)
+    return path
 
 
 def mcp(runtime):

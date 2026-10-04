@@ -16,16 +16,19 @@ const prompt = await hooks.get("before_agent_start")({ systemPrompt: "original" 
 assert.ok(prompt.systemPrompt.includes("ogrep_search_code"));
 assert.ok(prompt.systemPrompt.includes("ogrep_refresh_index"));
 const ctx = { cwd: process.argv[3] };
+// The text the model reads: a "# root ..." header, then one row per result.
+const rows = (result) => result.content[0].text.split("\n").filter((line) => !line.startsWith("#"));
 try {
   const receipt = await tools.get("ogrep_refresh_index").execute("refresh", { timeout_secs: 10 }, undefined, undefined, ctx);
-  assert.equal(receipt.details.status, "refreshed");
-  assert.equal(receipt.details.refresh_mode, "content_reconcile");
+  const refreshed = JSON.parse(receipt.content[0].text);
+  assert.equal(refreshed.status, "refreshed");
+  assert.equal(refreshed.refresh_mode, "content_reconcile");
   const [matches, files] = await Promise.all([
     tools.get("ogrep_search_code").execute("1", { pattern: "needle", freshness: "current" }, undefined, undefined, ctx),
     tools.get("ogrep_find_files").execute("2", { pattern: "*.rs", freshness: "current" }, undefined, undefined, ctx),
   ]);
-  assert.ok(matches.details.results.length > 0);
-  assert.deepEqual(files.details.results, [{ path: "src/main.rs" }]);
+  assert.match(matches.content[0].text, /^src\/main\.rs\n\d+:.*needle/m);
+  assert.deepEqual(rows(files), ["src/main.rs"]);
   await assert.rejects(() => tools.get("ogrep_search_code").execute("3", { pattern: "[", literal: false, freshness: "current" }, undefined, undefined, ctx));
   // A disconnect after connect() returns but before execute() resumes must
   // reject immediately, not silently wait for the 40-second request timer.
@@ -35,7 +38,7 @@ try {
   await assert.rejects(racing, /disconnected/);
   assert.ok(Date.now() - started < 2000);
   const reconnected = await tools.get("ogrep_find_files").execute("5", { pattern: "*.rs", freshness: "current" }, undefined, undefined, ctx);
-  assert.deepEqual(reconnected.details.results, [{ path: "src/main.rs" }]);
+  assert.deepEqual(rows(reconnected), ["src/main.rs"]);
   // An already-aborted tool call must reject before spawning an adapter: the
   // missing working directory would otherwise surface as a spawn error.
   hooks.get("session_shutdown")();
@@ -45,7 +48,7 @@ try {
   await assert.rejects(() => tools.get("ogrep_search_code").execute("6", { pattern: "needle", freshness: "current" }, aborted.signal, undefined, { cwd: process.argv[3] + "/missing" }), /Cancelled/);
   assert.ok(Date.now() - abortedAt < 2000);
   const afterAbort = await tools.get("ogrep_find_files").execute("7", { pattern: "*.rs", freshness: "current" }, undefined, undefined, ctx);
-  assert.deepEqual(afterAbort.details.results, [{ path: "src/main.rs" }]);
+  assert.deepEqual(rows(afterAbort), ["src/main.rs"]);
   // A call that aborts while another call is still initializing must reject
   // immediately while the shared startup completes for the first caller.
   hooks.get("session_shutdown")();
@@ -54,7 +57,7 @@ try {
   const racingStartup = tools.get("ogrep_find_files").execute("9", { pattern: "*.rs", freshness: "current" }, controller.signal, undefined, ctx);
   controller.abort();
   await assert.rejects(racingStartup, /Cancelled/);
-  assert.deepEqual((await startup).details.results, [{ path: "src/main.rs" }]);
+  assert.deepEqual(rows(await startup), ["src/main.rs"]);
 } finally {
   hooks.get("session_shutdown")();
 }

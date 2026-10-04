@@ -304,7 +304,7 @@ class RuntimeTests(unittest.TestCase):
         self.temp.cleanup()
 
     def search(self, tool="search_code", **args):
-        return self.runtime.search(tool, {"freshness": "current", **args})["structuredContent"]
+        return self.runtime.run(tool, {"freshness": "current", **args})
 
     def test_current_search_filters_and_scoped_paths(self):
         result = self.search(pattern="needle", file_types=["rust"], path="src", context_lines=0)
@@ -352,14 +352,14 @@ class RuntimeTests(unittest.TestCase):
         first = json.loads((self.runtime.index / "serve.json").read_text())
         self.assertTrue(self.runtime.ensure_server())
         self.assertEqual(first, json.loads((self.runtime.index / "serve.json").read_text()))
-        result = self.runtime.search("search_code", {"pattern": "needle", "path": "src"})["structuredContent"]
+        result = self.runtime.run("search_code", {"pattern": "needle", "path": "src"})
         self.assertTrue(result["results"])
         (self.root / "new.txt").write_text("just_created_token")
         self.assertEqual(self.search(pattern="just_created_token")["results"][0]["path"], "new.txt")
 
     def test_failed_start_scans_instead_of_using_old_index(self):
         with patch.object(self.runtime, "ensure_server", return_value=False):
-            result = self.runtime.search("search_code", {"pattern": "needle"})["structuredContent"]
+            result = self.runtime.run("search_code", {"pattern": "needle"})
         self.assertEqual(result["search_mode"], "current_scan")
         self.assertTrue(result["results"])
 
@@ -375,14 +375,14 @@ class RuntimeTests(unittest.TestCase):
                 time.sleep(0.02)
             self.runtime.search("refresh_index", {"timeout_secs": 10})
             (self.root / "new.rs").write_text("after_refresh_marker\n")
-            before = self.runtime.search("search_code", {"pattern": "after_refresh_marker", "output_mode": "files"})
-            self.assertEqual(before["structuredContent"]["results"], [])
-            receipt = self.runtime.search("refresh_index", {"timeout_secs": 10})["structuredContent"]
+            before = self.runtime.run("search_code", {"pattern": "after_refresh_marker", "output_mode": "files"})
+            self.assertEqual(before["results"], [])
+            receipt = self.runtime.run("refresh_index", {"timeout_secs": 10})
             self.assertEqual(receipt["status"], "refreshed")
             self.assertEqual(receipt["root"], str(self.root))
             self.assertEqual(receipt["refresh_mode"], "content_reconcile")
-            after = self.runtime.search("search_code", {"pattern": "after_refresh_marker", "output_mode": "files"})
-            self.assertEqual(after["structuredContent"]["results"], [{"path": "new.rs"}])
+            after = self.runtime.run("search_code", {"pattern": "after_refresh_marker", "output_mode": "files"})
+            self.assertEqual(after["results"], [{"path": "new.rs"}])
             # The mode label permits fallback. Verify the actual CLI route too.
             routed = subprocess.run([str(BINARY), "-l", "--stats", "--index-path", str(self.runtime.index),
                                      "--", "after_refresh_marker", str(self.root)], capture_output=True, text=True, check=True)
@@ -394,11 +394,11 @@ class RuntimeTests(unittest.TestCase):
             server.wait(timeout=5)
 
     def test_refresh_starts_service_and_waits_through_initial_build(self):
-        receipt = self.runtime.search("refresh_index", {"timeout_secs": 10})
-        self.assertEqual(receipt["structuredContent"]["status"], "refreshed")
+        receipt = self.runtime.run("refresh_index", {"timeout_secs": 10})
+        self.assertEqual(receipt["status"], "refreshed")
         self.assertIsNotNone(self.runtime.status())
-        result = self.runtime.search("search_code", {"pattern": "needle"})
-        self.assertTrue(result["structuredContent"]["results"])
+        result = self.runtime.run("search_code", {"pattern": "needle"})
+        self.assertTrue(result["results"])
 
     def test_refresh_does_not_turn_startup_timeout_into_fallback_or_success(self):
         with patch.object(self.runtime, "ensure_server", return_value=False) as start, patch.object(self.runtime, "status", return_value=None), patch.object(runtime.subprocess, "Popen") as spawn:
@@ -470,6 +470,38 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(counts["src/main.rs"], 2)
         self.assertFalse(any(Path(p).is_absolute() for p in counts))
 
+    def test_tool_text_groups_lines_under_each_path_without_structured_copy(self):
+        args = {"pattern": "needle", "freshness": "current", "context_lines": 1}
+        payload = self.runtime.run("search_code", args)
+        # A scan may list files in a different order each time, so render this very payload.
+        with patch.object(self.runtime, "run", return_value=payload):
+            reply = self.runtime.search("search_code", args)
+        self.assertEqual(set(reply), {"content", "isError"})
+        text = reply["content"][0]["text"]
+        expected, last = [f"# root: {self.root}  mode: current_scan"], None
+        for item in payload["results"]:
+            if item["path"] != last:
+                expected.append(item["path"])
+                last = item["path"]
+            expected.append(f"{item['line']}{':' if item['kind'] == 'match' else '-'}{item['text']}")
+        self.assertEqual(text.split("\n"), expected)
+        self.assertGreater(len(payload["results"]), len({item["path"] for item in payload["results"]}))
+        files = self.runtime.search("find_files", {"pattern": "*.rs", "freshness": "current"})["content"][0]["text"]
+        self.assertEqual(files.split("\n")[1:], ["src/main.rs"])
+        none = self.runtime.search("search_code", {"pattern": "absent_marker_x", "freshness": "current"})
+        self.assertEqual(none["content"][0]["text"].split("\n")[1:], ["# no results"])
+
+    def test_render_keeps_odd_paths_on_one_line_and_reports_limits(self):
+        text = runtime.render({
+            "root": "/r", "search_mode": "indexed_or_scan", "truncated": True, "hint": "Output limited.",
+            "warnings": "warning: slow\nscan\n", "results": [
+                {"path": "odd:name\nfile.txt", "count": 2}, {"path": "12:notes.md", "count": 1},
+                {"path": "#hash.txt", "line": 3, "text": "x", "kind": "match"},
+                {"path": "#hash.txt", "line": 4, "text": "y", "kind": "context"}]})
+        self.assertEqual(text.split("\n"), [
+            "# root: /r  mode: indexed_or_scan", '"odd:name\\nfile.txt":2', '"12:notes.md":1',
+            '"#hash.txt"', "3:x", "4-y", "# truncated: Output limited.", "# warnings: warning: slow scan"])
+
     def test_plain_directory_excludes_managed_files_in_both_freshness_modes(self):
         plain = self.directory / "plain"
         plain.mkdir()
@@ -480,7 +512,7 @@ class RuntimeTests(unittest.TestCase):
         for root in (str(plain), None):
             adapter = runtime.Runtime({**self.config, "root": root}, plain)
             for freshness in ("current", "indexed"):
-                result = adapter.search("find_files", {"hidden": True, "freshness": freshness})["structuredContent"]
+                result = adapter.run("find_files", {"hidden": True, "freshness": freshness})
                 self.assertNotIn({"path": ".ogrep-agent/secret.txt"}, result["results"])
                 self.assertIn({"path": "visible.txt"}, result["results"])
 
@@ -614,8 +646,8 @@ class RuntimeTests(unittest.TestCase):
         deadline = time.monotonic() + 5
         while self.runtime.status() is not None and time.monotonic() < deadline:
             time.sleep(0.05)
-        result = self.runtime.search("search_code", {"pattern": "needle"})
-        self.assertTrue(result["structuredContent"]["results"])
+        result = self.runtime.run("search_code", {"pattern": "needle"})
+        self.assertTrue(result["results"])
         replacement = json.loads((self.runtime.index / "serve.json").read_text())
         self.assertNotEqual(info["pid"], replacement["pid"])
 

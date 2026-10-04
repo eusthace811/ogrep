@@ -99,9 +99,22 @@ Both tools accept:
 - `max_results`: 1–1000 output records (default 100). Context rows count too.
 - `file_types` and `glob`: at most 100 entries, 16 KB each and 64 KB together.
 
-Count results contain a repository-relative `path` and numeric `count` of
-matching lines. Counts come from JSON statistics, so filenames containing
-colons or newlines remain unambiguous.
+Results are returned as plain text grouped the way `rg --heading` prints them:
+a `# root: ...  mode: ...` line, then each repository-relative path once
+followed by its lines as `line:text` for a match and `line-text` for context.
+Files output lists one path per line; count output prints `path:count`, with
+counts taken from JSON statistics. A path that could be misread (one holding a
+newline or control character, starting with `#` or with digits and `:`/`-`, or
+with surrounding spaces) is printed as a JSON string. Empty results print
+`# no results`; `# truncated: ...` and `# warnings: ...` close the text when
+they apply.
+
+The tools return no `structuredContent`: Codex shows the model a tool's
+`structuredContent` in place of its text whenever it is present. Over the
+localization identifier searches in `scripts/eval/data` (adapter defaults), the
+text costs a model 0.32-0.42× the tokens pi read before (one JSON record per
+line in the text) and 0.40-0.50× what Codex read (the same records as
+`structuredContent`), for the same records.
 
 Output is capped at approximately 48 KB of result records, plus metadata. An
 oversized individual line may produce a truncated response with no records;

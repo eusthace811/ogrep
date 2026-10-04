@@ -115,7 +115,7 @@ export default function (pi: any) {
         await connect(ctx.cwd, signal);
         const result = await request("tools/call", { name: tool.name, arguments: args }, signal);
         if (result.isError) throw new Error(result.content.map((c: any) => c.text || "").join("\n"));
-        return { content: result.content, details: result.structuredContent };
+        return { content: result.content, details: {} };
       },
     });
   }
