@@ -189,6 +189,7 @@ fn scope_at(
         start: inner.start_line,
         end: inner.end_line,
         chain: std::sync::Arc::new(serde_json::Value::from(json)),
+        header: None,
     };
     built.insert(innermost, scope.clone());
     Some(scope)
@@ -224,6 +225,31 @@ pub(crate) struct Scope {
     end: usize,
     /// Every enclosing definition, outermost first, as JSON.
     chain: std::sync::Arc<serde_json::Value>,
+    /// The header line to print, when the file's text is not loaded.
+    header: Option<String>,
+}
+
+impl Scope {
+    /// A prose section as a scope (`--about`): its heading, and the
+    /// headings enclosing it as a chain of `section` entries.
+    pub(crate) fn section(section: &crate::cards::Section) -> Option<Self> {
+        let (line, _, title) = section.chain.last()?;
+        let chain = section
+            .chain
+            .iter()
+            .map(|(start, end, name)| {
+                serde_json::json!({
+                    "kind": "section", "name": name, "start_line": start, "end_line": end,
+                })
+            })
+            .collect::<Vec<_>>();
+        Some(Scope {
+            start: *line,
+            end: section.end,
+            chain: std::sync::Arc::new(serde_json::Value::from(chain)),
+            header: Some(title.clone()),
+        })
+    }
 }
 
 /// A matched file's text and, in a parsed language, its structure.
@@ -518,7 +544,10 @@ pub(crate) fn emit_file(
             && last_scope != Some(scope.start)
         {
             last_scope = Some(scope.start);
-            let header = lines.get(scope.start - 1).copied().unwrap_or("");
+            let header = scope
+                .header
+                .as_deref()
+                .unwrap_or_else(|| lines.get(scope.start - 1).copied().unwrap_or(""));
             writer.write_scope(rel, scope.start, header, &scope.chain)?;
         }
         match row {

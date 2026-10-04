@@ -809,6 +809,78 @@ fn about_ranks_files_by_the_words_of_a_description() {
 }
 
 #[test]
+fn about_scores_prose_by_its_best_section_and_prints_it() {
+    let dir = TempDir::new().unwrap();
+    // A long reference page mentions every term somewhere, but in different
+    // sections; a short page has them all in one section.
+    let mut long = String::from("Reference\n=========\n\n");
+    for (i, word) in ["cache", "timeout", "eviction"].iter().enumerate() {
+        long.push_str(&format!("Part {i}\n------\n\n"));
+        for _ in 0..40 {
+            long.push_str(&format!(
+                "The {word} setting is described here at length.\n"
+            ));
+        }
+        long.push('\n');
+    }
+    fs::write(dir.path().join("reference.txt"), long).unwrap();
+    fs::write(
+        dir.path().join("caching.txt"),
+        "Caching\n=======\n\nIntro text.\n\nEviction\n--------\n\nThe cache evicts an entry after its timeout; eviction is lazy.\n",
+    )
+    .unwrap();
+    let out =
+        stdout(ogrep(dir.path()).args(["--no-index", "-n", "--about", "cache timeout eviction"]));
+    let mut lines = out.lines();
+    // The short page's section wins, and is printed as the scope of its lines.
+    assert_eq!(lines.next(), Some("caching.txt=6=Eviction"), "{out}");
+    // The heading holds a term too, so it is also a shown match.
+    assert_eq!(lines.next(), Some("caching.txt:6:Eviction"), "{out}");
+    assert!(
+        lines
+            .next()
+            .unwrap()
+            .starts_with("caching.txt:9:The cache evicts"),
+        "{out}"
+    );
+    // JSON names the section and the headings above it.
+    let json = stdout(ogrep(dir.path()).args([
+        "--no-index",
+        "--json",
+        "--about",
+        "cache timeout eviction",
+    ]));
+    let scope = json
+        .lines()
+        .map(|l| serde_json::from_str::<serde_json::Value>(l).unwrap())
+        .find(|v| v["type"] == "scope")
+        .unwrap();
+    assert_eq!(scope["data"]["line_number"], 6);
+    let names: Vec<&str> = scope["data"]["chain"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|c| c["name"].as_str().unwrap())
+        .collect();
+    assert_eq!(names, ["Caching", "Eviction"]);
+    // Code files are scored and printed as before: no scope.
+    fs::write(
+        dir.path().join("cache.py"),
+        "def cache_timeout():\n    return 1\n",
+    )
+    .unwrap();
+    let code = stdout(ogrep(dir.path()).args([
+        "--no-index",
+        "--json",
+        "--about",
+        "cache_timeout",
+        "-g",
+        "*.py",
+    ]));
+    assert!(!code.contains("\"type\":\"scope\""), "{code}");
+}
+
+#[test]
 fn about_reports_whether_its_first_file_stands_out() {
     let dir = TempDir::new().unwrap();
     fs::write(

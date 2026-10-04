@@ -31,6 +31,7 @@
 use std::collections::HashMap;
 
 use anyhow::Result;
+use rayon::prelude::*;
 
 use crate::output::{Captured, ContextLine, Match, OutputWriter, PathDisplay};
 
@@ -168,6 +169,8 @@ pub struct Ranked {
     pub path: String,
     pub score: f64,
     pub features: Features,
+    /// `--about` on a prose file: the heading section that gave its score.
+    pub section: Option<crate::cards::Section>,
 }
 
 /// Group captured results by file, in capture order.
@@ -460,6 +463,7 @@ fn score_files(files: &[(String, FileHits)], patterns: &PatternSet, w: &Weights)
                 path: rel.clone(),
                 score: score * prior,
                 features,
+                section: None,
             }
         })
         .collect();
@@ -584,12 +588,20 @@ fn emit_ranked(
         writer.set_path_display(hits.display.clone());
         let first = confidence.filter(|_| rank == 0);
         writer.write_rank_record(&r.path, rank + 1, r.score, &r.features, opts.explain, first)?;
-        let shown = if opts.about {
-            select_about_lines(&hits.matches, patterns, opts.per_file)
-        } else {
-            select_lines(&hits.matches, hits.defs.as_deref(), opts.per_file)
-        };
-        crate::post::emit_file(&r.path, hits, &shown, &[], search, writer)?;
+        let shown = shown_lines(hits, r, patterns, opts);
+        // A prose file's best section is printed as the scope of its lines.
+        let scopes: Vec<Option<crate::post::Scope>> =
+            match r.section.as_ref().and_then(crate::post::Scope::section) {
+                Some(scope) => {
+                    let mut scopes = vec![None; hits.matches.len()];
+                    for &i in &shown {
+                        scopes[i] = Some(scope.clone());
+                    }
+                    scopes
+                }
+                None => Vec::new(),
+            };
+        crate::post::emit_file(&r.path, hits, &shown, &scopes, search, writer)?;
     }
     Ok(!ranked.is_empty())
 }
@@ -812,6 +824,17 @@ fn identifier_parts(token: &str) -> Vec<String> {
     parts.into_iter().map(|p| p.to_ascii_lowercase()).collect()
 }
 
+/// `--about` on prose: a section's length is normalised more strongly than
+/// a file's (sections vary from a line to pages), a term in the headings
+/// enclosing a section counts as this many matching lines, and a prose
+/// file's score is its whole-file score times (best section / whole file) to
+/// this power. Chosen on django's documentation (commit subject -> the docs
+/// section it changed: 0.5 beat 0, 0.25, 0.75 and 1) and checked on held-out
+/// sets (`scripts/eval/docs_eval.py`, `research_notes` round 9).
+const ABOUT_SECTION_B: f64 = 0.75;
+const ABOUT_HEADING: f64 = 3.0;
+const ABOUT_SECTION_WEIGHT: f64 = 0.5;
+
 /// Score files for `--about` with BM25 over the description's terms.
 ///
 /// A term's frequency in a file is the number of its matching lines that hold
@@ -819,6 +842,12 @@ fn identifier_parts(token: &str) -> Vec<String> {
 /// file's path. Document frequencies are exact: the search matched every
 /// file holding any term. File length is the size in bytes, against the mean
 /// size of the files scored. The total is multiplied by `--rank`'s prior.
+///
+/// A prose file with headings is also scored by its best section: the same
+/// sum over the section's own matching lines, plus [`ABOUT_HEADING`] for a
+/// term in its headings, normalised by the section's size against the mean
+/// section size of the prose files scored. The two scores are blended by
+/// [`ABOUT_SECTION_WEIGHT`]. Other files score as before.
 fn score_about(
     files: &[(String, FileHits)],
     terms: &[String],
@@ -826,6 +855,13 @@ fn score_about(
     w: &Weights,
 ) -> Vec<Ranked> {
     let lower: Vec<String> = terms.iter().map(|t| t.to_ascii_lowercase()).collect();
+    // Per match, the terms its line holds.
+    let held = |m: &Match| -> Vec<usize> {
+        let line = m.content.to_ascii_lowercase();
+        (0..lower.len())
+            .filter(|&t| line.contains(lower[t].as_str()))
+            .collect()
+    };
     // Per file, per term: matching lines holding it.
     let tallies: Vec<Vec<usize>> = files
         .iter()
@@ -854,6 +890,35 @@ fn score_about(
         .map(|(_, h)| h.size.unwrap_or(0).max(1) as f64)
         .collect();
     let avg = sizes.iter().sum::<f64>() / sizes.len().max(1) as f64;
+    let bm25 = |tf: &[f64], norm: f64| -> f64 {
+        tf.iter()
+            .zip(&idf)
+            .filter(|(f, _)| **f > 0.0)
+            .map(|(&f, &idf)| idf * f * (ABOUT_K1 + 1.0) / (f + norm))
+            .sum()
+    };
+    // Prose files' sections, read only for files that are prose.
+    let sections: Vec<Vec<crate::cards::Section>> = files
+        .par_iter()
+        .map(|(rel, h)| {
+            if !crate::cards::is_prose(rel) {
+                return Vec::new();
+            }
+            h.disk
+                .as_deref()
+                .and_then(crate::cards::read)
+                .map(|text| crate::cards::sections(rel, &text))
+                .unwrap_or_default()
+        })
+        .collect();
+    let (count, total) = sections
+        .iter()
+        .flatten()
+        .fold((0usize, 0usize), |(c, b), s| (c + 1, b + s.bytes));
+    let avg_section = (total.max(1) as f64) / (count.max(1) as f64);
+    // Prose files' (whole-file score, blended score), to keep prose at its
+    // whole-file level against other files.
+    let mut blended: Vec<(f64, f64)> = Vec::new();
     let mut ranked: Vec<Ranked> = files
         .iter()
         .zip(&tallies)
@@ -861,25 +926,70 @@ fn score_about(
         .enumerate()
         .map(|(file, (((rel, hits), tf), &size))| {
             let path = rel.to_ascii_lowercase();
-            let norm = ABOUT_K1 * (1.0 - ABOUT_B + ABOUT_B * size / avg);
-            let mut score = 0.0;
-            let mut in_path = 0usize;
-            let mut found = 0usize;
-            for (t, term) in lower.iter().enumerate() {
-                let boost = if path.contains(term.as_str()) {
-                    in_path += 1;
-                    ABOUT_PATH
+            let boost: Vec<f64> = lower
+                .iter()
+                .map(|term| {
+                    if path.contains(term.as_str()) {
+                        ABOUT_PATH
+                    } else {
+                        0.0
+                    }
+                })
+                .collect();
+            let in_path = boost.iter().filter(|&&b| b > 0.0).count();
+            let found = tf.iter().filter(|&&f| f > 0).count();
+            let whole = {
+                let norm = ABOUT_K1 * (1.0 - ABOUT_B + ABOUT_B * size / avg);
+                let f: Vec<f64> = tf.iter().zip(&boost).map(|(&t, &b)| t as f64 + b).collect();
+                bm25(&f, norm)
+            };
+            let (score, section) = if sections[file].is_empty() {
+                (whole, None)
+            } else {
+                let mut best: Option<(f64, &crate::cards::Section)> = None;
+                // The matches in line order, so a section's matches are one run.
+                let mut order: Vec<usize> = (0..hits.matches.len()).collect();
+                order.sort_by_key(|&i| hits.matches[i].line_number);
+                let lines: Vec<usize> =
+                    order.iter().map(|&i| hits.matches[i].line_number).collect();
+                let terms_of: Vec<Vec<usize>> = hits.matches.iter().map(held).collect();
+                for sec in &sections[file] {
+                    let mut f = boost.clone();
+                    let from = lines.partition_point(|&l| l < sec.line);
+                    let to = lines.partition_point(|&l| l <= sec.end).max(from);
+                    for &i in &order[from..to] {
+                        for &t in &terms_of[i] {
+                            f[t] += 1.0;
+                        }
+                    }
+                    let titles: Vec<String> = sec
+                        .chain
+                        .iter()
+                        .map(|(_, _, title)| title.to_ascii_lowercase())
+                        .collect();
+                    for (t, term) in lower.iter().enumerate() {
+                        if titles.iter().any(|title| title.contains(term.as_str())) {
+                            f[t] += ABOUT_HEADING;
+                        }
+                    }
+                    let norm = ABOUT_K1
+                        * (1.0 - ABOUT_SECTION_B
+                            + ABOUT_SECTION_B * sec.bytes.max(1) as f64 / avg_section);
+                    let score = bm25(&f, norm);
+                    // The earliest of equal sections wins.
+                    if best.is_none_or(|(b, _)| round(score) > round(b)) {
+                        best = Some((score, sec));
+                    }
+                }
+                let (best, sec) = best.expect("a prose file with sections has one");
+                let score = if whole > 0.0 {
+                    whole * (best / whole).powf(ABOUT_SECTION_WEIGHT)
                 } else {
-                    0.0
+                    best
                 };
-                let f = tf[t] as f64 + boost;
-                if tf[t] > 0 {
-                    found += 1;
-                }
-                if f > 0.0 {
-                    score += idf[t] * f * (ABOUT_K1 + 1.0) / (f + norm);
-                }
-            }
+                blended.push((whole, score));
+                (score, Some(sec.clone()))
+            };
             let prior = prior(rel, w);
             Ranked {
                 file,
@@ -892,15 +1002,52 @@ fn score_about(
                     prior,
                     patterns: found,
                 },
+                section,
             }
         })
         .collect();
+    // Sections score lower than whole files, since a section holds fewer of
+    // the terms. Scale prose files so their geometric mean is the whole-file
+    // one: sections decide the order among prose files, not how prose
+    // compares with code or other files.
+    let logs: Vec<f64> = blended
+        .iter()
+        .filter(|(whole, score)| *whole > 0.0 && *score > 0.0)
+        .map(|(whole, score)| whole.ln() - score.ln())
+        .collect();
+    if !logs.is_empty() {
+        let scale = (logs.iter().sum::<f64>() / logs.len() as f64).exp();
+        for r in ranked.iter_mut().filter(|r| r.section.is_some()) {
+            r.score *= scale;
+        }
+    }
     ranked.sort_by(|a, b| {
         round(b.score)
             .cmp(&round(a.score))
             .then_with(|| a.path.cmp(&b.path))
     });
     ranked
+}
+
+/// The lines to show for one ranked file. For a prose file `--about` scored
+/// by a section, they come from that section when it has matching lines.
+fn shown_lines(hits: &FileHits, r: &Ranked, patterns: &[String], opts: &RankOptions) -> Vec<usize> {
+    if !opts.about {
+        return select_lines(&hits.matches, hits.defs.as_deref(), opts.per_file);
+    }
+    if let Some(sec) = &r.section {
+        let inside: Vec<usize> = (0..hits.matches.len())
+            .filter(|&i| (sec.line..=sec.end).contains(&hits.matches[i].line_number))
+            .collect();
+        if !inside.is_empty() {
+            let subset: Vec<Match> = inside.iter().map(|&i| hits.matches[i].clone()).collect();
+            return select_about_lines(&subset, patterns, opts.per_file)
+                .into_iter()
+                .map(|k| inside[k])
+                .collect();
+        }
+    }
+    select_about_lines(&hits.matches, patterns, opts.per_file)
 }
 
 /// Pick the lines to show for one `--about` file: those holding the most
@@ -955,11 +1102,7 @@ fn emit_cards(
     let mut printed = false;
     for (rank, r) in ranked.iter().enumerate() {
         let hits = &files[r.file].1;
-        let shown = if opts.about {
-            select_about_lines(&hits.matches, patterns, opts.per_file)
-        } else {
-            select_lines(&hits.matches, hits.defs.as_deref(), opts.per_file)
-        };
+        let shown = shown_lines(hits, r, patterns, opts);
         let matches: Vec<(usize, String)> = shown
             .iter()
             .map(|&i| (hits.matches[i].line_number, hits.matches[i].content.clone()))
@@ -1066,6 +1209,7 @@ mod tests {
                     path: format!("f{file}"),
                     score,
                     features: Features::default(),
+                    section: None,
                 })
                 .collect()
         };

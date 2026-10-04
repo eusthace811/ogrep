@@ -454,12 +454,47 @@ subject's most specific identifier:
 
 | Repository | `--rank` (identifier) | `--about` (subject) |
 |------------|-----------------------|---------------------|
-| django (300 commits) | 57.7% | 67.7% |
-| rust (300 commits) | 58.3% | 67.0% |
+| django (300 commits) | 57.7% | 68.0% |
+| rust (300 commits) | 58.3% | 66.7% |
 | llama.cpp (300 commits, not used for tuning) | 49.7% | 71.7% |
 
 A description's common words make it a broader search than a name: p50 127 ms
 on django (7K files), 169 ms on llama.cpp (3.6K) and 537 ms on rust (63K).
+
+**Prose is scored by its best section.** A long page (a 4,000-line reference,
+a README covering everything) mentions most words somewhere, so whole-file
+scores favour it over the page that covers the task in one place. For
+Markdown, reStructuredText, AsciiDoc and `.txt` files with headings, `--about`
+also scores each heading-delimited section on its own: the same BM25 over the
+section's matching lines, a term in the headings above it counting three
+lines, and stronger length normalisation (b 0.75). A prose file's score is
+√(whole-file score × best section score), and prose files are then scaled
+together so that their geometric mean is unchanged. Sections reorder prose
+files among themselves, but they don't move prose as a whole against code.
+Code and other files score exactly as before, and their order among themselves
+never changes.
+
+The best section is printed as the scope of the file's lines, as with
+`--scope`: a `path=LINE=Heading` row in text output, and a `scope` record whose
+`chain` lists the enclosing headings (`"kind": "section"`) with `--json`. The
+lines shown come from that section, and `--cards` marks matches in it.
+
+On documentation tasks (a commit's subject → the docs file and section it
+changed; 300 commits each, built by `scripts/eval/docs_eval.py`), comparing the
+right file first and the right section first:
+
+| Docs set | File, before → after | Section, before → after |
+|----------|----------------------|-------------------------|
+| django `docs/` (reST `.txt`; tuning set) | 52.3% → 61.7% | 18.0% → 44.0% |
+| cpython `Doc/` (`.rst`, held out) | 69.0% → 76.0% | 28.7% → 49.3% |
+| llama.cpp `*.md` (Markdown, held out) | 60.7% → 70.3% | 25.0% → 33.0% |
+
+All six gains are significant (paired McNemar p ≤ 0.015). On the code
+localization tasks above, the order of code files is identical on all 900
+queries. The first-file rate moves by at most one query per repository (django
++1, rust −1, llama.cpp 0), because prose files interleave differently. Reading
+the matched prose files costs about 10 ms: p50 116 → 126 ms on django and
+22 → 28 ms on its `docs/`.
 
 `--about` also says how far to trust its first file. When the first two files
 score within 5% of each other ((s1 − s2) / s1 < 0.05) it is **unsure**: text

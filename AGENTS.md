@@ -135,6 +135,10 @@ ogrep --stack-trace crash.txt .             # a stack trace's frames, in this re
   right less than half the time, but a right file is in the top five 77-92% of
   the time: read the top five, or add a name from the code to the text. A
   confident first file is right about four times in five.
+- **In documentation, `--about` names the section.** Markdown,
+  reStructuredText and AsciiDoc files are scored by their best heading section,
+  printed as a `path=LINE=Heading` row (a `scope` record with `--json`) above
+  the lines it shows. Read that section rather than the whole page.
 - **Use `--cards` to choose files and `--map` to see the code around a name,
   within a token budget.** Then open the file itself before editing.
 - **Some flags need an extra index.** `--near`, `--map` and `--callees` need

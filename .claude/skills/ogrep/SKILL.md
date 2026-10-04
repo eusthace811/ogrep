@@ -168,6 +168,15 @@ then right less than half the time, but a right one is usually in the top
 five: read those, or rerun with a name from the code added to the text. When it
 is silent, the first file is right about four times in five.
 
+In documentation (Markdown, reStructuredText, AsciiDoc), `--about` scores each
+heading section on its own and prints the best one as a `path=LINE=Heading`
+row (a `scope` record with `--json`) above the file's lines. To find where
+something is documented, search the docs directory and read that section:
+
+```bash
+ogrep -n --about "how to configure the cache timeout" -g 'docs/**'
+```
+
 ### Reading many files at once: `--cards`
 
 Instead of matching lines, `--cards` prints each ranked file as a card: its

@@ -138,6 +138,7 @@ Put `--` before a pattern that starts with `-`: `ogrep -- '-v' .`
 |---|---|
 | the files that define or mainly use a name | `ogrep --rank -F bulk_update .` |
 | the files a bug report or task is about | `ogrep --about "out-of-range year in admin date hierarchy" .` |
+| where something is documented, down to the section | `ogrep -n --about "configure the cache timeout" -g 'docs/**'` |
 | an outline of each ranked file, within ~1000 tokens | `ogrep --about "pool exhausted" --cards=1000 .` |
 | only the definition / only the uses | `ogrep --kind def -F bulk_update .` / `--kind ref` |
 | each match under its enclosing function | `ogrep --scope -F bulk_update .` |

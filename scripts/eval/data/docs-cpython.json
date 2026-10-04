@@ -1,0 +1,3697 @@
+[
+ {
+  "commit": "fe7717c6116402a05854e0d6ccb1016990f378b0",
+  "subject": "gh-158080: Py_InitializeFromConfig() no longer exits Python (#158085)",
+  "query": "Py_InitializeFromConfig() no longer exits Python (#158085)",
+  "answers": [
+   {
+    "file": "Doc/c-api/init_config.rst",
+    "line": 119,
+    "section": 95
+   },
+   {
+    "file": "Doc/c-api/interp-lifecycle.rst",
+    "line": 131,
+    "section": 77
+   }
+  ]
+ },
+ {
+  "commit": "bee30317b459451250286fe6391efafdbc2585de",
+  "subject": "Docs/howto/remote_debugging: Give non-sudo suggestions first (#139139)",
+  "query": "Docs/howto/remote_debugging: Give non-sudo suggestions first (#139139)",
+  "answers": [
+   {
+    "file": "Doc/howto/remote_debugging.rst",
+    "line": 9,
+    "section": 3
+   }
+  ]
+ },
+ {
+  "commit": "0b72907cb5b781203938058da95692e12ed3eb73",
+  "subject": "gh-154757: No longer deprecate PyModule_GetFilename() (#158076)",
+  "query": "No longer deprecate PyModule_GetFilename() (#158076)",
+  "answers": [
+   {
+    "file": "Doc/c-api/module.rst",
+    "line": 131,
+    "section": 5
+   }
+  ]
+ },
+ {
+  "commit": "7242fea93c1fc1366350a377ad2e50ff071acd4b",
+  "subject": "gh-158001: Remove global configuration variables from C API (#158020)",
+  "query": "Remove global configuration variables from C API (#158020)",
+  "answers": [
+   {
+    "file": "Doc/deprecations/c-api-pending-removal-in-3.16.rst",
+    "line": 20,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "9b3fc89b2a62167ac7a8de8e58cd739ff13a3626",
+  "subject": "gh-157847: Rewrite `turtle` module docs introduction (#157854)",
+  "query": "Rewrite `turtle` module docs introduction (#157854)",
+  "answers": [
+   {
+    "file": "Doc/library/turtle.rst",
+    "line": 35,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "82936545cc82c6ae98c5a012a19726a71aeb82fd",
+  "subject": "gh-154757: Remove deprecated PyEval_InitThreads() function (#158037)",
+  "query": "Remove deprecated PyEval_InitThreads() function (#158037)",
+  "answers": [
+   {
+    "file": "Doc/c-api/interp-lifecycle.rst",
+    "line": 74,
+    "section": 13
+   }
+  ]
+ },
+ {
+  "commit": "4bc392c13462096213777c6b2bdc470028c41536",
+  "subject": "gh-69919: Catch all compile errors in the code module, pyrepl and IDLE (GH-157585)",
+  "query": "Catch all compile errors in the code module, pyrepl and IDLE (GH-157585)",
+  "answers": [
+   {
+    "file": "Doc/builtins/functions.rst",
+    "line": 387,
+    "section": 4
+   },
+   {
+    "file": "Doc/library/code.rst",
+    "line": 95,
+    "section": 84
+   }
+  ]
+ },
+ {
+  "commit": "a9d42dceee5b8d2afba3223d633f5d9b6dad01f3",
+  "subject": "gh-124697: Represent inlined comprehensions as subscopes in the symbol table (#156819)",
+  "query": "Represent inlined comprehensions as subscopes in the symbol table (#156819)",
+  "answers": [
+   {
+    "file": "Doc/library/symtable.rst",
+    "line": 60,
+    "section": 38
+   }
+  ]
+ },
+ {
+  "commit": "c36aa097768eb78cce371d975d173bd04060db56",
+  "subject": "gh-140971: Document pathlib.PurePath(\"\") meaning and bool value (#157293)",
+  "query": "Document pathlib.PurePath(\"\") meaning and bool value (#157293)",
+  "answers": [
+   {
+    "file": "Doc/library/pathlib.rst",
+    "line": 134,
+    "section": 109
+   }
+  ]
+ },
+ {
+  "commit": "a3e389d46d9ce9e60d2eb6fdf2f903b5f90b0f4e",
+  "subject": "gh-92347: Document pitfalls of `ctypes.pointer` iteration (GH-157801)",
+  "query": "Document pitfalls of `ctypes.pointer` iteration (GH-157801)",
+  "answers": [
+   {
+    "file": "Doc/library/ctypes.rst",
+    "line": 1002,
+    "section": 940
+   }
+  ]
+ },
+ {
+  "commit": "34cff005e6c3a07fa90a882c12391ffc070180f2",
+  "subject": "Fix return type of `IPv4Address.ipv6_mapped` in `ipaddress` docs (#157887)",
+  "query": "Fix return type of `IPv4Address.ipv6_mapped` in `ipaddress` docs (#157887)",
+  "answers": [
+   {
+    "file": "Doc/library/ipaddress.rst",
+    "line": 264,
+    "section": 86
+   }
+  ]
+ },
+ {
+  "commit": "c4447105ab82f55de45d9a675873e815a8b81357",
+  "subject": "gh-137528: Document the co_linetable code object attribute (GH-151425)",
+  "query": "Document the co_linetable code object attribute (GH-151425)",
+  "answers": [
+   {
+    "file": "Doc/reference/datamodel.rst",
+    "line": 1560,
+    "section": 1497
+   }
+  ]
+ },
+ {
+  "commit": "b426caa04b1e165d4054125e67ee6c74141910a4",
+  "subject": "gh-157571: Move json sort note from dumps to dump (#157577)",
+  "query": "Move json sort note from dumps to dump (#157577)",
+  "answers": [
+   {
+    "file": "Doc/library/json.rst",
+    "line": 239,
+    "section": 147
+   }
+  ]
+ },
+ {
+  "commit": "5afcd82089b6b1a6cf62b41a428cbe818b867364",
+  "subject": "gh-154942: Document the kde() data cache logic. (gh-157725)",
+  "query": "Document the kde() data cache logic. (gh-157725)",
+  "answers": [
+   {
+    "file": "Doc/library/statistics.rst",
+    "line": 309,
+    "section": 112
+   }
+  ]
+ },
+ {
+  "commit": "539e85abc4931d2173e1311b6cf2c52ca94b0c45",
+  "subject": "gh-157786: Document that asyncio does not support generator-based coroutines (#157787)",
+  "query": "Document that asyncio does not support generator-based coroutines (#157787)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-task.rst",
+    "line": 178,
+    "section": 136
+   }
+  ]
+ },
+ {
+  "commit": "aa5407091f60a68187f3b82a4d954b03904af4d4",
+  "subject": "Doc: Clarify UUID bytes attributes (#149972)",
+  "query": "Doc: Clarify UUID bytes attributes (#149972)",
+  "answers": [
+   {
+    "file": "Doc/library/uuid.rst",
+    "line": 47,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "da72cc70ca00f9677d219631ec397d5f47c926df",
+  "subject": "gh-157487: Add structured version info for ctypes (GH-157488)",
+  "query": "Add structured version info for ctypes (GH-157488)",
+  "answers": [
+   {
+    "file": "Doc/library/ctypes.rst",
+    "line": 3400,
+    "section": 3397
+   }
+  ]
+ },
+ {
+  "commit": "4d3b405df82ab7b92348c242e026b4093ac211a5",
+  "subject": "gh-156939: Document that PyUnicodeObject ends with null character (#157708)",
+  "query": "Document that PyUnicodeObject ends with null character (#157708)",
+  "answers": [
+   {
+    "file": "Doc/c-api/unicode.rst",
+    "line": 21,
+    "section": 8
+   }
+  ]
+ },
+ {
+  "commit": "e39b7f2136b930ace0916145844e8eedcf3c455f",
+  "subject": "gh-136722: Document the `turtle.TurtleGraphicsError` exception (#157792)",
+  "query": "Document the `turtle.TurtleGraphicsError` exception (#157792)",
+  "answers": [
+   {
+    "file": "Doc/library/turtle.rst",
+    "line": 2559,
+    "section": 2556
+   }
+  ]
+ },
+ {
+  "commit": "0e1ae61f7115db4c91dccc5fd9d7b8c801ef0b59",
+  "subject": "gh-156680 - Update IPv4Network and IPv6Network docstring. (#157280)",
+  "query": "gh-156680 - Update IPv4Network and IPv6Network docstring. (#157280)",
+  "answers": [
+   {
+    "file": "Doc/library/ipaddress.rst",
+    "line": 522,
+    "section": 487
+   }
+  ]
+ },
+ {
+  "commit": "e66424a4e6ffb7125cc093cb6c267df14c06f1ef",
+  "subject": "gh-115119: Fix licence page after removing bundled copy of libmpdec (#157686)",
+  "query": "Fix licence page after removing bundled copy of libmpdec (#157686)",
+  "answers": [
+   {
+    "file": "Doc/license.rst",
+    "line": 963,
+    "section": 959
+   }
+  ]
+ },
+ {
+  "commit": "854295809ad5a42c9461f34d47b1252a3b4a2027",
+  "subject": "gh-157710: Add _PyUnicodeWriter_CanWrite() function (#157712)",
+  "query": "Add _PyUnicodeWriter_CanWrite() function (#157712)",
+  "answers": [
+   {
+    "file": "Doc/c-api/unicode.rst",
+    "line": 1825,
+    "section": 1810
+   }
+  ]
+ },
+ {
+  "commit": "a9e7895420381cddf36b4fb6ee7f575a6a8b0d73",
+  "subject": "gh-151950: Fix Sphinx reference warnings in `Doc/library/importlib.rst` (GH-157610)",
+  "query": "Fix Sphinx reference warnings in `Doc/library/importlib.rst` (GH-157610)",
+  "answers": [
+   {
+    "file": "Doc/library/importlib.rst",
+    "line": 358,
+    "section": 215
+   }
+  ]
+ },
+ {
+  "commit": "8df6f077115484361b40952751fb7d703843c192",
+  "subject": "gh-157242: Fix typo in _PyBytes_Resize() (#157619)",
+  "query": "Fix typo in _PyBytes_Resize() (#157619)",
+  "answers": [
+   {
+    "file": "Doc/c-api/bytes.rst",
+    "line": 252,
+    "section": 5
+   }
+  ]
+ },
+ {
+  "commit": "37452c7db46b89a61f1d8322751f2bf0f5b05888",
+  "subject": "gh-144133: Add warning about untrusted input to the `idna` codec (GH-155475)",
+  "query": "Add warning about untrusted input to the `idna` codec (GH-155475)",
+  "answers": [
+   {
+    "file": "Doc/library/codecs.rst",
+    "line": 1401,
+    "section": 1381
+   }
+  ]
+ },
+ {
+  "commit": "2fcb0e27d959345151750b756af79054c3230531",
+  "subject": "gh-156939: Document that PyBytesObject ends with a NUL byte (#157236)",
+  "query": "Document that PyBytesObject ends with a NUL byte (#157236)",
+  "answers": [
+   {
+    "file": "Doc/c-api/bytearray.rst",
+    "line": 17,
+    "section": 5
+   },
+   {
+    "file": "Doc/c-api/bytes.rst",
+    "line": 13,
+    "section": 5
+   }
+  ]
+ },
+ {
+  "commit": "f815f740381dcf797d8aa67b9a0eabf4869bc790",
+  "subject": "gh-116750: Document 3.14 changes around sys.monitoring.clear_tool_id (#156706)",
+  "query": "Document 3.14 changes around sys.monitoring.clear_tool_id (#156706)",
+  "answers": [
+   {
+    "file": "Doc/library/sys.monitoring.rst",
+    "line": 65,
+    "section": 44
+   }
+  ]
+ },
+ {
+  "commit": "da5a15571c29b73e072da8bb5366a9ecda802e97",
+  "subject": "gh-44376: Write missing namespace declarations in xml.dom.minidom (GH-156674)",
+  "query": "Write missing namespace declarations in xml.dom.minidom (GH-156674)",
+  "answers": [
+   {
+    "file": "Doc/library/xml.dom.minidom.rst",
+    "line": 158,
+    "section": 105
+   }
+  ]
+ },
+ {
+  "commit": "ad447fa0a3f9dce741bb8eaa401b8d5ddd88f868",
+  "subject": "gh-156665: Validate namespaces in xml.dom.minidom (GH-156666)",
+  "query": "Validate namespaces in xml.dom.minidom (GH-156666)",
+  "answers": [
+   {
+    "file": "Doc/library/xml.dom.minidom.rst",
+    "line": 297,
+    "section": 229
+   },
+   {
+    "file": "Doc/library/xml.dom.rst",
+    "line": 692,
+    "section": 618
+   }
+  ]
+ },
+ {
+  "commit": "33083601f50d50e71d0f96e0fa7cc0c41d15e218",
+  "subject": "gh-81623: Do not add whitespace to significant content when pretty-printing (GH-156660)",
+  "query": "Do not add whitespace to significant content when pretty-printing (GH-156660)",
+  "answers": [
+   {
+    "file": "Doc/library/xml.dom.minidom.rst",
+    "line": 198,
+    "section": 105
+   },
+   {
+    "file": "Doc/library/xml.etree.elementtree.rst",
+    "line": 634,
+    "section": 529
+   }
+  ]
+ },
+ {
+  "commit": "a2f4f1913b5bf6d07295d21f9ab78d366d44fce0",
+  "subject": "gh-63102: Support custom targets in the pull parser (GH-156888)",
+  "query": "Support custom targets in the pull parser (GH-156888)",
+  "answers": [
+   {
+    "file": "Doc/library/xml.etree.elementtree.rst",
+    "line": 651,
+    "section": 529
+   }
+  ]
+ },
+ {
+  "commit": "e7a393797a0df47a001673f4510c51aa272bc002",
+  "subject": "gh-93618: Document the memory usage of the incremental parsers (GH-156763)",
+  "query": "Document the memory usage of the incremental parsers (GH-156763)",
+  "answers": [
+   {
+    "file": "Doc/library/xml.etree.elementtree.rst",
+    "line": 165,
+    "section": 128
+   }
+  ]
+ },
+ {
+  "commit": "fde62961044b9419b8a7fb9ddedff6702e247b90",
+  "subject": "gh-59551: Rename Doc/library/dialog.rst to tkinter.dialogs.rst (GH-151656)",
+  "query": "Rename Doc/library/dialog.rst to tkinter.dialogs.rst (GH-151656)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.dialogs.rst",
+    "line": 4,
+    "section": 4
+   }
+  ]
+ },
+ {
+  "commit": "64740410909891331eb4e4cbdb14837ff4f8ec64",
+  "subject": "gh-135623: Document that json sorts the keys before coercing them to strings (GH-156987)",
+  "query": "Document that json sorts the keys before coercing them to strings (GH-156987)",
+  "answers": [
+   {
+    "file": "Doc/library/json.rst",
+    "line": 245,
+    "section": 147
+   }
+  ]
+ },
+ {
+  "commit": "121e27c484539faaf24e6b264846217a8f4b9738",
+  "subject": "gh-157242: Add _PyBytes_IsMutable() assertion (#157371)",
+  "query": "Add _PyBytes_IsMutable() assertion (#157371)",
+  "answers": [
+   {
+    "file": "Doc/c-api/bytes.rst",
+    "line": 250,
+    "section": 5
+   }
+  ]
+ },
+ {
+  "commit": "bab97c599f7c66b6b7b718a1c03a4bf4520b504c",
+  "subject": "gh-157242: Allow negative grow in PyBytesWriter_Grow() (#157375)",
+  "query": "Allow negative grow in PyBytesWriter_Grow() (#157375)",
+  "answers": [
+   {
+    "file": "Doc/c-api/bytes.rst",
+    "line": 445,
+    "section": 417
+   }
+  ]
+ },
+ {
+  "commit": "e5d4fa281c573b764b827f3defae260787024e43",
+  "subject": "gh-155526: Don't check errno in abs(complex) (#155527)",
+  "query": "Don't check errno in abs(complex) (#155527)",
+  "answers": [
+   {
+    "file": "Doc/c-api/complex.rst",
+    "line": 202,
+    "section": 123
+   }
+  ]
+ },
+ {
+  "commit": "d85fa1af6a1e7889bcada7246144e4220428c44a",
+  "subject": "gh-115426: Fix cross-references to `socket.socket.close()` (#157295)",
+  "query": "Fix cross-references to `socket.socket.close()` (#157295)",
+  "answers": [
+   {
+    "file": "Doc/library/socket.rst",
+    "line": 1500,
+    "section": 1478
+   }
+  ]
+ },
+ {
+  "commit": "2360bda599981745dbefb17162a7237372bde8be",
+  "subject": "gh-124205: Align descriptions of classes in 'Warning Categories' (#157255)",
+  "query": "Align descriptions of classes in 'Warning Categories' (#157255)",
+  "answers": [
+   {
+    "file": "Doc/library/warnings.rst",
+    "line": 71,
+    "section": 50
+   }
+  ]
+ },
+ {
+  "commit": "8f847875d60c81841e18a20510257a6e1b45b146",
+  "subject": "Add documentation on PyManager proxy setting overrides (GH-156768)",
+  "query": "Add documentation on PyManager proxy setting overrides (GH-156768)",
+  "answers": [
+   {
+    "file": "Doc/using/windows.rst",
+    "line": 951,
+    "section": 946
+   }
+  ]
+ },
+ {
+  "commit": "f64ebfbc2bf7de7905d5b7fdafb9ba1ab1c251bb",
+  "subject": "gh-142197: Doc: Add missing import statement in importlib.metadata overview (#142208)",
+  "query": "Doc: Add missing import statement in importlib.metadata overview (#142208)",
+  "answers": [
+   {
+    "file": "Doc/library/importlib.metadata.rst",
+    "line": 93,
+    "section": 64
+   }
+  ]
+ },
+ {
+  "commit": "cac197aa9cff0e86fdeecd4407cf8b0129ba9849",
+  "subject": "Fix a broken reference link in the `colorsys` docs (#152028)",
+  "query": "Fix a broken reference link in the `colorsys` docs (#152028)",
+  "answers": [
+   {
+    "file": "Doc/library/colorsys.rst",
+    "line": 22,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "092c89667d9e3ae634419af4cce0ad98fdf69327",
+  "subject": "gh-157208: Fix the `ctypes.util.struct` documentation (GH-157209)",
+  "query": "Fix the `ctypes.util.struct` documentation (GH-157209)",
+  "answers": [
+   {
+    "file": "Doc/library/ctypes.rst",
+    "line": 711,
+    "section": 697
+   }
+  ]
+ },
+ {
+  "commit": "becf997d27d695a18c67d76c75972e5a0a90cc9c",
+  "subject": "gh-84291: Clarify Pool.imap documentation (GH-155030)",
+  "query": "Clarify Pool.imap documentation (GH-155030)",
+  "answers": [
+   {
+    "file": "Doc/library/multiprocessing.rst",
+    "line": 2541,
+    "section": 2417
+   }
+  ]
+ },
+ {
+  "commit": "4616116fc0349a76667856a0f09f8af678594fa1",
+  "subject": "gh-142349: Document `LazyImportType.resolve()` method (GH-156936)",
+  "query": "Document `LazyImportType.resolve()` method (GH-156936)",
+  "answers": [
+   {
+    "file": "Doc/library/types.rst",
+    "line": 359,
+    "section": 130
+   }
+  ]
+ },
+ {
+  "commit": "2723799c7f357b6ba38a5cbbe96885a0a5fedacf",
+  "subject": "gh-156837: Refer to yield expressions in generator function definitions (GH-156863)",
+  "query": "Refer to yield expressions in generator function definitions (GH-156863)",
+  "answers": [
+   {
+    "file": "Doc/reference/datamodel.rst",
+    "line": 801,
+    "section": 794
+   }
+  ]
+ },
+ {
+  "commit": "4de00a42661a1c280e06d2d5d71c4f69eda41562",
+  "subject": "gh-157170: Document the scope of global curses settings (GH-157207)",
+  "query": "Document the scope of global curses settings (GH-157207)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 329,
+    "section": 239
+   }
+  ]
+ },
+ {
+  "commit": "7f3d7d06efd0e7ffa1ac1d07a15a3ae8121a020c",
+  "subject": "gh-157135: Fix documentation errors in the `math.atan{2}pi` functions (#157136)",
+  "query": "Fix documentation errors in the `math.atan{2}pi` functions (#157136)",
+  "answers": [
+   {
+    "file": "Doc/library/math.rst",
+    "line": 93,
+    "section": 84
+   }
+  ]
+ },
+ {
+  "commit": "465b3b80f98e0b1b3c116cab6f00cb9f4311c3cf",
+  "subject": "gh-156109: Allow static, non-framework iOS builds (#156110)",
+  "query": "Allow static, non-framework iOS builds (#156110)",
+  "answers": [
+   {
+    "file": "Doc/using/configure.rst",
+    "line": 1345,
+    "section": 1331
+   },
+   {
+    "file": "Doc/using/ios.rst",
+    "line": 145,
+    "section": 142
+   }
+  ]
+ },
+ {
+  "commit": "adea841addefe2161afa817c90470f66904149ee",
+  "subject": "gh-152936: Make privileged functions available on Android (#152977)",
+  "query": "Make privileged functions available on Android (#152977)",
+  "answers": [
+   {
+    "file": "Doc/library/socket.rst",
+    "line": 1380,
+    "section": 971
+   }
+  ]
+ },
+ {
+  "commit": "7a918411a300ddeef06d7f984bd23de8f6438421",
+  "subject": "gh-127296: Document that argparse count action starts from a non-zero default (#156908)",
+  "query": "Document that argparse count action starts from a non-zero default (#156908)",
+  "answers": [
+   {
+    "file": "Doc/library/argparse.rst",
+    "line": 838,
+    "section": 758
+   }
+  ]
+ },
+ {
+  "commit": "bc977f450b328656e073b547f23aa201401023c7",
+  "subject": "gh-118150: difflib: expose autojunk flag from SequenceMatcher to public methods and functions (GH-153959)",
+  "query": "difflib: expose autojunk flag from SequenceMatcher to public methods and functions (GH-153959)",
+  "answers": [
+   {
+    "file": "Doc/library/difflib.rst",
+    "line": 131,
+    "section": 92
+   }
+  ]
+ },
+ {
+  "commit": "aaae15c35b5fba1246b8998e6586a76fc1541be7",
+  "subject": "gh-155907: Fix error handling in the marshal C API (GH-155909)",
+  "query": "Fix error handling in the marshal C API (GH-155909)",
+  "answers": [
+   {
+    "file": "Doc/c-api/marshal.rst",
+    "line": 19,
+    "section": 5
+   }
+  ]
+ },
+ {
+  "commit": "2632610ec19123f7fb85effd632775011f92ab35",
+  "subject": "gh-142349: Clarify that sys.lazy_modules may contain extra items (GH-155547)",
+  "query": "Clarify that sys.lazy_modules may contain extra items (GH-155547)",
+  "answers": [
+   {
+    "file": "Doc/library/sys.rst",
+    "line": 1491,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "1414d2ac6f8a57ce5e0c8d3ab1fdc7075fd2d1ea",
+  "subject": "gh-89735: Document requirements for the *headers* argument (GH-155640)",
+  "query": "Document requirements for the *headers* argument (GH-155640)",
+  "answers": [
+   {
+    "file": "Doc/library/urllib.request.rst",
+    "line": 1059,
+    "section": 1047
+   }
+  ]
+ },
+ {
+  "commit": "50ed1ec6ca07e14d2b501a14a059c8a5f91782b4",
+  "subject": "gh-128805: Clarify the deprecation notice of xml.etree.cElementTree (GH-156779)",
+  "query": "Clarify the deprecation notice of xml.etree.cElementTree (GH-156779)",
+  "answers": [
+   {
+    "file": "Doc/library/xml.etree.elementtree.rst",
+    "line": 18,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "1059e8072e24154bbcb9d4c881609821c117f6ab",
+  "subject": "gh-82406: Add 3.10.6 change notes for inspect.is*function (GH-94987)",
+  "query": "Add 3.10.6 change notes for inspect.is*function (GH-94987)",
+  "answers": [
+   {
+    "file": "Doc/library/inspect.rst",
+    "line": 490,
+    "section": 30
+   }
+  ]
+ },
+ {
+  "commit": "1d28836e43efba08ac71d91d135d721e1f4ada69",
+  "subject": "Reword `atexit` docs (#156086)",
+  "query": "Reword `atexit` docs (#156086)",
+  "answers": [
+   {
+    "file": "Doc/library/atexit.rst",
+    "line": 9,
+    "section": 1
+   },
+   {
+    "file": "Doc/library/weakref.rst",
+    "line": 293,
+    "section": 3
+   }
+  ]
+ },
+ {
+  "commit": "161054cbfe5a5fb566698c3514ad6bc2078b00d8",
+  "subject": "gh-156347: Fix wrong statements in the curses documentation (GH-156354)",
+  "query": "Fix wrong statements in the curses documentation (GH-156354)",
+  "answers": [
+   {
+    "file": "Doc/howto/curses.rst",
+    "line": 298,
+    "section": 259
+   },
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 2017,
+    "section": 2012
+   }
+  ]
+ },
+ {
+  "commit": "d16a691111503798820a4b3a60ffae7b76c4d85a",
+  "subject": "gh-156821: Fix inaccuracies in the xml.parsers.expat documentation (GH-156822)",
+  "query": "Fix inaccuracies in the xml.parsers.expat documentation (GH-156822)",
+  "answers": [
+   {
+    "file": "Doc/library/pyexpat.rst",
+    "line": 38,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "09ff4d443f0dc748bfa4d73c9bb6a22ae8a97993",
+  "subject": "gh-156765: Fix inaccuracies in the ElementTree documentation (GH-156766)",
+  "query": "Fix inaccuracies in the ElementTree documentation (GH-156766)",
+  "answers": [
+   {
+    "file": "Doc/library/xml.etree.elementtree.rst",
+    "line": 583,
+    "section": 529
+   }
+  ]
+ },
+ {
+  "commit": "c2658214dafcfc95ec7f3eb7cc39c5011b3b8a0f",
+  "subject": "gh-156839: Fix inaccuracies in the xml.dom.pulldom documentation (GH-156840)",
+  "query": "Fix inaccuracies in the xml.dom.pulldom documentation (GH-156840)",
+  "answers": [
+   {
+    "file": "Doc/library/xml.dom.pulldom.rst",
+    "line": 9,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "3c7e975001f0a96b63b33346fb1faab75d0035ee",
+  "subject": "gh-156414: Document tomllib's limits & \"extensions\" (GH-156415)",
+  "query": "Document tomllib's limits & \"extensions\" (GH-156415)",
+  "answers": [
+   {
+    "file": "Doc/library/tomllib.rst",
+    "line": 161,
+    "section": 161
+   }
+  ]
+ },
+ {
+  "commit": "76fefef9248c6e9578ac4125b3194b5fdab7902c",
+  "subject": "Fix typos in the `concurrent.interpreters` docs (#156485)",
+  "query": "Fix typos in the `concurrent.interpreters` docs (#156485)",
+  "answers": [
+   {
+    "file": "Doc/library/concurrent.interpreters.rst",
+    "line": 194,
+    "section": 172
+   }
+  ]
+ },
+ {
+  "commit": "532b9dbd678b6d8e51d4199db8bd7d6b157fdea4",
+  "subject": "gh-89499: Support the standalone document declaration in ElementTree (GH-156730)",
+  "query": "Support the standalone document declaration in ElementTree (GH-156730)",
+  "answers": [
+   {
+    "file": "Doc/library/xml.etree.elementtree.rst",
+    "line": 765,
+    "section": 529
+   }
+  ]
+ },
+ {
+  "commit": "d7f9c6400f49633221983d0c454cf27ecb0302ba",
+  "subject": "gh-156689: Fix out-of-bounds read in `PyAst_CheckMode()` for `mode='func_type'` (#156697)",
+  "query": "Fix out-of-bounds read in `PyAst_CheckMode()` for `mode='func_type'` (#156697)",
+  "answers": [
+   {
+    "file": "Doc/library/ast.rst",
+    "line": 2257,
+    "section": 2232
+   }
+  ]
+ },
+ {
+  "commit": "852381efeecdb5ddd9e77250d9467d0af0d0acea",
+  "subject": "gh-156614: Fix the parameter list grammar in the language reference (#156622)",
+  "query": "Fix the parameter list grammar in the language reference (#156622)",
+  "answers": [
+   {
+    "file": "Doc/reference/compound_stmts.rst",
+    "line": 1238,
+    "section": 1210
+   }
+  ]
+ },
+ {
+  "commit": "26d9b25580159abeb69b80ae6fbf511385eb6e99",
+  "subject": "gh-156662: Note that TaskGroup.create_task() raises RuntimeError (#156663)",
+  "query": "Note that TaskGroup.create_task() raises RuntimeError (#156663)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-task.rst",
+    "line": 362,
+    "section": 341
+   }
+  ]
+ },
+ {
+  "commit": "b3ddde433e69166ecdf40095349f69e08997e9cb",
+  "subject": "gh-156500: Reject non-positional parameters in `ctypes.util.wrap_dll_function` (GH-156501)",
+  "query": "Reject non-positional parameters in `ctypes.util.wrap_dll_function` (GH-156501)",
+  "answers": [
+   {
+    "file": "Doc/library/ctypes.rst",
+    "line": 718,
+    "section": 697
+   }
+  ]
+ },
+ {
+  "commit": "ae93e425ff408e91a6dc0cf93b0c6887cf0a8bde",
+  "subject": "gh-57952: Clarify that xml.dom documents DOM interfaces (GH-156647)",
+  "query": "Clarify that xml.dom documents DOM interfaces (GH-156647)",
+  "answers": [
+   {
+    "file": "Doc/library/xml.dom.rst",
+    "line": 148,
+    "section": 143
+   }
+  ]
+ },
+ {
+  "commit": "ee4bd4a54a4b10efe3792834ed6887be81075fad",
+  "subject": "gh-156517: Clarify that `site.getsitepackages()` doesn't check for existance (#156524)",
+  "query": "Clarify that `site.getsitepackages()` doesn't check for existance (#156524)",
+  "answers": [
+   {
+    "file": "Doc/library/site.rst",
+    "line": 456,
+    "section": 307
+   }
+  ]
+ },
+ {
+  "commit": "74b944afe32049191674c747e060d8d67a2a1b17",
+  "subject": "gh-156635: Fix the exceptions in the xml.dom documentation (GH-156636)",
+  "query": "Fix the exceptions in the xml.dom documentation (GH-156636)",
+  "answers": [
+   {
+    "file": "Doc/library/xml.dom.rst",
+    "line": 467,
+    "section": 237
+   }
+  ]
+ },
+ {
+  "commit": "922c86628fac765bcfe198acdeea2268ef1eb9b2",
+  "subject": "gh-151943: Document the CharacterData interface and other DOM members (GH-155632)",
+  "query": "Document the CharacterData interface and other DOM members (GH-155632)",
+  "answers": [
+   {
+    "file": "Doc/library/xml.dom.minidom.rst",
+    "line": 267,
+    "section": 229
+   },
+   {
+    "file": "Doc/library/xml.dom.rst",
+    "line": 90,
+    "section": 69
+   }
+  ]
+ },
+ {
+  "commit": "19363f20b6e014fd44c76f8a998b21845716e358",
+  "subject": "gh-115075: Fix info about initialization of mimetypes.MimeTypes attributes (GH-150691)",
+  "query": "Fix info about initialization of mimetypes.MimeTypes attributes (GH-150691)",
+  "answers": [
+   {
+    "file": "Doc/library/mimetypes.rst",
+    "line": 214,
+    "section": 203
+   }
+  ]
+ },
+ {
+  "commit": "9111820ebb6243c961ea4cedf1cdf7e248701209",
+  "subject": "gh-155775: Do not consume the CAPABILITY response in imaplib (GH-155789)",
+  "query": "Do not consume the CAPABILITY response in imaplib (GH-155789)",
+  "answers": [
+   {
+    "file": "Doc/library/imaplib.rst",
+    "line": 910,
+    "section": 178
+   }
+  ]
+ },
+ {
+  "commit": "71cb9e8b64c4a89971955d3ce8ff393f283aeace",
+  "subject": "gh-143768: Replace a dangling interpreter symlink when creating a venv (#150985)",
+  "query": "Replace a dangling interpreter symlink when creating a venv (#150985)",
+  "answers": [
+   {
+    "file": "Doc/library/venv.rst",
+    "line": 455,
+    "section": 295
+   }
+  ]
+ },
+ {
+  "commit": "eb089020696e451e64a51534726efa80dcbdc902",
+  "subject": "gh-111735: Skip `turtle` doctests when `_tkinter` is not available (#156417)",
+  "query": "Skip `turtle` doctests when `_tkinter` is not available (#156417)",
+  "answers": [
+   {
+    "file": "Doc/library/turtle.rst",
+    "line": 1401,
+    "section": 1356
+   }
+  ]
+ },
+ {
+  "commit": "13ab4c2861442f3c558abdb5971716261bf15964",
+  "subject": "Fix various issues in the 'Timer File Descriptors' documentation (#156027)",
+  "query": "Fix various issues in the 'Timer File Descriptors' documentation (#156027)",
+  "answers": [
+   {
+    "file": "Doc/library/os.rst",
+    "line": 4610,
+    "section": 4576
+   }
+  ]
+ },
+ {
+  "commit": "223ee6d5d744abb75de2289740dfff1b2cd9cc65",
+  "subject": "Documentation on handling a corrupt nuget.config when installing packages from Nuget (GH-154039)",
+  "query": "Documentation on handling a corrupt nuget.config when installing packages from Nuget (GH-154039)",
+  "answers": [
+   {
+    "file": "Doc/using/windows.rst",
+    "line": 1260,
+    "section": 1204
+   }
+  ]
+ },
+ {
+  "commit": "9cbd578e38a5ef59f9462b61d1e03338b208cba6",
+  "subject": "gh-151138: Update Windows temp directory locations in tempfile.rst (#151210)",
+  "query": "Update Windows temp directory locations in tempfile.rst (#151210)",
+  "answers": [
+   {
+    "file": "Doc/library/tempfile.rst",
+    "line": 351,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "e7468d1d9321da8e4f395cdad143b73551cc5fe2",
+  "subject": "gh-156226: Fix doubled-word typos in the `difflib` documetation (#156227)",
+  "query": "Fix doubled-word typos in the `difflib` documetation (#156227)",
+  "answers": [
+   {
+    "file": "Doc/library/difflib.rst",
+    "line": 20,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "ca79981cc08f23990e2f00d78d84681e40f369bd",
+  "subject": "gh-156230: Bound a curses window read by the window, not by 2047 (GH-156282)",
+  "query": "Bound a curses window read by the window, not by 2047 (GH-156282)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 1420,
+    "section": 1391
+   }
+  ]
+ },
+ {
+  "commit": "be87bfa8a1a68516cedc618c7cf5bb7b0b251678",
+  "subject": "gh-156234: Fix and rewrite the curses documentation on reading (GH-156235)",
+  "query": "Fix and rewrite the curses documentation on reading (GH-156235)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 30,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "d5e560ed7e06edc4ce9546af80a021226c368adc",
+  "subject": "gh-131885: Use real signatures in the `zlib` docs (#156179)",
+  "query": "Use real signatures in the `zlib` docs (#156179)",
+  "answers": [
+   {
+    "file": "Doc/library/zlib.rst",
+    "line": 30,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "526b2e0ede898f219a26014ef97e8914194ea2d7",
+  "subject": "gh-156246: Fix documented default of the asyncio limit argument (#156247)",
+  "query": "Fix documented default of the asyncio limit argument (#156247)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-stream.rst",
+    "line": 52,
+    "section": 6
+   }
+  ]
+ },
+ {
+  "commit": "6f42535b333b6d2d56ba2b27e436c37e8ae63a02",
+  "subject": "gh-156111: Clarify wording in glossary entry \"expression\" (#156198)",
+  "query": "Clarify wording in glossary entry \"expression\" (#156198)",
+  "answers": [
+   {
+    "file": "Doc/glossary.rst",
+    "line": 520,
+    "section": 4
+   }
+  ]
+ },
+ {
+  "commit": "999a046b24cff4ba0e72b574196721f66bd08237",
+  "subject": "gh-152754: Fix crash when an os.scandir iterator is shared between threads (gh-153462)",
+  "query": "Fix crash when an os.scandir iterator is shared between threads (gh-153462)",
+  "answers": [
+   {
+    "file": "Doc/library/os.rst",
+    "line": 2993,
+    "section": 2094
+   }
+  ]
+ },
+ {
+  "commit": "862befdb99c8268f570c28adaa342eb6586fa0dc",
+  "subject": "gh-116048: restructure task group docs and add docs for eager execution (#156102)",
+  "query": "restructure task group docs and add docs for eager execution (#156102)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-task.rst",
+    "line": 408,
+    "section": 341
+   }
+  ]
+ },
+ {
+  "commit": "e2cb8b9bc37b78f9460508d52d33ce23b6caf7ab",
+  "subject": "gh-155354: Document that `sys._clear_type_cache` no longer clears the type cache (#155391)",
+  "query": "Document that `sys._clear_type_cache` no longer clears the type cache (#155391)",
+  "answers": [
+   {
+    "file": "Doc/library/sys.rst",
+    "line": 236,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "f8c93d43edfeaea33c5dbff20f394212cb5c157f",
+  "subject": "gh-155254: Avoid warning about missing stdlib when using _pth files (GH-156015)",
+  "query": "Avoid warning about missing stdlib when using _pth files (GH-156015)",
+  "answers": [
+   {
+    "file": "Doc/library/sys_path_init.rst",
+    "line": 108,
+    "section": 82
+   }
+  ]
+ },
+ {
+  "commit": "b9d9c3f99c7b1847659ea55ff1d37530a3d5740a",
+  "subject": "gh-155499: Fix curses window.border() and window.box() with 0 (GH-155871)",
+  "query": "Fix curses window.border() and window.box() with 0 (GH-155871)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 1653,
+    "section": 1615
+   }
+  ]
+ },
+ {
+  "commit": "8e01c9082971c848ee3a2d3946e03919a46a268d",
+  "subject": "gh-155863: Add the WACS_* constants to the curses module (GH-155870)",
+  "query": "Add the WACS_* constants to the curses module (GH-155870)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 1631,
+    "section": 1615
+   }
+  ]
+ },
+ {
+  "commit": "9721f8f03510685c9209ce382fdbce3d2c5f8110",
+  "subject": "gh-128326: Normalize self-references to \"documentation\" (#143138)",
+  "query": "Normalize self-references to \"documentation\" (#143138)",
+  "answers": [
+   {
+    "file": "Doc/about.rst",
+    "line": 13,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "5be8020761f53d99d72d80436aac6ab823a95a6f",
+  "subject": "gh-148216: Fix hyphenation in tutorial/stdlib.rst (#155736)",
+  "query": "Fix hyphenation in tutorial/stdlib.rst (#155736)",
+  "answers": [
+   {
+    "file": "Doc/tutorial/stdlib.rst",
+    "line": 39,
+    "section": 10
+   }
+  ]
+ },
+ {
+  "commit": "97688346ada2df3e5b9c279348862c3d64ab0823",
+  "subject": "gh-155999: `tarfile`: handle a member that leaves the destination but comes back (#156000)",
+  "query": "`tarfile`: handle a member that leaves the destination but comes back (#156000)",
+  "answers": [
+   {
+    "file": "Doc/library/tarfile.rst",
+    "line": 1115,
+    "section": 1094
+   }
+  ]
+ },
+ {
+  "commit": "05ab13e1019a8d734ceceb28dffc83619bf8880c",
+  "subject": "gh-155894: Fix asyncio.wait_for() docs claiming a coroutine is wrapped in a Task (#155895)",
+  "query": "Fix asyncio.wait_for() docs claiming a coroutine is wrapped in a Task (#155895)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-task.rst",
+    "line": 869,
+    "section": 740
+   }
+  ]
+ },
+ {
+  "commit": "a7bb524fef61f77ede01f660ffbd591e1d5837ce",
+  "subject": "gh-155694: Scope HTTPPasswordMgr credentials by URL scheme (#155696)",
+  "query": "Scope HTTPPasswordMgr credentials by URL scheme (#155696)",
+  "answers": [
+   {
+    "file": "Doc/library/urllib.request.rst",
+    "line": 990,
+    "section": 979
+   }
+  ]
+ },
+ {
+  "commit": "c3df37cb62e5864f2c7bf654de131d701820f999",
+  "subject": "gh-141510: Document frozendict support in json (gh-155929)",
+  "query": "Document frozendict support in json (gh-155929)",
+  "answers": [
+   {
+    "file": "Doc/library/json.rst",
+    "line": 490,
+    "section": 380
+   }
+  ]
+ },
+ {
+  "commit": "e13c3d643e508f201a5bcd2e522d4acf6c93f4fe",
+  "subject": "gh-149083: Document that dataclasses.MISSING and KW_ONLY are sentinels (#155919)",
+  "query": "Document that dataclasses.MISSING and KW_ONLY are sentinels (#155919)",
+  "answers": [
+   {
+    "file": "Doc/library/dataclasses.rst",
+    "line": 265,
+    "section": 43
+   }
+  ]
+ },
+ {
+  "commit": "7a845ce16548bf94e777984458ea534c5a65a2a8",
+  "subject": "gh-154842: Reject repack() while a reading handle is open (GH-154843)",
+  "query": "Reject repack() while a reading handle is open (GH-154843)",
+  "answers": [
+   {
+    "file": "Doc/library/zipfile.rst",
+    "line": 588,
+    "section": 175
+   }
+  ]
+ },
+ {
+  "commit": "89e3aae7ad19efcc9cc35c5d9a411d2d2a245024",
+  "subject": "gh-155860: Reject a detached window in panel.replace() (GH-155861)",
+  "query": "Reject a detached window in panel.replace() (GH-155861)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.panel.rst",
+    "line": 119,
+    "section": 56
+   }
+  ]
+ },
+ {
+  "commit": "70b2b0a2dcce71e8b94757b8ed9313b0cbe0fc4f",
+  "subject": "gh-129382: Match venv API symlink defaults to the CLI (#155759)",
+  "query": "Match venv API symlink defaults to the CLI (#155759)",
+  "answers": [
+   {
+    "file": "Doc/library/venv.rst",
+    "line": 305,
+    "section": 295
+   }
+  ]
+ },
+ {
+  "commit": "bc6749cc3b5ae4a5e88a6cc2d5b3bebbe354eae6",
+  "subject": "gh-155787: Harmonize parameter names in the time module documentation and docstrings (#155790)",
+  "query": "Harmonize parameter names in the time module documentation and docstrings (#155790)",
+  "answers": [
+   {
+    "file": "Doc/library/time.rst",
+    "line": 125,
+    "section": 122
+   }
+  ]
+ },
+ {
+  "commit": "6611f4df80bbceb4b2fdf9d132c7652eacbd7743",
+  "subject": "Fix typo in `annotationlib` documentation (#155776)",
+  "query": "Fix typo in `annotationlib` documentation (#155776)",
+  "answers": [
+   {
+    "file": "Doc/library/annotationlib.rst",
+    "line": 238,
+    "section": 226
+   }
+  ]
+ },
+ {
+  "commit": "5d91cf6487eb5aa37107598c792573f61ebe310f",
+  "subject": "gh-139314: Add support for linking against `zlib-rs` and `libbzip2-rs` (#155119)",
+  "query": "Add support for linking against `zlib-rs` and `libbzip2-rs` (#155119)",
+  "answers": [
+   {
+    "file": "Doc/using/configure.rst",
+    "line": 74,
+    "section": 48
+   }
+  ]
+ },
+ {
+  "commit": "c72ea530c3d7cffebc6497ea3c9d54f1055a3059",
+  "subject": "gh-150449: Support negative steps in sqlite3.Blob slices (GH-150450)",
+  "query": "Support negative steps in sqlite3.Blob slices (GH-150450)",
+  "answers": [
+   {
+    "file": "Doc/library/sqlite3.rst",
+    "line": 1764,
+    "section": 1756
+   }
+  ]
+ },
+ {
+  "commit": "7385f48f2257b6328925d89c709b72a2875c7c51",
+  "subject": "gh-111331: Allow closing BytesIO with exported buffers (GH-155383)",
+  "query": "Allow closing BytesIO with exported buffers (GH-155383)",
+  "answers": [
+   {
+    "file": "Doc/library/io.rst",
+    "line": 753,
+    "section": 718
+   }
+  ]
+ },
+ {
+  "commit": "1bb7995e5a4f1b775fdb1c9cd374d3af7fe88096",
+  "subject": "Correct decompression exception in zstd documentation (#154864)",
+  "query": "Correct decompression exception in zstd documentation (#154864)",
+  "answers": [
+   {
+    "file": "Doc/library/compression.zstd.rst",
+    "line": 349,
+    "section": 155
+   }
+  ]
+ },
+ {
+  "commit": "6e079e5f5e526c8a58792145e5a9543cc7cbb7ac",
+  "subject": "gh-153400: Add syscall fallbacks for copy_file_range/memfd_create (#155520)",
+  "query": "Add syscall fallbacks for copy_file_range/memfd_create (#155520)",
+  "answers": [
+   {
+    "file": "Doc/library/os.rst",
+    "line": 1041,
+    "section": 968
+   }
+  ]
+ },
+ {
+  "commit": "31577863cb902717b735e5876020732ba52520b4",
+  "subject": "gh-75008: Detect the lineterminator in csv.Sniffer.sniff() (GH-155061)",
+  "query": "Detect the lineterminator in csv.Sniffer.sniff() (GH-155061)",
+  "answers": [
+   {
+    "file": "Doc/library/csv.rst",
+    "line": 331,
+    "section": 45
+   }
+  ]
+ },
+ {
+  "commit": "1ed6b78232a8739aa3b1ee1ce7ce2e1d998e3607",
+  "subject": "gh-154139: Document that curses is not thread-safe (GH-154173)",
+  "query": "Document that curses is not thread-safe (GH-154173)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 42,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "e75ef6a768a439ee86aa997cd3ecb1ff73e3c3da",
+  "subject": "gh-155040: Support copy.replace() for tarfile.TarInfo (GH-155046)",
+  "query": "Support copy.replace() for tarfile.TarInfo (GH-155046)",
+  "answers": [
+   {
+    "file": "Doc/library/tarfile.rst",
+    "line": 966,
+    "section": 753
+   }
+  ]
+ },
+ {
+  "commit": "b4af851f6b5e1cf4dcc2e0397321d7c761f227c6",
+  "subject": "gh-155033: Support copy.replace() for csv dialects (GH-155035)",
+  "query": "Support copy.replace() for csv dialects (GH-155035)",
+  "answers": [
+   {
+    "file": "Doc/library/csv.rst",
+    "line": 551,
+    "section": 454
+   }
+  ]
+ },
+ {
+  "commit": "c0d0b286bc0b24512b56c9087a4bcf8ffca50ab6",
+  "subject": "gh-155044: Support copy.replace() for optparse.Values (GH-155050)",
+  "query": "Support copy.replace() for optparse.Values (GH-155050)",
+  "answers": [
+   {
+    "file": "Doc/library/optparse.rst",
+    "line": 1076,
+    "section": 1003
+   }
+  ]
+ },
+ {
+  "commit": "a697faf45077f7fb24edf4f2f75b8aa09d873dcd",
+  "subject": "gh-89024: Document the 3.10 change in escaping the csv escapechar (GH-155067)",
+  "query": "Document the 3.10 change in escaping the csv escapechar (GH-155067)",
+  "answers": [
+   {
+    "file": "Doc/library/csv.rst",
+    "line": 501,
+    "section": 454
+   }
+  ]
+ },
+ {
+  "commit": "3cc891f7ae71ab1fed3e00ec83baadc42db1eb1e",
+  "subject": "gh-105116: Document that an escaped csv quotechar does not cause quoting (GH-155073)",
+  "query": "Document that an escaped csv quotechar does not cause quoting (GH-155073)",
+  "answers": [
+   {
+    "file": "Doc/library/csv.rst",
+    "line": 394,
+    "section": 45
+   }
+  ]
+ },
+ {
+  "commit": "1370f8a8a19a1201b2cc27a301a3f8f1d4478764",
+  "subject": "gh-80678: Document the preferred attribute of csv.Sniffer (GH-155068)",
+  "query": "Document the preferred attribute of csv.Sniffer (GH-155068)",
+  "answers": [
+   {
+    "file": "Doc/library/csv.rst",
+    "line": 327,
+    "section": 45
+   }
+  ]
+ },
+ {
+  "commit": "582a2d3ebafa993234218470e5fbb490197d89e6",
+  "subject": "gh-84548: Document Windows specific behavior of abspath() and realpath() (GH-155388)",
+  "query": "Document Windows specific behavior of abspath() and realpath() (GH-155388)",
+  "answers": [
+   {
+    "file": "Doc/library/os.path.rst",
+    "line": 62,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "025e7d278e29f3df2e95ed9daf9d9835760564c8",
+  "subject": "gh-113329: Catch OSError in doctest finder and document that inspect.getsourcefile/getfile can raise OSError (GH-113335)",
+  "query": "Catch OSError in doctest finder and document that inspect.getsourcefile/getfile can raise OSError (GH-113335)",
+  "answers": [
+   {
+    "file": "Doc/library/inspect.rst",
+    "line": 762,
+    "section": 719
+   }
+  ]
+ },
+ {
+  "commit": "033fc47f28fbac9312c2d2bc0df27969032296c3",
+  "subject": "gh-90982: Use the standard wording in the site.getsitepackages() versionchanged (GH-155654)",
+  "query": "Use the standard wording in the site.getsitepackages() versionchanged (GH-155654)",
+  "answers": [
+   {
+    "file": "Doc/library/site.rst",
+    "line": 464,
+    "section": 307
+   }
+  ]
+ },
+ {
+  "commit": "bc31217fe432b5ede1485bec2b62b2c67a48eee4",
+  "subject": "gh-90982: Document prefixes argument on site.getsitepackages (GH-31546)",
+  "query": "Document prefixes argument on site.getsitepackages (GH-31546)",
+  "answers": [
+   {
+    "file": "Doc/library/site.rst",
+    "line": 452,
+    "section": 307
+   }
+  ]
+ },
+ {
+  "commit": "b11e749f7590e9a0907db908fa3e7e76c772c28f",
+  "subject": "gh-151925: Fix minor issues in clarification introduced by gh-152463 (GH-155480)",
+  "query": "Fix minor issues in clarification introduced by gh-152463 (GH-155480)",
+  "answers": [
+   {
+    "file": "Doc/library/ast.rst",
+    "line": 811,
+    "section": 798
+   }
+  ]
+ },
+ {
+  "commit": "38ce10483c1c1ff5595dd3b3f532f96b35d33e45",
+  "subject": "gh-80762: Fix dir() on Mock with tuple specs (GH-12753)",
+  "query": "Fix dir() on Mock with tuple specs (GH-12753)",
+  "answers": [
+   {
+    "file": "Doc/library/unittest.mock.rst",
+    "line": 234,
+    "section": 198
+   }
+  ]
+ },
+ {
+  "commit": "3444ef9d30e0d4160357ab93109407d1ed377635",
+  "subject": "gh-110167: Document the increase of `test.support.LOOPBACK_TIMEOUT` to 10 seconds (#155571)",
+  "query": "Document the increase of `test.support.LOOPBACK_TIMEOUT` to 10 seconds (#155571)",
+  "answers": [
+   {
+    "file": "Doc/library/test.rst",
+    "line": 289,
+    "section": 198
+   }
+  ]
+ },
+ {
+  "commit": "4b04d5abcd8476af4c4a67fcf2263c856fdabb47",
+  "subject": "gh-76303: Improve documentation of the -x command line option (GH-155559)",
+  "query": "Improve documentation of the -x command line option (GH-155559)",
+  "answers": [
+   {
+    "file": "Doc/using/cmdline.rst",
+    "line": 524,
+    "section": 244
+   }
+  ]
+ },
+ {
+  "commit": "7c072c1fcc3c04535dde873a7709781be2794583",
+  "subject": "Docs: simplify `turtle` tutorial's star example code (#155232)",
+  "query": "Docs: simplify `turtle` tutorial's star example code (#155232)",
+  "answers": [
+   {
+    "file": "Doc/library/turtle.rst",
+    "line": 84,
+    "section": 77
+   }
+  ]
+ },
+ {
+  "commit": "837627dc96dc557e1655690d9f59892725ed85b1",
+  "subject": "gh-108518: Do not cancel remaining calls in Executor.map() on error (GH-109497)",
+  "query": "Do not cancel remaining calls in Executor.map() on error (GH-109497)",
+  "answers": [
+   {
+    "file": "Doc/library/concurrent.futures.rst",
+    "line": 64,
+    "section": 31
+   }
+  ]
+ },
+ {
+  "commit": "7c906a1164573f627427213a600cabe73d7f846d",
+  "subject": "gh-76595: PyCapsule_Import() now imports submodules if needed (GH-6898)",
+  "query": "PyCapsule_Import() now imports submodules if needed (GH-6898)",
+  "answers": [
+   {
+    "file": "Doc/c-api/capsule.rst",
+    "line": 111,
+    "section": 5
+   }
+  ]
+ },
+ {
+  "commit": "f8cfa0cd593a0034628e36bd5b5e082af6541a78",
+  "subject": "gh-155358: Use named attributes with pwd and grp modules (#155362)",
+  "query": "Use named attributes with pwd and grp modules (#155362)",
+  "answers": [
+   {
+    "file": "Doc/library/os.rst",
+    "line": 455,
+    "section": 167
+   }
+  ]
+ },
+ {
+  "commit": "53317fde122ef95c2df7a51a8a33a10f91fce5a9",
+  "subject": "Make non-positional-only argument names match runtime declaration in `asyncio.tasks` function reference (#155282)",
+  "query": "Make non-positional-only argument names match runtime declaration in `asyncio.tasks` function reference (#155282)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-task.rst",
+    "line": 690,
+    "section": 687
+   }
+  ]
+ },
+ {
+  "commit": "8ed1479619a3487af72a7c44bf61c9711370d4da",
+  "subject": "gh-155339: Document the change of behaviour about parsing negative numbers from 3.14 in argparse (#155340)",
+  "query": "Document the change of behaviour about parsing negative numbers from 3.14 in argparse (#155340)",
+  "answers": [
+   {
+    "file": "Doc/library/argparse.rst",
+    "line": 1630,
+    "section": 1577
+   }
+  ]
+ },
+ {
+  "commit": "4ccb6000881842956152d007013d9507f3099227",
+  "subject": "gh-155352: Fix inconsistent error messages between parse_args and documentation (#155353)",
+  "query": "Fix inconsistent error messages between parse_args and documentation (#155353)",
+  "answers": [
+   {
+    "file": "Doc/library/argparse.rst",
+    "line": 1569,
+    "section": 1549
+   }
+  ]
+ },
+ {
+  "commit": "3e12d54923814dcca2a228d8f2bd0c69081d4974",
+  "subject": "gh-155236: Add the dedent parameter in inspect.cleandoc() and inspect.getdoc() (GH-155237)",
+  "query": "Add the dedent parameter in inspect.cleandoc() and inspect.getdoc() (GH-155237)",
+  "answers": [
+   {
+    "file": "Doc/library/inspect.rst",
+    "line": 722,
+    "section": 719
+   }
+  ]
+ },
+ {
+  "commit": "82905dd165f198f1b18625ae0f0ede9367df75a4",
+  "subject": "gh-154948: Fix `test_zipfile` failure when `SOURCE_DATE_EPOCH` is set (#155001)",
+  "query": "Fix `test_zipfile` failure when `SOURCE_DATE_EPOCH` is set (#155001)",
+  "answers": [
+   {
+    "file": "Doc/library/test.rst",
+    "line": 1660,
+    "section": 1465
+   }
+  ]
+ },
+ {
+  "commit": "7c653e2540cbe4180efb3bd83b63865a1f675650",
+  "subject": "gh-153970: Fix str() of CalledProcessError when returncode is not an integer (#153971)",
+  "query": "Fix str() of CalledProcessError when returncode is not an integer (#153971)",
+  "answers": [
+   {
+    "file": "Doc/library/subprocess.rst",
+    "line": 239,
+    "section": 27
+   }
+  ]
+ },
+ {
+  "commit": "5e0c502799f3324b8a0776cacd6a3af5b62879b5",
+  "subject": "gh-81954: Warn when ZipFile is closed with unwritten data (#152354)",
+  "query": "Warn when ZipFile is closed with unwritten data (#152354)",
+  "answers": [
+   {
+    "file": "Doc/library/zipfile.rst",
+    "line": 289,
+    "section": 175
+   }
+  ]
+ },
+ {
+  "commit": "af930c13787a15c22187d5d526f74f35c95f8056",
+  "subject": "gh-74366: Fix the documentation of \"$\" in PyArg_ParseTupleAndKeywords() (GH-155301)",
+  "query": "Fix the documentation of \"$\" in PyArg_ParseTupleAndKeywords() (GH-155301)",
+  "answers": [
+   {
+    "file": "Doc/c-api/arg.rst",
+    "line": 402,
+    "section": 316
+   }
+  ]
+ },
+ {
+  "commit": "4bbc20bd6dc9418a89d77f0b268aaec8843bf9d0",
+  "subject": "gh-151925: Clarify ast.DictComp.value for dict unpacking (GH-152463)",
+  "query": "Clarify ast.DictComp.value for dict unpacking (GH-152463)",
+  "answers": [
+   {
+    "file": "Doc/library/ast.rst",
+    "line": 810,
+    "section": 798
+   }
+  ]
+ },
+ {
+  "commit": "9dc11d887dacd4370e106f677d0649b100452e7d",
+  "subject": "gh-155043: Support copy.replace() for argparse.Namespace (#155049)",
+  "query": "Support copy.replace() for argparse.Namespace (#155049)",
+  "answers": [
+   {
+    "file": "Doc/library/argparse.rst",
+    "line": 1689,
+    "section": 1681
+   }
+  ]
+ },
+ {
+  "commit": "dd5a285387eece8cb9667fad5895c3a3468e5e66",
+  "subject": "gh-154902: Add an intrinsic for conditional annotations (#155026)",
+  "query": "Add an intrinsic for conditional annotations (#155026)",
+  "answers": [
+   {
+    "file": "Doc/library/dis.rst",
+    "line": 1903,
+    "section": 464
+   }
+  ]
+ },
+ {
+  "commit": "1d90627f1660253b30e5efc2ca092a6231737993",
+  "subject": "gh-152548: Add options, env and timeout parameters to runInSubprocess() (GH-155163)",
+  "query": "Add options, env and timeout parameters to runInSubprocess() (GH-155163)",
+  "answers": [
+   {
+    "file": "Doc/library/test.rst",
+    "line": 967,
+    "section": 198
+   }
+  ]
+ },
+ {
+  "commit": "f33a5f5261652d29d185aff10854b72d7c90f199",
+  "subject": "gh-153711: Add runtime guards for dup3 & pipe2 (#155174)",
+  "query": "Add runtime guards for dup3 & pipe2 (#155174)",
+  "answers": [
+   {
+    "file": "Doc/library/os.rst",
+    "line": 1482,
+    "section": 968
+   }
+  ]
+ },
+ {
+  "commit": "36250a9b45cd898aa51c438cfb61fa1408266ffc",
+  "subject": "gh-104091: Suggest TaskGroup for running background tasks in asyncio.create_task() docs (#155133)",
+  "query": "Suggest TaskGroup for running background tasks in asyncio.create_task() docs (#155133)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-task.rst",
+    "line": 294,
+    "section": 237
+   }
+  ]
+ },
+ {
+  "commit": "ab8c7372fdf9997ed5562a7506bd34af9e17f8c5",
+  "subject": "gh-75279: Document that asyncio StreamWriter.drain() may not yield to the event loop (#155132)",
+  "query": "Document that asyncio StreamWriter.drain() may not yield to the event loop (#155132)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-stream.rst",
+    "line": 394,
+    "section": 308
+   }
+  ]
+ },
+ {
+  "commit": "1617cbe1dc16db302d708c321b7b0a1579a382c9",
+  "subject": "gh-94984: Add mode parameter to asyncio create_unix_server() (#155086)",
+  "query": "Add mode parameter to asyncio create_unix_server() (#155086)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-eventloop.rst",
+    "line": 841,
+    "section": 714
+   },
+   {
+    "file": "Doc/library/asyncio-stream.rst",
+    "line": 174,
+    "section": 6
+   }
+  ]
+ },
+ {
+  "commit": "204febac457c39c6622cd6c741d33afdbcca5d55",
+  "subject": "gh-155013: Fix a reference to \"partial object\" in the `functools.partial()` doc (#155036)",
+  "query": "Fix a reference to \"partial object\" in the `functools.partial()` doc (#155036)",
+  "answers": [
+   {
+    "file": "Doc/library/functools.rst",
+    "line": 389,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "3f4ed1db8af764ff5ae81a287cec342ec82f3039",
+  "subject": "gh-155041: Support copy.replace() for decimal.Context (GH-155047)",
+  "query": "Support copy.replace() for decimal.Context (GH-155047)",
+  "answers": [
+   {
+    "file": "Doc/library/decimal.rst",
+    "line": 1185,
+    "section": 992
+   }
+  ]
+ },
+ {
+  "commit": "a646c99ee12fbf421394a74955d42fd3fe850b7e",
+  "subject": "gh-133879: Copyedit \"What's New in Python 3.15\" (#154978)",
+  "query": "Copyedit \"What's New in Python 3.15\" (#154978)",
+  "answers": [
+   {
+    "file": "Doc/deprecations/pending-removal-in-3.17.rst",
+    "line": 42,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "22fed93a21c36c032d87629e66ea5d1eeeecc96e",
+  "subject": "gh-154746: Document `collections.Counter` internal order and display order (#154777)",
+  "query": "Document `collections.Counter` internal order and display order (#154777)",
+  "answers": [
+   {
+    "file": "Doc/library/collections.rst",
+    "line": 271,
+    "section": 219
+   }
+  ]
+ },
+ {
+  "commit": "60b9cf84117567c5df63482d9fbf68db3d7ef74e",
+  "subject": "gh-94543: Improve tempfile.mkstemp documentation about cleanup (#154748)",
+  "query": "Improve tempfile.mkstemp documentation about cleanup (#154748)",
+  "answers": [
+   {
+    "file": "Doc/library/tempfile.rst",
+    "line": 260,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "f4b1d3e891d0d2055e53df3ccb84030bcaa148b5",
+  "subject": "Minor fixes for Android (#154895)",
+  "query": "Minor fixes for Android (#154895)",
+  "answers": [
+   {
+    "file": "Doc/library/os.rst",
+    "line": 832,
+    "section": 167
+   },
+   {
+    "file": "Doc/library/platform.rst",
+    "line": 144,
+    "section": 17
+   }
+  ]
+ },
+ {
+  "commit": "49f96670d98c50eca769dd3f6fb5b6de11010617",
+  "subject": "gh-135736: Fix interaction between TaskGroup and aclose() (#154649)",
+  "query": "Fix interaction between TaskGroup and aclose() (#154649)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-task.rst",
+    "line": 495,
+    "section": 341
+   }
+  ]
+ },
+ {
+  "commit": "ae18daedc75f40fdca7921bee3ce61dd1192c475",
+  "subject": "gh-64192: Add *buffersize* to `imap()`/`imap_unordered()` in `multiprocessing.pool` (GH-136871)",
+  "query": "Add *buffersize* to `imap()`/`imap_unordered()` in `multiprocessing.pool` (GH-136871)",
+  "answers": [
+   {
+    "file": "Doc/library/multiprocessing.rst",
+    "line": 2539,
+    "section": 2417
+   }
+  ]
+ },
+ {
+  "commit": "b4db94865e21ce86eabb5d11d072670121ed6f86",
+  "subject": "gh-132604: Track deprecation related to runtime-checkable protocols (3.20) (#154790)",
+  "query": "Track deprecation related to runtime-checkable protocols (3.20) (#154790)",
+  "answers": [
+   {
+    "file": "Doc/deprecations/pending-removal-in-3.20.rst",
+    "line": 59,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "66eb823229edb7cff23fd0d52611d809aee57532",
+  "subject": "gh-142349: Clarify lazy import filters have positional-only parameters (GH-144856)",
+  "query": "Clarify lazy import filters have positional-only parameters (GH-144856)",
+  "answers": [
+   {
+    "file": "Doc/library/sys.rst",
+    "line": 1809,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "1a40b7b0e9b7f6d6de926f38b4dd2f7a987f902c",
+  "subject": "gh-154661: Reorganize difflib documentation (GH-154662)",
+  "query": "Reorganize difflib documentation (GH-154662)",
+  "answers": [
+   {
+    "file": "Doc/library/difflib.rst",
+    "line": 16,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "85c8bcee6780bd7e6730fe3550e9b65bbf62ff56",
+  "subject": "gh-152912: Fix audit hook exception check in sys.addaudithook() (GH-152913)",
+  "query": "Fix audit hook exception check in sys.addaudithook() (GH-152913)",
+  "answers": [
+   {
+    "file": "Doc/c-api/sys.rst",
+    "line": 436,
+    "section": 272
+   }
+  ]
+ },
+ {
+  "commit": "bde526d7be55014ec49fd44b831c948664ce508b",
+  "subject": "gh-152548: Add a test.support.isolation.runInSubprocess() decorator (GH-152551)",
+  "query": "Add a test.support.isolation.runInSubprocess() decorator (GH-152551)",
+  "answers": [
+   {
+    "file": "Doc/library/test.rst",
+    "line": 965,
+    "section": 198
+   }
+  ]
+ },
+ {
+  "commit": "b099df5f177e43ebefde24a6714729277aa1bf8c",
+  "subject": "gh-154749: Reject a terminal-less screen in curses.set_term() (GH-154750)",
+  "query": "Reject a terminal-less screen in curses.set_term() (GH-154750)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 151,
+    "section": 90
+   }
+  ]
+ },
+ {
+  "commit": "751707414cc7d2a7a7f0fa7552fa02c963d6a902",
+  "subject": "gh-154493: Add the UCD license to `Doc/license.rst` (#154651)",
+  "query": "Add the UCD license to `Doc/license.rst` (#154651)",
+  "answers": [
+   {
+    "file": "Doc/license.rst",
+    "line": 1222,
+    "section": 1222
+   }
+  ]
+ },
+ {
+  "commit": "222a8bf3259b6fae2132c9278aa9ecff68a99b2a",
+  "subject": "gh-120866: Document behavior change of asyncio.Server.wait_closed() since 3.12 (#154676)",
+  "query": "Document behavior change of asyncio.Server.wait_closed() since 3.12 (#154676)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-eventloop.rst",
+    "line": 1888,
+    "section": 1758
+   }
+  ]
+ },
+ {
+  "commit": "46acb79cd47211192bd52cd994715162d2b6dcf8",
+  "subject": "gh-70990: Support bytes addresses of Unix sockets in SysLogHandler (GH-154500)",
+  "query": "Support bytes addresses of Unix sockets in SysLogHandler (GH-154500)",
+  "answers": [
+   {
+    "file": "Doc/library/logging.handlers.rst",
+    "line": 634,
+    "section": 620
+   }
+  ]
+ },
+ {
+  "commit": "0ca0107e4fc842b57ec12a39a51c9ce390d43c4b",
+  "subject": "gh-69573: Check the return value of msvcrt._putch() and _putwch() (GH-154364)",
+  "query": "Check the return value of msvcrt._putch() and _putwch() (GH-154364)",
+  "answers": [
+   {
+    "file": "Doc/library/msvcrt.rst",
+    "line": 138,
+    "section": 100
+   }
+  ]
+ },
+ {
+  "commit": "56ad3bca75a408b45b5326980b35b8a2ba8113db",
+  "subject": "gh-150076: Fix the documented signature of warnings.deprecated (#153879)",
+  "query": "Fix the documented signature of warnings.deprecated (#153879)",
+  "answers": [
+   {
+    "file": "Doc/library/warnings.rst",
+    "line": 572,
+    "section": 424
+   }
+  ]
+ },
+ {
+  "commit": "79cdcee308c6612edd6d1ca972342e2a088b6b4e",
+  "subject": "gh-80678: Document the preferred delimiters of csv.Sniffer (#154336)",
+  "query": "Document the preferred delimiters of csv.Sniffer (#154336)",
+  "answers": [
+   {
+    "file": "Doc/library/csv.rst",
+    "line": 325,
+    "section": 45
+   }
+  ]
+ },
+ {
+  "commit": "771abfe06f1f04abf1065d3525d2a1c84566058a",
+  "subject": "gh-153872: macOS: free-threading support is installed by default on Python 3.15 (#154103)",
+  "query": "macOS: free-threading support is installed by default on Python 3.15 (#154103)",
+  "answers": [
+   {
+    "file": "Doc/using/mac.rst",
+    "line": 33,
+    "section": 27
+   }
+  ]
+ },
+ {
+  "commit": "dc72be1923a37042aee60354059e43d472de7803",
+  "subject": "gh-154320: Fix swapped __defaults__/__kwdefaults__ in annotationlib docs (#154321)",
+  "query": "Fix swapped __defaults__/__kwdefaults__ in annotationlib docs (#154321)",
+  "answers": [
+   {
+    "file": "Doc/library/annotationlib.rst",
+    "line": 538,
+    "section": 513
+   }
+  ]
+ },
+ {
+  "commit": "027a8336891cf7dab6a437a5d4f9213a6a7828cd",
+  "subject": "gh-139373: Fix asyncio Process.communicate() losing output when cancelled (#154223)",
+  "query": "Fix asyncio Process.communicate() losing output when cancelled (#154223)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-subprocess.rst",
+    "line": 243,
+    "section": 162
+   }
+  ]
+ },
+ {
+  "commit": "daf09e17bf99c544e8ab7a72b11f10f2e382a381",
+  "subject": "gh-145685: per-type method cache implementation (#150160)",
+  "query": "per-type method cache implementation (#150160)",
+  "answers": [
+   {
+    "file": "Doc/c-api/type.rst",
+    "line": 41,
+    "section": 5
+   }
+  ]
+ },
+ {
+  "commit": "25fea6d64e194c8998f5752e74b646354dbd7a57",
+  "subject": "gh-83273: Rewrite csv.Sniffer dialect detection using trial parsing (GH-153694)",
+  "query": "Rewrite csv.Sniffer dialect detection using trial parsing (GH-153694)",
+  "answers": [
+   {
+    "file": "Doc/library/csv.rst",
+    "line": 315,
+    "section": 45
+   }
+  ]
+ },
+ {
+  "commit": "bd315837d81ea6ccbe05aea919975765021f99cc",
+  "subject": "gh-153511: Removes Tools/msi, Tools/nuget, and legacy py.exe launcher sources (GH-153512)",
+  "query": "Removes Tools/msi, Tools/nuget, and legacy py.exe launcher sources (GH-153512)",
+  "answers": [
+   {
+    "file": "Doc/using/windows.rst",
+    "line": 320,
+    "section": 264
+   }
+  ]
+ },
+ {
+  "commit": "4cde5cfd5bc53e964ff8b594ff47fe88e64df789",
+  "subject": "gh-99968: FAQ: dev versions end in `+dev` (#153262)",
+  "query": "FAQ: dev versions end in `+dev` (#153262)",
+  "answers": [
+   {
+    "file": "Doc/faq/general.rst",
+    "line": 155,
+    "section": 127
+   }
+  ]
+ },
+ {
+  "commit": "86e1fed859dab3de8f069208ef33cee24d816c79",
+  "subject": "Fix typo in C API Type Object Structures documentation (#154249)",
+  "query": "Fix typo in C API Type Object Structures documentation (#154249)",
+  "answers": [
+   {
+    "file": "Doc/c-api/typeobj.rst",
+    "line": 3055,
+    "section": 2952
+   }
+  ]
+ },
+ {
+  "commit": "e8042329b6bb2472b16645c559e4223486b85965",
+  "subject": "gh-154046: docs: fix dead link to codahale timing attacks article in secrets.rst (#154047)",
+  "query": "docs: fix dead link to codahale timing attacks article in secrets.rst (#154047)",
+  "answers": [
+   {
+    "file": "Doc/library/secrets.rst",
+    "line": 140,
+    "section": 131
+   }
+  ]
+ },
+ {
+  "commit": "53916ee48d2e78592898bea2e52bfeb4497e0bcd",
+  "subject": "Fix typos in `Py_tp_base` macro documentation (#154150)",
+  "query": "Fix typos in `Py_tp_base` macro documentation (#154150)",
+  "answers": [
+   {
+    "file": "Doc/c-api/type.rst",
+    "line": 706,
+    "section": 407
+   }
+  ]
+ },
+ {
+  "commit": "1530b38c82f8f09c3c29b2829cd1d8c1db830761",
+  "subject": "gh-151949: Fix Sphinx reference warnings in `Doc/library/lzma.rst` (GH-153878)",
+  "query": "Fix Sphinx reference warnings in `Doc/library/lzma.rst` (GH-153878)",
+  "answers": [
+   {
+    "file": "Doc/library/lzma.rst",
+    "line": 155,
+    "section": 144
+   }
+  ]
+ },
+ {
+  "commit": "16562f1ce31ba654c42eee644f253bb31cff9f9d",
+  "subject": "Document getopt and gnu_getopt longopts argument as string (#153976)",
+  "query": "Document getopt and gnu_getopt longopts argument as string (#153976)",
+  "answers": [
+   {
+    "file": "Doc/library/getopt.rst",
+    "line": 65,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "426cf84e84ed85d94c9055affd19e6fd69cfc939",
+  "subject": "Docs: add frozendict to data types theme (#154063)",
+  "query": "Docs: add frozendict to data types theme (#154063)",
+  "answers": [
+   {
+    "file": "Doc/library/datatypes.rst",
+    "line": 11,
+    "section": 4
+   }
+  ]
+ },
+ {
+  "commit": "30541f202f81ab3d3da5a6ac10c07fb6f1e4dcb4",
+  "subject": "Fix typo \"interruptability\" in Logging Cookbook documentation (#154027)",
+  "query": "Fix typo \"interruptability\" in Logging Cookbook documentation (#154027)",
+  "answers": [
+   {
+    "file": "Doc/howto/logging-cookbook.rst",
+    "line": 1958,
+    "section": 1939
+   }
+  ]
+ },
+ {
+  "commit": "4b60b46f09e7148216d5e07c289a17c9ebbb6074",
+  "subject": "fix typos in `abi3t-migration.rst` (GH-153918)",
+  "query": "fix typos in `abi3t-migration.rst` (GH-153918)",
+  "answers": [
+   {
+    "file": "Doc/howto/abi3t-migration.rst",
+    "line": 11,
+    "section": 6
+   }
+  ]
+ },
+ {
+  "commit": "a83aaa91490d5885949eb0780a37b15963b6d0f3",
+  "subject": "gh-153862: Fix curses window.inch() for non-ASCII characters on a wide build (GH-153863)",
+  "query": "Fix curses window.inch() for non-ASCII characters on a wide build (GH-153863)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 1400,
+    "section": 1391
+   }
+  ]
+ },
+ {
+  "commit": "3c274d0c61d06b331d27223f0ed666b531008492",
+  "subject": "gh-136687: Add ./configure --with-curses to select the curses backend (GH-153992)",
+  "query": "Add ./configure --with-curses to select the curses backend (GH-153992)",
+  "answers": [
+   {
+    "file": "Doc/using/configure.rst",
+    "line": 1098,
+    "section": 1069
+   }
+  ]
+ },
+ {
+  "commit": "a1d580430c81c298d267ec255d544d0fa1d197c4",
+  "subject": "Docs: point `uu` module users to the `\"uu\"` encoding (#153657)",
+  "query": "Docs: point `uu` module users to the `\"uu\"` encoding (#153657)",
+  "answers": [
+   {
+    "file": "Doc/library/uu.rst",
+    "line": 14,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "a85a674b57b7f12e77ac4bef2398c09f36fec75a",
+  "subject": "gh-153856: Add `os.RWF_NOSIGNAL` constant (#153858)",
+  "query": "Add `os.RWF_NOSIGNAL` constant (#153858)",
+  "answers": [
+   {
+    "file": "Doc/library/os.rst",
+    "line": 1728,
+    "section": 968
+   }
+  ]
+ },
+ {
+  "commit": "a0c8329218402396478be92b691043453fc28c32",
+  "subject": "gh-150663: Document that PyErr_SetRaisedException accepts null (#153046)",
+  "query": "Document that PyErr_SetRaisedException accepts null (#153046)",
+  "answers": [
+   {
+    "file": "Doc/c-api/exceptions.rst",
+    "line": 517,
+    "section": 454
+   }
+  ]
+ },
+ {
+  "commit": "0a772f2967c77a2137c45d7db1fcde9b71afacde",
+  "subject": "gh-141004: Document remaining `PyCF_*` compiler flag macros (GH-153958)",
+  "query": "Document remaining `PyCF_*` compiler flag macros (GH-153958)",
+  "answers": [
+   {
+    "file": "Doc/c-api/veryhigh.rst",
+    "line": 346,
+    "section": 7
+   }
+  ]
+ },
+ {
+  "commit": "c89b5effa11366e28cb4a290a302a534352b768f",
+  "subject": "Fix parameter name of read_mime_types() in mimetypes docs (GH-153974)",
+  "query": "Fix parameter name of read_mime_types() in mimetypes docs (GH-153974)",
+  "answers": [
+   {
+    "file": "Doc/library/mimetypes.rst",
+    "line": 119,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "755d97167f6f5d4361c790f8f18df76cae8f2ad2",
+  "subject": "gh-71896: Add a docs warning about trailing newlines ignored by `difflib.HtmlDiff` (GH-153930)",
+  "query": "Add a docs warning about trailing newlines ignored by `difflib.HtmlDiff` (GH-153930)",
+  "answers": [
+   {
+    "file": "Doc/library/difflib.rst",
+    "line": 183,
+    "section": 92
+   }
+  ]
+ },
+ {
+  "commit": "32cfc88d6a5561c510a0d7bb954251e39b598dd5",
+  "subject": "Docs: Fix typo in the pymanager command name (GH-153877)",
+  "query": "Docs: Fix typo in the pymanager command name (GH-153877)",
+  "answers": [
+   {
+    "file": "Doc/using/windows.rst",
+    "line": 133,
+    "section": 108
+   }
+  ]
+ },
+ {
+  "commit": "87f8fc8e00704396a0c598c8843cdde373c0ea4c",
+  "subject": "gh-122102: Fix/improve docs of descriptor-related tools in `inspect` (GH-122104)",
+  "query": "Fix/improve docs of descriptor-related tools in `inspect` (GH-122104)",
+  "answers": [
+   {
+    "file": "Doc/library/inspect.rst",
+    "line": 658,
+    "section": 30
+   }
+  ]
+ },
+ {
+  "commit": "7486c7b3df7ff26ac23390947102f2604f55243a",
+  "subject": "gh-153934: Correct documented paramemeter in `calendar.weekheader` from `n` to `width` (GH-153942)",
+  "query": "Correct documented paramemeter in `calendar.weekheader` from `n` to `width` (GH-153942)",
+  "answers": [
+   {
+    "file": "Doc/library/calendar.rst",
+    "line": 403,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "0e81ef93ebd87607c8d946e7dfb6940c5fe9f083",
+  "subject": "gh-153903: Add a `ctypes` decorator for generating function pointers using annotations (GH-153904)",
+  "query": "Add a `ctypes` decorator for generating function pointers using annotations (GH-153904)",
+  "answers": [
+   {
+    "file": "Doc/library/ctypes.rst",
+    "line": 697,
+    "section": 697
+   }
+  ]
+ },
+ {
+  "commit": "d12434b4661c6be7430002e66a54d920f7d4ca7f",
+  "subject": "gh-153926: Fix documented parameter name for `calendar.calendar` and `calendar.prcal` (#153927)",
+  "query": "Fix documented parameter name for `calendar.calendar` and `calendar.prcal` (#153927)",
+  "answers": [
+   {
+    "file": "Doc/library/calendar.rst",
+    "line": 433,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "6ebb22cb83d8ce05f7136166d1674d0a14a29459",
+  "subject": "Fix punctuation in `Doc/library/concurrent.interpreters.rst` (GH-153894)",
+  "query": "Fix punctuation in `Doc/library/concurrent.interpreters.rst` (GH-153894)",
+  "answers": [
+   {
+    "file": "Doc/library/concurrent.interpreters.rst",
+    "line": 24,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "26e7c4fe3f68668abbc96fc4ac57c2d5ef8048b5",
+  "subject": "gh-153899: Fix documented parameter names for `filecmp.cmpfiles` (#153900)",
+  "query": "Fix documented parameter names for `filecmp.cmpfiles` (#153900)",
+  "answers": [
+   {
+    "file": "Doc/library/filecmp.rst",
+    "line": 37,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "5b8575620cc1347acc8d3ca3f815c8e58b3559f7",
+  "subject": "gh-104533: Add a dataclass-like decorator for `ctypes` structures (GH-153781)",
+  "query": "Add a dataclass-like decorator for `ctypes` structures (GH-153781)",
+  "answers": [
+   {
+    "file": "Doc/library/ctypes.rst",
+    "line": 3222,
+    "section": 2920
+   }
+  ]
+ },
+ {
+  "commit": "cffcee4d1bc9d49b5b45e2e792dd8aea7b6c65eb",
+  "subject": "Fix duplicated words in the 'Coroutines and tasks' documentation (#153880)",
+  "query": "Fix duplicated words in the 'Coroutines and tasks' documentation (#153880)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-task.rst",
+    "line": 394,
+    "section": 341
+   }
+  ]
+ },
+ {
+  "commit": "1736526023a3e616d1530815880bb3b28e3433c3",
+  "subject": "gh-153853: Fix parameter name of calendar.setfirstweekday() in docs (#153851)",
+  "query": "Fix parameter name of calendar.setfirstweekday() in docs (#153851)",
+  "answers": [
+   {
+    "file": "Doc/library/calendar.rst",
+    "line": 368,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "9d231cbc937f51c92f8d2883815aab64e52fe5e7",
+  "subject": "gh-153844: Support AST input in symtable.symtable() (GH-153845)",
+  "query": "Support AST input in symtable.symtable() (GH-153845)",
+  "answers": [
+   {
+    "file": "Doc/library/symtable.rst",
+    "line": 23,
+    "section": 17
+   }
+  ]
+ },
+ {
+  "commit": "abdd7aea18bde039fe35983b5c0d8036bc16f1a7",
+  "subject": "gh-153395: Accept curses.complexchar in curses.ascii predicates and conversions (GH-153396)",
+  "query": "Accept curses.complexchar in curses.ascii predicates and conversions (GH-153396)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.ascii.rst",
+    "line": 179,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "456f3a713eb1fa62e1aa470b7ca8e23caa962c7d",
+  "subject": "gh-153521: Support structured arguments in imaplib commands (GH-153522)",
+  "query": "Support structured arguments in imaplib commands (GH-153522)",
+  "answers": [
+   {
+    "file": "Doc/library/imaplib.rst",
+    "line": 191,
+    "section": 178
+   }
+  ]
+ },
+ {
+  "commit": "6ae740c0a8cc67d71b6deebf459f57773cc06961",
+  "subject": "gh-102960: Make frames weak-referenceable (#152838)",
+  "query": "Make frames weak-referenceable (#152838)",
+  "answers": [
+   {
+    "file": "Doc/library/weakref.rst",
+    "line": 66,
+    "section": 3
+   }
+  ]
+ },
+ {
+  "commit": "54976e1482578d742d4e611741a7995650e8ae6b",
+  "subject": "gh-148488: Clarify the company/tag separator in the py -V docs (GH-153427)",
+  "query": "Clarify the company/tag separator in the py -V docs (GH-153427)",
+  "answers": [
+   {
+    "file": "Doc/using/windows.rst",
+    "line": 168,
+    "section": 108
+   }
+  ]
+ },
+ {
+  "commit": "7fb315b0cd53277c6191b4bfd8019f999d49f1f0",
+  "subject": "gh-71019: document which objects connect_read_pipe/connect_write_pipe accept and add tests (#153660)",
+  "query": "document which objects connect_read_pipe/connect_write_pipe accept and add tests (#153660)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-eventloop.rst",
+    "line": 1307,
+    "section": 1266
+   },
+   {
+    "file": "Doc/library/asyncio-platforms.rst",
+    "line": 22,
+    "section": 16
+   }
+  ]
+ },
+ {
+  "commit": "1fece4457032382947c7c2a5c9e95dc106ca7a7d",
+  "subject": "gh-89696: Fix `loop.sock_connect` docs on address resolution (#153651)",
+  "query": "Fix `loop.sock_connect` docs on address resolution (#153651)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-eventloop.rst",
+    "line": 1159,
+    "section": 1056
+   }
+  ]
+ },
+ {
+  "commit": "dd2faeb33d5fa0d2635b91ece6eaebd34c61408c",
+  "subject": "gh-90431: Document cancellation behavior of asyncio.wait() and asyncio.as_completed() (#153616)",
+  "query": "Document cancellation behavior of asyncio.wait() and asyncio.as_completed() (#153616)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-task.rst",
+    "line": 1025,
+    "section": 917
+   }
+  ]
+ },
+ {
+  "commit": "bbd1f2f9e0354f91c5d3c4eb3eb53657265dcc77",
+  "subject": "gh-102591: Document that urlcleanup resets the global opener (#153562)",
+  "query": "Document that urlcleanup resets the global opener (#153562)",
+  "answers": [
+   {
+    "file": "Doc/library/urllib.request.rst",
+    "line": 1502,
+    "section": 1445
+   }
+  ]
+ },
+ {
+  "commit": "931cfdf8edcd867e3fe1f20fc001f917e3f8890e",
+  "subject": "gh-145694: Update tutorial indentation guidance for PyREPL auto-indent (#145725)",
+  "query": "Update tutorial indentation guidance for PyREPL auto-indent (#145725)",
+  "answers": [
+   {
+    "file": "Doc/tutorial/introduction.rst",
+    "line": 535,
+    "section": 494
+   }
+  ]
+ },
+ {
+  "commit": "d1a5b54abaca2b443c7642ef3a7be8e1cd077ae3",
+  "subject": "gh-152614: Add raises to `QueueShutDown` in `asyncio.Queue.put_no_wait` and `asyncio.Queue.get_nowait` documentation methods (#152681)",
+  "query": "Add raises to `QueueShutDown` in `asyncio.Queue.put_no_wait` and `asyncio.Queue.get_nowait` documentation methods (#152681)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-queue.rst",
+    "line": 74,
+    "section": 23
+   }
+  ]
+ },
+ {
+  "commit": "9ca892717eaa66f3fba231f00dc5bce355f6f34c",
+  "subject": "gh-86726: Note that the ttk Treeview separator column option needs Tk 9.0 (GH-153556)",
+  "query": "Note that the ttk Treeview separator column option needs Tk 9.0 (GH-153556)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.ttk.rst",
+    "line": 895,
+    "section": 840
+   }
+  ]
+ },
+ {
+  "commit": "d52cfd2a0ec4423ed94bda640deefdfcf053bd8e",
+  "subject": "gh-88647: Fix tkinter config() docs for synonym options (GH-153544)",
+  "query": "Fix tkinter config() docs for synonym options (GH-153544)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.rst",
+    "line": 560,
+    "section": 507
+   }
+  ]
+ },
+ {
+  "commit": "45fa07b025cb38e607a8f3c6d3ade9a28ce84e34",
+  "subject": "gh-153256: Add tk_print() methods to tkinter Canvas and Text (GH-153257)",
+  "query": "Add tk_print() methods to tkinter Canvas and Text (GH-153257)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.rst",
+    "line": 3618,
+    "section": 3555
+   }
+  ]
+ },
+ {
+  "commit": "fbce45b58711e9d02d270db2cd72a38dcbb345de",
+  "subject": "gh-59396: Add use_ttk parameter to tkinter ScrolledText (GH-153119)",
+  "query": "Add use_ttk parameter to tkinter ScrolledText (GH-153119)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.scrolledtext.rst",
+    "line": 26,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "5aafbea2c9890ad8d179432a0ea2e06c6ca9cec3",
+  "subject": "gh-153494: Encode imaplib search criteria to the declared CHARSET (GH-153495)",
+  "query": "Encode imaplib search criteria to the declared CHARSET (GH-153495)",
+  "answers": [
+   {
+    "file": "Doc/library/imaplib.rst",
+    "line": 676,
+    "section": 178
+   }
+  ]
+ },
+ {
+  "commit": "8a32914f78e0a1b1238548c3d575aa8ce3854d8c",
+  "subject": "gh-153513: Return str and numbers for more Tcl object types in _tkinter (GH-153514)",
+  "query": "Return str and numbers for more Tcl object types in _tkinter (GH-153514)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.rst",
+    "line": 824,
+    "section": 769
+   }
+  ]
+ },
+ {
+  "commit": "b276b88e385d7785bfc11d87fa56163e984ba699",
+  "subject": "gh-151213: Fix asyncio tools permission requirements link (#153493)",
+  "query": "Fix asyncio tools permission requirements link (#153493)",
+  "answers": [
+   {
+    "file": "Doc/library/asyncio-tools.rst",
+    "line": 27,
+    "section": 6
+   }
+  ]
+ },
+ {
+  "commit": "c98e984b12de54305416498b98ed2e2c77e9849e",
+  "subject": "gh-153502: Add uid parameter to imaplib command methods (GH-153508)",
+  "query": "Add uid parameter to imaplib command methods (GH-153508)",
+  "answers": [
+   {
+    "file": "Doc/library/imaplib.rst",
+    "line": 336,
+    "section": 178
+   }
+  ]
+ },
+ {
+  "commit": "106eb532ea3b243423e62a702719e9d3c0e40c16",
+  "subject": "gh-153438: Update NuGet download URL (GH-153482)",
+  "query": "Update NuGet download URL (GH-153482)",
+  "answers": [
+   {
+    "file": "Doc/using/windows.rst",
+    "line": 1219,
+    "section": 1204
+   }
+  ]
+ },
+ {
+  "commit": "39a817e7b4f09e9aaad296e2509a7b9db7bd80f5",
+  "subject": "gh-152905: Decode LC_TIME items in nl_langinfo() from glibc wide data (GH-152911)",
+  "query": "Decode LC_TIME items in nl_langinfo() from glibc wide data (GH-152911)",
+  "answers": [
+   {
+    "file": "Doc/library/locale.rst",
+    "line": 346,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "3ce7a1211c37f7f383dc67387ea7006273662820",
+  "subject": "gh-152997: Support system locale encodings via an iconv-based codec (GH-153001)",
+  "query": "Support system locale encodings via an iconv-based codec (GH-153001)",
+  "answers": [
+   {
+    "file": "Doc/library/codecs.rst",
+    "line": 1090,
+    "section": 1068
+   }
+  ]
+ },
+ {
+  "commit": "25bd6eb4372dba6ebb7b3f6ed2ace2395abf83b8",
+  "subject": "gh-49555: Support international mailbox names in imaplib (GH-153391)",
+  "query": "Support international mailbox names in imaplib (GH-153391)",
+  "answers": [
+   {
+    "file": "Doc/library/imaplib.rst",
+    "line": 196,
+    "section": 178
+   }
+  ]
+ },
+ {
+  "commit": "dd8739a35bf171068117019ceb836f2f2264a3e9",
+  "subject": "gh-153422: Return bool from some tkinter query methods (GH-153429)",
+  "query": "Return bool from some tkinter query methods (GH-153429)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.rst",
+    "line": 2132,
+    "section": 1066
+   },
+   {
+    "file": "Doc/library/tkinter.ttk.rst",
+    "line": 1387,
+    "section": 997
+   }
+  ]
+ },
+ {
+  "commit": "bc9bb7386597e22693662f489a7474998788e228",
+  "subject": "gh-130578: clarify urllib.parse.quote parameter defaults behavior (#130598)",
+  "query": "clarify urllib.parse.quote parameter defaults behavior (#130598)",
+  "answers": [
+   {
+    "file": "Doc/library/urllib.parse.rst",
+    "line": 652,
+    "section": 627
+   }
+  ]
+ },
+ {
+  "commit": "c843cb758e56c2b759860504849250ee152b89dd",
+  "subject": "gh-61310: Document package precedence over same-named modules (#153211)",
+  "query": "Document package precedence over same-named modules (#153211)",
+  "answers": [
+   {
+    "file": "Doc/reference/import.rst",
+    "line": 668,
+    "section": 645
+   }
+  ]
+ },
+ {
+  "commit": "fadb78565c1add98b1a7b3daf08b23f0c65e6863",
+  "subject": "bpo-42861: Add `next_network` function to ipaddress library (#24180)",
+  "query": "Add `next_network` function to ipaddress library (#24180)",
+  "answers": [
+   {
+    "file": "Doc/library/ipaddress.rst",
+    "line": 723,
+    "section": 487
+   }
+  ]
+ },
+ {
+  "commit": "fa5eafd19c3d395b4498e21b4e1b8faac2ebdb0a",
+  "subject": "gh-86017: Document displayof for Font.actual() and clarify Font.copy() (GH-153288)",
+  "query": "Document displayof for Font.actual() and clarify Font.copy() (GH-153288)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.font.rst",
+    "line": 77,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "562606deed4e78e0cb9b5b09b158f473a1fd8432",
+  "subject": "gh-66788: Add the utf-7-imap codec (GH-153149)",
+  "query": "Add the utf-7-imap codec (GH-153149)",
+  "answers": [
+   {
+    "file": "Doc/library/codecs.rst",
+    "line": 1462,
+    "section": 1381
+   }
+  ]
+ },
+ {
+  "commit": "45729033bff28f8abc36c42e802cb2853c205737",
+  "subject": "gh-153056: Fix a data race compiling the string.Template pattern in free-threading builds (#153057)",
+  "query": "Fix a data race compiling the string.Template pattern in free-threading builds (#153057)",
+  "answers": [
+   {
+    "file": "Doc/library/string.rst",
+    "line": 974,
+    "section": 812
+   }
+  ]
+ },
+ {
+  "commit": "aa533dce22bf20ba3c1e954aefb245ca1b63543b",
+  "subject": "gh-152586: Make `tempfile.TemporaryFileWrapper` public (#152646)",
+  "query": "Make `tempfile.TemporaryFileWrapper` public (#152646)",
+  "answers": [
+   {
+    "file": "Doc/deprecations/pending-removal-in-3.21.rst",
+    "line": 29,
+    "section": 1
+   },
+   {
+    "file": "Doc/library/tempfile.rst",
+    "line": 17,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "48cc2579b65be508ca64b6cb64ce0f7922eab9ab",
+  "subject": "gh-152798: update sys.thread_info.lock documentation to match implementation (#153263)",
+  "query": "update sys.thread_info.lock documentation to match implementation (#153263)",
+  "answers": [
+   {
+    "file": "Doc/library/sys.rst",
+    "line": 2259,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "2cd5b79284dd2331cbd9e11afabbfbf7e906103d",
+  "subject": "gh-143990: Allow tkinter.font.Font to wrap a font description (GH-152025)",
+  "query": "Allow tkinter.font.Font to wrap a font description (GH-152025)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.font.rst",
+    "line": 23,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "ef4d3f3079fbad40cb7f5619a7417e40f7e3c0f9",
+  "subject": "gh-150479: reject CR and LF in email.utils.formataddr (#150480)",
+  "query": "reject CR and LF in email.utils.formataddr (#150480)",
+  "answers": [
+   {
+    "file": "Doc/library/email.utils.rst",
+    "line": 73,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "53661afabd2b4a9c92230ee7024dc42782164f8e",
+  "subject": "gh-150880: Clarify DirEntry.path construction semantics (GH-153218)",
+  "query": "Clarify DirEntry.path construction semantics (GH-153218)",
+  "answers": [
+   {
+    "file": "Doc/library/os.rst",
+    "line": 3090,
+    "section": 2094
+   }
+  ]
+ },
+ {
+  "commit": "f155dbed4ef30dec5d00b8b09524b0d9f63965bc",
+  "subject": "Docs: Link to the `contextlib.chdir` context manager in the `os.chdir` docs (#153152)",
+  "query": "Docs: Link to the `contextlib.chdir` context manager in the `os.chdir` docs (#153152)",
+  "answers": [
+   {
+    "file": "Doc/library/os.rst",
+    "line": 2227,
+    "section": 2094
+   }
+  ]
+ },
+ {
+  "commit": "db3a4773e1e5fc1a30597d9e08bcbe41d27e5bbb",
+  "subject": "gh-148765: Fix description of *include_hidden* parameter in `glob.glob()` docs (#148768)",
+  "query": "Fix description of *include_hidden* parameter in `glob.glob()` docs (#148768)",
+  "answers": [
+   {
+    "file": "Doc/library/glob.rst",
+    "line": 32,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "ad54b91b9fa4c5d12f155bb09138dff21a2bdec3",
+  "subject": "gh-82151: Update and improve urlsplit docstring (#152985)",
+  "query": "Update and improve urlsplit docstring (#152985)",
+  "answers": [
+   {
+    "file": "Doc/library/urllib.parse.rst",
+    "line": 63,
+    "section": 47
+   }
+  ]
+ },
+ {
+  "commit": "28a8c1819a8d94620801c6c79c30a3a89a00fb89",
+  "subject": "gh-98092: Add imaplib.IMAP4.id method (GH-153136)",
+  "query": "Add imaplib.IMAP4.id method (GH-153136)",
+  "answers": [
+   {
+    "file": "Doc/library/imaplib.rst",
+    "line": 427,
+    "section": 178
+   }
+  ]
+ },
+ {
+  "commit": "89afed25c3427911c9df815ca4d8aeb261ab46ca",
+  "subject": "gh-77508: Add imaplib.IMAP4.move method (GH-153121)",
+  "query": "Add imaplib.IMAP4.move method (GH-153121)",
+  "answers": [
+   {
+    "file": "Doc/library/imaplib.rst",
+    "line": 583,
+    "section": 178
+   }
+  ]
+ },
+ {
+  "commit": "cdcf228f6ab764fcd8237231f0a473b9f80586ad",
+  "subject": "gh-60055: Allow passing a Request instance for RobotParser URLs (#103753)",
+  "query": "Allow passing a Request instance for RobotParser URLs (#103753)",
+  "answers": [
+   {
+    "file": "Doc/library/urllib.robotparser.rst",
+    "line": 27,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "74a2438bf783077cf49460ed0fed8853675fb103",
+  "subject": "gh-68147: Fix RFC references in imaplib (GH-153126)",
+  "query": "Fix RFC references in imaplib (GH-153126)",
+  "answers": [
+   {
+    "file": "Doc/library/imaplib.rst",
+    "line": 19,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "d2d415b9761a539c37ea4f950df4e9aab0eca6ed",
+  "subject": "gh-149930: Clarify imaplib response helper types (GH-149963)",
+  "query": "Clarify imaplib response helper types (GH-149963)",
+  "answers": [
+   {
+    "file": "Doc/library/imaplib.rst",
+    "line": 130,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "856049a9d99119ad74cd991fa8f8a72ebc909122",
+  "subject": "Fix minor typos in 'Compound statements' docs (#149666)",
+  "query": "Fix minor typos in 'Compound statements' docs (#149666)",
+  "answers": [
+   {
+    "file": "Doc/reference/compound_stmts.rst",
+    "line": 282,
+    "section": 240
+   }
+  ]
+ },
+ {
+  "commit": "ea5703735f2ff4ba7bc3b0c7e746a44cb9b25081",
+  "subject": "gh-76607: Improve documentation of the tkinter cursor option (GH-152481)",
+  "query": "Improve documentation of the tkinter cursor option (GH-152481)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.rst",
+    "line": 767,
+    "section": 731
+   },
+   {
+    "file": "Doc/library/tkinter.ttk.rst",
+    "line": 128,
+    "section": 111
+   }
+  ]
+ },
+ {
+  "commit": "19b5e8e1f510eb2fdd3f6261006b61f8cf441101",
+  "subject": "gh-75952: Document negative offsets in tkinter geometry strings (GH-152531)",
+  "query": "Document negative offsets in tkinter geometry strings (GH-152531)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.rst",
+    "line": 2146,
+    "section": 1066
+   }
+  ]
+ },
+ {
+  "commit": "820b6ca22d72482e2e68dd738cc370535c83655e",
+  "subject": "gh-123193: Document tkinter Variable lifetime (GH-152625)",
+  "query": "Document tkinter Variable lifetime (GH-152625)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.rst",
+    "line": 6018,
+    "section": 5992
+   }
+  ]
+ },
+ {
+  "commit": "99b4cdbfa1619a3901f8cf87d3b5fe8d4894e3e7",
+  "subject": " Fix various typos in the `http.server` docs (#153089)",
+  "query": "Fix various typos in the `http.server` docs (#153089)",
+  "answers": [
+   {
+    "file": "Doc/library/http.server.rst",
+    "line": 73,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "9f9787d83462f5b44cb59e3c69e7c1799612a33f",
+  "subject": "gh-151945: fix Sphinx reference warnings in `http.server` docs (#153084)",
+  "query": "fix Sphinx reference warnings in `http.server` docs (#153084)",
+  "answers": [
+   {
+    "file": "Doc/library/http.server.rst",
+    "line": 42,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "fe9c7213e6576e27ebff6ef039706cd463593310",
+  "subject": "gh-151819: Clarify the conditional-pattern email example in re docs (GH-153072)",
+  "query": "Clarify the conditional-pattern email example in re docs (GH-153072)",
+  "answers": [
+   {
+    "file": "Doc/library/re.rst",
+    "line": 534,
+    "section": 55
+   }
+  ]
+ },
+ {
+  "commit": "600e86490fddf4732e8b993058ca011cc6387464",
+  "subject": "gh-40038: Quote imaplib command arguments when necessary (GH-152703)",
+  "query": "Quote imaplib command arguments when necessary (GH-152703)",
+  "answers": [
+   {
+    "file": "Doc/library/imaplib.rst",
+    "line": 527,
+    "section": 178
+   }
+  ]
+ },
+ {
+  "commit": "5616505b443b13d9f5766dedcf6c0b43167705b6",
+  "subject": "Remove PDF images (#145977)",
+  "query": "Remove PDF images (#145977)",
+  "answers": [
+   {
+    "file": "Doc/c-api/lifecycle.rst",
+    "line": 53,
+    "section": 14
+   },
+   {
+    "file": "Doc/library/turtle.rst",
+    "line": 32,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "66c76fa6737d497cd3c735f75e67a5ca52eceb15",
+  "subject": "gh-151945: Fix all reference warnings and various solecisms in the `http.cookiejar` docs (#152816)",
+  "query": "Fix all reference warnings and various solecisms in the `http.cookiejar` docs (#152816)",
+  "answers": [
+   {
+    "file": "Doc/library/http.cookiejar.rst",
+    "line": 29,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "b706767d8fd7d21afc3f156fb9c173bc99855e0e",
+  "subject": "gh-115634: Fix ProcessPoolExecutor deadlock with max_tasks_per_child (GH-140900)",
+  "query": "Fix ProcessPoolExecutor deadlock with max_tasks_per_child (GH-140900)",
+  "answers": [
+   {
+    "file": "Doc/library/concurrent.futures.rst",
+    "line": 436,
+    "section": 349
+   }
+  ]
+ },
+ {
+  "commit": "8b430d6f740541f1b9045a89dde43abee2c54bc5",
+  "subject": "gh-152691: tarfile -- add Windows reserved name section (GH-152701)",
+  "query": "tarfile -- add Windows reserved name section (GH-152701)",
+  "answers": [
+   {
+    "file": "Doc/library/tarfile.rst",
+    "line": 1211,
+    "section": 1192
+   }
+  ]
+ },
+ {
+  "commit": "e471712958515b65b737ac742b294acf7de9220c",
+  "subject": "gh-144067: Document terminal leak when initscr() follows setupterm() (GH-152624)",
+  "query": "Document terminal leak when initscr() follows setupterm() (GH-152624)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 994,
+    "section": 977
+   }
+  ]
+ },
+ {
+  "commit": "ddb6539c4976b18895bb5c5cd37d197c60fb459d",
+  "subject": "gh-49680: Add translate_line_endings parameter to imaplib.IMAP4.append (GH-152775)",
+  "query": "Add translate_line_endings parameter to imaplib.IMAP4.append (GH-152775)",
+  "answers": [
+   {
+    "file": "Doc/library/imaplib.rst",
+    "line": 283,
+    "section": 178
+   }
+  ]
+ },
+ {
+  "commit": "50ae0be74988564fb09746a49eb4b8f8e740f3c3",
+  "subject": "gh-79964: Clarify the imaplib fetch example in the docs (GH-152780)",
+  "query": "Clarify the imaplib fetch example in the docs (GH-152780)",
+  "answers": [
+   {
+    "file": "Doc/library/imaplib.rst",
+    "line": 977,
+    "section": 957
+   }
+  ]
+ },
+ {
+  "commit": "b52bc564513d720fb0c6470871c1f5c24c7ce1d8",
+  "subject": "Fix copy paste error with Py_mod_state_traverse (GH-152776)",
+  "query": "Fix copy paste error with Py_mod_state_traverse (GH-152776)",
+  "answers": [
+   {
+    "file": "Doc/c-api/module.rst",
+    "line": 490,
+    "section": 396
+   }
+  ]
+ },
+ {
+  "commit": "040002c13a35ba3c8d077d87c29002ad3f2edad5",
+  "subject": "GH-81881: Raise `SpecialFileError` for sockets and devices in `shutil.copyfile` (#142693)",
+  "query": "Raise `SpecialFileError` for sockets and devices in `shutil.copyfile` (#142693)",
+  "answers": [
+   {
+    "file": "Doc/library/shutil.rst",
+    "line": 67,
+    "section": 34
+   }
+  ]
+ },
+ {
+  "commit": "7bbea4f4868ef89b07b986d7a0d4b585e8271f27",
+  "subject": "gh-152502: Detect the curses mouse interface and is_* methods portably (GH-152705)",
+  "query": "Detect the curses mouse interface and is_* methods portably (GH-152705)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 497,
+    "section": 453
+   }
+  ]
+ },
+ {
+  "commit": "77181570da2d6d8f7bfca39f438ef0a893a30567",
+  "subject": "gh-133510: Add links to more info for the match statement in FAQ anwser (#133511)",
+  "query": "Add links to more info for the match statement in FAQ anwser (#133511)",
+  "answers": [
+   {
+    "file": "Doc/faq/design.rst",
+    "line": 266,
+    "section": 259
+   }
+  ]
+ },
+ {
+  "commit": "5717518fb3ed6f34716683e08ec372267d871d21",
+  "subject": "gh-146219: Document reusing a thread state across repeated foreign-thread calls (GH-146221)",
+  "query": "Document reusing a thread state across repeated foreign-thread calls (GH-146221)",
+  "answers": [
+   {
+    "file": "Doc/c-api/threads.rst",
+    "line": 245,
+    "section": 185
+   }
+  ]
+ },
+ {
+  "commit": "089e6f622b19fe2e3da2e97f0af96fad4a448e85",
+  "subject": "gh-152263: Add curses soft-label-key functions (GH-152264)",
+  "query": "Add curses soft-label-key functions (GH-152264)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 692,
+    "section": 687
+   }
+  ]
+ },
+ {
+  "commit": "e134a1aa36027fb3c8bd9493028072365b19479b",
+  "subject": "gh-152587: Stop documenting bogus default values in tkinter variable methods (GH-152594)",
+  "query": "Stop documenting bogus default values in tkinter variable methods (GH-152594)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.rst",
+    "line": 1135,
+    "section": 1066
+   }
+  ]
+ },
+ {
+  "commit": "bc0841336a224ce721526c5dac9ef7f939f4f27f",
+  "subject": "gh-152584: Reorganize the curses documentation into topic subsections (GH-152583)",
+  "query": "Reorganize the curses documentation into topic subsections (GH-152583)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 90,
+    "section": 90
+   }
+  ]
+ },
+ {
+  "commit": "8ec36f14a552136d54072e3e5bb595ec1f4f0b5f",
+  "subject": "gh-152359: Update numbers.rst to reference numeric-hash docs (#152549)",
+  "query": "Update numbers.rst to reference numeric-hash docs (#152549)",
+  "answers": [
+   {
+    "file": "Doc/library/numbers.rst",
+    "line": 93,
+    "section": 88
+   }
+  ]
+ },
+ {
+  "commit": "1540584d5d0b6483b78256194825e76d2e52ad21",
+  "subject": "gh-71450: Document that Tcl sets the HOME variable on Windows (GH-152568)",
+  "query": "Document that Tcl sets the HOME variable on Windows (GH-152568)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.rst",
+    "line": 3478,
+    "section": 3428
+   }
+  ]
+ },
+ {
+  "commit": "7aae0e58b7c02cefd3e13b0d1b65b4ef5cb2b57e",
+  "subject": "gh-148909: Fix broken author attribution URL in 'The Python 2.3 Method Resolution Order' doc (#149092)",
+  "query": "Fix broken author attribution URL in 'The Python 2.3 Method Resolution Order' doc (#149092)",
+  "answers": [
+   {
+    "file": "Doc/howto/mro.rst",
+    "line": 13,
+    "section": 3
+   }
+  ]
+ },
+ {
+  "commit": "8ae1a236fd334a590e90028f615cd4a822ae6f97",
+  "subject": "gh-110357: hashlib no longer logs at import when a guaranteed hash is unavailable (GH-152538)",
+  "query": "hashlib no longer logs at import when a guaranteed hash is unavailable (GH-152538)",
+  "answers": [
+   {
+    "file": "Doc/library/hashlib.rst",
+    "line": 53,
+    "section": 34
+   }
+  ]
+ },
+ {
+  "commit": "2670cb062c9ec31cd6df7be645f929a8398601c7",
+  "subject": "gh-87577: Document that wm_manage does not accept ttk widgets (GH-152532)",
+  "query": "Document that wm_manage does not accept ttk widgets (GH-152532)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.rst",
+    "line": 2778,
+    "section": 1066
+   }
+  ]
+ },
+ {
+  "commit": "41cc78a7a47fe584e2c2899737fec877d61ae331",
+  "subject": "gh-150743: Limit trailer lines and interim responses read by http.client (GH-150741)",
+  "query": "Limit trailer lines and interim responses read by http.client (GH-150741)",
+  "answers": [
+   {
+    "file": "Doc/library/http.client.rst",
+    "line": 436,
+    "section": 255
+   }
+  ]
+ },
+ {
+  "commit": "54524ab669a566623336c36994e1b3f2a6711c77",
+  "subject": "Docs: link to language reference instead of PEP (#152462)",
+  "query": "Docs: link to language reference instead of PEP (#152462)",
+  "answers": [
+   {
+    "file": "Doc/library/itertools.rst",
+    "line": 201,
+    "section": 77
+   },
+   {
+    "file": "Doc/reference/expressions.rst",
+    "line": 851,
+    "section": 784
+   }
+  ]
+ },
+ {
+  "commit": "7b0dff7d16ce59df44847ab04567eb97bfbc3576",
+  "subject": "gh-110904: Recommend windows-curses in the curses HOWTO (GH-152491)",
+  "query": "Recommend windows-curses in the curses HOWTO (GH-152491)",
+  "answers": [
+   {
+    "file": "Doc/howto/curses.rst",
+    "line": 55,
+    "section": 16
+   }
+  ]
+ },
+ {
+  "commit": "306d7a7649061d4c88d90deb6838e7e49d03269e",
+  "subject": "gh-152325: Add curses.has_mouse() and curses.window.mouse_trafo() (GH-152484)",
+  "query": "Add curses.has_mouse() and curses.window.mouse_trafo() (GH-152484)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 493,
+    "section": 453
+   }
+  ]
+ },
+ {
+  "commit": "d831a690766e92b3be5e40134f64407bd041bcbf",
+  "subject": "gh-87881: Document the result of curses inch() and getbkgd() (GH-152488)",
+  "query": "Document the result of curses inch() and getbkgd() (GH-152488)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 1579,
+    "section": 1544
+   }
+  ]
+ },
+ {
+  "commit": "499d31f52d22bb753fcafb3cbc6c7d712666cc8c",
+  "subject": "gh-133031: Support the full Unicode range in curses.textpad.Textbox (GH-152482)",
+  "query": "Support the full Unicode range in curses.textpad.Textbox (GH-152482)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 2898,
+    "section": 2881
+   }
+  ]
+ },
+ {
+  "commit": "286b51257a60cbb29ccf3e1cd80db54497b88a10",
+  "subject": "gh-152470: Make wide-character curses functions work on a narrow build (GH-152476)",
+  "query": "Make wide-character curses functions work on a narrow build (GH-152476)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 870,
+    "section": 858
+   }
+  ]
+ },
+ {
+  "commit": "95bfaffd522675287dc176d75a4d23e708435e6d",
+  "subject": "gh-152233: Make the curses cell API work without ncursesw (\u041f\u0420-152466)",
+  "query": "Make the curses cell API work without ncursesw (\u041f\u0420-152466)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 2191,
+    "section": 2185
+   }
+  ]
+ },
+ {
+  "commit": "0ed67114659d03702a5ad1a25db6f2b9d0aae39b",
+  "subject": "gh-152332: Add the curses.term_attrs() function (GH-152333)",
+  "query": "Add the curses.term_attrs() function (GH-152333)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 911,
+    "section": 858
+   }
+  ]
+ },
+ {
+  "commit": "0a21a248cc97eba3d75c7bd07c849ec645aea87b",
+  "subject": "Docs: Fix incomplete sentence in `tp_itemsize` documentation (GH-152381)",
+  "query": "Docs: Fix incomplete sentence in `tp_itemsize` documentation (GH-152381)",
+  "answers": [
+   {
+    "file": "Doc/c-api/type.rst",
+    "line": 646,
+    "section": 407
+   }
+  ]
+ },
+ {
+  "commit": "7bf63facfd0ab15490f44ebfb03d010d73da1c4f",
+  "subject": "gh-152275: Add integer overflow guards to the curses chtype and color-pair packing path (GH-152303)",
+  "query": "Add integer overflow guards to the curses chtype and color-pair packing path (GH-152303)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 576,
+    "section": 502
+   }
+  ]
+ },
+ {
+  "commit": "4fd69ef97a67fc935e0d4f30662f2a1985ba6be9",
+  "subject": "gh-70273: Document default class bindings in tkinter (GH-152389)",
+  "query": "Document default class bindings in tkinter (GH-152389)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.rst",
+    "line": 936,
+    "section": 867
+   }
+  ]
+ },
+ {
+  "commit": "ea7f64a65cb52b8b720cbf5d590c2cf89de8d407",
+  "subject": "gh-82830: Improve tkinter messagebox docstrings and cursor documentation (GH-152380)",
+  "query": "Improve tkinter messagebox docstrings and cursor documentation (GH-152380)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.messagebox.rst",
+    "line": 114,
+    "section": 1
+   },
+   {
+    "file": "Doc/library/tkinter.rst",
+    "line": 814,
+    "section": 769
+   }
+  ]
+ },
+ {
+  "commit": "8f4abfc39256b4081d9f08125780143036900aaf",
+  "subject": "gh-152334: Add curses key-management functions (GH-152338)",
+  "query": "Add curses key-management functions (GH-152338)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 424,
+    "section": 366
+   }
+  ]
+ },
+ {
+  "commit": "a85e73b322c80d46537b6ca03bdf6c9cce1d7cea",
+  "subject": "gh-152260: Add curses.scr_dump(), scr_restore(), scr_init() and scr_set() (GH-152261)",
+  "query": "Add curses.scr_dump(), scr_restore(), scr_init() and scr_set() (GH-152261)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 823,
+    "section": 813
+   }
+  ]
+ },
+ {
+  "commit": "5f17434a1ec9a121eb38f71dc3d5809020b5fbb4",
+  "subject": "gh-121249: Soft deprecate F and D struct format types (#149346)",
+  "query": "Soft deprecate F and D struct format types (#149346)",
+  "answers": [
+   {
+    "file": "Doc/library/struct.rst",
+    "line": 381,
+    "section": 216
+   }
+  ]
+ },
+ {
+  "commit": "55fe0e64f3a50e5f292198192a07a3f0743df362",
+  "subject": "gh-152233: Add curses complexstr type and wide-character cell-array methods (GH-152262)",
+  "query": "Add curses complexstr type and wide-character cell-array methods (GH-152262)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 1213,
+    "section": 1155
+   }
+  ]
+ },
+ {
+  "commit": "8a01d28b7effa565c63047d3fe08ddc407db50e8",
+  "subject": "gh-152233: Add curses complexchar type and wide-character cell reads (GH-152250)",
+  "query": "Add curses complexchar type and wide-character cell reads (GH-152250)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 1176,
+    "section": 1155
+   }
+  ]
+ },
+ {
+  "commit": "285d96dd784620fe8afb02688abe72a916555061",
+  "subject": "gh-152219: Add curses window attribute get/set methods and WA_* constants (GH-152221)",
+  "query": "Add curses window attribute get/set methods and WA_* constants (GH-152221)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 1479,
+    "section": 1461
+   }
+  ]
+ },
+ {
+  "commit": "794b42ff8a75614898c98c56ab87090e9804c369",
+  "subject": "gh-95555: Support Unicode property escapes \\p{...} in regular expressions (GH-151969)",
+  "query": "Support Unicode property escapes \\p{...} in regular expressions (GH-151969)",
+  "answers": [
+   {
+    "file": "Doc/library/re.rst",
+    "line": 684,
+    "section": 55
+   }
+  ]
+ },
+ {
+  "commit": "deeae2ac07a5aaa6fc1025a048592afe3516e57e",
+  "subject": "gh-127802: Schedule removal of legacy tkinter variable trace methods in 3.17 (GH-152012)",
+  "query": "Schedule removal of legacy tkinter variable trace methods in 3.17 (GH-152012)",
+  "answers": [
+   {
+    "file": "Doc/deprecations/pending-removal-in-3.17.rst",
+    "line": 81,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "bd4bd3e76a684969022c00aafb8acf18006ac89b",
+  "subject": "gh-152100: Support set operations in character classes (GH-152153)",
+  "query": "Support set operations in character classes (GH-152153)",
+  "answers": [
+   {
+    "file": "Doc/library/re.rst",
+    "line": 283,
+    "section": 55
+   }
+  ]
+ },
+ {
+  "commit": "a52f428fba37ef88b7375786d4696beb5e3602df",
+  "subject": "gh-151776: Add curses state-query functions (GH-151778)",
+  "query": "Add curses state-query functions (GH-151778)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 334,
+    "section": 239
+   }
+  ]
+ },
+ {
+  "commit": "3cd4283ba67f7a2f42d966e7f8cc558bb1aee3ac",
+  "subject": "gh-151774: Add curses dynamic color-pair functions (GH-151775)",
+  "query": "Add curses dynamic color-pair functions (GH-151775)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 609,
+    "section": 502
+   }
+  ]
+ },
+ {
+  "commit": "c7faa6936e17630ec26d4e0438ae9b95561b7151",
+  "subject": "gh-86726: Improve the structure of the tkinter reference (GH-152109)",
+  "query": "Improve the structure of the tkinter reference (GH-152109)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.rst",
+    "line": 1393,
+    "section": 1066
+   }
+  ]
+ },
+ {
+  "commit": "f7e5cddcbbbe94c620490d268e867136d527ac84",
+  "subject": "gh-151456: Document the show_jit parameter in dis (#151457)",
+  "query": "Document the show_jit parameter in dis (#151457)",
+  "answers": [
+   {
+    "file": "Doc/library/dis.rst",
+    "line": 142,
+    "section": 131
+   }
+  ]
+ },
+ {
+  "commit": "ac023ea48f64137d1b6d8dccbd530415d1930813",
+  "subject": "gh-90092: Support multiple terminals in the curses module (GH-151748)",
+  "query": "Support multiple terminals in the curses module (GH-151748)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 1084,
+    "section": 1044
+   }
+  ]
+ },
+ {
+  "commit": "a46db4f8ba4aa84e0fc5b6986c2388cae2e873ae",
+  "subject": "Capitalize first word in `unittest.mock.assert_*` docs and docstrings (#151951)",
+  "query": "Capitalize first word in `unittest.mock.assert_*` docs and docstrings (#151951)",
+  "answers": [
+   {
+    "file": "Doc/library/unittest.mock.rst",
+    "line": 352,
+    "section": 198
+   }
+  ]
+ },
+ {
+  "commit": "ee78d4323c174d0281fef5e04e965cda4c46eeb7",
+  "subject": "gh-84008: Document that the LC_NUMERIC locale affects tkinter numeric widgets (GH-152008)",
+  "query": "Document that the LC_NUMERIC locale affects tkinter numeric widgets (GH-152008)",
+  "answers": [
+   {
+    "file": "Doc/library/tkinter.rst",
+    "line": 5134,
+    "section": 3555
+   },
+   {
+    "file": "Doc/library/tkinter.ttk.rst",
+    "line": 476,
+    "section": 471
+   }
+  ]
+ },
+ {
+  "commit": "560ff8e2021d818555884622f6865f4a0d60756f",
+  "subject": "gh-87904: Document curses classes (GH-151643)",
+  "query": "Document curses classes (GH-151643)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.panel.rst",
+    "line": 19,
+    "section": 16
+   }
+  ]
+ },
+ {
+  "commit": "a5677bff845ba6e1e2a33255d2d72f7db3741fd2",
+  "subject": "gh-151757: Support wide and combining characters in the curses module (GH-151758)",
+  "query": "Support wide and combining characters in the curses module (GH-151758)",
+  "answers": [
+   {
+    "file": "Doc/library/curses.rst",
+    "line": 873,
+    "section": 858
+   }
+  ]
+ }
+]

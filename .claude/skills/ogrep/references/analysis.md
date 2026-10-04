@@ -37,6 +37,12 @@ answer. `docs/REFERENCE.md` in the ogrep repository has the measurements.
     dropped.
   - **Scoring:** files are scored with BM25 plus `--rank`'s priors, and each file
     shows the lines with the most different terms.
+  - **Prose:** Markdown, reStructuredText, AsciiDoc and `.txt` files with headings
+    are also scored by their best heading section. That section is printed as a
+    `path=LINE=Heading` row (a `scope` record whose `chain` lists the enclosing
+    headings) and supplies the lines shown. Code files score exactly as before.
+    On documentation tasks the right file came first 7–10 points more often, and
+    the right section 8–26 points more often.
   - **Refusals:** `-e`, `-f`, `--ident`, `-w`, `-x` and `--at`. Also a text with
     no usable word, which exits 2: today that includes descriptions with no
     ASCII words, such as Chinese.

@@ -1,0 +1,3792 @@
+[
+ {
+  "commit": "965f89794fd9395ad5b49dd0adb3c04d8b5c5e13",
+  "subject": "polished Readme and llama-bench (#28968)",
+  "query": "polished Readme and llama-bench (#28968)",
+  "answers": [
+   {
+    "file": "tools/llama-bench/README.md",
+    "line": 79,
+    "section": 20
+   }
+  ]
+ },
+ {
+  "commit": "e9f824d8c0f011662a742c9d15d4aa18a41e32c0",
+  "subject": "llama : add `llama_prec_policy` + model-driven W4A4 path (#24364)",
+  "query": "llama : add `llama_prec_policy` + model-driven W4A4 path (#24364)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 287,
+    "section": 285
+   }
+  ]
+ },
+ {
+  "commit": "cd74ef6274e55b1591373637cc35324af000a5ee",
+  "subject": "[SYCL] support sparse FA (#28796)",
+  "query": "[SYCL] support sparse FA (#28796)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 814,
+    "section": 789
+   }
+  ]
+ },
+ {
+  "commit": "f9af9be219ca647a59106f6201bf0d85fab00224",
+  "subject": "musa: fix PH1 (MTT S5000) operator failures and build issues (#29193)",
+  "query": "musa: fix PH1 (MTT S5000) operator failures and build issues (#29193)",
+  "answers": [
+   {
+    "file": "ci/README-MUSA.md",
+    "line": 24,
+    "section": 17
+   },
+   {
+    "file": "docs/build.md",
+    "line": 333,
+    "section": 328
+   }
+  ]
+ },
+ {
+  "commit": "53ed051ce5e8193652e449f43216ca3859454f49",
+  "subject": "cuda : add conv3d with implicit GEMM (#29137)",
+  "query": "cuda : add conv3d with implicit GEMM (#29137)",
+  "answers": [
+   {
+    "file": "docs/ops.md",
+    "line": 32,
+    "section": 5
+   }
+  ]
+ },
+ {
+  "commit": "ee3ecce05ca9f3b77927a145b4ef4e3abea81316",
+  "subject": "metal : key the fa-vec tuned table by family instead of SKU (#29075)",
+  "query": "metal : key the fa-vec tuned table by family instead of SKU (#29075)",
+  "answers": [
+   {
+    "file": "tools/tuning/README.md",
+    "line": 29,
+    "section": 13
+   }
+  ]
+ },
+ {
+  "commit": "4d7d7703fee56056f8a63f26bb92ef7e3edfca79",
+  "subject": "sycl : support op get_rows_back, only support fp32/fp16 (#25266)",
+  "query": "sycl : support op get_rows_back, only support fp32/fp16 (#25266)",
+  "answers": [
+   {
+    "file": "docs/ops.md",
+    "line": 63,
+    "section": 5
+   }
+  ]
+ },
+ {
+  "commit": "217f81c266a7b7c986ee3d2c58e1cccee05a0744",
+  "subject": "server: Add support for binding to multiple addresses (#28690)",
+  "query": "server: Add support for binding to multiple addresses (#28690)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 192,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "0c3626ec06e913e2aa5ee62256d63ed0d95d969e",
+  "subject": "hexagon: overhaul of buffer and DMA handling to support 64bit mappings + improvements (#29197)",
+  "query": "hexagon: overhaul of buffer and DMA handling to support 64bit mappings + improvements (#29197)",
+  "answers": [
+   {
+    "file": "docs/backend/snapdragon/README.md",
+    "line": 330,
+    "section": 307
+   },
+   {
+    "file": "docs/backend/snapdragon/developer.md",
+    "line": 149,
+    "section": 149
+   }
+  ]
+ },
+ {
+  "commit": "ebbb185227c31f1652f1445e2623563d2f67fe5a",
+  "subject": "openvino : Update OpenVINO to 2026.4;fix clangd,MSVC warnings;  (#29009)",
+  "query": "openvino : Update OpenVINO to 2026.4;fix clangd,MSVC warnings;  (#29009)",
+  "answers": [
+   {
+    "file": "docs/backend/OPENVINO.md",
+    "line": 15,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "6011c34ce6099646ccdf0d39a61c6e681477c178",
+  "subject": "docs: Rule of thumb for AI review time [no ci] (#28945)",
+  "query": "docs: Rule of thumb for AI review time [no ci] (#28945)",
+  "answers": [
+   {
+    "file": "CONTRIBUTING.md",
+    "line": 23,
+    "section": 9
+   }
+  ]
+ },
+ {
+  "commit": "77d554b26d88c96a3dbc0e685233312f064c93ee",
+  "subject": "OpenVINO: optimize stateful decode and GPU MoE inference (#28638)",
+  "query": "OpenVINO: optimize stateful decode and GPU MoE inference (#28638)",
+  "answers": [
+   {
+    "file": "docs/backend/OPENVINO.md",
+    "line": 724,
+    "section": 709
+   }
+  ]
+ },
+ {
+  "commit": "4c9233c034fc450dcf34c7c0988aebe6da5cdf1a",
+  "subject": "cuda : enable i16 and i32 for DUP (#28897)",
+  "query": "cuda : enable i16 and i32 for DUP (#28897)",
+  "answers": [
+   {
+    "file": "docs/ops.md",
+    "line": 47,
+    "section": 5
+   }
+  ]
+ },
+ {
+  "commit": "69eb250670f471586fcec69caacd3c014aefb185",
+  "subject": "cmake : use PROJECT_SOURCE_DIR instead of CMAKE_SOURCE_DIR (#28771)",
+  "query": "cmake : use PROJECT_SOURCE_DIR instead of CMAKE_SOURCE_DIR (#28771)",
+  "answers": [
+   {
+    "file": "examples/test-cmake/README.md",
+    "line": 9,
+    "section": 8
+   }
+  ]
+ },
+ {
+  "commit": "bbdd9f246e9667f9aeb7ad11cca269466f981184",
+  "subject": "tests : add fusion baseline README and broaden fusion CI triggers (#28893)",
+  "query": "tests : add fusion baseline README and broaden fusion CI triggers (#28893)",
+  "answers": [
+   {
+    "file": "tests/fusion/README.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "b6b003d2cb29647d968302eb2db8da6f66303b3e",
+  "subject": "sycl : Fix get mem error (#28227)",
+  "query": "sycl : Fix get mem error (#28227)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 793,
+    "section": 789
+   }
+  ]
+ },
+ {
+  "commit": "eafe15a5e3d87dd68ae33acf6a7cbd9415a0ac5e",
+  "subject": "hexagon: support for multi-device model split (aka row-split) (#28589)",
+  "query": "hexagon: support for multi-device model split (aka row-split) (#28589)",
+  "answers": [
+   {
+    "file": "docs/backend/snapdragon/README.md",
+    "line": 191,
+    "section": 129
+   },
+   {
+    "file": "docs/backend/snapdragon/developer.md",
+    "line": 5,
+    "section": 3
+   }
+  ]
+ },
+ {
+  "commit": "d3146f2b56c2db4711ac8391871c9e529d1946d7",
+  "subject": "ggml-webgpu: Update to a recent version of Dawn (#28683)",
+  "query": "ggml-webgpu: Update to a recent version of Dawn (#28683)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 816,
+    "section": 814
+   }
+  ]
+ },
+ {
+  "commit": "3bcfeb700fce9ff38a050dcd3f6a856319e948ba",
+  "subject": "cmake : add PCH and unity build to improve build times (#28091)",
+  "query": "cmake : add PCH and unity build to improve build times (#28091)",
+  "answers": [
+   {
+    "file": "docs/build-profiling.md",
+    "line": 2,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "f1b6fbf35cfa010b0a8d6301fdfccbb7f41bd903",
+  "subject": "ggml-cpu(s390x): add Q1_0 vector intrinsic support (#28606)",
+  "query": "ggml-cpu(s390x): add Q1_0 vector intrinsic support (#28606)",
+  "answers": [
+   {
+    "file": "docs/build-s390x.md",
+    "line": 246,
+    "section": 239
+   }
+  ]
+ },
+ {
+  "commit": "5a4d0fecae272c9caf0b32eb384fa6a58dddb560",
+  "subject": "CUDA: replace GGML_FA_ALL_QUANTS with GGML_FA_QUANTS, more control over what is compiled (#28079)",
+  "query": "CUDA: replace GGML_FA_ALL_QUANTS with GGML_FA_QUANTS, more control over what is compiled (#28079)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 310,
+    "section": 302
+   }
+  ]
+ },
+ {
+  "commit": "415e909d84334a7b1f582229c166aa98be6c4678",
+  "subject": "spec: single device drafter should create meta backend wrapper (#28390)",
+  "query": "spec: single device drafter should create meta backend wrapper (#28390)",
+  "answers": [
+   {
+    "file": "tools/cli/README.md",
+    "line": 164,
+    "section": 141
+   },
+   {
+    "file": "tools/server/README.md",
+    "line": 182,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "3ad1ba7336986d98592d3e28cafd1a406715351f",
+  "subject": "[Model] Support for Spark2_5ForCausalLM  implementation (#27868)",
+  "query": "[Model] Support for Spark2_5ForCausalLM  implementation (#27868)",
+  "answers": [
+   {
+    "file": "docs/autoparser.md",
+    "line": 517,
+    "section": 479
+   }
+  ]
+ },
+ {
+  "commit": "cd8cdf397dc21d986e69069ce2180651d693fdff",
+  "subject": "sycl: attribute device allocations by site (GGML_SYCL_MEMTRACE) (#27631)",
+  "query": "sycl: attribute device allocations by site (GGML_SYCL_MEMTRACE) (#27631)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 809,
+    "section": 789
+   }
+  ]
+ },
+ {
+  "commit": "a529af96e2a6d4ec6ad65200514869ffa235a1e1",
+  "subject": "docs : update maintainer PRs link and regenerate AUTHORS (#28365)",
+  "query": "docs : update maintainer PRs link and regenerate AUTHORS (#28365)",
+  "answers": [
+   {
+    "file": "README.md",
+    "line": 16,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "6703d7894c70e8b076ce4608157d056e42e6889c",
+  "subject": "sycl: fuse rms_norm+mul+add and add+add residual chains (#27610)",
+  "query": "sycl: fuse rms_norm+mul+add and add+add residual chains (#27610)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 812,
+    "section": 789
+   }
+  ]
+ },
+ {
+  "commit": "159b741427337a2e9a58b08121001545d66b5825",
+  "subject": "finetune: fix no KV cache (#27199)",
+  "query": "finetune: fix no KV cache (#27199)",
+  "answers": [
+   {
+    "file": "examples/training/README.md",
+    "line": 9,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "7339054744f109c4cd89b75689dbb8a2c154d60e",
+  "subject": "mtmd: add mtmd_tokenize_from_parts() (#28250)",
+  "query": "mtmd: add mtmd_tokenize_from_parts() (#28250)",
+  "answers": [
+   {
+    "file": "tools/mtmd/README-dev.md",
+    "line": 23,
+    "section": 18
+   }
+  ]
+ },
+ {
+  "commit": "5eec3ad017623957679888ca454d7469f3dacf79",
+  "subject": "sycl : support limit max alloc memory within 2GB for host-pinned memory (#27559)",
+  "query": "sycl : support limit max alloc memory within 2GB for host-pinned memory (#27559)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 799,
+    "section": 789
+   }
+  ]
+ },
+ {
+  "commit": "518b76236b1f72a186deb5fcabc7b6e59e21fbc4",
+  "subject": "kleidiai : Update KleidiAI Documentation (#26078)",
+  "query": "kleidiai : Update KleidiAI Documentation (#26078)",
+  "answers": [
+   {
+    "file": "docs/android.md",
+    "line": 56,
+    "section": 55
+   },
+   {
+    "file": "docs/build.md",
+    "line": 625,
+    "section": 624
+   }
+  ]
+ },
+ {
+  "commit": "d7bd3bfcad3e29c7e49fd26f38c79ee3e9a3fd6b",
+  "subject": "snapdragon: python SDK setup (Windows) (#27903)",
+  "query": "snapdragon: python SDK setup (Windows) (#27903)",
+  "answers": [
+   {
+    "file": "docs/backend/snapdragon/windows.md",
+    "line": 29,
+    "section": 27
+   }
+  ]
+ },
+ {
+  "commit": "511f9c1379a52516f328859af86daa124eddc717",
+  "subject": "OpenVINO: Update OV to 2026.3.1, whisper.cpp support, Qwen3.5 on NPU, and new ops (#27843)",
+  "query": "OpenVINO: Update OV to 2026.3.1, whisper.cpp support, Qwen3.5 on NPU, and new ops (#27843)",
+  "answers": [
+   {
+    "file": "docs/backend/OPENVINO.md",
+    "line": 27,
+    "section": 17
+   }
+  ]
+ },
+ {
+  "commit": "18443257a30c884d5332abb8e7dc43c7ffe42fda",
+  "subject": "server: add ctx-per-slot (--kv-unified-per-slot) (#24124)",
+  "query": "server: add ctx-per-slot (--kv-unified-per-slot) (#24124)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 164,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "f29551215b71778566afef659c8d4b672d7d49ef",
+  "subject": "args: add --video-* CLI arguments (#24318)",
+  "query": "args: add --video-* CLI arguments (#24318)",
+  "answers": [
+   {
+    "file": "tools/cli/README.md",
+    "line": 168,
+    "section": 141
+   },
+   {
+    "file": "tools/server/README.md",
+    "line": 186,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "b114b47397c287f969e8d02053c880e83e8c40c3",
+  "subject": "rpc: support apple RDMA as an RPC transport (#26421)",
+  "query": "rpc: support apple RDMA as an RPC transport (#26421)",
+  "answers": [
+   {
+    "file": "tools/rpc/README.md",
+    "line": 100,
+    "section": 98
+   }
+  ]
+ },
+ {
+  "commit": "f280b26983ad0fdb705a0d9ebf0503e76f2899b0",
+  "subject": "metal : per-device tuned (Q, NE) for flash-attn vec (#26570)",
+  "query": "metal : per-device tuned (Q, NE) for flash-attn vec (#26570)",
+  "answers": [
+   {
+    "file": "tools/tuning/README.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "4a08fa29705b8177e332b134306566c2c4b95902",
+  "subject": "test: move tools/parser to tests (#27548)",
+  "query": "test: move tools/parser to tests (#27548)",
+  "answers": [
+   {
+    "file": "docs/autoparser.md",
+    "line": 446,
+    "section": 435
+   },
+   {
+    "file": "skills/add-new-model/SKILL.md",
+    "line": 69,
+    "section": 61
+   }
+  ]
+ },
+ {
+  "commit": "a278dcef04f2ce950d3a17d8aa76d4ef86483e0e",
+  "subject": "contrib : recommend waiting for CI before merging (#27603)",
+  "query": "contrib : recommend waiting for CI before merging (#27603)",
+  "answers": [
+   {
+    "file": "CONTRIBUTING.md",
+    "line": 77,
+    "section": 67
+   }
+  ]
+ },
+ {
+  "commit": "d9f918d2d06079b4336688e819eee821c8a9cd9e",
+  "subject": "common: add json.h abstraction (#27511)",
+  "query": "common: add json.h abstraction (#27511)",
+  "answers": [
+   {
+    "file": "common/jinja/README.md",
+    "line": 10,
+    "section": 7
+   }
+  ]
+ },
+ {
+  "commit": "9fee29e9435f865ec0b811a783a6471a136d9317",
+  "subject": "arg: remove -no-cnv from cli [no ci] (#27542)",
+  "query": "arg: remove -no-cnv from cli [no ci] (#27542)",
+  "answers": [
+   {
+    "file": "AGENTS.md",
+    "line": 87,
+    "section": 69
+   }
+  ]
+ },
+ {
+  "commit": "3aeb924628c7113b9764b2ec2f3aebc6c51b27a5",
+  "subject": "readme : fix server badge alt (#27533)",
+  "query": "readme : fix server badge alt (#27533)",
+  "answers": [
+   {
+    "file": "README.md",
+    "line": 12,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "2100e592600e4538496fd5201cbe6a7f8fbeb1e0",
+  "subject": "readme : update badges (#27531)",
+  "query": "readme : update badges (#27531)",
+  "answers": [
+   {
+    "file": "README.md",
+    "line": 10,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "9a286ac98d2cab74231bd3f1fc3f2b8bdf05422e",
+  "subject": "docs: improve Windows build instructions (#27381)",
+  "query": "docs: improve Windows build instructions (#27381)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 74,
+    "section": 33
+   }
+  ]
+ },
+ {
+  "commit": "873e5d8e39feb34a376e0efd01bf3f665dfffeb5",
+  "subject": "model: use ggml_rope_set_offset() (#27382)",
+  "query": "model: use ggml_rope_set_offset() (#27382)",
+  "answers": [
+   {
+    "file": "docs/development/HOWTO-add-model.md",
+    "line": 169,
+    "section": 169
+   }
+  ]
+ },
+ {
+  "commit": "a298422da78eb75e440a7de0ca408af64d323d93",
+  "subject": "docs: fix typos in ET.md (#27457)",
+  "query": "docs: fix typos in ET.md (#27457)",
+  "answers": [
+   {
+    "file": "docs/backend/ET.md",
+    "line": 119,
+    "section": 108
+   }
+  ]
+ },
+ {
+  "commit": "681c29d36a13be54d317ee147b272da9163dbef3",
+  "subject": "mtmd: add --mmproj-device argument (#23255)",
+  "query": "mtmd: add --mmproj-device argument (#23255)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 204,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "9855ad69d38c6b8ca9e1e552646ea2566fd932d9",
+  "subject": "server: (router) lazy-load startup_models after main setup (#27424)",
+  "query": "server: (router) lazy-load startup_models after main setup (#27424)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1767,
+    "section": 1712
+   }
+  ]
+ },
+ {
+  "commit": "947fd9bb2bdeaa72e9dd74b6aa3b5d68f03f3d6a",
+  "subject": "server: refactor sleep handling, allow access /metrics during sleep (#27376)",
+  "query": "server: refactor sleep handling, allow access /metrics during sleep (#27376)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 296,
+    "section": 294
+   }
+  ]
+ },
+ {
+  "commit": "95c409c13625a23da2aa37270339ce9179215a18",
+  "subject": "mtmd: add mtmd_bitmap_set_mergeable (#27348)",
+  "query": "mtmd: add mtmd_bitmap_set_mergeable (#27348)",
+  "answers": [
+   {
+    "file": "tools/mtmd/README-dev.md",
+    "line": 25,
+    "section": 18
+   }
+  ]
+ },
+ {
+  "commit": "ee4c505a4fb37be8ea37a78af272e74dad2835c1",
+  "subject": "server: add dedup-cache-models preset option (#27346)",
+  "query": "server: add dedup-cache-models preset option (#27346)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1769,
+    "section": 1712
+   }
+  ]
+ },
+ {
+  "commit": "169e4a7ff201e666c2325bcd35afb64573e39d09",
+  "subject": "readme : update status badges + regen AUTHORS (#27317)",
+  "query": "readme : update status badges + regen AUTHORS (#27317)",
+  "answers": [
+   {
+    "file": "README.md",
+    "line": 13,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "27e345b574dd8c8838e2c06e47699a3135f16ec9",
+  "subject": "build : fix xcframework + cmake clean-up (#27304)",
+  "query": "build : fix xcframework + cmake clean-up (#27304)",
+  "answers": [
+   {
+    "file": "README.md",
+    "line": 123,
+    "section": 120
+   }
+  ]
+ },
+ {
+  "commit": "0021a77de0a8966059dc94548fb3b96654e0bb12",
+  "subject": "ui: Refactor Built-In Tools naming (Server/Browser) (#27271)",
+  "query": "ui: Refactor Built-In Tools naming (Server/Browser) (#27271)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 192,
+    "section": 183
+   },
+   {
+    "file": "tools/server/README.md",
+    "line": 349,
+    "section": 347
+   }
+  ]
+ },
+ {
+  "commit": "087f94d82e597a966c78d2c0afd2b34df561ea34",
+  "subject": "doc: document MCP stdio servers and CORS defaults in the server README [no release] [no ci] (#26847)",
+  "query": "doc: document MCP stdio servers and CORS defaults in the server README [no release] [no ci] (#26847)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 355,
+    "section": 353
+   }
+  ]
+ },
+ {
+  "commit": "666f8898a25a2d5e86cd53ea4dfa4e24e4426439",
+  "subject": "ui: move get_datetime tool to frontend (#27255)",
+  "query": "ui: move get_datetime tool to frontend (#27255)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 204,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "9cd719af2107e8f86313994d5463e94f6a730916",
+  "subject": "model: support speculators-format checkpoints for DSpark (#26275)",
+  "query": "model: support speculators-format checkpoints for DSpark (#26275)",
+  "answers": [
+   {
+    "file": "docs/speculative.md",
+    "line": 109,
+    "section": 81
+   }
+  ]
+ },
+ {
+  "commit": "7c35571e5dd2e577eddaca7e0ffa7cf46a54fcf2",
+  "subject": "ci : allow make-release to target a specific commit (#27234)",
+  "query": "ci : allow make-release to target a specific commit (#27234)",
+  "answers": [
+   {
+    "file": "docs/release.md",
+    "line": 32,
+    "section": 27
+   }
+  ]
+ },
+ {
+  "commit": "fa88ae9368f7d2ce6669be3a7e6e25f9c426e6a6",
+  "subject": "convert: add @ModelBase.example (#27208)",
+  "query": "convert: add @ModelBase.example (#27208)",
+  "answers": [
+   {
+    "file": "docs/development/HOWTO-add-model.md",
+    "line": 46,
+    "section": 19
+   }
+  ]
+ },
+ {
+  "commit": "27df9199d16c393868d20b3ed28b4f72e30de6bd",
+  "subject": "fix: check gguf array type before reading (#27075)",
+  "query": "fix: check gguf array type before reading (#27075)",
+  "answers": [
+   {
+    "file": "skills/code-review/SKILL.md",
+    "line": 49,
+    "section": 43
+   }
+  ]
+ },
+ {
+  "commit": "885c5bbe8e04dc78db25beb911a2715312ad7b54",
+  "subject": "tests : replace personal home directory paths with generic placeholders (#27043)",
+  "query": "tests : replace personal home directory paths with generic placeholders (#27043)",
+  "answers": [
+   {
+    "file": "examples/test-cmake/README.md",
+    "line": 31,
+    "section": 8
+   }
+  ]
+ },
+ {
+  "commit": "aee56b3abfeb134218fe5c496c329a1faac1ef28",
+  "subject": "OpenVINO: Qwen3.5, memory optimization, and test-recurrent-state-rollback (#26952)",
+  "query": "OpenVINO: Qwen3.5, memory optimization, and test-recurrent-state-rollback (#26952)",
+  "answers": [
+   {
+    "file": "docs/backend/OPENVINO.md",
+    "line": 216,
+    "section": 200
+   }
+  ]
+ },
+ {
+  "commit": "8efbf65dbd55bc2387d9632ce2f3cd66d33b3813",
+  "subject": "sycl : Add DMMV ESIMD Q3_K kernel (#26251)",
+  "query": "sycl : Add DMMV ESIMD Q3_K kernel (#26251)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 813,
+    "section": 789
+   }
+  ]
+ },
+ {
+  "commit": "8e7f22b67ef4667b4ddd50230771287f328cfb3f",
+  "subject": "common: add system-level config file (#26118)",
+  "query": "common: add system-level config file (#26118)",
+  "answers": [
+   {
+    "file": "docs/preset.md",
+    "line": 7,
+    "section": 7
+   }
+  ]
+ },
+ {
+  "commit": "4dd127584b87d1b12b6a33c2213197234503d8f7",
+  "subject": "ui: add read_media tool (#25877)",
+  "query": "ui: add read_media tool (#25877)",
+  "answers": [
+   {
+    "file": "tools/ui/tests/client/README-perf.md",
+    "line": 36,
+    "section": 32
+   }
+  ]
+ },
+ {
+  "commit": "f785fc9ea485e6cfdda129978310aa52939c3619",
+  "subject": "spec : update speculative-simple (#26904)",
+  "query": "spec : update speculative-simple (#26904)",
+  "answers": [
+   {
+    "file": "examples/speculative-simple/README.md",
+    "line": 8,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "6e62ba538478202094edc6c100c782719e310aa3",
+  "subject": "mtmd: support pocket-tts (#26871)",
+  "query": "mtmd: support pocket-tts (#26871)",
+  "answers": [
+   {
+    "file": "tools/mtmd/README-dev.md",
+    "line": 63,
+    "section": 61
+   },
+   {
+    "file": "tools/tts/README.md",
+    "line": 39,
+    "section": 36
+   }
+  ]
+ },
+ {
+  "commit": "dd1ea524333b1e697489067d7a4c39c60d32beee",
+  "subject": "llama : support multi-output backend sampling (#25532)",
+  "query": "llama : support multi-output backend sampling (#25532)",
+  "answers": [
+   {
+    "file": "docs/speculative.md",
+    "line": 211,
+    "section": 209
+   }
+  ]
+ },
+ {
+  "commit": "c1f41098988a797fd562782d1e3961fbb0f291f5",
+  "subject": "sycl : update guide Q&A and script for device setting (#26442)",
+  "query": "sycl : update guide Q&A and script for device setting (#26442)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 911,
+    "section": 863
+   }
+  ]
+ },
+ {
+  "commit": "9303cdd8d30ae0d37a517366771e0e162d525f95",
+  "subject": "security : clarify about AI-generated reports (#26579)",
+  "query": "security : clarify about AI-generated reports (#26579)",
+  "answers": [
+   {
+    "file": "SECURITY.md",
+    "line": 26,
+    "section": 24
+   }
+  ]
+ },
+ {
+  "commit": "a035a88878ad4d48c1e1b41cf83b0c11aea64bdb",
+  "subject": "server: Adding spec-decode counters to /metrics endpoint (#26389)",
+  "query": "server: Adding spec-decode counters to /metrics endpoint (#26389)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1143,
+    "section": 1128
+   }
+  ]
+ },
+ {
+  "commit": "99111b19ce482f081e92ec6c6cdbe6a4c815c515",
+  "subject": "server: add get_info tool (#26522)",
+  "query": "server: add get_info tool (#26522)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 206,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "f2b52a87e82fa461191565a19d4ef9fd8b8fbd87",
+  "subject": "server: (tools) add x-tool-cwd header (#26420)",
+  "query": "server: (tools) add x-tool-cwd header (#26420)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 203,
+    "section": 183
+   }
+  ]
+ },
+ {
+  "commit": "89482bd665673362b59c57d63295bd7c8259af62",
+  "subject": "agents: clarify comment style and jinja knowledge (#26405)",
+  "query": "agents: clarify comment style and jinja knowledge (#26405)",
+  "answers": [
+   {
+    "file": "AGENTS.md",
+    "line": 75,
+    "section": 69
+   },
+   {
+    "file": "skills/code-review/SKILL.md",
+    "line": 52,
+    "section": 43
+   }
+  ]
+ },
+ {
+  "commit": "9d9a6d29f6b981cc7f41983d26e56485c6af1811",
+  "subject": "SYCL: add oneMKL GEMM flash attention for XMX-accelerated prompt proc\u2026 (#25025)",
+  "query": "SYCL: add oneMKL GEMM flash attention for XMX-accelerated prompt proc\u2026 (#25025)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 807,
+    "section": 789
+   }
+  ]
+ },
+ {
+  "commit": "1c5b89ff63151b5388cb5abb9357cebe446997c7",
+  "subject": "sycl : support dev2dev memcpy by DEV2DEV_MEMCPY_FORWARD (#26234)",
+  "query": "sycl : support dev2dev memcpy by DEV2DEV_MEMCPY_FORWARD (#26234)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 795,
+    "section": 789
+   }
+  ]
+ },
+ {
+  "commit": "ad77bd31a609f3117ebc1754ac278ff38975725c",
+  "subject": "docs: Adapt conda-forge package name (#26229)",
+  "query": "docs: Adapt conda-forge package name (#26229)",
+  "answers": [
+   {
+    "file": "docs/install.md",
+    "line": 19,
+    "section": 11
+   }
+  ]
+ },
+ {
+  "commit": "d6b61ac0d361acbb0b1ac2e160cb8698baaddd6e",
+  "subject": "sycl: fix use-after-return of the SDPA scale in the oneDNN flash-attention path (#25880)",
+  "query": "sycl: fix use-after-return of the SDPA scale in the oneDNN flash-attention path (#25880)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 804,
+    "section": 789
+   }
+  ]
+ },
+ {
+  "commit": "c6292cfb8e964bd9f2146f3c603507627e4a22c3",
+  "subject": "contrib : add guideline about the \"merge ready\" label (#26178)",
+  "query": "contrib : add guideline about the \"merge ready\" label (#26178)",
+  "answers": [
+   {
+    "file": "CONTRIBUTING.md",
+    "line": 76,
+    "section": 67
+   }
+  ]
+ },
+ {
+  "commit": "419b881c02dcbdd7ecc47d2b5c935e269642269d",
+  "subject": "docs: add exception about weight folding (#26168)",
+  "query": "docs: add exception about weight folding (#26168)",
+  "answers": [
+   {
+    "file": "docs/development/HOWTO-add-model.md",
+    "line": 152,
+    "section": 144
+   },
+   {
+    "file": "skills/add-new-model/SKILL.md",
+    "line": 79,
+    "section": 61
+   }
+  ]
+ },
+ {
+  "commit": "d73c1d6b22a2d3ecc74c2c9cde354015ee72e862",
+  "subject": "server + ui: fix stream routes for model names containing a slash (#26137)",
+  "query": "server + ui: fix stream routes for model names containing a slash (#26137)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 139,
+    "section": 121
+   }
+  ]
+ },
+ {
+  "commit": "3d1c3a8975f970a8e5f99ea648733087b52124c5",
+  "subject": "mtmd: Add Vision Support for Minimax-M3 (#25113)",
+  "query": "mtmd: Add Vision Support for Minimax-M3 (#25113)",
+  "answers": [
+   {
+    "file": "skills/code-review/SKILL.md",
+    "line": 116,
+    "section": 116
+   }
+  ]
+ },
+ {
+  "commit": "20455a4ad336e958cfe8f82efce2c46cd44c4fa3",
+  "subject": "server: support MCP stdio (#26062)",
+  "query": "server: support MCP stdio (#26062)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 206,
+    "section": 183
+   }
+  ]
+ },
+ {
+  "commit": "555881ebc8b0fc0402b30e09258a32a7bfd13c52",
+  "subject": "ui: reduce per-token render cost when streaming  (#26053)",
+  "query": "ui: reduce per-token render cost when streaming  (#26053)",
+  "answers": [
+   {
+    "file": "tools/ui/tests/client/README-perf.md",
+    "line": 1,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "ed7adbfefd5e3af5f1c7c04ac67145783def85c5",
+  "subject": "opencl: cache compiled cl_program binaries on disk (#26050)",
+  "query": "opencl: cache compiled cl_program binaries on disk (#26050)",
+  "answers": [
+   {
+    "file": "docs/backend/OPENCL.md",
+    "line": 103,
+    "section": 101
+   }
+  ]
+ },
+ {
+  "commit": "da296d6e726654949bce10d7cae9a2195d292bfc",
+  "subject": "contrib: fix leftovers from the AI usage policy update (#26030)",
+  "query": "contrib: fix leftovers from the AI usage policy update (#26030)",
+  "answers": [
+   {
+    "file": "AGENTS.md",
+    "line": 31,
+    "section": 29
+   },
+   {
+    "file": "CONTRIBUTING.md",
+    "line": 15,
+    "section": 9
+   }
+  ]
+ },
+ {
+  "commit": "4310aa4f871c104698f6a6614a362bdec87c247a",
+  "subject": "contrib: allow all AI-generated code in general (#26012)",
+  "query": "contrib: allow all AI-generated code in general (#26012)",
+  "answers": [
+   {
+    "file": "AGENTS.md",
+    "line": 5,
+    "section": 1
+   },
+   {
+    "file": "CONTRIBUTING.md",
+    "line": 13,
+    "section": 9
+   }
+  ]
+ },
+ {
+  "commit": "ac2557cb24def295888ef47f1a35b401d978c510",
+  "subject": "docs: added a note about using OpenCl with Adreno 810 (#25786)",
+  "query": "docs: added a note about using OpenCl with Adreno 810 (#25786)",
+  "answers": [
+   {
+    "file": "docs/backend/OPENCL.md",
+    "line": 50,
+    "section": 43
+   }
+  ]
+ },
+ {
+  "commit": "c92e806d1c81091c9035edce99c35374da1b465e",
+  "subject": "server: allow stream for exec_shell_command (#25526)",
+  "query": "server: allow stream for exec_shell_command (#25526)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 242,
+    "section": 183
+   }
+  ]
+ },
+ {
+  "commit": "ea1f7bbb5df26fbc18e8d46f72a6de43a84616dd",
+  "subject": "server: refactor server_stream (#25541)",
+  "query": "server: refactor server_stream (#25541)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 129,
+    "section": 121
+   }
+  ]
+ },
+ {
+  "commit": "082b326fc76f6e9bbb835b3920a3022bfdb6691c",
+  "subject": "ggml-et: Initial ET backend  (#24179)",
+  "query": "ggml-et: Initial ET backend  (#24179)",
+  "answers": [
+   {
+    "file": "docs/backend/ET.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "c15c5c77a426f73ff74884219330590ab3db9ddf",
+  "subject": "meta: add hard emphasis on agents not writing descriptions/comments (#25480)",
+  "query": "meta: add hard emphasis on agents not writing descriptions/comments (#25480)",
+  "answers": [
+   {
+    "file": "AGENTS.md",
+    "line": 99,
+    "section": 89
+   }
+  ]
+ },
+ {
+  "commit": "bbebeec4a87355896e3faac0c2baca8130c91b6a",
+  "subject": "server-stream: follow-up on SSE Replay Buffer (#23226) (#25047)",
+  "query": "server-stream: follow-up on SSE Replay Buffer (#23226) (#25047)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 60,
+    "section": 39
+   }
+  ]
+ },
+ {
+  "commit": "f296fdfbed71e900a3e0d6579673960e6a560654",
+  "subject": "common: auto-create prompts-log-dir at argument parsing, so all tools using the flag benefit (#25322)",
+  "query": "common: auto-create prompts-log-dir at argument parsing, so all tools using the flag benefit (#25322)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 245,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "26145b3db738ee257a75e80a0dd42a1e37196ce7",
+  "subject": "sycl : rename the env vars from \"disable\" to \"enable\" (#25042)",
+  "query": "sycl : rename the env vars from \"disable\" to \"enable\" (#25042)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 797,
+    "section": 789
+   }
+  ]
+ },
+ {
+  "commit": "74976e1aefd8d64845ae5510674b36079c855c0c",
+  "subject": "CUDA: remove -sm row, refactor cuBLAS (#24216)",
+  "query": "CUDA: remove -sm row, refactor cuBLAS (#24216)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 280,
+    "section": 280
+   }
+  ]
+ },
+ {
+  "commit": "b5315e16e0c3d19707d4a3e3a9f727f1141d2282",
+  "subject": "server + ui: ping silent SSE streams every 1s and kick only after 3s so slow prefill never drops healthy connections (#25241)",
+  "query": "server + ui: ping silent SSE streams every 1s and kick only after 3s so slow prefill never drops healthy connections (#25241)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 597,
+    "section": 483
+   }
+  ]
+ },
+ {
+  "commit": "4fc4ec5541b243957ae5099edb67372f8f3b550e",
+  "subject": "opencl: allow loading precompiled binary kernels from library (#23042)",
+  "query": "opencl: allow loading precompiled binary kernels from library (#23042)",
+  "answers": [
+   {
+    "file": "docs/backend/OPENCL.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "d1b34251bc57b696a5c91968069f8a0e6be13ef4",
+  "subject": "spec : add DFlash support (#22105)",
+  "query": "spec : add DFlash support (#22105)",
+  "answers": [
+   {
+    "file": "docs/speculative.md",
+    "line": 55,
+    "section": 55
+   }
+  ]
+ },
+ {
+  "commit": "c299a92c38b6de6a1139617652b66081828648db",
+  "subject": "binaries : Improve rpc-server and export-graph-ops names. (#25045)",
+  "query": "binaries : Improve rpc-server and export-graph-ops names. (#25045)",
+  "answers": [
+   {
+    "file": "SECURITY.md",
+    "line": 92,
+    "section": 89
+   },
+   {
+    "file": "tools/rpc/README.md",
+    "line": 7,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "1a87dcdc452de056a66796b679e4ba7071488cf7",
+  "subject": "server + ui: SSE Replay Buffer (#23226)",
+  "query": "server + ui: SSE Replay Buffer (#23226)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 121,
+    "section": 121
+   }
+  ]
+ },
+ {
+  "commit": "e8ecce53b872257e173d9d491a57e7a09c7cd8cb",
+  "subject": "docs : Eagle3 qwen3 draft model support (#24977)",
+  "query": "docs : Eagle3 qwen3 draft model support (#24977)",
+  "answers": [
+   {
+    "file": "docs/speculative.md",
+    "line": 16,
+    "section": 16
+   }
+  ]
+ },
+ {
+  "commit": "721354fbdfb7743e2be2183d918a3cdb9276c70f",
+  "subject": "server: (router) move model downloading to dedicated process (#24834)",
+  "query": "server: (router) move model downloading to dedicated process (#24834)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 289,
+    "section": 276
+   }
+  ]
+ },
+ {
+  "commit": "6ee0f65793da4bca2301826f70383aef2da60345",
+  "subject": "server: refactor/generalize input file schema (#24299)",
+  "query": "server: refactor/generalize input file schema (#24299)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1332,
+    "section": 1308
+   }
+  ]
+ },
+ {
+  "commit": "0ef6f06d553b160d8fc1fba38f5848c7940873a2",
+  "subject": "docs/android.md: Add dependency `libandroid-spawn` for building in termux (#21812)",
+  "query": "docs/android.md: Add dependency `libandroid-spawn` for building in termux (#21812)",
+  "answers": [
+   {
+    "file": "docs/android.md",
+    "line": 32,
+    "section": 24
+   }
+  ]
+ },
+ {
+  "commit": "7c082bc417bbe53210a83df4ba5b49e18ce6193c",
+  "subject": "server: fix report progress for loading spec models, add \"stages\" list (#24870)",
+  "query": "server: fix report progress for loading spec models, add \"stages\" list (#24870)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1955,
+    "section": 1924
+   }
+  ]
+ },
+ {
+  "commit": "d6d899580dcf0e50a3d14453d3d082f6ed050450",
+  "subject": "server: real-time model load progress tracking via /models/sse (#24828)",
+  "query": "server: real-time model load progress tracking via /models/sse (#24828)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1971,
+    "section": 1924
+   }
+  ]
+ },
+ {
+  "commit": "2b686a9120e2f1f9eabb65a597a4eef03eea9d87",
+  "subject": "server: refactor child --> router communication (#24821)",
+  "query": "server: refactor child --> router communication (#24821)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 265,
+    "section": 265
+   }
+  ]
+ },
+ {
+  "commit": "fabde3bf5136940eb03821aa2490e2360093965b",
+  "subject": "arg: Add comment line support to --api-key-file (#23168)",
+  "query": "arg: Add comment line support to --api-key-file (#23168)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 213,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "8c2d6f6475f2586e079fa6677dec91088de85604",
+  "subject": "server: add --agent arg, remove redundant webui naming compat (#24801)",
+  "query": "server: add --agent arg, remove redundant webui naming compat (#24801)",
+  "answers": [
+   {
+    "file": "tools/cli/README.md",
+    "line": 165,
+    "section": 141
+   },
+   {
+    "file": "tools/server/README.md",
+    "line": 185,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "7b6c5a2aeda694dc3ea0479380ab27d0e63ce3d7",
+  "subject": "docs: fix export-lora --lora-scaled syntax [no release] (#24703)",
+  "query": "docs: fix export-lora --lora-scaled syntax [no release] (#24703)",
+  "answers": [
+   {
+    "file": "tools/export-lora/README.md",
+    "line": 9,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "552258c5350dcf86c6a1e9a2dcd45f06076a4667",
+  "subject": "server: (router) rework -hf preset repo (#24739)",
+  "query": "server: (router) rework -hf preset repo (#24739)",
+  "answers": [
+   {
+    "file": "docs/preset.md",
+    "line": 11,
+    "section": 11
+   }
+  ]
+ },
+ {
+  "commit": "24bba7b98ea1544cc89352c7a573baedcb831a64",
+  "subject": "mtmd: refactor preprocessor, add mtmd_image_preproc_out (#24736)",
+  "query": "mtmd: refactor preprocessor, add mtmd_image_preproc_out (#24736)",
+  "answers": [
+   {
+    "file": "docs/multimodal.md",
+    "line": 4,
+    "section": 1
+   },
+   {
+    "file": "tools/mtmd/README-dev.md",
+    "line": 5,
+    "section": 3
+   }
+  ]
+ },
+ {
+  "commit": "9724f664e803e70eb8d046a3fac411122ad42ff7",
+  "subject": "[SYCL] rename GGML_SYCL_SUPPORT_LEVEL_ZERO (#24719)",
+  "query": "[SYCL] rename GGML_SYCL_SUPPORT_LEVEL_ZERO (#24719)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 783,
+    "section": 772
+   }
+  ]
+ },
+ {
+  "commit": "6f1034b32af66d3efa2a572a386cc9bccb01ba55",
+  "subject": "[SYCL] support OPs: conv_2d, conv_2d_dw, conv2d_transpose (#24600)",
+  "query": "[SYCL] support OPs: conv_2d, conv_2d_dw, conv2d_transpose (#24600)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 166,
+    "section": 164
+   }
+  ]
+ },
+ {
+  "commit": "4b4d13ae721e5eb79b749ca2c6feefd157f90ed7",
+  "subject": "server: (router) add model management API (#23976)",
+  "query": "server: (router) add model management API (#23976)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 276,
+    "section": 276
+   },
+   {
+    "file": "tools/server/README.md",
+    "line": 1868,
+    "section": 1797
+   }
+  ]
+ },
+ {
+  "commit": "890f1a27ed4810d9655fc3f748d9b6bc483932fb",
+  "subject": "openvino: OV 2026.2, context-shift, Q5_1 support, gemma4 dense/embedding, and -fa off (#24503)",
+  "query": "openvino: OV 2026.2, context-shift, Q5_1 support, gemma4 dense/embedding, and -fa off (#24503)",
+  "answers": [
+   {
+    "file": "docs/backend/OPENVINO.md",
+    "line": 19,
+    "section": 17
+   }
+  ]
+ },
+ {
+  "commit": "9b260fc9efff574394bd4948ffaf533ef1d00082",
+  "subject": "sycl: Add optional USM system allocations (#22526)",
+  "query": "sycl: Add optional USM system allocations (#22526)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 819,
+    "section": 789
+   }
+  ]
+ },
+ {
+  "commit": "4196b477da74a9a4d24b4ea40ec99b63df788c45",
+  "subject": "sycl : Make GGML_SYCL_F16=ON the default (#23996)",
+  "query": "sycl : Make GGML_SYCL_F16=ON the default (#23996)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 328,
+    "section": 311
+   }
+  ]
+ },
+ {
+  "commit": "a1eb756c0b7c03257637a21c66f0c88e8c1dd35c",
+  "subject": "docs: Add instructions to install `llama.cpp` from conda-forge (#22219)",
+  "query": "docs: Add instructions to install `llama.cpp` from conda-forge (#22219)",
+  "answers": [
+   {
+    "file": "docs/install.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "8edaca9034bd6dbe729895315b922bdd90d9766b",
+  "subject": "docs : fix typos in CUDA-FEDORA.md and grammars/README.md (#24459)",
+  "query": "docs : fix typos in CUDA-FEDORA.md and grammars/README.md (#24459)",
+  "answers": [
+   {
+    "file": "docs/backend/CUDA-FEDORA.md",
+    "line": 273,
+    "section": 255
+   },
+   {
+    "file": "grammars/README.md",
+    "line": 230,
+    "section": 225
+   }
+  ]
+ },
+ {
+  "commit": "f7ca93d12c523491e9123ee7ce6a881447c20e52",
+  "subject": "ui: PWA support (#23871)",
+  "query": "ui: PWA support (#23871)",
+  "answers": [
+   {
+    "file": "README.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "961e9a3e46ca4cf7e6e86cfceb5b5e32084bf5f0",
+  "subject": "server : do not clear slots without unified KV cache (#24190)",
+  "query": "server : do not clear slots without unified KV cache (#24190)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 169,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "f5c6ae18278b75712fc992587d9ea527d4ea2218",
+  "subject": "mtmd, server: add \"placeholder bitmap\" for counting tokens , add */input_tokens API (#23913)",
+  "query": "mtmd, server: add \"placeholder bitmap\" for counting tokens , add */input_tokens API (#23913)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1540,
+    "section": 1540
+   }
+  ]
+ },
+ {
+  "commit": "9c955c48b0fc6c18c703ea5cba2cacb2db6332cb",
+  "subject": "Fix link to available UI settings (#24169)",
+  "query": "Fix link to available UI settings (#24169)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 2138,
+    "section": 2128
+   }
+  ]
+ },
+ {
+  "commit": "ad1b88ca0d37a2171efba1c04f1a3531c78f1b52",
+  "subject": "docs: Update quantization readme (#24133)",
+  "query": "docs: Update quantization readme (#24133)",
+  "answers": [
+   {
+    "file": "tools/quantize/README.md",
+    "line": 8,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "a121232fdc80ad93587adfce2c56452c9052b850",
+  "subject": "agents: refactor, include more guidelines (#24111)",
+  "query": "agents: refactor, include more guidelines (#24111)",
+  "answers": [
+   {
+    "file": "AGENTS.md",
+    "line": 11,
+    "section": 11
+   }
+  ]
+ },
+ {
+  "commit": "f478f1b6d766683702d3dcba67b6eb02a39d5ec6",
+  "subject": "sycl : Improve SYCL doc (#23025)",
+  "query": "sycl : Improve SYCL doc (#23025)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 47,
+    "section": 45
+   },
+   {
+    "file": "docs/docker.md",
+    "line": 149,
+    "section": 146
+   }
+  ]
+ },
+ {
+  "commit": "d5ab0834ab0960272a2230a6ec2e884c7a65d192",
+  "subject": "docs : update HOWTO-add-model.md (#23883)",
+  "query": "docs : update HOWTO-add-model.md (#23883)",
+  "answers": [
+   {
+    "file": "docs/development/HOWTO-add-model.md",
+    "line": 28,
+    "section": 19
+   }
+  ]
+ },
+ {
+  "commit": "f8e67fc58335a1495ca1b3cd6827cbd44503800e",
+  "subject": "ui: Add Thinking mode toggle with reasoning effort levels + improvements for Chat Form Add Action UI (#23434)",
+  "query": "ui: Add Thinking mode toggle with reasoning effort levels + improvements for Chat Form Add Action UI (#23434)",
+  "answers": [
+   {
+    "file": "tools/ui/README.md",
+    "line": 118,
+    "section": 107
+   }
+  ]
+ },
+ {
+  "commit": "354ebac8cb92e93eb6f22bd507d4249b6846b90d",
+  "subject": "server: real-time reasoning interruption via control endpoint (#23971)",
+  "query": "server: real-time reasoning interruption via control endpoint (#23971)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1324,
+    "section": 1308
+   }
+  ]
+ },
+ {
+  "commit": "02a57017f6b6bb399826f6faef095f9a04ee125b",
+  "subject": "security : disable private disclosures (#23963)",
+  "query": "security : disable private disclosures (#23963)",
+  "answers": [
+   {
+    "file": "SECURITY.md",
+    "line": 16,
+    "section": 13
+   }
+  ]
+ },
+ {
+  "commit": "e6123e2080f1689cd97926d30fa549981d5b0564",
+  "subject": "docs : update ZenDNN docs for Q8 support (#23791)",
+  "query": "docs : update ZenDNN docs for Q8 support (#23791)",
+  "answers": [
+   {
+    "file": "docs/backend/ZenDNN.md",
+    "line": 75,
+    "section": 69
+   }
+  ]
+ },
+ {
+  "commit": "aa46bda89b9a8378ae76bb15fc2ce2f571f0983c",
+  "subject": "Support `-fa auto` in llama-bench (#23714)",
+  "query": "Support `-fa auto` in llama-bench (#23714)",
+  "answers": [
+   {
+    "file": "tools/llama-bench/README.md",
+    "line": 29,
+    "section": 20
+   }
+  ]
+ },
+ {
+  "commit": "689a9a470e5d96a853731b2accd463475e5e9a19",
+  "subject": "server-bench : add speed-bench for speculative decoding benchmarking (#23869)",
+  "query": "server-bench : add speed-bench for speculative decoding benchmarking (#23869)",
+  "answers": [
+   {
+    "file": "docs/speculative.md",
+    "line": 448,
+    "section": 446
+   },
+   {
+    "file": "tools/server/bench/speed-bench/README.md",
+    "line": 1,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "06d26dfdff4097dc51eac20155371a9cfd53e094",
+  "subject": "download: add option to skip_download (#23059)",
+  "query": "download: add option to skip_download (#23059)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1825,
+    "section": 1797
+   }
+  ]
+ },
+ {
+  "commit": "751ebd17a58a8a513994509214373bb9e6a3d66c",
+  "subject": "mtmd-debug: add color and rainbow mode (#23829)",
+  "query": "mtmd-debug: add color and rainbow mode (#23829)",
+  "answers": [
+   {
+    "file": "tools/mtmd/debug/mtmd-debug.md",
+    "line": 23,
+    "section": 3
+   }
+  ]
+ },
+ {
+  "commit": "1d971bba36d535c40477e7bd0e001d600f48d8b2",
+  "subject": "docs : fix duplicated \"the\" in granitevision and model-conversion docs (#23767)",
+  "query": "docs : fix duplicated \"the\" in granitevision and model-conversion docs (#23767)",
+  "answers": [
+   {
+    "file": "docs/multimodal/granitevision.md",
+    "line": 179,
+    "section": 178
+   },
+   {
+    "file": "examples/model-conversion/README.md",
+    "line": 338,
+    "section": 336
+   }
+  ]
+ },
+ {
+  "commit": "35a74c8fb94b45cae4eec7696b0ed5b7a3ca16a1",
+  "subject": "ci : add `[no release]` keyword + fix sanitizer builds (#23728)",
+  "query": "ci : add `[no release]` keyword + fix sanitizer builds (#23728)",
+  "answers": [
+   {
+    "file": "CONTRIBUTING.md",
+    "line": 74,
+    "section": 67
+   }
+  ]
+ },
+ {
+  "commit": "581d020b122710d19ef7d5a10b96451be0a5d0af",
+  "subject": "SYCL: implement ggml_sycl_pool_vmm (#22862)",
+  "query": "SYCL: implement ggml_sycl_pool_vmm (#22862)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 806,
+    "section": 789
+   }
+  ]
+ },
+ {
+  "commit": "5fdf07e33bf35b8e6fbd33c393c0260fe208485a",
+  "subject": "ci : update spacemit toolchain url and enhance curl command (#23642)",
+  "query": "ci : update spacemit toolchain url and enhance curl command (#23642)",
+  "answers": [
+   {
+    "file": "docs/build-riscv64-spacemit.md",
+    "line": 8,
+    "section": 4
+   }
+  ]
+ },
+ {
+  "commit": "cec51c7a7d3d290b40a9980bfa55fb447b82f679",
+  "subject": "snapdragon: update windows toolchain to use hsdk v6.6.0.0 (#23552)",
+  "query": "snapdragon: update windows toolchain to use hsdk v6.6.0.0 (#23552)",
+  "answers": [
+   {
+    "file": "docs/backend/snapdragon/README.md",
+    "line": 56,
+    "section": 37
+   },
+   {
+    "file": "docs/backend/snapdragon/windows.md",
+    "line": 57,
+    "section": 53
+   }
+  ]
+ },
+ {
+  "commit": "95feeab52e41ceaf71e87b2dd01895f6d8815b60",
+  "subject": "docs: Update documentation with Granite 4.0/4.1 (#23404)",
+  "query": "docs: Update documentation with Granite 4.0/4.1 (#23404)",
+  "answers": [
+   {
+    "file": "docs/autoparser.md",
+    "line": 492,
+    "section": 479
+   },
+   {
+    "file": "docs/function-calling.md",
+    "line": 294,
+    "section": 282
+   }
+  ]
+ },
+ {
+  "commit": "ee7c30578a3bf3d8244cefe83b3f44c15df7768c",
+  "subject": "Update WebGPU support and add link to blog/demo (#23483)",
+  "query": "Update WebGPU support and add link to blog/demo (#23483)",
+  "answers": [
+   {
+    "file": "README.md",
+    "line": 87,
+    "section": 68
+   }
+  ]
+ },
+ {
+  "commit": "2fc8d1851ee8fc0d5fd766bb6e2bcdcdec66cbdf",
+  "subject": "doc: fix spec mtp typo (#23435)",
+  "query": "doc: fix spec mtp typo (#23435)",
+  "answers": [
+   {
+    "file": "docs/speculative.md",
+    "line": 369,
+    "section": 358
+   }
+  ]
+ },
+ {
+  "commit": "aabee047d8ebf7abe2750585a347aa19feced3b5",
+  "subject": "[SCYL] add chapter for performance reference in SYCL.md (#23315)",
+  "query": "[SCYL] add chapter for performance reference in SYCL.md (#23315)",
+  "answers": [
+   {
+    "file": "README.md",
+    "line": 84,
+    "section": 68
+   },
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 8,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "25b1bc9c2f9aa0a390b968ee1ffd9ff01340a3fe",
+  "subject": "ui: Correct links in `tools/ui/README.md` [no ci] (#23139)",
+  "query": "ui: Correct links in `tools/ui/README.md` [no ci] (#23139)",
+  "answers": [
+   {
+    "file": "tools/ui/README.md",
+    "line": 732,
+    "section": 730
+   }
+  ]
+ },
+ {
+  "commit": "6831fe470cdfbeeebcf5645e8d5d9acae3a4ddf0",
+  "subject": "docs: document `usage` object in server timings response (#23110)",
+  "query": "docs: document `usage` object in server timings response (#23110)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1423,
+    "section": 1308
+   }
+  ]
+ },
+ {
+  "commit": "97b658cee818296325f961ead58e63997bf50fd9",
+  "subject": "contributing: new contributors should not submit trivial fixes (#23045)",
+  "query": "contributing: new contributors should not submit trivial fixes (#23045)",
+  "answers": [
+   {
+    "file": "CONTRIBUTING.md",
+    "line": 38,
+    "section": 31
+   }
+  ]
+ },
+ {
+  "commit": "81b0d882ae7fcd3118920ff26c5213abecbc8c08",
+  "subject": "ggml-cpu: Add IME2 Instruction Support for the SpacemiT Backend (#22863)",
+  "query": "ggml-cpu: Add IME2 Instruction Support for the SpacemiT Backend (#22863)",
+  "answers": [
+   {
+    "file": "docs/build-riscv64-spacemit.md",
+    "line": 12,
+    "section": 4
+   }
+  ]
+ },
+ {
+  "commit": "9ed6e19b9d7e14a71a19622287b2dcd495a828b8",
+  "subject": "SYCL: fix multi-GPU system RAM exhaustion by using Level Zero allocations (#21597)",
+  "query": "SYCL: fix multi-GPU system RAM exhaustion by using Level Zero allocations (#21597)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 818,
+    "section": 789
+   }
+  ]
+ },
+ {
+  "commit": "fde69a3607ff48b20bbb73e9a0059d5a142a5cf1",
+  "subject": "examples : add llama-eval (#21152)",
+  "query": "examples : add llama-eval (#21152)",
+  "answers": [
+   {
+    "file": "examples/llama-eval/README.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "ef22b3e4ac9444d1dca1c44164861e0317b5579d",
+  "subject": "docs: fix metrics endpoint description in server README (#22879)",
+  "query": "docs: fix metrics endpoint description in server README (#22879)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1126,
+    "section": 1122
+   }
+  ]
+ },
+ {
+  "commit": "e20b83930cc0a1cefaaa81774ca1a0fcfc76964c",
+  "subject": "SYCL: reduce allocation overhead during flash attention (#22732)",
+  "query": "SYCL: reduce allocation overhead during flash attention (#22732)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 823,
+    "section": 821
+   }
+  ]
+ },
+ {
+  "commit": "b9afc19cb409be990784200ded9e007093beb607",
+  "subject": "Write a readme on Multi-GPU usage in llama.cpp (#22729)",
+  "query": "Write a readme on Multi-GPU usage in llama.cpp (#22729)",
+  "answers": [
+   {
+    "file": "README.md",
+    "line": 104,
+    "section": 99
+   },
+   {
+    "file": "docs/multi-gpu.md",
+    "line": 1,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "2496f9c14965c39589f53eea31bdb6d762b1d360",
+  "subject": "mtmd : support MiniCPM-V 4.6 (#22529)",
+  "query": "mtmd : support MiniCPM-V 4.6 (#22529)",
+  "answers": [
+   {
+    "file": "docs/multimodal/minicpmv4.6.md",
+    "line": 3,
+    "section": 3
+   },
+   {
+    "file": "tools/mtmd/README.md",
+    "line": 52,
+    "section": 40
+   }
+  ]
+ },
+ {
+  "commit": "935a3402923e79679e056f1d8fdc6bc48ec6dbbc",
+  "subject": "server: implement /models?reload=1 (#21848)",
+  "query": "server: implement /models?reload=1 (#21848)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1826,
+    "section": 1797
+   }
+  ]
+ },
+ {
+  "commit": "d8794eecd582b35ab5540e748dba057fc48ebe8b",
+  "subject": "examples: refactor diffusion generation (#22590)",
+  "query": "examples: refactor diffusion generation (#22590)",
+  "answers": [
+   {
+    "file": "examples/diffusion/README.md",
+    "line": 15,
+    "section": 12
+   }
+  ]
+ },
+ {
+  "commit": "eddd7a13a5699a38417aa29faf1f39e3a1a55fdc",
+  "subject": "[SYCL] Optimize Q4_0 mul_mat for Arc770, add scripts (#22291)",
+  "query": "[SYCL] Optimize Q4_0 mul_mat for Arc770, add scripts (#22291)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 58,
+    "section": 53
+   }
+  ]
+ },
+ {
+  "commit": "9e5647affa54ea724196db15ec9b76c4abd16d4a",
+  "subject": "server: Expose `media_tag` on /props endpoint. (#22028)",
+  "query": "server: Expose `media_tag` on /props endpoint. (#22028)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 912,
+    "section": 830
+   }
+  ]
+ },
+ {
+  "commit": "b1be68e8cab67f5c2fb7d8e3e90291a8805ece0e",
+  "subject": "[SYCL] Fix Q8_0 reorder: garbage on 2nd prompt + crash on full VRAM (#21638)",
+  "query": "[SYCL] Fix Q8_0 reorder: garbage on 2nd prompt + crash on full VRAM (#21638)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 782,
+    "section": 772
+   }
+  ]
+ },
+ {
+  "commit": "a6206958d28a064564ef132091b9c617ae005f49",
+  "subject": "CUDA: require explicit opt-in for P2P access (#21910)",
+  "query": "CUDA: require explicit opt-in for P2P access (#21910)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 298,
+    "section": 296
+   }
+  ]
+ },
+ {
+  "commit": "80d8770804eb712f0464c3705b65acf896c1f49c",
+  "subject": "docs: more extensive RoPE documentation [no ci] (#21953)",
+  "query": "docs: more extensive RoPE documentation [no ci] (#21953)",
+  "answers": [
+   {
+    "file": "docs/development/HOWTO-add-model.md",
+    "line": 154,
+    "section": 154
+   }
+  ]
+ },
+ {
+  "commit": "1f30ac0ceac0e2b4400069d81857089b6e04872a",
+  "subject": "vulkan: Programmatically add RoundingModeRTE to all shaders when the device supports it (#21572)",
+  "query": "vulkan: Programmatically add RoundingModeRTE to all shaders when the device supports it (#21572)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 471,
+    "section": 412
+   }
+  ]
+ },
+ {
+  "commit": "e97492369888f5311e4d1f3beb325a36bbed70e9",
+  "subject": "docs: listing qwen3-asr and qwen3-omni as supported (#21857)",
+  "query": "docs: listing qwen3-asr and qwen3-omni as supported (#21857)",
+  "answers": [
+   {
+    "file": "docs/multimodal.md",
+    "line": 120,
+    "section": 44
+   }
+  ]
+ },
+ {
+  "commit": "aa4695c5e5bf0abda8942c08e94cb804a7ea0347",
+  "subject": "mtmd: add gemma 4 test (vision + audio) [no ci] (#21806)",
+  "query": "mtmd: add gemma 4 test (vision + audio) [no ci] (#21806)",
+  "answers": [
+   {
+    "file": "docs/multimodal.md",
+    "line": 101,
+    "section": 44
+   }
+  ]
+ },
+ {
+  "commit": "6313acbef016d9e4d8e83d3647082329949d958b",
+  "subject": "docs: add guide on how to add multimodal support (#21778)",
+  "query": "docs: add guide on how to add multimodal support (#21778)",
+  "answers": [
+   {
+    "file": "docs/development/HOWTO-add-model.md",
+    "line": 8,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "81069a808a29ae3048231e8b8c69758239f8e050",
+  "subject": "hexagon: add support for linux on snapdragon (#21707)",
+  "query": "hexagon: add support for linux on snapdragon (#21707)",
+  "answers": [
+   {
+    "file": "docs/backend/snapdragon/linux.md",
+    "line": 1,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "9aa2807769253fad8b3aa065e9a7c2a0ac35fe0a",
+  "subject": "hexagon: improved Op queuing, buffer and cache management (#21705)",
+  "query": "hexagon: improved Op queuing, buffer and cache management (#21705)",
+  "answers": [
+   {
+    "file": "docs/backend/snapdragon/README.md",
+    "line": 359,
+    "section": 307
+   }
+  ]
+ },
+ {
+  "commit": "3f8752b5592fdef6fe58fb23a8d468f603095154",
+  "subject": "docs : fix broken link to ggml-openvino in OPENVINO.md (#21709)",
+  "query": "docs : fix broken link to ggml-openvino in OPENVINO.md (#21709)",
+  "answers": [
+   {
+    "file": "docs/backend/OPENVINO.md",
+    "line": 6,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "501aeed18f54716eacc7bd6397376b7829602084",
+  "subject": "mtmd: support dots.ocr (#17575)",
+  "query": "mtmd: support dots.ocr (#17575)",
+  "answers": [
+   {
+    "file": "docs/multimodal.md",
+    "line": 41,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "0033f53a072af953b457c9fd2314e6e28bd11cc7",
+  "subject": "docs: fix typo in build.md (emdawbwebgpu -> emdawnwebgpu) (#21518)",
+  "query": "docs: fix typo in build.md (emdawbwebgpu -> emdawnwebgpu) (#21518)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 829,
+    "section": 825
+   }
+  ]
+ },
+ {
+  "commit": "94ca829b6001019622c0f67fcd48e9ec6bd7dce8",
+  "subject": "llama-bench: add `-fitc` and `-fitt` to arguments (#21304)",
+  "query": "llama-bench: add `-fitc` and `-fitt` to arguments (#21304)",
+  "answers": [
+   {
+    "file": "tools/llama-bench/README.md",
+    "line": 37,
+    "section": 20
+   }
+  ]
+ },
+ {
+  "commit": "3979f2bb08dd003fd979549600b835dc00a56e50",
+  "subject": "docs: add hunyuan-ocr gguf, also add test [no ci] (#21490)",
+  "query": "docs: add hunyuan-ocr gguf, also add test [no ci] (#21490)",
+  "answers": [
+   {
+    "file": "docs/multimodal.md",
+    "line": 42,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "384c0076bcf1df739c3e0b51d6415538b9ad3123",
+  "subject": "docs: Update build.md: HSA_OVERRIDE_GFX_VERSION clarification (#21331)",
+  "query": "docs: Update build.md: HSA_OVERRIDE_GFX_VERSION clarification (#21331)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 404,
+    "section": 363
+   }
+  ]
+ },
+ {
+  "commit": "f1ac84119ccc8e72dafd9e9f8fc3b9399917ce11",
+  "subject": "ggml-zendnn : add MUL_MAT_ID op support for MoE models (#21315)",
+  "query": "ggml-zendnn : add MUL_MAT_ID op support for MoE models (#21315)",
+  "answers": [
+   {
+    "file": "docs/backend/ZenDNN.md",
+    "line": 60,
+    "section": 58
+   }
+  ]
+ },
+ {
+  "commit": "c30e012253dd9e322c8e3424f808a5c74ecc46bf",
+  "subject": "contrib : rewrite AGENTS.md, make it more clear about project values (#21270)",
+  "query": "contrib : rewrite AGENTS.md, make it more clear about project values (#21270)",
+  "answers": [
+   {
+    "file": "AGENTS.md",
+    "line": 11,
+    "section": 11
+   }
+  ]
+ },
+ {
+  "commit": "4a00bbfed62a9714bc94a3431e6cc37615b175a2",
+  "subject": "server: (webui) no more gzip compression (#21073)",
+  "query": "server: (webui) no more gzip compression (#21073)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 404,
+    "section": 387
+   }
+  ]
+ },
+ {
+  "commit": "84ae8434d0d00b52a8bab7f584b2963e129ccbfc",
+  "subject": "CI : Enable CUDA and Vulkan ARM64 runners and fix CI/CD (#21122)",
+  "query": "CI : Enable CUDA and Vulkan ARM64 runners and fix CI/CD (#21122)",
+  "answers": [
+   {
+    "file": "docs/docker.md",
+    "line": 16,
+    "section": 7
+   }
+  ]
+ },
+ {
+  "commit": "82b703f8bcb93104426a45c9fc1a62501994e422",
+  "subject": "Document custom default webui preferences in server README (#19771)",
+  "query": "Document custom default webui preferences in server README (#19771)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 2128,
+    "section": 2128
+   }
+  ]
+ },
+ {
+  "commit": "5c1a7b83550b4f1e0954007556f9b28f7db1a427",
+  "subject": "server : add custom socket options to disable SO_REUSEPORT (#21056)",
+  "query": "server : add custom socket options to disable SO_REUSEPORT (#21056)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 194,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "20197b6fe3dff2b2f62badcf76f1b1fd1959cbf0",
+  "subject": "server: add built-in tools backend support (#20898)",
+  "query": "server: add built-in tools backend support (#20898)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 185,
+    "section": 183
+   },
+   {
+    "file": "tools/server/README.md",
+    "line": 351,
+    "section": 347
+   }
+  ]
+ },
+ {
+  "commit": "6861f6509a2b5b3b1b21d04fc502ba55f1326a7d",
+  "subject": "CANN: update docker images to 8.5.0 and improve CANN.md (#20801)",
+  "query": "CANN: update docker images to 8.5.0 and improve CANN.md (#20801)",
+  "answers": [
+   {
+    "file": "docs/backend/CANN.md",
+    "line": 45,
+    "section": 43
+   }
+  ]
+ },
+ {
+  "commit": "a970515bdb0b1d09519106847660b0d0c84d2472",
+  "subject": "mtmd: Add DeepSeekOCR Support (#17400)",
+  "query": "mtmd: Add DeepSeekOCR Support (#17400)",
+  "answers": [
+   {
+    "file": "docs/multimodal.md",
+    "line": 37,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "8fc17493c3a2c39e6843e043e6227fb006668600",
+  "subject": "gguf-split : clarify operation of gguf-split (#19749)",
+  "query": "gguf-split : clarify operation of gguf-split (#19749)",
+  "answers": [
+   {
+    "file": "tools/gguf-split/README.md",
+    "line": 10,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "abd86ef1757bd4bd9b288a5b91583a89fb422566",
+  "subject": "docs : Update OpenVINO backend docs (#20968)",
+  "query": "docs : Update OpenVINO backend docs (#20968)",
+  "answers": [
+   {
+    "file": "docs/backend/OPENVINO.md",
+    "line": 4,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "bd6992180bd1e858129bf995d6b90539fb901dd6",
+  "subject": "contrib: add \"Requirements\" section to PR template (#20841)",
+  "query": "contrib: add \"Requirements\" section to PR template (#20841)",
+  "answers": [
+   {
+    "file": ".github/pull_request_template.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "568aec82d2fc48341c54cae565768ac75072a31d",
+  "subject": "docs : explicit about banning accounts that violates policy (#19593)",
+  "query": "docs : explicit about banning accounts that violates policy (#19593)",
+  "answers": [
+   {
+    "file": "CONTRIBUTING.md",
+    "line": 79,
+    "section": 67
+   }
+  ]
+ },
+ {
+  "commit": "fb78ad29bbe7ae00619b2ce31b0a71e95fdbfc43",
+  "subject": "server: (doc) clarify in-scope and out-scope features (#20794)",
+  "query": "server: (doc) clarify in-scope and out-scope features (#20794)",
+  "answers": [
+   {
+    "file": "CONTRIBUTING.md",
+    "line": 197,
+    "section": 182
+   },
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 9,
+    "section": 7
+   }
+  ]
+ },
+ {
+  "commit": "b739738dadf0b66a59546d7240c554d61c07c2f0",
+  "subject": "docs: Update server README to reflect PR #20297 (#20560)",
+  "query": "docs: Update server README to reflect PR #20297 (#20560)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 235,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "5e54d51b199ad2d70cf6eba4bff756bbf63366a6",
+  "subject": "common/parser: add proper reasoning tag prefill reading (#20424)",
+  "query": "common/parser: add proper reasoning tag prefill reading (#20424)",
+  "answers": [
+   {
+    "file": "docs/autoparser.md",
+    "line": 17,
+    "section": 5
+   },
+   {
+    "file": "tools/server/README.md",
+    "line": 1326,
+    "section": 1308
+   }
+  ]
+ },
+ {
+  "commit": "c014c3f83a5fe3ea29677df7a069a16b3c856e05",
+  "subject": "docs: add information about openvino in the docker page (#20743)",
+  "query": "docs: add information about openvino in the docker page (#20743)",
+  "answers": [
+   {
+    "file": "docs/docker.md",
+    "line": 34,
+    "section": 7
+   }
+  ]
+ },
+ {
+  "commit": "9b342d0a9f2f4892daec065491583ec2be129685",
+  "subject": "benches : add Nemotron 3 Nano on DGX Spark (#20652)",
+  "query": "benches : add Nemotron 3 Nano on DGX Spark (#20652)",
+  "answers": [
+   {
+    "file": "benches/nemotron/nemotron-dgx-spark.md",
+    "line": 27,
+    "section": 27
+   }
+  ]
+ },
+ {
+  "commit": "94d026227771ab6497a9900fe85847342f26071b",
+  "subject": "mtmd: add llama-mtmd-debug binary (#20508)",
+  "query": "mtmd: add llama-mtmd-debug binary (#20508)",
+  "answers": [
+   {
+    "file": "tools/mtmd/debug/mtmd-debug.md",
+    "line": 5,
+    "section": 3
+   }
+  ]
+ },
+ {
+  "commit": "f2c0dfb7394b3abb5a5afd1c2a94f621bb64236f",
+  "subject": "Use fp32 in cuBLAS V100 to avoid overflows, env variables to override cuBLAS compute type (#19959)",
+  "query": "Use fp32 in cuBLAS V100 to avoid overflows, env variables to override cuBLAS compute type (#19959)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 309,
+    "section": 302
+   }
+  ]
+ },
+ {
+  "commit": "2948e6049a4ad0f96a4ab15246db2d2086b80703",
+  "subject": "general: CONTRIBUTING.md - guidelines for quantization schemes (#19762)",
+  "query": "general: CONTRIBUTING.md - guidelines for quantization schemes (#19762)",
+  "answers": [
+   {
+    "file": "CONTRIBUTING.md",
+    "line": 46,
+    "section": 42
+   }
+  ]
+ },
+ {
+  "commit": "05039967da783fa8c7b8bc51e80ae834ab1cda73",
+  "subject": "ggml-virtgpu: Fix some build commands (#20341)",
+  "query": "ggml-virtgpu: Fix some build commands (#20341)",
+  "answers": [
+   {
+    "file": "docs/backend/VirtGPU/development.md",
+    "line": 59,
+    "section": 44
+   }
+  ]
+ },
+ {
+  "commit": "3ca19b0e9f3f4f444d22c9f509805d037a611847",
+  "subject": "benches : add nemotron super (#20420)",
+  "query": "benches : add nemotron super (#20420)",
+  "answers": [
+   {
+    "file": "benches/nemotron/nemotron-dgx-spark.md",
+    "line": 7,
+    "section": 3
+   }
+  ]
+ },
+ {
+  "commit": "ecac98ee5327d480b25ac79aa11e984ab257579b",
+  "subject": "[SYCL] Update SYCL.md for binary package for Windows (#20401)",
+  "query": "[SYCL] Update SYCL.md for binary package for Windows (#20401)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 460,
+    "section": 460
+   }
+  ]
+ },
+ {
+  "commit": "a976ff081b4657b67f48295bbefc030d9d899b17",
+  "subject": "llama: end-to-end tests (#19802)",
+  "query": "llama: end-to-end tests (#19802)",
+  "answers": [
+   {
+    "file": "tools/results/README.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "213c4a0b81788e058c30479842954fb0815be61a",
+  "subject": "[SYCL] supprt Flash Attention for fp32/fp16/Q4/Q5/Q8 (#20190)",
+  "query": "[SYCL] supprt Flash Attention for fp32/fp16/Q4/Q5/Q8 (#20190)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 13,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "566059a26b0ce8faec4ea053605719d399c64cc5",
+  "subject": "Autoparser - complete refactoring of parser architecture (#18675)",
+  "query": "Autoparser - complete refactoring of parser architecture (#18675)",
+  "answers": [
+   {
+    "file": "docs/autoparser.md",
+    "line": 1,
+    "section": 1
+   },
+   {
+    "file": "docs/development/parsing.md",
+    "line": 25,
+    "section": 19
+   }
+  ]
+ },
+ {
+  "commit": "ecd99d6a9acbc436bad085783bcd5d0b9ae9e9e9",
+  "subject": "docs: Fix intel documentation link (#20040)",
+  "query": "docs: Fix intel documentation link (#20040)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 134,
+    "section": 119
+   }
+  ]
+ },
+ {
+  "commit": "88cf781f51ee0c35fcbe973d3eaad0cb932d65c3",
+  "subject": "ggml-zendnn: update code for latest ZenDNN API (#19923)",
+  "query": "ggml-zendnn: update code for latest ZenDNN API (#19923)",
+  "answers": [
+   {
+    "file": "docs/backend/ZenDNN.md",
+    "line": 25,
+    "section": 19
+   }
+  ]
+ },
+ {
+  "commit": "ffaafde16ffebd2853467f0dd833625a726ce08e",
+  "subject": "ggml-virtgpu: improve the reliability of the code (#19846)",
+  "query": "ggml-virtgpu: improve the reliability of the code (#19846)",
+  "answers": [
+   {
+    "file": "docs/backend/VirtGPU.md",
+    "line": 155,
+    "section": 150
+   }
+  ]
+ },
+ {
+  "commit": "e99f1083a0c093f510a1914809056735370cea6f",
+  "subject": "docs: Fix broken links for preparing models in Backends (#19684)",
+  "query": "docs: Fix broken links for preparing models in Backends (#19684)",
+  "answers": [
+   {
+    "file": "docs/backend/CANN.md",
+    "line": 273,
+    "section": 269
+   },
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 342,
+    "section": 340
+   }
+  ]
+ },
+ {
+  "commit": "6e67fd2144e1647bf88b027c0807b5de35705acc",
+  "subject": "docs: update s390x build docs (#19643)",
+  "query": "docs: update s390x build docs (#19643)",
+  "answers": [
+   {
+    "file": "docs/build-s390x.md",
+    "line": 245,
+    "section": 239
+   }
+  ]
+ },
+ {
+  "commit": "fa16e517a3bcc15818d0813993693e1c92ce6c76",
+  "subject": "server : fix typo in README.md for features list (#19510)",
+  "query": "server : fix typo in README.md for features list (#19510)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 22,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "313493de533845150316b9be11bd95511b9f3d4c",
+  "subject": "docs : update path in snapdragon README.md (#19533)",
+  "query": "docs : update path in snapdragon README.md (#19533)",
+  "answers": [
+   {
+    "file": "docs/backend/snapdragon/README.md",
+    "line": 46,
+    "section": 37
+   }
+  ]
+ },
+ {
+  "commit": "292f6908cdc6abb5c38581e34fa141973e5aba82",
+  "subject": "spec : remove check rate (#19377)",
+  "query": "spec : remove check rate (#19377)",
+  "answers": [
+   {
+    "file": "docs/speculative.md",
+    "line": 435,
+    "section": 420
+   }
+  ]
+ },
+ {
+  "commit": "3795cc1e89e16fbc145f8a5457ea30abd86e0d1d",
+  "subject": "benches : update models + numbers (#19359)",
+  "query": "benches : update models + numbers (#19359)",
+  "answers": [
+   {
+    "file": "benches/dgx-spark/dgx-spark.md",
+    "line": 20,
+    "section": 1
+   },
+   {
+    "file": "benches/mac-m2-ultra/mac-m2-ultra.md",
+    "line": 5,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "41e3f02647be2976c4a302128680ca5983568ae5",
+  "subject": "cuda : revert CUDA_SCALE_LAUNCH_QUEUES override until investigated (#19227)",
+  "query": "cuda : revert CUDA_SCALE_LAUNCH_QUEUES override until investigated (#19227)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 278,
+    "section": 274
+   }
+  ]
+ },
+ {
+  "commit": "bf38346d136c6121732c36c60b079bde18d63a0e",
+  "subject": "Remove support for Nvidia & AMD GPU, because the oneAPI plugin for Nvidia & AMD GPU is unavailable: download/installation channels are out of work. (#19246)",
+  "query": "Remove support for Nvidia & AMD GPU, because the oneAPI plugin for Nvidia & AMD GPU is unavailable: download/installation channels are out of work. (#19246)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 31,
+    "section": 28
+   }
+  ]
+ },
+ {
+  "commit": "b4d05a3d2fc7820444ca618570a3ac76cc12fe83",
+  "subject": "spec : various improvements ton ngram-map + docs (#19253)",
+  "query": "spec : various improvements ton ngram-map + docs (#19253)",
+  "answers": [
+   {
+    "file": "docs/speculative.md",
+    "line": 9,
+    "section": 7
+   }
+  ]
+ },
+ {
+  "commit": "3bc8d2cf23d86232bbdd9dcb60946f6a9199c15c",
+  "subject": "Bump cmake max version (needed for Windows on Snapdragon builds) (#19188)",
+  "query": "Bump cmake max version (needed for Windows on Snapdragon builds) (#19188)",
+  "answers": [
+   {
+    "file": "docs/backend/snapdragon/windows.md",
+    "line": 158,
+    "section": 147
+   }
+  ]
+ },
+ {
+  "commit": "2634ed207a17db1a54bd8df0555bd8499a6ab691",
+  "subject": "create test.sh to enhance the parameters for testing, update the guide, rm useless script (#19243)",
+  "query": "create test.sh to enhance the parameters for testing, update the guide, rm useless script (#19243)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 143,
+    "section": 129
+   }
+  ]
+ },
+ {
+  "commit": "d284baf1b5969b74177e705ee6bca63c1bbfb4b7",
+  "subject": "Fix typos in SYCL documentation (#19162)",
+  "query": "Fix typos in SYCL documentation (#19162)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 41,
+    "section": 35
+   }
+  ]
+ },
+ {
+  "commit": "72d3b1898a9c81152710cc37dd1dfd26764055d9",
+  "subject": "spec : add self\u2011speculative decoding (no draft model required) + refactor (#18471)",
+  "query": "spec : add self\u2011speculative decoding (no draft model required) + refactor (#18471)",
+  "answers": [
+   {
+    "file": "docs/speculative.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "0a95026da9ff86ce48e7c48b802281320cbbd3bf",
+  "subject": "doc: add build instruction to use Vulkan backend on macos (#19029)",
+  "query": "doc: add build instruction to use Vulkan backend on macos (#19029)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 536,
+    "section": 534
+   }
+  ]
+ },
+ {
+  "commit": "68ac3acb435450d5ba1e62748e17671815313dc3",
+  "subject": "docs: Remove duplicated word on CUDA build section (#19136)",
+  "query": "docs: Remove duplicated word on CUDA build section (#19136)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 170,
+    "section": 163
+   }
+  ]
+ },
+ {
+  "commit": "a83c73a18aaffba253ffd01e7cd3af41feaf8179",
+  "subject": "[CUDA] Reduce CPU-side stalls due to the CUDA command buffer being full (#19042)",
+  "query": "[CUDA] Reduce CPU-side stalls due to the CUDA command buffer being full (#19042)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 274,
+    "section": 274
+   }
+  ]
+ },
+ {
+  "commit": "51fa458a92d6a3f305f8fd76fc8f702e3e87ddb5",
+  "subject": "server : support preserving reasoning_content in assistant message (#18994)",
+  "query": "server : support preserving reasoning_content in assistant message (#18994)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 908,
+    "section": 830
+   }
+  ]
+ },
+ {
+  "commit": "fbbf3ad1900bbaa97cd3c8de4c764afb0f6d8972",
+  "subject": "server: /v1/responses (partial) (#18486)",
+  "query": "server: /v1/responses (partial) (#18486)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 9,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "4b060bf240daaeb4fc83386a628b9dfedeb33342",
+  "subject": "security: make it clear about subtopics in server (#18754)",
+  "query": "security: make it clear about subtopics in server (#18754)",
+  "answers": [
+   {
+    "file": "SECURITY.md",
+    "line": 48,
+    "section": 41
+   }
+  ]
+ },
+ {
+  "commit": "28068af78996485eaa5c34557eae56dc1f996f92",
+  "subject": "security: narrow down the scope of what we consider a vulnerability (#18752)",
+  "query": "security: narrow down the scope of what we consider a vulnerability (#18752)",
+  "answers": [
+   {
+    "file": "SECURITY.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "23f82f242072ba56db8335484f8fe8bcb9208feb",
+  "subject": "preset: allow named remote preset (#18728)",
+  "query": "preset: allow named remote preset (#18728)",
+  "answers": [
+   {
+    "file": "docs/preset.md",
+    "line": 62,
+    "section": 60
+   }
+  ]
+ },
+ {
+  "commit": "8ece3836b400dd8d89021ad2cc6e57843ced8378",
+  "subject": "common: support remote preset (#18520)",
+  "query": "common: support remote preset (#18520)",
+  "answers": [
+   {
+    "file": "docs/preset.md",
+    "line": 5,
+    "section": 3
+   }
+  ]
+ },
+ {
+  "commit": "df7fb92170f1c6ed08bf0943d6d8bf1191543a95",
+  "subject": "model-conversion : remove -st targets for converted model (#18689)",
+  "query": "model-conversion : remove -st targets for converted model (#18689)",
+  "answers": [
+   {
+    "file": "examples/model-conversion/README.md",
+    "line": 201,
+    "section": 199
+   }
+  ]
+ },
+ {
+  "commit": "ffba4f29e6a9ed7165ea6b94150856c5b49925cb",
+  "subject": "examples : add debug utility/example (#18464)",
+  "query": "examples : add debug utility/example (#18464)",
+  "answers": [
+   {
+    "file": "examples/debug/README.md",
+    "line": 1,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "67e3f6f60155870d4b5ce727515aa81e5a7b4753",
+  "subject": "CANN: add operator fusion support for ADD + RMS_NORM (#17512)",
+  "query": "CANN: add operator fusion support for ADD + RMS_NORM (#17512)",
+  "answers": [
+   {
+    "file": "docs/backend/CANN.md",
+    "line": 355,
+    "section": 355
+   }
+  ]
+ },
+ {
+  "commit": "92ac1e016b4327bb58f62a098cd6bc484d9d6cbf",
+  "subject": "doc: clarify that steps also apply to linux for opencl (#18002)",
+  "query": "doc: clarify that steps also apply to linux for opencl (#18002)",
+  "answers": [
+   {
+    "file": "docs/backend/OPENCL.md",
+    "line": 256,
+    "section": 254
+   }
+  ]
+ },
+ {
+  "commit": "6e0c8cbc40c4abf49e5c52f0f51267c2afdfc053",
+  "subject": "docs : document that JSON Schema is not available to model when using response_format  (#18492)",
+  "query": "docs : document that JSON Schema is not available to model when using response_format  (#18492)",
+  "answers": [
+   {
+    "file": "grammars/README.md",
+    "line": 151,
+    "section": 141
+   }
+  ]
+ },
+ {
+  "commit": "0bd1212a43561a55d89d468b7ca5265647dab1fd",
+  "subject": "CUDA: fix replacment of bad archs in CMake (#18457)",
+  "query": "CUDA: fix replacment of bad archs in CMake (#18457)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 177,
+    "section": 175
+   }
+  ]
+ },
+ {
+  "commit": "af3be131c065a38e476c34295bceda6cb956e7d7",
+  "subject": "docs: added note for pre SYCL Intel hardware (#18016)",
+  "query": "docs: added note for pre SYCL Intel hardware (#18016)",
+  "answers": [
+   {
+    "file": "docs/backend/OPENCL.md",
+    "line": 31,
+    "section": 29
+   }
+  ]
+ },
+ {
+  "commit": "f5acfb2ffa1a0bc9d01a0a40f4d7c17421d7d570",
+  "subject": "server: (router) add stop-timeout option (#18350)",
+  "query": "server: (router) add stop-timeout option (#18350)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1768,
+    "section": 1712
+   }
+  ]
+ },
+ {
+  "commit": "1ce0126b18c58b9c5d6586a606fdf2780162afa1",
+  "subject": "docs: Fix typos in SYCL documentation (#18269)",
+  "query": "docs: Fix typos in SYCL documentation (#18269)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 890,
+    "section": 863
+   }
+  ]
+ },
+ {
+  "commit": "5e25ddebff0d456db91aa7274ff6a33f4a17ffea",
+  "subject": "move copilot instructions to AGENTS.md (#18259)",
+  "query": "move copilot instructions to AGENTS.md (#18259)",
+  "answers": [
+   {
+    "file": "AGENTS.md",
+    "line": 1,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "65e96a246490b4095acc11869da1d5300f89a493",
+  "subject": "docs : fix links in parsing.md (#18245)",
+  "query": "docs : fix links in parsing.md (#18245)",
+  "answers": [
+   {
+    "file": "docs/development/parsing.md",
+    "line": 58,
+    "section": 19
+   }
+  ]
+ },
+ {
+  "commit": "ddcb75dd8ac42dc23eb84f13bb17670fe9f2d49b",
+  "subject": "server: add auto-sleep after N seconds of idle (#18228)",
+  "query": "server: add auto-sleep after N seconds of idle (#18228)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 336,
+    "section": 324
+   },
+   {
+    "file": "tools/server/README.md",
+    "line": 2071,
+    "section": 2069
+   }
+  ]
+ },
+ {
+  "commit": "9e39a1e6a991331bfa02390784eaa1ea226f1d4b",
+  "subject": "server: support load model on startup, support preset-only options (#18206)",
+  "query": "server: support load model on startup, support preset-only options (#18206)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1766,
+    "section": 1712
+   }
+  ]
+ },
+ {
+  "commit": "14931a826e4f5b4536f03f65c8d568d99bf64f0e",
+  "subject": "arg: fix order to use short form before long form (#18196)",
+  "query": "arg: fix order to use short form before long form (#18196)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 81,
+    "section": 30
+   }
+  ]
+ },
+ {
+  "commit": "98c1c7a7bf433f1f64dee23f25e7237caab868c9",
+  "subject": "presets: refactor, allow cascade presets from different sources, add global section (#18169)",
+  "query": "presets: refactor, allow cascade presets from different sources, add global section (#18169)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1729,
+    "section": 1712
+   }
+  ]
+ },
+ {
+  "commit": "52fc7fee8a96211de439aa8ea27dd53e7a4a2200",
+  "subject": "android: fix missing screenshots for Android.md (#18156)",
+  "query": "android: fix missing screenshots for Android.md (#18156)",
+  "answers": [
+   {
+    "file": "docs/android.md",
+    "line": 4,
+    "section": 4
+   }
+  ]
+ },
+ {
+  "commit": "6ce3d857962e8183f1fbd7d5aeacf7534a427dc3",
+  "subject": "server: (webui) add --webui-config (#18028)",
+  "query": "server: (webui) add --webui-config (#18028)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 50,
+    "section": 30
+   }
+  ]
+ },
+ {
+  "commit": "5c0d18881e0e9794c96b2602736b758bac9d9388",
+  "subject": "llama.android : Rewrite Android binding (w/o cpu_features dep) (#17413)",
+  "query": "llama.android : Rewrite Android binding (w/o cpu_features dep) (#17413)",
+  "answers": [
+   {
+    "file": "docs/android.md",
+    "line": 6,
+    "section": 4
+   }
+  ]
+ },
+ {
+  "commit": "7b1db3d3b770d0affbf3aadee033e1614280085f",
+  "subject": "arg: clarify auto kvu/np being set on server (#17997)",
+  "query": "arg: clarify auto kvu/np being set on server (#17997)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 70,
+    "section": 30
+   }
+  ]
+ },
+ {
+  "commit": "fb644247de14c616b10deb5e6b17e6f4230f0601",
+  "subject": "CLI: fixed adding cli and completion into docker containers, improved docs (#18003)",
+  "query": "CLI: fixed adding cli and completion into docker containers, improved docs (#18003)",
+  "answers": [
+   {
+    "file": "docs/docker.md",
+    "line": 10,
+    "section": 7
+   }
+  ]
+ },
+ {
+  "commit": "5f5f9b46376ac14d7f95b0d968c182f522602880",
+  "subject": "server: Update README.md incorrect argument (#18073)",
+  "query": "server: Update README.md incorrect argument (#18073)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1720,
+    "section": 1712
+   }
+  ]
+ },
+ {
+  "commit": "9963b81f6392da8066958c177db77ad4b4a8f284",
+  "subject": "model-conversion : add note about verifying previous models (#18082)",
+  "query": "model-conversion : add note about verifying previous models (#18082)",
+  "answers": [
+   {
+    "file": "examples/model-conversion/README.md",
+    "line": 13,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "279cef27c2b297476ecde6e5df729c057691f1de",
+  "subject": "added note for old Intel hardware pre sycl (#18017)",
+  "query": "added note for old Intel hardware pre sycl (#18017)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 127,
+    "section": 118
+   }
+  ]
+ },
+ {
+  "commit": "b1f3a6e5db7b782ef077bd0e8253ce03283b1f37",
+  "subject": "llama: automatically set parameters not set by the user in such a way that maximizes GPU utilization (#16653)",
+  "query": "llama: automatically set parameters not set by the user in such a way that maximizes GPU utilization (#16653)",
+  "answers": [
+   {
+    "file": "tools/fit-params/README.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "380b4c984e06f8d8381392d15814b3392e39560e",
+  "subject": "common: support negated args (#17919)",
+  "query": "common: support negated args (#17919)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 57,
+    "section": 30
+   }
+  ]
+ },
+ {
+  "commit": "54a0fee4b73e9023c6faef9b2cfe4963edb6776c",
+  "subject": "arg: add -mm and -mmu as short form of --mmproj and --mmproj-url (#17958)",
+  "query": "arg: add -mm and -mmu as short form of --mmproj and --mmproj-url (#17958)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 178,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "e4ae38331702aeb43b6ecc3f912d626171c9862a",
+  "subject": "docs: use port 8080 in Docker examples (#17903)",
+  "query": "docs: use port 8080 in Docker examples (#17903)",
+  "answers": [
+   {
+    "file": "docs/docker.md",
+    "line": 70,
+    "section": 43
+   }
+  ]
+ },
+ {
+  "commit": "f32ca51bfeb74b8d1b735c2744c0e4a6224f6b7c",
+  "subject": "server: add presets (config) when using multiple models (#17859)",
+  "query": "server: add presets (config) when using multiple models (#17859)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1661,
+    "section": 1659
+   }
+  ]
+ },
+ {
+  "commit": "6c2131773c5975c719863a21a8195a66dea4a4d0",
+  "subject": "cli: new CLI experience (#17824)",
+  "query": "cli: new CLI experience (#17824)",
+  "answers": [
+   {
+    "file": "tools/completion/README.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "e39502e74b46c54b359ddbbefc9bba4f98704906",
+  "subject": "llama : add token matching support to llama-grammar (#17816)",
+  "query": "llama : add token matching support to llama-grammar (#17816)",
+  "answers": [
+   {
+    "file": "grammars/README.md",
+    "line": 72,
+    "section": 70
+   }
+  ]
+ },
+ {
+  "commit": "951520ddb05402bb8844509a7683d1a9a517dfc6",
+  "subject": "server: delegate result_state creation to server_task (#17835)",
+  "query": "server: delegate result_state creation to server_task (#17835)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 78,
+    "section": 76
+   }
+  ]
+ },
+ {
+  "commit": "f896d2c34f7bb502c13986830b3ed7d85aac67d9",
+  "subject": "server: improve speed of speculative decoding (#17808)",
+  "query": "server: improve speed of speculative decoding (#17808)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 335,
+    "section": 324
+   }
+  ]
+ },
+ {
+  "commit": "37a4f632442cb0e6d046b714d36cecb619833f4e",
+  "subject": "server : add development documentation (#17760)",
+  "query": "server : add development documentation (#17760)",
+  "answers": [
+   {
+    "file": "tools/server/README-dev.md",
+    "line": 1,
+    "section": 1
+   },
+   {
+    "file": "tools/server/README.md",
+    "line": 5,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "2bc96931d2583cad9e85b9a967b78f42ef76b8a7",
+  "subject": "server : make cache_reuse configurable per request (#17858)",
+  "query": "server : make cache_reuse configurable per request (#17858)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 532,
+    "section": 483
+   }
+  ]
+ },
+ {
+  "commit": "79d61896d35f37b79f432ae935698c5459ba8a41",
+  "subject": "ggml-cpu: add ggml_thread_cpu_relax with Zihintpause support (#17784)",
+  "query": "ggml-cpu: add ggml_thread_cpu_relax with Zihintpause support (#17784)",
+  "answers": [
+   {
+    "file": "README.md",
+    "line": 60,
+    "section": 52
+   },
+   {
+    "file": "docs/build-riscv64-spacemit.md",
+    "line": 24,
+    "section": 4
+   }
+  ]
+ },
+ {
+  "commit": "c42712b056fb2cf03902ef57fd314c531e356965",
+  "subject": "server: support multiple generations from one prompt (OAI \"n\" option) (#17775)",
+  "query": "server: support multiple generations from one prompt (OAI \"n\" option) (#17775)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 530,
+    "section": 483
+   }
+  ]
+ },
+ {
+  "commit": "8e5f4987b1c0f41ab80d4e95355e79eb6d169b8b",
+  "subject": "contrib : stale PRs (#17803)",
+  "query": "contrib : stale PRs (#17803)",
+  "answers": [
+   {
+    "file": "CONTRIBUTING.md",
+    "line": 64,
+    "section": 60
+   }
+  ]
+ },
+ {
+  "commit": "c41bde6fbda169b504a37e590798be6cd058f60f",
+  "subject": "metal : add residency sets keep-alive heartbeat (#17766)",
+  "query": "metal : add residency sets keep-alive heartbeat (#17766)",
+  "answers": [
+   {
+    "file": "examples/idle/README.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "0a8026e768e65414a8969078f11d975c5811c33e",
+  "subject": "common : introduce composable PEG parser combinators for chat parsing (#17136)",
+  "query": "common : introduce composable PEG parser combinators for chat parsing (#17136)",
+  "answers": [
+   {
+    "file": "docs/development/parsing.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "16cc3c606efe1640a165f666df0e0dc7cc2ad869",
+  "subject": "build: document how to compile with Vulkan using Debian/Ubuntu packages (#17688)",
+  "query": "build: document how to compile with Vulkan using Debian/Ubuntu packages (#17688)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 495,
+    "section": 495
+   }
+  ]
+ },
+ {
+  "commit": "7d2add51d8e3759020d70f2ff3a76b5795ff67bc",
+  "subject": "sycl : support to malloc memory on device more than 4GB, update the doc and script (#17566)",
+  "query": "sycl : support to malloc memory on device more than 4GB, update the doc and script (#17566)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 67,
+    "section": 53
+   }
+  ]
+ },
+ {
+  "commit": "ddf9f94389a614ce005347f1c3f60ce477df1be1",
+  "subject": "server : add Anthropic Messages API support (#17570)",
+  "query": "server : add Anthropic Messages API support (#17570)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 10,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "e509411cf142807c947b53b340d2d5594ce38120",
+  "subject": "server: enable jinja by default, update docs (#17524)",
+  "query": "server: enable jinja by default, update docs (#17524)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 36,
+    "section": 30
+   }
+  ]
+ },
+ {
+  "commit": "6ab8eacddf50cda653b1e27521bd88945c41df1b",
+  "subject": "examples : add -kvu to batched usage example [no ci] (#17469)",
+  "query": "examples : add -kvu to batched usage example [no ci] (#17469)",
+  "answers": [
+   {
+    "file": "examples/batched/README.md",
+    "line": 6,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "4902eebe33ed2341ef9bd7c80195bbd9d24f4d5f",
+  "subject": "models : Added support for RND1 Diffusion Language Model  (#17433)",
+  "query": "models : Added support for RND1 Diffusion Language Model  (#17433)",
+  "answers": [
+   {
+    "file": "examples/diffusion/README.md",
+    "line": 10,
+    "section": 9
+   }
+  ]
+ },
+ {
+  "commit": "23a46ce972cd1fa08e967f17ee9e024e87dcaadb",
+  "subject": "CANN: GGML_CANN_ACL_GRAPH works only USE_ACL_GRAPH enabled (#16861)",
+  "query": "CANN: GGML_CANN_ACL_GRAPH works only USE_ACL_GRAPH enabled (#16861)",
+  "answers": [
+   {
+    "file": "docs/backend/CANN.md",
+    "line": 340,
+    "section": 338
+   }
+  ]
+ },
+ {
+  "commit": "15274c0c501727b782b37e81eb77e5edae55fffa",
+  "subject": "benches : add eval results (#17139)",
+  "query": "benches : add eval results (#17139)",
+  "answers": [
+   {
+    "file": "benches/dgx-spark/dgx-spark.md",
+    "line": 5,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "eeee367de51fb34d46c8103fc0ae827e84d94470",
+  "subject": "server: fix correct time_ms calculation in prompt_progress (#17093)",
+  "query": "server: fix correct time_ms calculation in prompt_progress (#17093)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 595,
+    "section": 483
+   }
+  ]
+ },
+ {
+  "commit": "22c8c3c6ad8d6239c366ce3a84ace8b0ac59ef88",
+  "subject": "docs: explain CUDA 11 compilation [no ci] (#16824)",
+  "query": "docs: explain CUDA 11 compilation [no ci] (#16824)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 223,
+    "section": 223
+   }
+  ]
+ },
+ {
+  "commit": "5e90233bdba013838c1a69df7738e08bd5c058d5",
+  "subject": "opencl: update doc (#17011)",
+  "query": "opencl: update doc (#17011)",
+  "answers": [
+   {
+    "file": "docs/backend/OPENCL.md",
+    "line": 56,
+    "section": 43
+   }
+  ]
+ },
+ {
+  "commit": "b52edd25586fabb70f0c21b274473b307cf14499",
+  "subject": "server : remove n_past (#16818)",
+  "query": "server : remove n_past (#16818)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 672,
+    "section": 483
+   }
+  ]
+ },
+ {
+  "commit": "a8ca18b4b815a2abdbecb958ee5f4c542d69aac7",
+  "subject": "llama-bench : clarify benchmarked parts of the computation (#16823)",
+  "query": "llama-bench : clarify benchmarked parts of the computation (#16823)",
+  "answers": [
+   {
+    "file": "tools/llama-bench/README.md",
+    "line": 101,
+    "section": 20
+   }
+  ]
+ },
+ {
+  "commit": "1c1409e13169d0ced4b1b4d39fb5b268b7525091",
+  "subject": "embedding: add raw option for --embd-output-format (#16541)",
+  "query": "embedding: add raw option for --embd-output-format (#16541)",
+  "answers": [
+   {
+    "file": "examples/embedding/README.md",
+    "line": 41,
+    "section": 33
+   }
+  ]
+ },
+ {
+  "commit": "80d28f104c0c3e61c11d6af073642b246a9fc19c",
+  "subject": "HIP: fix AMDGPU_TARGETS, update documentation (#16803)",
+  "query": "HIP: fix AMDGPU_TARGETS, update documentation (#16803)",
+  "answers": [
+   {
+    "file": "docs/build.md",
+    "line": 376,
+    "section": 363
+   }
+  ]
+ },
+ {
+  "commit": "56b4795842d852152222ca7a2d4304008facf1b9",
+  "subject": "model-conversion : add support for SentenceTransformers (#16387)",
+  "query": "model-conversion : add support for SentenceTransformers (#16387)",
+  "answers": [
+   {
+    "file": "examples/model-conversion/README.md",
+    "line": 199,
+    "section": 199
+   }
+  ]
+ },
+ {
+  "commit": "df1b612e29ba97a2e67db339b1e8c7465702b7e8",
+  "subject": "server : add `/v1/health` endpoint (#16461)",
+  "query": "server : add `/v1/health` endpoint (#16461)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 472,
+    "section": 470
+   }
+  ]
+ },
+ {
+  "commit": "c61ae20d05bd4fdd8551311325a2845336449426",
+  "subject": "rpc : update documentation (#16441)",
+  "query": "rpc : update documentation (#16441)",
+  "answers": [
+   {
+    "file": "tools/rpc/README.md",
+    "line": 28,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "2be72c2b121ee99f33927149265ce6073ade9e59",
+  "subject": "SYCL: Update to oneAPI 2025.2 (#16371)",
+  "query": "SYCL: Update to oneAPI 2025.2 (#16371)",
+  "answers": [
+   {
+    "file": "docs/backend/SYCL.md",
+    "line": 302,
+    "section": 224
+   }
+  ]
+ },
+ {
+  "commit": "2811c65286ae954bec87049f75b86dc022006dcc",
+  "subject": "Fixed a few typos in the README of the LLaMA.cpp HTTP Server [no ci] (#16297)",
+  "query": "Fixed a few typos in the README of the LLaMA.cpp HTTP Server [no ci] (#16297)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 470,
+    "section": 470
+   }
+  ]
+ },
+ {
+  "commit": "234e2ff8ed09716fb553437596779399bee31b11",
+  "subject": "server : remove old LLAMA_SERVER_SSL (#16290)",
+  "query": "server : remove old LLAMA_SERVER_SSL (#16290)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 425,
+    "section": 418
+   }
+  ]
+ },
+ {
+  "commit": "a86a580a6692edd1da076d5422f944c344b4fe5e",
+  "subject": "musa: upgrade musa sdk to 4.3.0 (#16240)",
+  "query": "musa: upgrade musa sdk to 4.3.0 (#16240)",
+  "answers": [
+   {
+    "file": "docs/docker.md",
+    "line": 126,
+    "section": 114
+   }
+  ]
+ },
+ {
+  "commit": "d0991da39d3c39b3980c24cdfccb9a4c95a46870",
+  "subject": "server : add support for external server for tests (#16243)",
+  "query": "server : add support for external server for tests (#16243)",
+  "answers": [
+   {
+    "file": "tools/server/tests/README.md",
+    "line": 68,
+    "section": 68
+   }
+  ]
+ },
+ {
+  "commit": "4cdd0bb4537f9617e9efcfef6b9454fcefe2ff08",
+  "subject": "docs: fix typo [no ci] (#16244)",
+  "query": "docs: fix typo [no ci] (#16244)",
+  "answers": [
+   {
+    "file": "CONTRIBUTING.md",
+    "line": 72,
+    "section": 67
+   }
+  ]
+ },
+ {
+  "commit": "8ba548dae251f8f2e3834ed5226b76b6e4f4a485",
+  "subject": "model-conversion : fix the make targets in the README.md (#16209)",
+  "query": "model-conversion : fix the make targets in the README.md (#16209)",
+  "answers": [
+   {
+    "file": "examples/model-conversion/README.md",
+    "line": 115,
+    "section": 112
+   }
+  ]
+ },
+ {
+  "commit": "264f1b51872c125e23fa0ac1da5e2a1170de9a08",
+  "subject": "zdnn: refactor codebase + add docs (#16178)",
+  "query": "zdnn: refactor codebase + add docs (#16178)",
+  "answers": [
+   {
+    "file": "README.md",
+    "line": 78,
+    "section": 68
+   },
+   {
+    "file": "docs/backend/zDNN.md",
+    "line": 1,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "c6db9a10278f40b4b8d3f6931728f2cce2356daa",
+  "subject": "embedding : fix typos in README (#16171)",
+  "query": "embedding : fix typos in README (#16171)",
+  "answers": [
+   {
+    "file": "examples/embedding/README.md",
+    "line": 47,
+    "section": 43
+   }
+  ]
+ },
+ {
+  "commit": "5c6106a696af2b00ce01d14ba525979d5a32b199",
+  "subject": "contrib : update roles (#16113)",
+  "query": "contrib : update roles (#16113)",
+  "answers": [
+   {
+    "file": "CONTRIBUTING.md",
+    "line": 3,
+    "section": 1
+   },
+   {
+    "file": "README.md",
+    "line": 116,
+    "section": 112
+   }
+  ]
+ },
+ {
+  "commit": "28baac9c9f491c872e2c37762d3bd90446b005e9",
+  "subject": "ci : migrate ggml ci to self-hosted runners (#16116)",
+  "query": "ci : migrate ggml ci to self-hosted runners (#16116)",
+  "answers": [
+   {
+    "file": "ci/README-MUSA.md",
+    "line": 1,
+    "section": 1
+   },
+   {
+    "file": "ci/README.md",
+    "line": 3,
+    "section": 1
+   }
+  ]
+ },
+ {
+  "commit": "be79d9fdd95ab8955527c4aaa67b90e8b9516718",
+  "subject": "llama-bench: add --devices and --list-devices support (#16039)",
+  "query": "llama-bench: add --devices and --list-devices support (#16039)",
+  "answers": [
+   {
+    "file": "tools/llama-bench/README.md",
+    "line": 33,
+    "section": 20
+   }
+  ]
+ },
+ {
+  "commit": "40be51152d4dc2d47444a4ed378285139859895b",
+  "subject": "ggml-zdnn: fix #15414, activate FP16 and BF16 acceleration and incorrect zTensor free (#15839)",
+  "query": "ggml-zdnn: fix #15414, activate FP16 and BF16 acceleration and incorrect zTensor free (#15839)",
+  "answers": [
+   {
+    "file": "docs/build-s390x.md",
+    "line": 244,
+    "section": 239
+   }
+  ]
+ },
+ {
+  "commit": "c0389dba43d50695f9d3f57dd1f1a14cbefc100c",
+  "subject": "CANN: Disable acl_graph for prefill stage (#15933)",
+  "query": "CANN: Disable acl_graph for prefill stage (#15933)",
+  "answers": [
+   {
+    "file": "docs/backend/CANN.md",
+    "line": 351,
+    "section": 351
+   }
+  ]
+ },
+ {
+  "commit": "28b5f190ef1dbea5edf82dbc8b4407b721fadd13",
+  "subject": "CANN: implement LRU cache for ACL graphs (#15814)",
+  "query": "CANN: implement LRU cache for ACL graphs (#15814)",
+  "answers": [
+   {
+    "file": "docs/backend/CANN.md",
+    "line": 347,
+    "section": 347
+   }
+  ]
+ },
+ {
+  "commit": "c252ce67c4b99f056eeb18d42a289e28fee03475",
+  "subject": "contrib : add notes about merging PRs (#15881)",
+  "query": "contrib : add notes about merging PRs (#15881)",
+  "answers": [
+   {
+    "file": "CONTRIBUTING.md",
+    "line": 75,
+    "section": 67
+   }
+  ]
+ },
+ {
+  "commit": "61bdfd5298a78593be649a1035ee2a120b13c4f0",
+  "subject": "server : implement prompt processing progress report in stream mode (#15827)",
+  "query": "server : implement prompt processing progress report in stream mode (#15827)",
+  "answers": [
+   {
+    "file": "tools/server/README.md",
+    "line": 1395,
+    "section": 1308
+   }
+  ]
+ }
+]

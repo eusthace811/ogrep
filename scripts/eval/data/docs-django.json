@@ -1,0 +1,3812 @@
+[
+ {
+  "commit": "9e06baf2e4dd17834b5deaf3a3e6ae3bff2fcf26",
+  "subject": "Fixed #37066 -- Wrapped async iteration sites in (maybe_)aclosing.",
+  "query": "Wrapped async iteration sites in (maybe_)aclosing.",
+  "answers": [
+   {
+    "file": "docs/ref/utils.txt",
+    "line": 17,
+    "section": 14
+   }
+  ]
+ },
+ {
+  "commit": "a013c821ea7838a953869615b0bdcfdb298cc09f",
+  "subject": "Fixed #37177 -- Reduced per-middleware context switching under ASGI.",
+  "query": "Reduced per-middleware context switching under ASGI.",
+  "answers": [
+   {
+    "file": "docs/topics/http/middleware.txt",
+    "line": 417,
+    "section": 395
+   }
+  ]
+ },
+ {
+  "commit": "9d977aaa2d037cf0a6e2fcad40763305fe88cfda",
+  "subject": "Fixed #37051 -- Improved organisation of documentation home page.",
+  "query": "Improved organisation of documentation home page.",
+  "answers": [
+   {
+    "file": "docs/index.txt",
+    "line": 16,
+    "section": 9
+   }
+  ]
+ },
+ {
+  "commit": "703283b5b455a8410b4ce0a2e6ea0e1bde7f3047",
+  "subject": "Fixed #37358 -- Dropped support for GDAL 3.3 and 3.4.",
+  "query": "Dropped support for GDAL 3.3 and 3.4.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/gis/gdal.txt",
+    "line": 1949,
+    "section": 1894
+   },
+   {
+    "file": "docs/ref/contrib/gis/install/geolibs.txt",
+    "line": 18,
+    "section": 7
+   }
+  ]
+ },
+ {
+  "commit": "862ade3409ceaa8ec5305e6f5aa26ee0e553cf02",
+  "subject": "De-emphasized typo fixes in contributing docs.",
+  "query": "De-emphasized typo fixes in contributing docs.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/new-contributors.txt",
+    "line": 55,
+    "section": 52
+   },
+   {
+    "file": "docs/internals/contributing/writing-code/submitting-patches.txt",
+    "line": 14,
+    "section": 11
+   }
+  ]
+ },
+ {
+  "commit": "376909dc434395ae0156ac74e998d828e9551989",
+  "subject": "Fixed #37140 -- Documented NULL handling of __in lookups.",
+  "query": "Documented NULL handling of __in lookups.",
+  "answers": [
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 3375,
+    "section": 3330
+   }
+  ]
+ },
+ {
+  "commit": "08ba4d0e0f62e322c6727596ee7a324465076a76",
+  "subject": "Modeled a safer mechanism for installing a git hook for backports.",
+  "query": "Modeled a safer mechanism for installing a git hook for backports.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/committing-code.txt",
+    "line": 259,
+    "section": 193
+   }
+  ]
+ },
+ {
+  "commit": "fb32a564ccc6f91d4b7594f5707c62fab0c11c04",
+  "subject": "Fixed #37348 -- Reverted \"Fixed #36806 -- Added system check for null kwarg in GeneratedField.\".",
+  "query": "Reverted \"Fixed #36806 -- Added system check for null kwarg in GeneratedField.\".",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 237,
+    "section": 175
+   }
+  ]
+ },
+ {
+  "commit": "bbf5a998c02b52f1b72474e4b310cff94f24ff36",
+  "subject": "Fixed #37261 -- Documented error reporting migration to MAILERS.",
+  "query": "Documented error reporting migration to MAILERS.",
+  "answers": [
+   {
+    "file": "docs/howto/mailers-migration.txt",
+    "line": 50,
+    "section": 6
+   }
+  ]
+ },
+ {
+  "commit": "516d06e48fb5a4e7deb055ef578fa1272e86d326",
+  "subject": "Fixed #37283 -- Clarified PostgreSQL connection pooling configuration.",
+  "query": "Clarified PostgreSQL connection pooling configuration.",
+  "answers": [
+   {
+    "file": "docs/ref/databases.txt",
+    "line": 257,
+    "section": 254
+   }
+  ]
+ },
+ {
+  "commit": "850e026cbfbe65944a5e0dc50e47c7ac64143708",
+  "subject": "Fixed #36809 -- Allowed customizing EmailValidator per-part validation.",
+  "query": "Allowed customizing EmailValidator per-part validation.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 31,
+    "section": 12
+   },
+   {
+    "file": "docs/ref/validators.txt",
+    "line": 139,
+    "section": 127
+   }
+  ]
+ },
+ {
+  "commit": "fc4eaaabf419508ea39d750ca5ca801d933e0b16",
+  "subject": "Fixed #37289 -- Avoided deleting network rasters.",
+  "query": "Avoided deleting network rasters.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/gis/gdal.txt",
+    "line": 1691,
+    "section": 1274
+   }
+  ]
+ },
+ {
+  "commit": "89768ae1ab909ae77cbecc2e57927530dbe8584f",
+  "subject": "Fixed #37331 -- Dropped support for GEOS 3.10.",
+  "query": "Dropped support for GEOS 3.10.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/gis/install/geolibs.txt",
+    "line": 16,
+    "section": 7
+   }
+  ]
+ },
+ {
+  "commit": "9193cb54550727a02fd55dab1b430597a9aa4297",
+  "subject": "Fixed #37325 -- Bumped minimum oracledb version to 4.0.2.",
+  "query": "Bumped minimum oracledb version to 4.0.2.",
+  "answers": [
+   {
+    "file": "docs/ref/databases.txt",
+    "line": 1009,
+    "section": 1005
+   }
+  ]
+ },
+ {
+  "commit": "b3f4d83aad7f589f165a6d8b020b7acba4936f35",
+  "subject": "Fixed #37013 -- Deprecated Trunc/Extract in migrations with USE_TZ=True and no tzinfo.",
+  "query": "Deprecated Trunc/Extract in migrations with USE_TZ=True and no tzinfo.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 26,
+    "section": 12
+   }
+  ]
+ },
+ {
+  "commit": "cc933385e75172cabacb49cfb9fe3571845cb216",
+  "subject": "Fixed #37271 -- Added calendar version support to django.utils.version.",
+  "query": "Added calendar version support to django.utils.version.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 168,
+    "section": 36
+   }
+  ]
+ },
+ {
+  "commit": "026b005f3dc43a98557ce5a546b5e4938d06fed1",
+  "subject": "Refs #37293 -- Updated deprecation docs for calendar-based warning names.",
+  "query": "Updated deprecation docs for calendar-based warning names.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/submitting-patches.txt",
+    "line": 306,
+    "section": 291
+   }
+  ]
+ },
+ {
+  "commit": "52abe52bec23df6523aff492364f4f1b049c9572",
+  "subject": "Fixed #37293 -- Renamed RemovedInDjango71Warning to RemovedInDjango2029Warning.",
+  "query": "Renamed RemovedInDjango71Warning to RemovedInDjango2029Warning.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 10,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "05aec0a4aa111b54b50daec64059fd18ac70b437",
+  "subject": "Clarified scope of object-level admin view permissions.",
+  "query": "Clarified scope of object-level admin view permissions.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/admin/index.txt",
+    "line": 1971,
+    "section": 1445
+   }
+  ]
+ },
+ {
+  "commit": "ae7450c857cc766175e29d3045f17b30e8a43154",
+  "subject": "Clarified object-level permission checks in admin actions.",
+  "query": "Clarified object-level permission checks in admin actions.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/admin/actions.txt",
+    "line": 410,
+    "section": 398
+   }
+  ]
+ },
+ {
+  "commit": "8d1c673466bcabff500edc6c7724e5a20f6df3de",
+  "subject": "Fixed #37309 -- Used _is_pk_set() in Model.__eq__.",
+  "query": "Used _is_pk_set() in Model.__eq__.",
+  "answers": [
+   {
+    "file": "docs/ref/models/instances.txt",
+    "line": 793,
+    "section": 786
+   }
+  ]
+ },
+ {
+  "commit": "189136c2a3e166c59a49cca2444aa6a1d77aa136",
+  "subject": "Fixed gunicorn links in security policy.",
+  "query": "Fixed gunicorn links in security policy.",
+  "answers": [
+   {
+    "file": "docs/internals/security.txt",
+    "line": 195,
+    "section": 173
+   }
+  ]
+ },
+ {
+  "commit": "3b767c5f6ab6a4421ea3892ac6afacd8aa1345d6",
+  "subject": "Fixed #37301 -- Fixed broken references in accessibility documentation.",
+  "query": "Fixed broken references in accessibility documentation.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/accessibility.txt",
+    "line": 132,
+    "section": 106
+   }
+  ]
+ },
+ {
+  "commit": "d992705f9eb56199dc474b77af16474e5ce3d2ab",
+  "subject": "Fixed #37259 -- Restored support for old-signature Model.from_db() overrides.",
+  "query": "Restored support for old-signature Model.from_db() overrides.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 162,
+    "section": 36
+   },
+   {
+    "file": "docs/ref/models/instances.txt",
+    "line": 155,
+    "section": 81
+   }
+  ]
+ },
+ {
+  "commit": "d92b0209014021350af0383983315bf0a05ffac0",
+  "subject": "Corrected indentation in docs/refs/models/instances.txt.",
+  "query": "Corrected indentation in docs/refs/models/instances.txt.",
+  "answers": [
+   {
+    "file": "docs/ref/models/instances.txt",
+    "line": 151,
+    "section": 81
+   }
+  ]
+ },
+ {
+  "commit": "3436cf9bce84bb1f6877ad96819637366b27b719",
+  "subject": "Clarified that FORM_RENDERER applies to the admin.",
+  "query": "Clarified that FORM_RENDERER applies to the admin.",
+  "answers": [
+   {
+    "file": "docs/ref/forms/renderers.txt",
+    "line": 31,
+    "section": 21
+   },
+   {
+    "file": "docs/ref/settings.txt",
+    "line": 1788,
+    "section": 1783
+   }
+  ]
+ },
+ {
+  "commit": "c6be0bf3bb744d234947cefd6def9f31d9655800",
+  "subject": "Fixed #37254 -- Added fields.E323 for models referenced by ManyToManyFields.",
+  "query": "Added fields.E323 for models referenced by ManyToManyFields.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 326,
+    "section": 287
+   }
+  ]
+ },
+ {
+  "commit": "2b4c88b2ce753a44b5ba867e5e52a20e07b258e6",
+  "subject": "Refs #28586 -- Updated Model.from_db() signature in docs.",
+  "query": "Updated Model.from_db() signature in docs.",
+  "answers": [
+   {
+    "file": "docs/ref/models/instances.txt",
+    "line": 84,
+    "section": 81
+   }
+  ]
+ },
+ {
+  "commit": "c9eb16a87e60c305fb3651459639f647cce498db",
+  "subject": "Refs #36905 -- Corrected safe param in JSONResponse signature in docs.",
+  "query": "Corrected safe param in JSONResponse signature in docs.",
+  "answers": [
+   {
+    "file": "docs/ref/request-response.txt",
+    "line": 1225,
+    "section": 1222
+   }
+  ]
+ },
+ {
+  "commit": "4243ab11dc957fd14a1875e6b715ff5e6114a415",
+  "subject": "Documented additional caveats for inspectdb.",
+  "query": "Documented additional caveats for inspectdb.",
+  "answers": [
+   {
+    "file": "docs/ref/django-admin.txt",
+    "line": 444,
+    "section": 425
+   }
+  ]
+ },
+ {
+  "commit": "ae25a40be07e8a749edf526df37c93e59d4a22c9",
+  "subject": "Fixed #37196 -- Documented SimpleTestCase.async_client_class and async_client in testing tools.",
+  "query": "Documented SimpleTestCase.async_client_class and async_client in testing tools.",
+  "answers": [
+   {
+    "file": "docs/topics/testing/tools.txt",
+    "line": 836,
+    "section": 810
+   }
+  ]
+ },
+ {
+  "commit": "27137e655e442e81095f1f8f77ff3870d9fdf169",
+  "subject": "Fixed CVE-2026-15337 -- Mitigated potential DoS in check_for_language().",
+  "query": "Fixed CVE-2026-15337 -- Mitigated potential DoS in check_for_language().",
+  "answers": [
+   {
+    "file": "docs/ref/utils.txt",
+    "line": 1169,
+    "section": 1084
+   }
+  ]
+ },
+ {
+  "commit": "f1949c1f9758947ade984c895ff16bef46f56520",
+  "subject": "Fixed CVE-2026-15307 -- Blocked raster strings and dicts in spatial lookups.",
+  "query": "Fixed CVE-2026-15307 -- Blocked raster strings and dicts in spatial lookups.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/gis/db-api.txt",
+    "line": 150,
+    "section": 141
+   },
+   {
+    "file": "docs/ref/contrib/gis/gdal.txt",
+    "line": 2148,
+    "section": 2145
+   }
+  ]
+ },
+ {
+  "commit": "1c550a8151c84d7e221ccc42821aae25f43f0452",
+  "subject": "Fixed #37069 -- Clarified that UniqueConstraint may create a unique index.",
+  "query": "Clarified that UniqueConstraint may create a unique index.",
+  "answers": [
+   {
+    "file": "docs/ref/models/constraints.txt",
+    "line": 135,
+    "section": 130
+   }
+  ]
+ },
+ {
+  "commit": "7dee35f5eea131ddf807788c533da1264e571c61",
+  "subject": "Refs #28586 -- Renamed RAISE fetch mode to FETCH_RAISE.",
+  "query": "Renamed RAISE fetch mode to FETCH_RAISE.",
+  "answers": [
+   {
+    "file": "docs/ref/exceptions.txt",
+    "line": 174,
+    "section": 166
+   },
+   {
+    "file": "docs/topics/db/fetch-modes.txt",
+    "line": 107,
+    "section": 37
+   }
+  ]
+ },
+ {
+  "commit": "60121939f6b225c7a719dd561e372e1d8e5e2c4a",
+  "subject": "Fixed #36626 -- Preserved milliseconds in DataSource time fields.",
+  "query": "Preserved milliseconds in DataSource time fields.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/gis/gdal.txt",
+    "line": 473,
+    "section": 381
+   }
+  ]
+ },
+ {
+  "commit": "902e5c0fb2d3f0772efbfebc8ff135926a2bb47a",
+  "subject": "Refs #37139 -- Doc'd _is_pk_set() handling of DatabaseDefault.",
+  "query": "Doc'd _is_pk_set() handling of DatabaseDefault.",
+  "answers": [
+   {
+    "file": "docs/ref/models/instances.txt",
+    "line": 1022,
+    "section": 1017
+   }
+  ]
+ },
+ {
+  "commit": "834b5cbb68d68ef098ddeba325e849f2c0556e61",
+  "subject": "Refs #28586 -- Doc'd fetch_mode attribute on ModelState.",
+  "query": "Doc'd fetch_mode attribute on ModelState.",
+  "answers": [
+   {
+    "file": "docs/ref/models/instances.txt",
+    "line": 1001,
+    "section": 993
+   }
+  ]
+ },
+ {
+  "commit": "8362cdc7efc9c881fdba48ce19e89b9194de7c46",
+  "subject": "Bumped minimum setuptools version to 83.",
+  "query": "Bumped minimum setuptools version to 83.",
+  "answers": [
+   {
+    "file": "docs/intro/reusable-apps.txt",
+    "line": 214,
+    "section": 117
+   }
+  ]
+ },
+ {
+  "commit": "ea6b17b4815d36f6cc7780fdec303d27997eca49",
+  "subject": "Fixed #20023 -- Added custom validation example for admin inlines.",
+  "query": "Added custom validation example for admin inlines.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/admin/index.txt",
+    "line": 2754,
+    "section": 2701
+   }
+  ]
+ },
+ {
+  "commit": "957d0cee7167757ae221ffde59d2cf0a322e89c7",
+  "subject": "Removed outdated Python 2 references from contributing docs.",
+  "query": "Removed outdated Python 2 references from contributing docs.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/coding-style.txt",
+    "line": 173,
+    "section": 131
+   }
+  ]
+ },
+ {
+  "commit": "99ab4bd124df9cd69f990a2deba2bcfa9905851e",
+  "subject": "Refs #37217 -- Updated version references to 6.2 in contributing docs.",
+  "query": "Updated version references to 6.2 in contributing docs.",
+  "answers": [
+   {
+    "file": "docs/intro/contributing.txt",
+    "line": 414,
+    "section": 394
+   }
+  ]
+ },
+ {
+  "commit": "4a89f5c3978821e559b55f45d7a86984b26ceaa0",
+  "subject": "Fixed typo and versionadded locations in email docs.",
+  "query": "Fixed typo and versionadded locations in email docs.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 1353,
+    "section": 1277
+   }
+  ]
+ },
+ {
+  "commit": "21b3a4c4c528ca827adda14b6c4cf045afba6d4f",
+  "subject": "Fixed #36925 -- Listed further shared features for InlineModelAdmin.",
+  "query": "Listed further shared features for InlineModelAdmin.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/admin/index.txt",
+    "line": 2329,
+    "section": 2307
+   }
+  ]
+ },
+ {
+  "commit": "dca76b15c62a1118325b71678ce3235e2231198d",
+  "subject": "Fixed #37032 -- Documented that the CSRF context processor is always enabled in its reference documentation.",
+  "query": "Documented that the CSRF context processor is always enabled in its reference documentation.",
+  "answers": [
+   {
+    "file": "docs/ref/templates/api.txt",
+    "line": 807,
+    "section": 800
+   }
+  ]
+ },
+ {
+  "commit": "4ef959ab0c7dde0459041a795359c9bc040df2b7",
+  "subject": "Refs #15855 -- Documented that cache_page caches responses before response middleware runs.",
+  "query": "Documented that cache_page caches responses before response middleware runs.",
+  "answers": [
+   {
+    "file": "docs/topics/cache.txt",
+    "line": 745,
+    "section": 684
+   }
+  ]
+ },
+ {
+  "commit": "dd4fc22d4cfd182c04e0468ae4a8f630fbb2fd1b",
+  "subject": "Fixed #37219 -- Added GeneratedField example to PostgreSQL search reference.",
+  "query": "Added GeneratedField example to PostgreSQL search reference.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/postgres/search.txt",
+    "line": 368,
+    "section": 365
+   }
+  ]
+ },
+ {
+  "commit": "ad289c1de4c39cc2b35748dc7a5ac84c7cbdf10a",
+  "subject": "Fixed #37218 -- Doc'd that on-demand fetching is sync only.",
+  "query": "Doc'd that on-demand fetching is sync only.",
+  "answers": [
+   {
+    "file": "docs/topics/db/queries.txt",
+    "line": 999,
+    "section": 982
+   }
+  ]
+ },
+ {
+  "commit": "537c6df3e641ebc21e9da76c86aea4d36e6a32e2",
+  "subject": "Fixed #32915 -- Suppressed fewer ImportErrors in management commands.",
+  "query": "Suppressed fewer ImportErrors in management commands.",
+  "answers": [
+   {
+    "file": "docs/howto/custom-management-commands.txt",
+    "line": 225,
+    "section": 195
+   }
+  ]
+ },
+ {
+  "commit": "581f2969eddedefacc100e08f494a439c47a9828",
+  "subject": "Fixed broken link in uvicorn deployment docs.",
+  "query": "Fixed broken link in uvicorn deployment docs.",
+  "answers": [
+   {
+    "file": "docs/howto/deployment/asgi/uvicorn.txt",
+    "line": 59,
+    "section": 40
+   }
+  ]
+ },
+ {
+  "commit": "a486b48d4ea0d34babe58cae215b2123748aacbd",
+  "subject": "Fixed #37210 -- Logged cached_db session cache delete failures.",
+  "query": "Logged cached_db session cache delete failures.",
+  "answers": [
+   {
+    "file": "docs/topics/http/sessions.txt",
+    "line": 80,
+    "section": 52
+   }
+  ]
+ },
+ {
+  "commit": "065a4a4b8d55451c4ffba02e447faf9cf5e8d807",
+  "subject": "Fixed #37131 -- Improved XSS section in security documentation.",
+  "query": "Improved XSS section in security documentation.",
+  "answers": [
+   {
+    "file": "docs/topics/security.txt",
+    "line": 8,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "5f90dc2468bc52373efe4b231c4eb383b3f1edd2",
+  "subject": "Fixed #37178 -- Moved MiddlewareMixin out of utils.deprecation.",
+  "query": "Moved MiddlewareMixin out of utils.deprecation.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 18,
+    "section": 12
+   },
+   {
+    "file": "docs/topics/http/middleware.txt",
+    "line": 398,
+    "section": 395
+   }
+  ]
+ },
+ {
+  "commit": "7112007fcaf7a7db8a4a6bb1d45b51d8fa41d0b7",
+  "subject": "Fixed #37199 -- Fixed typo in bulk_update code example in docs/ref/models/querysets.txt.",
+  "query": "Fixed typo in bulk_update code example in docs/ref/models/querysets.txt.",
+  "answers": [
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 2555,
+    "section": 2510
+   }
+  ]
+ },
+ {
+  "commit": "65a9f14196c338d70889bd54753370606b3fb4eb",
+  "subject": "Fixed #36864 -- Supported modules and submodules in import_string().",
+  "query": "Supported modules and submodules in import_string().",
+  "answers": [
+   {
+    "file": "docs/ref/utils.txt",
+    "line": 853,
+    "section": 843
+   }
+  ]
+ },
+ {
+  "commit": "8c454124cdbe4a286b02f5b3ff7d01adcb9d9b32",
+  "subject": "Refs #36277 -- Added release note for Postgres 18+ virtual column.",
+  "query": "Added release note for Postgres 18+ virtual column.",
+  "answers": [
+   {
+    "file": "docs/ref/models/fields.txt",
+    "line": 1349,
+    "section": 1309
+   }
+  ]
+ },
+ {
+  "commit": "f8fc89d79c8850f3a1f29413de8277f8752f922d",
+  "subject": "Refs #32670 -- Revealed warning in GDAL virtual filesystem reference.",
+  "query": "Revealed warning in GDAL virtual filesystem reference.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/gis/gdal.txt",
+    "line": 2102,
+    "section": 2092
+   }
+  ]
+ },
+ {
+  "commit": "3a15d1b34d7d52616c9e217fab2192b1e93aa881",
+  "subject": "Fixed flatpages synopsis in docs.",
+  "query": "Fixed flatpages synopsis in docs.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/flatpages.txt",
+    "line": 6,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "73dd0169a54f4bbcb41b29bf7d51a36f86c89afe",
+  "subject": "Added FILE_UPLOAD_DIRECTORY_PERMISSIONS to docs settings index.",
+  "query": "Added FILE_UPLOAD_DIRECTORY_PERMISSIONS to docs settings index.",
+  "answers": [
+   {
+    "file": "docs/ref/settings.txt",
+    "line": 4043,
+    "section": 4039
+   }
+  ]
+ },
+ {
+  "commit": "5875c79cb97688d05f180437e42c6b70b623e69d",
+  "subject": "Fixed #37172 -- Linked to upload handlers section in FILE_UPLOAD_* settings see for details.",
+  "query": "Linked to upload handlers section in FILE_UPLOAD_* settings see for details.",
+  "answers": [
+   {
+    "file": "docs/ref/settings.txt",
+    "line": 1664,
+    "section": 1658
+   },
+   {
+    "file": "docs/topics/http/file-uploads.txt",
+    "line": 226,
+    "section": 150
+   }
+  ]
+ },
+ {
+  "commit": "6b13c8c4999f386b0eb22f311a5d3bbfd22d7be7",
+  "subject": "Fixed #37158 -- Reordered the contribution checklist sections.",
+  "query": "Reordered the contribution checklist sections.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/submitting-patches.txt",
+    "line": 471,
+    "section": 468
+   }
+  ]
+ },
+ {
+  "commit": "318a316a4c86a65bede68144f9546a6056d91379",
+  "subject": "Fixed document referenced in multiple toctrees warning in docs/internals/contributing/writing-code/index.txt.",
+  "query": "Fixed document referenced in multiple toctrees warning in docs/internals/contributing/writing-code/index.txt.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/index.txt",
+    "line": 25,
+    "section": 19
+   }
+  ]
+ },
+ {
+  "commit": "c8b1f22a3d88284a87d2d278d34c103d3a859c8b",
+  "subject": "Fixed duplicate target name in docs/internals/howto-release-django.txt.",
+  "query": "Fixed duplicate target name in docs/internals/howto-release-django.txt.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 62,
+    "section": 11
+   }
+  ]
+ },
+ {
+  "commit": "cc68c7d2483e0b86e5ffe5b583ecfd8bd3e972ec",
+  "subject": "Updated howto-release-django.txt with reminder to bump asgiref.",
+  "query": "Updated howto-release-django.txt with reminder to bump asgiref.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 781,
+    "section": 703
+   }
+  ]
+ },
+ {
+  "commit": "ff4eedbf0ee5cc8ed522333ed87dae5ebe4f364c",
+  "subject": "Disambiguated duplicate \"Example\" hyperlink targets in howto-release-django.txt.",
+  "query": "Disambiguated duplicate \"Example\" hyperlink targets in howto-release-django.txt.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 66,
+    "section": 11
+   }
+  ]
+ },
+ {
+  "commit": "f3f9601cff03b38942e70ce8042bdfdec6002449",
+  "subject": "Fixed #34753 -- Extended security and safety remarks in email topics docs.",
+  "query": "Extended security and safety remarks in email topics docs.",
+  "answers": [
+   {
+    "file": "docs/ref/settings.txt",
+    "line": 59,
+    "section": 45
+   },
+   {
+    "file": "docs/topics/email.txt",
+    "line": 498,
+    "section": 457
+   }
+  ]
+ },
+ {
+  "commit": "e78991410b78391bc07a4b5010b273dfec814ff6",
+  "subject": "Clarified \"plaintext\" vs. \"plain-text\" in password hashers docs.",
+  "query": "Clarified \"plaintext\" vs. \"plain-text\" in password hashers docs.",
+  "answers": [
+   {
+    "file": "docs/topics/auth/passwords.txt",
+    "line": 491,
+    "section": 477
+   }
+  ]
+ },
+ {
+  "commit": "d5797ae57d4822ee77091c8e8e5d35e5f4efca53",
+  "subject": "Refs #37188 -- Used a more realistic --ignore in compilemessages example.",
+  "query": "Used a more realistic --ignore in compilemessages example.",
+  "answers": [
+   {
+    "file": "docs/ref/django-admin.txt",
+    "line": 206,
+    "section": 161
+   }
+  ]
+ },
+ {
+  "commit": "01c3cceca1ac80796e5448295e294cbc01948185",
+  "subject": "Replaced the defunct pgp.mit.edu keyserver with GitHub for key import.",
+  "query": "Replaced the defunct pgp.mit.edu keyserver with GitHub for key import.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 558,
+    "section": 502
+   }
+  ]
+ },
+ {
+  "commit": "0383d12ea3451a75be184bd1783f11031903e7ee",
+  "subject": "Refs #37174 -- Doc'd that args to the {% cache %} tag are stringified.",
+  "query": "Doc'd that args to the {% cache %} tag are stringified.",
+  "answers": [
+   {
+    "file": "docs/topics/cache.txt",
+    "line": 811,
+    "section": 786
+   }
+  ]
+ },
+ {
+  "commit": "61e078ecab9a9e8de9d283adf9fa554b6a145ce8",
+  "subject": "Fixed #37166 -- Added deploy system check for dev-only 'default' MAILERS.",
+  "query": "Added deploy system check for dev-only 'default' MAILERS.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 161,
+    "section": 155
+   }
+  ]
+ },
+ {
+  "commit": "99a14b6be85793f3371779cd9bf6fb9d9247f475",
+  "subject": "Fixed #37161 -- Warned via system check on missing \"default\" entry in MAILERS setting.",
+  "query": "Warned via system check on missing \"default\" entry in MAILERS setting.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 87,
+    "section": 71
+   }
+  ]
+ },
+ {
+  "commit": "2c5e4af3cccd88a7f0ea66a56aff1a49ad274681",
+  "subject": "Fixed #37165 -- Updated Async Support topics doc.",
+  "query": "Updated Async Support topics doc.",
+  "answers": [
+   {
+    "file": "docs/topics/async.txt",
+    "line": 8,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "e877e2105c9691f162bf0b495646aef372b192a9",
+  "subject": "Refs #373 -- Updated FAQ page with partial composite primary key support.",
+  "query": "Updated FAQ page with partial composite primary key support.",
+  "answers": [
+   {
+    "file": "docs/faq/models.txt",
+    "line": 63,
+    "section": 60
+   }
+  ]
+ },
+ {
+  "commit": "ca5746b8680a5e7e14014d365c0610f825df1dae",
+  "subject": "Fixed #37143 -- Added missing chunk_size=None check to QuerySet.aiterator().",
+  "query": "Added missing chunk_size=None check to QuerySet.aiterator().",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 23,
+    "section": 12
+   }
+  ]
+ },
+ {
+  "commit": "cf889381ffec9220ca9d7a8eccef0e06b903fa38",
+  "subject": "Refs CVE-2026-6873 -- Moved deprecation note for SIGNED_COOKIE_LEGACY_SALT_FALLBACK.",
+  "query": "Refs CVE-2026-6873 -- Moved deprecation note for SIGNED_COOKIE_LEGACY_SALT_FALLBACK.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 95,
+    "section": 36
+   }
+  ]
+ },
+ {
+  "commit": "e4527156866cb96edf881023b14cb7a6f25d7f51",
+  "subject": "Refs #36593 -- Added missing deprecation note for select_related() with no arguments.",
+  "query": "Added missing deprecation note for select_related() with no arguments.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 137,
+    "section": 36
+   }
+  ]
+ },
+ {
+  "commit": "c37cc705e293f64431a982d29cfc3118c0e22f7c",
+  "subject": "Refs #36905 -- Added missing deprecation note for safe parameter of JSONResponse.",
+  "query": "Added missing deprecation note for safe parameter of JSONResponse.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 21,
+    "section": 12
+   }
+  ]
+ },
+ {
+  "commit": "09434486302078c3649e034dfa74cf3f102db20b",
+  "subject": "Fixed #37152 -- Raised ValueError when Bcc is used in EmailMessage headers.",
+  "query": "Raised ValueError when Bcc is used in EmailMessage headers.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 509,
+    "section": 457
+   }
+  ]
+ },
+ {
+  "commit": "13107fa2b2d6d8dd9c1dc74c47f34fe9a98a530b",
+  "subject": "Fixed #36881 -- Corrected documentation for ModelAdmin.search_fields.",
+  "query": "Corrected documentation for ModelAdmin.search_fields.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/admin/index.txt",
+    "line": 1256,
+    "section": 195
+   }
+  ]
+ },
+ {
+  "commit": "967643959f0a6f5351e4fdeb48cf935d787e4e6a",
+  "subject": "Fixed #37157 -- Doc'd usage of sphinx-autobuild for documentation auto-reloading.",
+  "query": "Doc'd usage of sphinx-autobuild for documentation auto-reloading.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-documentation.txt",
+    "line": 145,
+    "section": 145
+   }
+  ]
+ },
+ {
+  "commit": "d1f3c2bcec865e79e25e59ca0564d9eb8715f2f7",
+  "subject": "Fixed typo in section \"Configuring email\" in docs/topics/email.txt.",
+  "query": "Fixed typo in section \"Configuring email\" in docs/topics/email.txt.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 75,
+    "section": 67
+   }
+  ]
+ },
+ {
+  "commit": "63ff1142b2f0cba1981825c65b62425e9ff7734b",
+  "subject": "Fixed password hashing anchor link for references.",
+  "query": "Fixed password hashing anchor link for references.",
+  "answers": [
+   {
+    "file": "docs/topics/testing/overview.txt",
+    "line": 362,
+    "section": 356
+   }
+  ]
+ },
+ {
+  "commit": "d80ef32eb9e669986ed7838296f6373af56c68f0",
+  "subject": "Fixed #37128 -- Doc'd setUpTestData as test speed up.",
+  "query": "Doc'd setUpTestData as test speed up.",
+  "answers": [
+   {
+    "file": "docs/topics/testing/overview.txt",
+    "line": 41,
+    "section": 17
+   }
+  ]
+ },
+ {
+  "commit": "14c66825e0088b7e08fe5d108fa293bd31722c39",
+  "subject": "Fixed #37141 -- Added --using option to sendtestemail command.",
+  "query": "Added --using option to sendtestemail command.",
+  "answers": [
+   {
+    "file": "docs/ref/django-admin.txt",
+    "line": 1088,
+    "section": 1076
+   }
+  ]
+ },
+ {
+  "commit": "443780780bbe88822f0af4b27517d7e8f080a6a2",
+  "subject": "Doc'd security standards in howto-release-django.txt.",
+  "query": "Doc'd security standards in howto-release-django.txt.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 88,
+    "section": 69
+   }
+  ]
+ },
+ {
+  "commit": "1d714484f67777e586fbea49ec743a7e39cba50f",
+  "subject": "Fixed #37129 -- Clarified database cache culling behavior in docs.",
+  "query": "Clarified database cache culling behavior in docs.",
+  "answers": [
+   {
+    "file": "docs/topics/cache.txt",
+    "line": 256,
+    "section": 231
+   }
+  ]
+ },
+ {
+  "commit": "09efda004551319d2956e20020dc0e42e40f151a",
+  "subject": "Refs #24941 -- Doc'd get_exclude() in base features shared by InlineModelAdmin.",
+  "query": "Doc'd get_exclude() in base features shared by InlineModelAdmin.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/admin/index.txt",
+    "line": 2324,
+    "section": 2307
+   }
+  ]
+ },
+ {
+  "commit": "dc4e5461faa390991e6a0f6d3ca47690e8f5c4e1",
+  "subject": "Fixed #36837 -- Skipped backends not implementing (a)get_user() in (a)force_login().",
+  "query": "Skipped backends not implementing (a)get_user() in (a)force_login().",
+  "answers": [
+   {
+    "file": "docs/topics/testing/tools.txt",
+    "line": 491,
+    "section": 127
+   }
+  ]
+ },
+ {
+  "commit": "f970a98e464320c09dde8d45009eadfb4d038a57",
+  "subject": "Fixed #37142 -- Moved django_file_prefixes() to django.utils.warnings.",
+  "query": "Moved django_file_prefixes() to django.utils.warnings.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/submitting-patches.txt",
+    "line": 356,
+    "section": 291
+   }
+  ]
+ },
+ {
+  "commit": "beb40ed1d2b0503814591a37b08ecbd71f2ff729",
+  "subject": "Fixed #37106 -- Clarified pylibmc workaround in unit test docs.",
+  "query": "Clarified pylibmc workaround in unit test docs.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/unit-tests.txt",
+    "line": 42,
+    "section": 19
+   }
+  ]
+ },
+ {
+  "commit": "a7a57a21a8cf42ecc767c204f7939ad4419ae25f",
+  "subject": "Fixed #32785 -- Optimized cull frequency for DBCache.",
+  "query": "Optimized cull frequency for DBCache.",
+  "answers": [
+   {
+    "file": "docs/topics/cache.txt",
+    "line": 261,
+    "section": 231
+   }
+  ]
+ },
+ {
+  "commit": "57c8c8b107248a3358dd26276ac497c577454011",
+  "subject": "Fixed #36984 -- Made inline formset error messages respect delete_confirmation_max_display.",
+  "query": "Made inline formset error messages respect delete_confirmation_max_display.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 777,
+    "section": 702
+   },
+   {
+    "file": "docs/ref/contrib/admin/index.txt",
+    "line": 1429,
+    "section": 1387
+   }
+  ]
+ },
+ {
+  "commit": "b5d9dbdf2bba8df4c85cd0db308b3a467d763d02",
+  "subject": "Refs #36905 -- Moved JSONResponse safe param discussion to versionchanged box.",
+  "query": "Moved JSONResponse safe param discussion to versionchanged box.",
+  "answers": [
+   {
+    "file": "docs/ref/request-response.txt",
+    "line": 1273,
+    "section": 1270
+   }
+  ]
+ },
+ {
+  "commit": "3328078a01f5268f9b8659f56fd28c5a2ed083dc",
+  "subject": "Refs CVE-2026-6873 -- Defaulted SIGNED_COOKIE_LEGACY_SALT_FALLBACK transitional setting to False.",
+  "query": "Refs CVE-2026-6873 -- Defaulted SIGNED_COOKIE_LEGACY_SALT_FALLBACK transitional setting to False.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 95,
+    "section": 36
+   },
+   {
+    "file": "docs/ref/settings.txt",
+    "line": 2860,
+    "section": 2851
+   }
+  ]
+ },
+ {
+  "commit": "8930aafc5a7fbe3931bac858723fcffddb6fb2cb",
+  "subject": "Fixed #34699 -- Added examples of database comparisons against Extract()/Trunc().",
+  "query": "Added examples of database comparisons against Extract()/Trunc().",
+  "answers": [
+   {
+    "file": "docs/ref/models/database-functions.txt",
+    "line": 320,
+    "section": 221
+   }
+  ]
+ },
+ {
+  "commit": "a2faa8e895926ac5d63f72879b5ccf671b5b4ba9",
+  "subject": "Fixed CVE-2026-35193 -- Varied on Authorization when caching non-public responses.",
+  "query": "Fixed CVE-2026-35193 -- Varied on Authorization when caching non-public responses.",
+  "answers": [
+   {
+    "file": "docs/topics/cache.txt",
+    "line": 1447,
+    "section": 1366
+   }
+  ]
+ },
+ {
+  "commit": "70d36515b9cc71700105a14b275583070d48b689",
+  "subject": "Fixed CVE-2026-6873 -- Prevented signed cookie salt namespace collisions.",
+  "query": "Fixed CVE-2026-6873 -- Prevented signed cookie salt namespace collisions.",
+  "answers": [
+   {
+    "file": "docs/ref/request-response.txt",
+    "line": 421,
+    "section": 312
+   },
+   {
+    "file": "docs/ref/settings.txt",
+    "line": 2849,
+    "section": 2837
+   }
+  ]
+ },
+ {
+  "commit": "9383fae0d55a553be3bda620db87fa9ee8a81478",
+  "subject": "Fixed #28800 -- Added a listurls management command.",
+  "query": "Added a listurls management command.",
+  "answers": [
+   {
+    "file": "docs/ref/django-admin.txt",
+    "line": 521,
+    "section": 518
+   }
+  ]
+ },
+ {
+  "commit": "be8d1b628533ac38d2771356e92ade1d61d3f059",
+  "subject": "Fixed #37119 -- Clarified middleware ordering note for nonce access.",
+  "query": "Clarified middleware ordering note for nonce access.",
+  "answers": [
+   {
+    "file": "docs/ref/middleware.txt",
+    "line": 717,
+    "section": 633
+   }
+  ]
+ },
+ {
+  "commit": "7711cceea646340e07fcee4cef8245f201b98211",
+  "subject": "Refs #35514 -- Improved docs for MAILERS setting and mailers migration guide.",
+  "query": "Improved docs for MAILERS setting and mailers migration guide.",
+  "answers": [
+   {
+    "file": "docs/howto/mailers-migration.txt",
+    "line": 9,
+    "section": 6
+   },
+   {
+    "file": "docs/ref/settings.txt",
+    "line": 2205,
+    "section": 2168
+   }
+  ]
+ },
+ {
+  "commit": "525e51f6ce7d77012b60a9bdbd098322f94bdd3f",
+  "subject": "Fixed #35596 -- Removed mention of unlimited results from QuerySet.get().",
+  "query": "Removed mention of unlimited results from QuerySet.get().",
+  "answers": [
+   {
+    "file": "docs/topics/db/optimization.txt",
+    "line": 192,
+    "section": 158
+   }
+  ]
+ },
+ {
+  "commit": "6e15ac8066312328de279e3e072667416c205bfc",
+  "subject": "Fixed #36905 -- Deprecated the safe parameter of JSONResponse.",
+  "query": "Deprecated the safe parameter of JSONResponse.",
+  "answers": [
+   {
+    "file": "docs/ref/request-response.txt",
+    "line": 1252,
+    "section": 1222
+   }
+  ]
+ },
+ {
+  "commit": "41357f42c52ff7677af3d93b59b0aa6574b0ac19",
+  "subject": "Fixed #37065 -- Doc'd method_decorator usage on dispatch for async views.",
+  "query": "Doc'd method_decorator usage on dispatch for async views.",
+  "answers": [
+   {
+    "file": "docs/topics/async.txt",
+    "line": 120,
+    "section": 76
+   }
+  ]
+ },
+ {
+  "commit": "cc7ba819c556f6a232cd3c61af975925223d9cbc",
+  "subject": "Bumped versions in pre-commit and npm configurations.",
+  "query": "Bumped versions in pre-commit and npm configurations.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/coding-style.txt",
+    "line": 140,
+    "section": 131
+   }
+  ]
+ },
+ {
+  "commit": "9bd58b76fccfbbbe82f6d82f1d6385c498f3971d",
+  "subject": "Refs #35514 -- Removed specific Django versions from outside deprecated blocks.",
+  "query": "Removed specific Django versions from outside deprecated blocks.",
+  "answers": [
+   {
+    "file": "docs/howto/mailers-migration.txt",
+    "line": 11,
+    "section": 6
+   }
+  ]
+ },
+ {
+  "commit": "3be19dcd89da43b5f3a5dc90a4259c0f9410c093",
+  "subject": "Refs #35870 -- Moved deprecated notice at the bottom for USE_BLANK_CHOICE_DASH.",
+  "query": "Moved deprecated notice at the bottom for USE_BLANK_CHOICE_DASH.",
+  "answers": [
+   {
+    "file": "docs/ref/settings.txt",
+    "line": 3235,
+    "section": 3228
+   }
+  ]
+ },
+ {
+  "commit": "95514247d86ebe0a1582d1fa7a9ffc314ac514f4",
+  "subject": "Fixed #37116 -- Explained why a code is useful in a ValidationError.",
+  "query": "Explained why a code is useful in a ValidationError.",
+  "answers": [
+   {
+    "file": "docs/ref/forms/validation.txt",
+    "line": 120,
+    "section": 114
+   }
+  ]
+ },
+ {
+  "commit": "032549216074d25628a9d63f44767fa1ed801286",
+  "subject": "Corrected indentation in topics/http/shortcuts.txt.",
+  "query": "Corrected indentation in topics/http/shortcuts.txt.",
+  "answers": [
+   {
+    "file": "docs/topics/http/shortcuts.txt",
+    "line": 134,
+    "section": 91
+   }
+  ]
+ },
+ {
+  "commit": "a3a74e9f58b5fecca8cd7aee2bd9894dbac04db6",
+  "subject": "Added advancing deprecations to preparing for next release instructions.",
+  "query": "Added advancing deprecations to preparing for next release instructions.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 347,
+    "section": 313
+   }
+  ]
+ },
+ {
+  "commit": "15cb06982a6e53ba8eb792f93d464e33bd65d994",
+  "subject": "Corrected code-block indenting in docs/internals/howto-release-django.txt.",
+  "query": "Corrected code-block indenting in docs/internals/howto-release-django.txt.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 173,
+    "section": 160
+   }
+  ]
+ },
+ {
+  "commit": "719386e876073ed7f3a0a5abdb40058e7a4402a4",
+  "subject": "Added stub release notes for 6.2.",
+  "query": "Added stub release notes for 6.2.",
+  "answers": [
+   {
+    "file": "docs/faq/install.txt",
+    "line": 56,
+    "section": 47
+   }
+  ]
+ },
+ {
+  "commit": "20960df455fffd73d556a5ed92cdf6832c23e65f",
+  "subject": "Fixed #37045 -- Renamed savepoint() to savepoint_create().",
+  "query": "Renamed savepoint() to savepoint_create().",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 159,
+    "section": 36
+   },
+   {
+    "file": "docs/topics/db/transactions.txt",
+    "line": 552,
+    "section": 521
+   }
+  ]
+ },
+ {
+  "commit": "da6567da7ea0e844c9a880e02c7b34e1a184edf8",
+  "subject": "Fixed #37062 -- Added preserve_request support to RedirectView.",
+  "query": "Added preserve_request support to RedirectView.",
+  "answers": [
+   {
+    "file": "docs/ref/class-based-views/base.txt",
+    "line": 280,
+    "section": 186
+   }
+  ]
+ },
+ {
+  "commit": "a83236560ea90e3dc457d215322b55db8ee16c7d",
+  "subject": "Fixed #27825 -- Doc'd that setting model fields does not convert types.",
+  "query": "Doc'd that setting model fields does not convert types.",
+  "answers": [
+   {
+    "file": "docs/ref/models/instances.txt",
+    "line": 71,
+    "section": 16
+   }
+  ]
+ },
+ {
+  "commit": "4c3d0b99f1ee8b2f0b4aac5bfb3a786134152d41",
+  "subject": "Fixed typo in docs/topics/db/search.txt.",
+  "query": "Fixed typo in docs/topics/db/search.txt.",
+  "answers": [
+   {
+    "file": "docs/topics/db/search.txt",
+    "line": 20,
+    "section": 16
+   }
+  ]
+ },
+ {
+  "commit": "4de8394f2318196ad7170ae45aa142b49bb24ce4",
+  "subject": "Refs #36593 -- Replaced reference to select_related() in design philosophies.",
+  "query": "Replaced reference to select_related() in design philosophies.",
+  "answers": [
+   {
+    "file": "docs/misc/design-philosophies.txt",
+    "line": 129,
+    "section": 120
+   }
+  ]
+ },
+ {
+  "commit": "122f0b62a1effa558aad67a62e5b0d84a49cdc23",
+  "subject": "Refs #36593 -- Deprecated setting ModelAdmin.list_select_related to True.",
+  "query": "Deprecated setting ModelAdmin.list_select_related to True.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 143,
+    "section": 36
+   },
+   {
+    "file": "docs/ref/contrib/admin/index.txt",
+    "line": 975,
+    "section": 195
+   }
+  ]
+ },
+ {
+  "commit": "f386d8ec7cbf42b350f5958b552cd3492a493d5b",
+  "subject": "Fixed #36593 -- Deprecated QuerySet.select_related() with no arguments.",
+  "query": "Deprecated QuerySet.select_related() with no arguments.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 140,
+    "section": 36
+   },
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 1160,
+    "section": 1063
+   }
+  ]
+ },
+ {
+  "commit": "62fa9b8976b9fd74440e9f97c0744feaf3165dc9",
+  "subject": "Fixed #37084 -- Added CSP nonce context processor system check.",
+  "query": "Added CSP nonce context processor system check.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 622,
+    "section": 486
+   }
+  ]
+ },
+ {
+  "commit": "8096b5251090bf7539c59956e398b027c7525529",
+  "subject": "Fixed #37085 -- Added support for object-based form media stylesheet assets.",
+  "query": "Added support for object-based form media stylesheet assets.",
+  "answers": [
+   {
+    "file": "docs/topics/forms/media.txt",
+    "line": 134,
+    "section": 129
+   }
+  ]
+ },
+ {
+  "commit": "8f0abd228750f2146749260d607279eb96a88c25",
+  "subject": "Refs #15727 -- Moved security.E026 out of list of deploy=True checks.",
+  "query": "Moved security.E026 out of list of deploy=True checks.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 620,
+    "section": 486
+   }
+  ]
+ },
+ {
+  "commit": "21de00b097187d1e4e479ea877df64bee22b60c9",
+  "subject": "Refs #36620 -- Mentioned coverage workflow uses PostgreSQL.",
+  "query": "Mentioned coverage workflow uses PostgreSQL.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/unit-tests.txt",
+    "line": 443,
+    "section": 420
+   }
+  ]
+ },
+ {
+  "commit": "90afa9b0f4782d2344b01dab92e8aa0227ce8fe8",
+  "subject": "Refs #36862 -- Clarified security note for RemoteUserMiddleware.",
+  "query": "Clarified security note for RemoteUserMiddleware.",
+  "answers": [
+   {
+    "file": "docs/howto/auth-remote-user.txt",
+    "line": 5,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "d75d57c2c06934a65feabd206129b9d1a230a1da",
+  "subject": "Fixed #36767 -- Allowed max redirect URL length to be set on HttpResponseRedirect.",
+  "query": "Allowed max redirect URL length to be set on HttpResponseRedirect.",
+  "answers": [
+   {
+    "file": "docs/ref/request-response.txt",
+    "line": 1149,
+    "section": 1129
+   },
+   {
+    "file": "docs/topics/http/shortcuts.txt",
+    "line": 94,
+    "section": 91
+   }
+  ]
+ },
+ {
+  "commit": "7e7e9691c6029f7011179ac5948b917375f3fe4e",
+  "subject": "Fixed #37039 -- Removed outdated note from QuerySet.iterator() docs.",
+  "query": "Removed outdated note from QuerySet.iterator() docs.",
+  "answers": [
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 2661,
+    "section": 2647
+   }
+  ]
+ },
+ {
+  "commit": "0f4fff79d33b7cc84822e66bd1fc16caf8222e3a",
+  "subject": "Fixed #37078 -- Deprecated SHA-1 default for salted_hmac() and base64_hmac() algorithm.",
+  "query": "Deprecated SHA-1 default for salted_hmac() and base64_hmac() algorithm.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 132,
+    "section": 36
+   }
+  ]
+ },
+ {
+  "commit": "3f912ee4189602b4df121c0dc0428673fda5c253",
+  "subject": "Fixed #16429 -- Extracted set_choices() method from FilePathField.__init__().",
+  "query": "Extracted set_choices() method from FilePathField.__init__().",
+  "answers": [
+   {
+    "file": "docs/ref/forms/fields.txt",
+    "line": 726,
+    "section": 684
+   }
+  ]
+ },
+ {
+  "commit": "604695cddb41981b84a8d976d1f4c74c39e112b0",
+  "subject": "Refs CVE-2026-25674 -- Clarified role of umask in upload permissions.",
+  "query": "Refs CVE-2026-25674 -- Clarified role of umask in upload permissions.",
+  "answers": [
+   {
+    "file": "docs/ref/settings.txt",
+    "line": 1716,
+    "section": 1687
+   }
+  ]
+ },
+ {
+  "commit": "5d911f2d2fecc703be91b2b9b28acc59d34b35f3",
+  "subject": "Fixed #35738 -- Deprecated double-dot variable lookups.",
+  "query": "Deprecated double-dot variable lookups.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 129,
+    "section": 36
+   }
+  ]
+ },
+ {
+  "commit": "d24160ab4855f6971aa1f437720adca6330048a2",
+  "subject": "Refs #12090 -- Documented parameters for contrib.admin.decorators.action().",
+  "query": "Documented parameters for contrib.admin.decorators.action().",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/admin/actions.txt",
+    "line": 535,
+    "section": 499
+   }
+  ]
+ },
+ {
+  "commit": "fa2a3de6ede10b005fc2c1d23f4cffb53eaec425",
+  "subject": "Fixed #10919 -- Added delete_confirmation_max_display to ModelAdmin.",
+  "query": "Added delete_confirmation_max_display to ModelAdmin.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 778,
+    "section": 702
+   },
+   {
+    "file": "docs/ref/contrib/admin/index.txt",
+    "line": 1417,
+    "section": 1387
+   }
+  ]
+ },
+ {
+  "commit": "290fefe6f8e47c2f35a9d857749c1e5166d9288b",
+  "subject": "Fixed #35007 -- Replaced ESLint with Biome for JavaScript linting and formatting.",
+  "query": "Replaced ESLint with Biome for JavaScript linting and formatting.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/javascript.txt",
+    "line": 23,
+    "section": 11
+   }
+  ]
+ },
+ {
+  "commit": "8ddc5b444c175c696c8197dc8f24273252b0de77",
+  "subject": "Updated release procedure with new CVE workflows.",
+  "query": "Updated release procedure with new CVE workflows.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 58,
+    "section": 11
+   }
+  ]
+ },
+ {
+  "commit": "179aa21b6dfeb9a0560a8c2bbfcf056301fc619f",
+  "subject": "Fixed #37024 -- Made SITE_ID system check validation use Site._meta.pk.",
+  "query": "Made SITE_ID system check validation use Site._meta.pk.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 990,
+    "section": 976
+   }
+  ]
+ },
+ {
+  "commit": "d687d412a9abd9c80e31945f16ce32c020512394",
+  "subject": "Clarified that reporters shouldn't set their own tickets as \"Accepted\".",
+  "query": "Clarified that reporters shouldn't set their own tickets as \"Accepted\".",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/triaging-tickets.txt",
+    "line": 422,
+    "section": 367
+   }
+  ]
+ },
+ {
+  "commit": "378481165d14fea4c2a4b7717af3d7bdf9150f08",
+  "subject": "Refs #35514 -- Cleaned up email docs.",
+  "query": "Cleaned up email docs.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 6,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "5a0c099140c60dbc1bafb454e148e6ac75417db8",
+  "subject": "Refs #35514 -- Added \"Configuring email\" section to email docs.",
+  "query": "Added \"Configuring email\" section to email docs.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 65,
+    "section": 16
+   }
+  ]
+ },
+ {
+  "commit": "8bb01b1b11ee771dedf30c6ff9452a1699810016",
+  "subject": "Refs #35514 -- Moved and renamed \"Sending multiple emails\" in email docs.",
+  "query": "Moved and renamed \"Sending multiple emails\" in email docs.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 903,
+    "section": 879
+   }
+  ]
+ },
+ {
+  "commit": "5a79a092af43ad59220e2237cd5f90f6d628deab",
+  "subject": "Refs #35514 -- Moved get_connection() after backends in email docs.",
+  "query": "Moved get_connection() after backends in email docs.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 1277,
+    "section": 1277
+   }
+  ]
+ },
+ {
+  "commit": "8f36420364265ea1635b6038770077c08cb9ee97",
+  "subject": "Refs #35514 -- Moved EmailMessage class up in email docs.",
+  "query": "Moved EmailMessage class up in email docs.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 879,
+    "section": 879
+   }
+  ]
+ },
+ {
+  "commit": "89d2298fbb9a682e82fdbb30263f94f18442bfae",
+  "subject": "Refs #35514 -- Grouped sending-related features in email docs.",
+  "query": "Grouped sending-related features in email docs.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 205,
+    "section": 202
+   }
+  ]
+ },
+ {
+  "commit": "d6e58765f559ba1d02974e11307a25e2e58d1585",
+  "subject": "Refs #35514 -- Moved email docs examples to relevant section.",
+  "query": "Moved email docs examples to relevant section.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 351,
+    "section": 348
+   }
+  ]
+ },
+ {
+  "commit": "339879620a105129951e9bcd999c74faa709e587",
+  "subject": "Fixed broken link in email docs.",
+  "query": "Fixed broken link in email docs.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 1254,
+    "section": 1235
+   }
+  ]
+ },
+ {
+  "commit": "746f5fd23e50589ef3ad27b1dad46b569f600fa0",
+  "subject": "Clarified \"Add another question\" as the plus sign button.",
+  "query": "Clarified \"Add another question\" as the plus sign button.",
+  "answers": [
+   {
+    "file": "docs/intro/tutorial07.txt",
+    "line": 112,
+    "section": 80
+   }
+  ]
+ },
+ {
+  "commit": "7dc826b9758d634623a6f5ca05d0ca2048a0ce48",
+  "subject": "Fixed #33113 -- Documented usage and caveats of HTML5 date input in DateInput widget.",
+  "query": "Documented usage and caveats of HTML5 date input in DateInput widget.",
+  "answers": [
+   {
+    "file": "docs/ref/forms/widgets.txt",
+    "line": 626,
+    "section": 604
+   }
+  ]
+ },
+ {
+  "commit": "4d8cc40c730cf0daf1d0c9a7e5ccd198b269b3ad",
+  "subject": "Refs #37020 -- Corrected example command to update translation catalogs.",
+  "query": "Corrected example command to update translation catalogs.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 770,
+    "section": 703
+   }
+  ]
+ },
+ {
+  "commit": "6f030e8e5d13ee94bf45d4322c17ca7c2d8aaffb",
+  "subject": "Fixed typo in docs/howto/delete-app.txt.",
+  "query": "Fixed typo in docs/howto/delete-app.txt.",
+  "answers": [
+   {
+    "file": "docs/howto/delete-app.txt",
+    "line": 22,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "74e73dc1315d696330621a7f08310a2e87ea0eba",
+  "subject": "Updated Apache links to the current docs.",
+  "query": "Updated Apache links to the current docs.",
+  "answers": [
+   {
+    "file": "docs/howto/deployment/wsgi/apache-auth.txt",
+    "line": 8,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "e27f23b268c520957384054fb236cfc303f95f51",
+  "subject": "Fixed #36816 -- Allowed **kwargs in @task decorator.",
+  "query": "Allowed **kwargs in @task decorator.",
+  "answers": [
+   {
+    "file": "docs/ref/tasks.txt",
+    "line": 18,
+    "section": 15
+   }
+  ]
+ },
+ {
+  "commit": "1c584b0b1edd1def1e9aa4aef25fc5754f485616",
+  "subject": "Refs CVE-2026-33034 -- Improved security documentation on handling large request bodies.",
+  "query": "Refs CVE-2026-33034 -- Improved security documentation on handling large request bodies.",
+  "answers": [
+   {
+    "file": "docs/ref/settings.txt",
+    "line": 1041,
+    "section": 1032
+   },
+   {
+    "file": "docs/topics/security.txt",
+    "line": 306,
+    "section": 296
+   }
+  ]
+ },
+ {
+  "commit": "04bcc9913319e50b376a27c29cf9aa4e7b8247bf",
+  "subject": "Refs #36862 -- Reiterated security note on both variants of RemoteUserMiddleware.",
+  "query": "Reiterated security note on both variants of RemoteUserMiddleware.",
+  "answers": [
+   {
+    "file": "docs/ref/middleware.txt",
+    "line": 579,
+    "section": 489
+   }
+  ]
+ },
+ {
+  "commit": "90cd510b3b033605907f6521ef98f35d2bd6c3a0",
+  "subject": "Added section for respecting maintainer time to the security policy.",
+  "query": "Added section for respecting maintainer time to the security policy.",
+  "answers": [
+   {
+    "file": "docs/internals/security.txt",
+    "line": 46,
+    "section": 14
+   }
+  ]
+ },
+ {
+  "commit": "edd899786851f6285abbc3c272f4f5ec0e48a74c",
+  "subject": "Fixed #29762 -- Doc'd how database routers fetch related objects.",
+  "query": "Doc'd how database routers fetch related objects.",
+  "answers": [
+   {
+    "file": "docs/topics/db/multi-db.txt",
+    "line": 235,
+    "section": 221
+   }
+  ]
+ },
+ {
+  "commit": "4fd9e85b6031e7ddf878b280f324da6b98f7b0ed",
+  "subject": "Refs #36526 -- Fixed bulk_update() batching example in docs.",
+  "query": "Fixed bulk_update() batching example in docs.",
+  "answers": [
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 2553,
+    "section": 2510
+   }
+  ]
+ },
+ {
+  "commit": "a1188fc76ae4d9ff3b82feacd1ddd7b38b3e6009",
+  "subject": "Corrected outdated links to gunicorn documentation.",
+  "query": "Corrected outdated links to gunicorn documentation.",
+  "answers": [
+   {
+    "file": "docs/howto/deployment/wsgi/gunicorn.txt",
+    "line": 16,
+    "section": 10
+   }
+  ]
+ },
+ {
+  "commit": "f3bdfd2065373272ebb637785cea2313582a8b8c",
+  "subject": "Fixed #36999 -- Removed mention of Ruby on Rails from tutorial part 2.",
+  "query": "Removed mention of Ruby on Rails from tutorial part 2.",
+  "answers": [
+   {
+    "file": "docs/intro/tutorial02.txt",
+    "line": 98,
+    "section": 85
+   }
+  ]
+ },
+ {
+  "commit": "d9adcfbd5e3ba5859cc0ce6e2e67f533efbc8f9b",
+  "subject": "Made it clear that unreviewed tickets shouldn't be claimed or started.",
+  "query": "Made it clear that unreviewed tickets shouldn't be claimed or started.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/triaging-tickets.txt",
+    "line": 124,
+    "section": 117
+   },
+   {
+    "file": "docs/internals/contributing/writing-code/submitting-patches.txt",
+    "line": 48,
+    "section": 26
+   }
+  ]
+ },
+ {
+  "commit": "8401071c52d19a2bdd987a2dbe79c440f01dfae9",
+  "subject": "Fixed #36904 -- Clarified how to hide form field labels in docs.",
+  "query": "Clarified how to hide form field labels in docs.",
+  "answers": [
+   {
+    "file": "docs/ref/forms/fields.txt",
+    "line": 115,
+    "section": 105
+   }
+  ]
+ },
+ {
+  "commit": "3abf89887993140d28676f26420ee0d46a617f51",
+  "subject": "Combined scripts confirm_release.sh and test_new_version.sh into verify_release.sh.",
+  "query": "Combined scripts confirm_release.sh and test_new_version.sh into verify_release.sh.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 516,
+    "section": 502
+   }
+  ]
+ },
+ {
+  "commit": "142659133a501a1685902cf654b233e54b641a23",
+  "subject": "Removed reference to spatialreference.org being a Django website.",
+  "query": "Removed reference to spatialreference.org being a Django website.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/gis/model-api.txt",
+    "line": 166,
+    "section": 123
+   }
+  ]
+ },
+ {
+  "commit": "4b2edb3418851c09dd839f1a2cba74051fe9d420",
+  "subject": "Corrected signature for EmailMessage.message() in email topics docs.",
+  "query": "Corrected signature for EmailMessage.message() in email topics docs.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 594,
+    "section": 457
+   }
+  ]
+ },
+ {
+  "commit": "2333d56696141303000986a16553205ece993c67",
+  "subject": "Fixed #36894 -- Added TypeError for conflicting arguments in mail APIs.",
+  "query": "Added TypeError for conflicting arguments in mail APIs.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 586,
+    "section": 457
+   }
+  ]
+ },
+ {
+  "commit": "ad5ea292748246b2f07f3e379a250985c1ebcba5",
+  "subject": "Fixed typo in docs/internals/contributing/accessibility.txt.",
+  "query": "Fixed typo in docs/internals/contributing/accessibility.txt.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/accessibility.txt",
+    "line": 86,
+    "section": 59
+   }
+  ]
+ },
+ {
+  "commit": "23f49c6b408d9b013e959f91c23813a7c0f6ed64",
+  "subject": "Fixed #35786 -- Removed outdated note about database defaults in AddField/AlterField docs.",
+  "query": "Removed outdated note about database defaults in AddField/AlterField docs.",
+  "answers": [
+   {
+    "file": "docs/ref/migration-operations.txt",
+    "line": 168,
+    "section": 153
+   }
+  ]
+ },
+ {
+  "commit": "1a8fd5cf75bf855852f6bc2f75c3da9f7b145669",
+  "subject": "Fixed #36727 -- Deprecated Field.get_placeholder in favor of get_placeholder_sql.",
+  "query": "Deprecated Field.get_placeholder in favor of get_placeholder_sql.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 98,
+    "section": 36
+   }
+  ]
+ },
+ {
+  "commit": "3180ddb3f532ef246d318d64225886b7c0593676",
+  "subject": "Discouraged automated AI reviews of pull requests.",
+  "query": "Discouraged automated AI reviews of pull requests.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/submitting-patches.txt",
+    "line": 185,
+    "section": 182
+   }
+  ]
+ },
+ {
+  "commit": "14889d8cead6af22ef71360f26610711997915d1",
+  "subject": "Fixed #36391 -- Doc'd RawSQL usage in docs/topics/db/sql.txt.",
+  "query": "Doc'd RawSQL usage in docs/topics/db/sql.txt.",
+  "answers": [
+   {
+    "file": "docs/topics/db/sql.txt",
+    "line": 7,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "e8ab2bb83fc6d3c0f5d998d1a41ebaebacaa1a28",
+  "subject": "Fixed #36600 -- Clarified the use cases for dispatch_uid in signal connection.",
+  "query": "Clarified the use cases for dispatch_uid in signal connection.",
+  "answers": [
+   {
+    "file": "docs/topics/signals.txt",
+    "line": 175,
+    "section": 113
+   }
+  ]
+ },
+ {
+  "commit": "12bb16da8fbadac34e2de318cc79d7d765f35a96",
+  "subject": "Fixed #36293 -- Avoided buffering streaming responses in GZipMiddleware.",
+  "query": "Avoided buffering streaming responses in GZipMiddleware.",
+  "answers": [
+   {
+    "file": "docs/howto/outputting-csv.txt",
+    "line": 70,
+    "section": 60
+   }
+  ]
+ },
+ {
+  "commit": "f8665b1a7ff5e98d84f66ad0e958c3f175aa5d8b",
+  "subject": "Extended committing code docs to add detailed instructions for backports.",
+  "query": "Extended committing code docs to add detailed instructions for backports.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/committing-code.txt",
+    "line": 165,
+    "section": 104
+   }
+  ]
+ },
+ {
+  "commit": "c27d368b92f321e6f91704f554dccbc18df5b075",
+  "subject": "Extended checks and docs for proper commit message format and edition.",
+  "query": "Extended checks and docs for proper commit message format and edition.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/committing-code.txt",
+    "line": 6,
+    "section": 2
+   },
+   {
+    "file": "docs/internals/contributing/writing-code/working-with-git.txt",
+    "line": 114,
+    "section": 78
+   }
+  ]
+ },
+ {
+  "commit": "a328c355d9625ecdc8f16b249daebba3c0ac2882",
+  "subject": "Refs #35859 -- Mentioned django-tasks and external resources on docs/topics/tasks.txt.",
+  "query": "Mentioned django-tasks and external resources on docs/topics/tasks.txt.",
+  "answers": [
+   {
+    "file": "docs/topics/tasks.txt",
+    "line": 114,
+    "section": 109
+   }
+  ]
+ },
+ {
+  "commit": "5b939808220fa879942303f4318276668d11b4d9",
+  "subject": "Fixed #20775 -- Clarified that SQL for text lookups varies per database.",
+  "query": "Clarified that SQL for text lookups varies per database.",
+  "answers": [
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 3543,
+    "section": 3530
+   }
+  ]
+ },
+ {
+  "commit": "a040f555069971192220122555f187530d679d53",
+  "subject": "Fixed #27489 -- Renamed permissions upon model renaming in migrations.",
+  "query": "Renamed permissions upon model renaming in migrations.",
+  "answers": [
+   {
+    "file": "docs/topics/auth/default.txt",
+    "line": 232,
+    "section": 215
+   }
+  ]
+ },
+ {
+  "commit": "187a789f99ecbc708de517c6b54d480b68ba59fe",
+  "subject": "Fixed #34643 -- Moved inputs beneath labels and errors in admin forms.",
+  "query": "Moved inputs beneath labels and errors in admin forms.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/admin/index.txt",
+    "line": 430,
+    "section": 195
+   }
+  ]
+ },
+ {
+  "commit": "1f2a56567c565d91d797b8a9071ff77a75b52080",
+  "subject": "Adjusted default DoS severity level in Security Policy.",
+  "query": "Adjusted default DoS severity level in Security Policy.",
+  "answers": [
+   {
+    "file": "docs/internals/security.txt",
+    "line": 389,
+    "section": 386
+   }
+  ]
+ },
+ {
+  "commit": "4aefc9ea51cc2d78f43b1dc2aa69732e55d18a56",
+  "subject": "Fixed #36848 -- Mentioned BadRequest exception in docs/ref/views.txt.",
+  "query": "Mentioned BadRequest exception in docs/ref/views.txt.",
+  "answers": [
+   {
+    "file": "docs/ref/views.txt",
+    "line": 151,
+    "section": 146
+   }
+  ]
+ },
+ {
+  "commit": "4513a6c2a9694b3da144846f3edfa1c3673a181d",
+  "subject": "Refs #19221 -- Fixed outdated KEY_FUNCTION definition in docs/ref/settings.txt.",
+  "query": "Fixed outdated KEY_FUNCTION definition in docs/ref/settings.txt.",
+  "answers": [
+   {
+    "file": "docs/ref/settings.txt",
+    "line": 173,
+    "section": 169
+   }
+  ]
+ },
+ {
+  "commit": "7732f942a98a709750fc1fed2c69741183844a3c",
+  "subject": "Fixed #36841 -- Made multipart parser class pluggable on HttpRequest.",
+  "query": "Made multipart parser class pluggable on HttpRequest.",
+  "answers": [
+   {
+    "file": "docs/ref/request-response.txt",
+    "line": 221,
+    "section": 29
+   }
+  ]
+ },
+ {
+  "commit": "3282d9f4edbe5d341a0fa2a8c62b435b3885ab64",
+  "subject": "Fixed #36890 -- Supported StringAgg(distinct=True) on SQLite with the default delimiter.",
+  "query": "Supported StringAgg(distinct=True) on SQLite with the default delimiter.",
+  "answers": [
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 4274,
+    "section": 4259
+   }
+  ]
+ },
+ {
+  "commit": "64a4d8ad005721b17fafd3399bdf49d7d0f94455",
+  "subject": "Fixed #34352 -- Unified terms in Signals docs.",
+  "query": "Unified terms in Signals docs.",
+  "answers": [
+   {
+    "file": "docs/topics/signals.txt",
+    "line": 29,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "0dac3dd4a1573b3c9cef3aea6a98440decfc5460",
+  "subject": "Clarified optional nature of Contributor License Agreement.",
+  "query": "Clarified optional nature of Contributor License Agreement.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/new-contributors.txt",
+    "line": 73,
+    "section": 69
+   },
+   {
+    "file": "docs/internals/contributing/writing-code/submitting-patches.txt",
+    "line": 68,
+    "section": 26
+   }
+  ]
+ },
+ {
+  "commit": "3c09ed81d3e90d7ce60372096c58e80548d1d2ef",
+  "subject": "Refs #35444 -- Doc'd deprecation in contrib.postgres.aggreggates.StringAgg.delimiter.",
+  "query": "Doc'd deprecation in contrib.postgres.aggreggates.StringAgg.delimiter.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/postgres/aggregates.txt",
+    "line": 208,
+    "section": 193
+   }
+  ]
+ },
+ {
+  "commit": "7cf1c22d4dfdd46f2082cfc55b714b68c4fd2de3",
+  "subject": "Refs #36644 -- Documented no pk ordering in first()/last() after empty order_by().",
+  "query": "Documented no pk ordering in first()/last() after empty order_by().",
+  "answers": [
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 2803,
+    "section": 2794
+   }
+  ]
+ },
+ {
+  "commit": "6c2436fa8671cd41c6a5841493142308cd9541c8",
+  "subject": "Fixed #36272 -- Removed obsolete libgeoip from GeoDjango installation docs.",
+  "query": "Removed obsolete libgeoip from GeoDjango installation docs.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/gis/install/index.txt",
+    "line": 245,
+    "section": 241
+   }
+  ]
+ },
+ {
+  "commit": "4a52533329a03207c1c4592a13fbb12b9ec5ef9e",
+  "subject": "Refs #34118 -- Removed asgiref coroutine detection shims.",
+  "query": "Removed asgiref coroutine detection shims.",
+  "answers": [
+   {
+    "file": "docs/topics/async.txt",
+    "line": 31,
+    "section": 19
+   },
+   {
+    "file": "docs/topics/http/middleware.txt",
+    "line": 321,
+    "section": 300
+   }
+  ]
+ },
+ {
+  "commit": "93dfb16e96797583a6f45eeb918e78c7f2817318",
+  "subject": "Added documentation on reviewing patches.",
+  "query": "Added documentation on reviewing patches.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/triaging-tickets.txt",
+    "line": 66,
+    "section": 34
+   },
+   {
+    "file": "docs/internals/contributing/writing-documentation.txt",
+    "line": 127,
+    "section": 116
+   }
+  ]
+ },
+ {
+  "commit": "cbc4c9f11f32fa99ecfe2dc365b6309ee4fc9277",
+  "subject": "Fixed typos in docs/ref/models/querysets.txt.",
+  "query": "Fixed typos in docs/ref/models/querysets.txt.",
+  "answers": [
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 350,
+    "section": 329
+   }
+  ]
+ },
+ {
+  "commit": "117ff1d37d63cdfa0982eba6b636bf8f59d99a3c",
+  "subject": "Made explicit that aspell is a requirement to run spell checks on docs.",
+  "query": "Made explicit that aspell is a requirement to run spell checks on docs.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-documentation.txt",
+    "line": 228,
+    "section": 224
+   }
+  ]
+ },
+ {
+  "commit": "ba9637901113deb9ae808b2ba1798c18dc85a915",
+  "subject": "Fixed docs spelling errors accumulated over time.",
+  "query": "Fixed docs spelling errors accumulated over time.",
+  "answers": [
+   {
+    "file": "docs/internals/security.txt",
+    "line": 82,
+    "section": 82
+   },
+   {
+    "file": "docs/ref/models/expressions.txt",
+    "line": 435,
+    "section": 312
+   }
+  ]
+ },
+ {
+  "commit": "d6cca8b904de144946453aea93dd627c09abfca9",
+  "subject": "Refs #25508 -- Updated outdated QuerySet.__repr__() results.",
+  "query": "Updated outdated QuerySet.__repr__() results.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/postgres/lookups.txt",
+    "line": 31,
+    "section": 10
+   },
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 1229,
+    "section": 1172
+   }
+  ]
+ },
+ {
+  "commit": "07a16407452f5b62594661ae7ae589eca8cccd4d",
+  "subject": "Fixed #36856 -- Mentioned needsnewfeatureprocess resolution in contributor docs.",
+  "query": "Mentioned needsnewfeatureprocess resolution in contributor docs.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/bugs-and-features.txt",
+    "line": 30,
+    "section": 15
+   },
+   {
+    "file": "docs/internals/contributing/triaging-tickets.txt",
+    "line": 339,
+    "section": 288
+   }
+  ]
+ },
+ {
+  "commit": "73c5e94521c5b97e27cd2fe2d5b5c2e65f402755",
+  "subject": "Refs #36769 -- Raised SuspiciousOperation for unexpected nested tags in XML Deserializer.",
+  "query": "Raised SuspiciousOperation for unexpected nested tags in XML Deserializer.",
+  "answers": [
+   {
+    "file": "docs/topics/serialization.txt",
+    "line": 201,
+    "section": 178
+   }
+  ]
+ },
+ {
+  "commit": "d61838761f17d7c934c7be288fadfa14f471b598",
+  "subject": "Fixed #36827 -- Added support for exclusion constraints using Hash indexes on PostgreSQL.",
+  "query": "Added support for exclusion constraints using Hash indexes on PostgreSQL.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/postgres/constraints.txt",
+    "line": 76,
+    "section": 71
+   }
+  ]
+ },
+ {
+  "commit": "1d15c732bb9dde0fca8bd662a475bb51d0ab2756",
+  "subject": "Refs #35381 -- Added missing deprecation note for using None as RHS of JSONExact.",
+  "query": "Added missing deprecation note for using None as RHS of JSONExact.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 86,
+    "section": 36
+   }
+  ]
+ },
+ {
+  "commit": "f3b982f21f098958e1e018044df00e93cdb40bd1",
+  "subject": "Fixed a typo in docs/ref/forms/models.txt.",
+  "query": "Fixed a typo in docs/ref/forms/models.txt.",
+  "answers": [
+   {
+    "file": "docs/ref/forms/models.txt",
+    "line": 20,
+    "section": 14
+   }
+  ]
+ },
+ {
+  "commit": "091ffc4e5eb35776864b853973097588a36f169e",
+  "subject": "Fixed #36844 -- Clarified need for reusable apps to set default_auto_field in packaging tutorial and AppConfig docs.",
+  "query": "Clarified need for reusable apps to set default_auto_field in packaging tutorial and AppConfig docs.",
+  "answers": [
+   {
+    "file": "docs/intro/reusable-apps.txt",
+    "line": 146,
+    "section": 117
+   },
+   {
+    "file": "docs/ref/applications.txt",
+    "line": 230,
+    "section": 167
+   }
+  ]
+ },
+ {
+  "commit": "8703fbdf10b0c97dc35ddeb5d8662d66ca0a0a81",
+  "subject": "Added guidance on AI-assisted code submission to contributing docs.",
+  "query": "Added guidance on AI-assisted code submission to contributing docs.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/submitting-patches.txt",
+    "line": 152,
+    "section": 152
+   }
+  ]
+ },
+ {
+  "commit": "fd5def6367b835784d9d35927433499345b335e7",
+  "subject": "Dropped unnecessary usage of \"seealso\" in BoundField docs.",
+  "query": "Dropped unnecessary usage of \"seealso\" in BoundField docs.",
+  "answers": [
+   {
+    "file": "docs/topics/forms/index.txt",
+    "line": 828,
+    "section": 734
+   }
+  ]
+ },
+ {
+  "commit": "626c15dba0662d5b9f61cc7eddf985e514293d6f",
+  "subject": "Fixed #30515 -- Documented resolve_url() in docs/topics/http/shortcuts.txt.",
+  "query": "Documented resolve_url() in docs/topics/http/shortcuts.txt.",
+  "answers": [
+   {
+    "file": "docs/topics/http/shortcuts.txt",
+    "line": 198,
+    "section": 195
+   }
+  ]
+ },
+ {
+  "commit": "68859a9b45f0b9d472c9277dc61e54afacc0da38",
+  "subject": "Added missing sentence period in docs/intro/tutorial02.txt.",
+  "query": "Added missing sentence period in docs/intro/tutorial02.txt.",
+  "answers": [
+   {
+    "file": "docs/intro/tutorial02.txt",
+    "line": 255,
+    "section": 162
+   }
+  ]
+ },
+ {
+  "commit": "bddcefb00f555196d3c488fbad71d303e9f7ede1",
+  "subject": "Fixed #36305 -- Added documentation indentation guidelines to contributing docs.",
+  "query": "Added documentation indentation guidelines to contributing docs.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-documentation.txt",
+    "line": 471,
+    "section": 388
+   }
+  ]
+ },
+ {
+  "commit": "cc8ee496a5293ecf7155d61c6052905c92db3ca0",
+  "subject": "Refs #36305 -- Fixed indentation in checks and middleware documentation.",
+  "query": "Fixed indentation in checks and middleware documentation.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 22,
+    "section": 17
+   },
+   {
+    "file": "docs/ref/middleware.txt",
+    "line": 150,
+    "section": 142
+   }
+  ]
+ },
+ {
+  "commit": "b172cbdf33c3eaea6a5c4a53da2ed0e46306a625",
+  "subject": "Fixed #36808 -- Required name argument in UniqueConstraint signature.",
+  "query": "Required name argument in UniqueConstraint signature.",
+  "answers": [
+   {
+    "file": "docs/ref/models/constraints.txt",
+    "line": 133,
+    "section": 130
+   }
+  ]
+ },
+ {
+  "commit": "4702b36120ea4c736d3f6b5595496f96e0021e46",
+  "subject": "Fixed #27380 -- Added \"raw\" argument to m2m_changed signals.",
+  "query": "Added \"raw\" argument to m2m_changed signals.",
+  "answers": [
+   {
+    "file": "docs/topics/db/fixtures.txt",
+    "line": 121,
+    "section": 116
+   }
+  ]
+ },
+ {
+  "commit": "0d8548e5831bc610102d5e4b8a2366f26818a28a",
+  "subject": "Fixed #36747 -- Parsed weeks from ISO 8601 format in parse_duration().",
+  "query": "Parsed weeks from ISO 8601 format in parse_duration().",
+  "answers": [
+   {
+    "file": "docs/ref/utils.txt",
+    "line": 176,
+    "section": 132
+   }
+  ]
+ },
+ {
+  "commit": "d1a4979fa55071581411b7d62eb1ee20f2380ae3",
+  "subject": "Fixed #36594 -- Improved UniqueConstraint's nulls_distinct system check message.",
+  "query": "Improved UniqueConstraint's nulls_distinct system check message.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 466,
+    "section": 374
+   }
+  ]
+ },
+ {
+  "commit": "0174a85770356fd12e4c8daa42a4f1c752ae00e6",
+  "subject": "Fixed #36765 -- Added support for stored GeneratedFields on Oracle 23ai/26ai (23.7+).",
+  "query": "Added support for stored GeneratedFields on Oracle 23ai/26ai (23.7+).",
+  "answers": [
+   {
+    "file": "docs/ref/models/fields.txt",
+    "line": 1344,
+    "section": 1309
+   }
+  ]
+ },
+ {
+  "commit": "e95468ed97b1c250939da316218c39dad577ba32",
+  "subject": "Refs #36735 -- Supported shift parameter for UUID7 on PostgreSQL.",
+  "query": "Supported shift parameter for UUID7 on PostgreSQL.",
+  "answers": [
+   {
+    "file": "docs/ref/models/database-functions.txt",
+    "line": 1980,
+    "section": 1975
+   }
+  ]
+ },
+ {
+  "commit": "accceec9493d08e19d59fa1a59f69c0fdf23bb13",
+  "subject": "Fixed #36735 -- Added UUID4 and UUID7 database functions.",
+  "query": "Added UUID4 and UUID7 database functions.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/postgres/functions.txt",
+    "line": 24,
+    "section": 10
+   },
+   {
+    "file": "docs/ref/models/database-functions.txt",
+    "line": 1967,
+    "section": 1960
+   }
+  ]
+ },
+ {
+  "commit": "8932a677258fbda34f24a1be6f426265148b0003",
+  "subject": "Refs #35444 -- Clarified StringAgg deprecation notice in docs/ref/contrib/postgres/aggregates.txt.",
+  "query": "Clarified StringAgg deprecation notice in docs/ref/contrib/postgres/aggregates.txt.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/postgres/aggregates.txt",
+    "line": 200,
+    "section": 193
+   }
+  ]
+ },
+ {
+  "commit": "37eb8909699d261b9b879e6f04dbfeec75b5e080",
+  "subject": "Noted testing uses for ContentTypeManager.clear_cache() method.",
+  "query": "Noted testing uses for ContentTypeManager.clear_cache() method.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/contenttypes.txt",
+    "line": 184,
+    "section": 169
+   }
+  ]
+ },
+ {
+  "commit": "af60ae48d98888826928b1c2def47a980f9a4af4",
+  "subject": "Refs #35581 -- Fixed email image inline attachment example.",
+  "query": "Fixed email image inline attachment example.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 656,
+    "section": 457
+   }
+  ]
+ },
+ {
+  "commit": "e726254a380f2a35a2fcf71143e96cb5987d8102",
+  "subject": "Refs #36620 -- Added contributor documentation for code coverage reports.",
+  "query": "Added contributor documentation for code coverage reports.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/submitting-patches.txt",
+    "line": 490,
+    "section": 479
+   },
+   {
+    "file": "docs/internals/contributing/writing-code/unit-tests.txt",
+    "line": 418,
+    "section": 388
+   }
+  ]
+ },
+ {
+  "commit": "020e5799ad74cfafd469f032cd05767c9d670a16",
+  "subject": "Refs #27834 -- Restored \"expression\" in StrIndex's docs signature.",
+  "query": "Restored \"expression\" in StrIndex's docs signature.",
+  "answers": [
+   {
+    "file": "docs/ref/models/database-functions.txt",
+    "line": 1863,
+    "section": 1860
+   }
+  ]
+ },
+ {
+  "commit": "0ca3a0661173b02e2cbb0183d8543e790e7e4a55",
+  "subject": "Fixed #36744 -- Improved scrypt password hasher docs.",
+  "query": "Improved scrypt password hasher docs.",
+  "answers": [
+   {
+    "file": "docs/topics/auth/passwords.txt",
+    "line": 288,
+    "section": 283
+   }
+  ]
+ },
+ {
+  "commit": "93540b34d4ef46f68df2c8bfe90447d0f649a852",
+  "subject": "Fixed #35729 -- Enabled natural key serialization opt-out for subclasses.",
+  "query": "Enabled natural key serialization opt-out for subclasses.",
+  "answers": [
+   {
+    "file": "docs/topics/serialization.txt",
+    "line": 647,
+    "section": 568
+   }
+  ]
+ },
+ {
+  "commit": "d3f142f2cd36ba0458cc679397555bd5ee7db744",
+  "subject": "Refs #35859 -- Clarified Tasks ref and topics docs regarding available backends.",
+  "query": "Clarified Tasks ref and topics docs regarding available backends.",
+  "answers": [
+   {
+    "file": "docs/ref/tasks.txt",
+    "line": 8,
+    "section": 2
+   },
+   {
+    "file": "docs/topics/tasks.txt",
+    "line": 16,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "50efb718b31333051bc2dcb06911b8fa1358c98c",
+  "subject": "Fixed CVE-2025-64460 -- Corrected quadratic inner text accumulation in XML serializer.",
+  "query": "Fixed CVE-2025-64460 -- Corrected quadratic inner text accumulation in XML serializer.",
+  "answers": [
+   {
+    "file": "docs/topics/serialization.txt",
+    "line": 176,
+    "section": 153
+   }
+  ]
+ },
+ {
+  "commit": "3ea0195ca57790d7bd6921ecaa32312eabec78d0",
+  "subject": "Added link to Python Pickle documentation in docs/topics/cache.txt.",
+  "query": "Added link to Python Pickle documentation in docs/topics/cache.txt.",
+  "answers": [
+   {
+    "file": "docs/topics/cache.txt",
+    "line": 907,
+    "section": 890
+   }
+  ]
+ },
+ {
+  "commit": "7b32485ee98edf7e8b94ad9c8acdccee562bf216",
+  "subject": "Fixed outdated redis-py link in cache docs.",
+  "query": "Fixed outdated redis-py link in cache docs.",
+  "answers": [
+   {
+    "file": "docs/topics/cache.txt",
+    "line": 191,
+    "section": 171
+   }
+  ]
+ },
+ {
+  "commit": "bd7940982d6cab386dae7698ab097b91e5d8145e",
+  "subject": "Highlighted community package upgrade utilities in docs/howto/upgrade-version.txt.",
+  "query": "Highlighted community package upgrade utilities in docs/howto/upgrade-version.txt.",
+  "answers": [
+   {
+    "file": "docs/howto/upgrade-version.txt",
+    "line": 14,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "333f88c7e9920063ec4584dec31f84436d28ae62",
+  "subject": "Reduced subjective tone and improved clarity in docs/howto/upgrade-version.txt.",
+  "query": "Reduced subjective tone and improved clarity in docs/howto/upgrade-version.txt.",
+  "answers": [
+   {
+    "file": "docs/howto/upgrade-version.txt",
+    "line": 5,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "60b08ad5e1701b1a9b2a03e5897670d5af32d379",
+  "subject": "Included usage of new scripts in docs/internals/howto-release-django.txt.",
+  "query": "Included usage of new scripts in docs/internals/howto-release-django.txt.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 510,
+    "section": 502
+   }
+  ]
+ },
+ {
+  "commit": "55af4749b9a48b2978e893e7d7be313c0b2abdb1",
+  "subject": "Fixed #31506 -- Clarified that ExpressionWrapper does not perform database casts.",
+  "query": "Clarified that ExpressionWrapper does not perform database casts.",
+  "answers": [
+   {
+    "file": "docs/ref/models/expressions.txt",
+    "line": 40,
+    "section": 23
+   },
+   {
+    "file": "docs/ref/models/fields.txt",
+    "line": 831,
+    "section": 764
+   }
+  ]
+ },
+ {
+  "commit": "57c50d8c1996733cef45204ea069a2c01b2860cc",
+  "subject": "Refs #21961 -- Added DatabaseFeatures.supports_on_delete_db_(cascade/null) feature flags.",
+  "query": "Added DatabaseFeatures.supports_on_delete_db_(cascade/null) feature flags.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 328,
+    "section": 287
+   }
+  ]
+ },
+ {
+  "commit": "ec60df6d1ea8939a316d9b180faa0b4ef2e83606",
+  "subject": "Removed outdated build guidance in release docs.",
+  "query": "Removed outdated build guidance in release docs.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 533,
+    "section": 502
+   }
+  ]
+ },
+ {
+  "commit": "11f9fae0b79651291e89446c367d0d1223abbd20",
+  "subject": "Fixed #36741 -- Linked to custom save()/delete() caveats in docs/ref/models/querysets.txt.",
+  "query": "Linked to custom save()/delete() caveats in docs/ref/models/querysets.txt.",
+  "answers": [
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 2456,
+    "section": 2433
+   },
+   {
+    "file": "docs/topics/db/models.txt",
+    "line": 972,
+    "section": 895
+   }
+  ]
+ },
+ {
+  "commit": "a89183e63844a937aacd3ddb73c4952ef869d2cc",
+  "subject": "Fixed #36620 -- Added coverage workflow to summarize coverage in pull requests.",
+  "query": "Added coverage workflow to summarize coverage in pull requests.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/submitting-patches.txt",
+    "line": 490,
+    "section": 479
+   },
+   {
+    "file": "docs/internals/contributing/writing-code/unit-tests.txt",
+    "line": 418,
+    "section": 388
+   }
+  ]
+ },
+ {
+  "commit": "09d4bf5cd9c95c588d3ec22edea5db1f5f146900",
+  "subject": "Added GitHub Actions linter (zizmor).",
+  "query": "Added GitHub Actions linter (zizmor).",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/submitting-patches.txt",
+    "line": 484,
+    "section": 479
+   },
+   {
+    "file": "docs/internals/contributing/writing-code/unit-tests.txt",
+    "line": 74,
+    "section": 57
+   }
+  ]
+ },
+ {
+  "commit": "7e4c4f43f51e829e6378a0305bfda81479a368ab",
+  "subject": "Fixed #36718 -- Added JSONField support for negative array indexing on Oracle 21c+.",
+  "query": "Added JSONField support for negative array indexing on Oracle 21c+.",
+  "answers": [
+   {
+    "file": "docs/topics/db/queries.txt",
+    "line": 1198,
+    "section": 1138
+   }
+  ]
+ },
+ {
+  "commit": "ff843bcbce1f7fc16fcc4d4810c221a2eb11c167",
+  "subject": "Fixed #36734 -- Clarified the behavior of View.http_method_not_allowed.",
+  "query": "Clarified the behavior of View.http_method_not_allowed.",
+  "answers": [
+   {
+    "file": "docs/ref/class-based-views/base.txt",
+    "line": 116,
+    "section": 16
+   }
+  ]
+ },
+ {
+  "commit": "ee2e0e202874db31449d3c7c292504652fa87f69",
+  "subject": "Ensured that Sitemap.items is described as a method in docs/ref/contrib/sitemaps.txt.",
+  "query": "Ensured that Sitemap.items is described as a method in docs/ref/contrib/sitemaps.txt.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/sitemaps.txt",
+    "line": 125,
+    "section": 98
+   }
+  ]
+ },
+ {
+  "commit": "d9c94c59835ca2b6569583392bbf5c7f65a8e927",
+  "subject": "Fixed typo in docs/howto/deployment/wsgi/apache-auth.txt.",
+  "query": "Fixed typo in docs/howto/deployment/wsgi/apache-auth.txt.",
+  "answers": [
+   {
+    "file": "docs/howto/deployment/wsgi/apache-auth.txt",
+    "line": 131,
+    "section": 104
+   }
+  ]
+ },
+ {
+  "commit": "14fb36e0b083ea963220602d01386cc0fb2c40e4",
+  "subject": "Refs #36663, #36739 -- Added release note for running checks against all databases.",
+  "query": "Added release note for running checks against all databases.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 82,
+    "section": 71
+   }
+  ]
+ },
+ {
+  "commit": "97acd4d2f92eef8c285bac070d437bf0fd52e071",
+  "subject": "Fixed #26609 -- Extended fields.E004 system check for unordered iterables.",
+  "query": "Extended fields.E004 system check for unordered iterables.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 183,
+    "section": 175
+   }
+  ]
+ },
+ {
+  "commit": "3c005b5f79bf6d71f3f4c3692ed670e1722b0fb6",
+  "subject": "Fixed #26379 -- Doc'd that the first filter() on a many-to-many relation is sticky.",
+  "query": "Doc'd that the first filter() on a many-to-many relation is sticky.",
+  "answers": [
+   {
+    "file": "docs/topics/db/queries.txt",
+    "line": 658,
+    "section": 579
+   }
+  ]
+ },
+ {
+  "commit": "1ce6e78dd4beed702f15fa0be798dd17a15d4ba8",
+  "subject": "Fixed #24920 -- Added support for DecimalField with no precision.",
+  "query": "Added support for DecimalField with no precision.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 212,
+    "section": 175
+   },
+   {
+    "file": "docs/ref/models/fields.txt",
+    "line": 893,
+    "section": 884
+   }
+  ]
+ },
+ {
+  "commit": "7e765a68598b2b798e49bf1f4b431a7bcac085a4",
+  "subject": "Fixed #36686 -- Clarified Meta.ordering is ignored in GROUP BY queries.",
+  "query": "Clarified Meta.ordering is ignored in GROUP BY queries.",
+  "answers": [
+   {
+    "file": "docs/ref/models/options.txt",
+    "line": 315,
+    "section": 280
+   },
+   {
+    "file": "docs/topics/db/aggregation.txt",
+    "line": 630,
+    "section": 583
+   }
+  ]
+ },
+ {
+  "commit": "2b0f24e6223bf7e294fba63741f58eb7b0bf49ff",
+  "subject": "Fixed typo in docs/ref/databases.txt.",
+  "query": "Fixed typo in docs/ref/databases.txt.",
+  "answers": [
+   {
+    "file": "docs/ref/databases.txt",
+    "line": 1239,
+    "section": 1235
+   }
+  ]
+ },
+ {
+  "commit": "c135be349ddd9fd71b15d4b20e7fc46814e4ca7c",
+  "subject": "Clarified \"get_db_prep_value\" default result in docs/ref/models/fields.txt.",
+  "query": "Clarified \"get_db_prep_value\" default result in docs/ref/models/fields.txt.",
+  "answers": [
+   {
+    "file": "docs/ref/models/fields.txt",
+    "line": 2564,
+    "section": 2467
+   }
+  ]
+ },
+ {
+  "commit": "a4f76741340fb23566795e83f830a3f2d49acce0",
+  "subject": "Clarified EmailValidator docs to specify it validates an email address.",
+  "query": "Clarified EmailValidator docs to specify it validates an email address.",
+  "answers": [
+   {
+    "file": "docs/ref/validators.txt",
+    "line": 136,
+    "section": 127
+   }
+  ]
+ },
+ {
+  "commit": "1c7db70e79dce82f50d5958da64ab8e2807a31df",
+  "subject": "Fixed #36705 -- Avoided string concatenation in utils.",
+  "query": "Avoided string concatenation in utils.",
+  "answers": [
+   {
+    "file": "docs/topics/performance.txt",
+    "line": 429,
+    "section": 416
+   }
+  ]
+ },
+ {
+  "commit": "27687475265f88bc0a0bcbfe2ba26da306bbfc20",
+  "subject": "Fixed #36315 -- Used TaskGroup instead of asyncio.gather().",
+  "query": "Used TaskGroup instead of asyncio.gather().",
+  "answers": [
+   {
+    "file": "docs/topics/signals.txt",
+    "line": 337,
+    "section": 275
+   }
+  ]
+ },
+ {
+  "commit": "47ac64ed8bba4de98376b961c739036b3199394b",
+  "subject": "Added community package email backends mention to docs.",
+  "query": "Added community package email backends mention to docs.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 1240,
+    "section": 1235
+   }
+  ]
+ },
+ {
+  "commit": "eaf7b563a5d3861026242fdb503a58f71acf17f6",
+  "subject": "Updated ticket triage process diagram and contributing docs.",
+  "query": "Updated ticket triage process diagram and contributing docs.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/new-contributors.txt",
+    "line": 31,
+    "section": 24
+   },
+   {
+    "file": "docs/internals/contributing/triaging-tickets.txt",
+    "line": 52,
+    "section": 34
+   }
+  ]
+ },
+ {
+  "commit": "340e4f832e1ea74a27770e38635bbc781979f2e0",
+  "subject": "Added community package storage backends mention to docs.",
+  "query": "Added community package storage backends mention to docs.",
+  "answers": [
+   {
+    "file": "docs/ref/files/storage.txt",
+    "line": 261,
+    "section": 124
+   }
+  ]
+ },
+ {
+  "commit": "7fc9db1c6a3a4865d85338f26812ce80f076ebec",
+  "subject": "Refs #35381 -- Clarified key and index lookup handling of None in exact lookup docs.",
+  "query": "Clarified key and index lookup handling of None in exact lookup docs.",
+  "answers": [
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 3221,
+    "section": 3216
+   }
+  ]
+ },
+ {
+  "commit": "348ca845385beaddc7c862ff8ec369f041a5088d",
+  "subject": "Refs #35381 -- Deprecated using None in JSONExact rhs to mean JSON null.",
+  "query": "Deprecated using None in JSONExact rhs to mean JSON null.",
+  "answers": [
+   {
+    "file": "docs/topics/db/queries.txt",
+    "line": 1087,
+    "section": 1066
+   }
+  ]
+ },
+ {
+  "commit": "0ea01101c3a35568bc43e9707ac058b9874bd425",
+  "subject": "Fixed #36681 -- Removed English pluralization bias from example in docs/topics/i18n/translation.txt.",
+  "query": "Removed English pluralization bias from example in docs/topics/i18n/translation.txt.",
+  "answers": [
+   {
+    "file": "docs/topics/i18n/translation.txt",
+    "line": 718,
+    "section": 660
+   }
+  ]
+ },
+ {
+  "commit": "74239181252ca73bebb84789856f5d8937d421b4",
+  "subject": "Fixed #35095 -- Clarified Swiss number formatting in docs/topics/i18n/formatting.txt.",
+  "query": "Clarified Swiss number formatting in docs/topics/i18n/formatting.txt.",
+  "answers": [
+   {
+    "file": "docs/topics/i18n/formatting.txt",
+    "line": 200,
+    "section": 200
+   }
+  ]
+ },
+ {
+  "commit": "ca3e0484ef31d13053af6a9d50667813e22fc282",
+  "subject": "Refs #36005 -- Bumped minimum supported versions of docutils to 0.22.",
+  "query": "Bumped minimum supported versions of docutils to 0.22.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/admin/admindocs.txt",
+    "line": 26,
+    "section": 15
+   }
+  ]
+ },
+ {
+  "commit": "b1e0262c9f9d11eae6230b51c5aa5d71122d5f05",
+  "subject": "Fixed #36665 -- Improved manager usage guidance in docs/topics/db/optimization.txt.",
+  "query": "Improved manager usage guidance in docs/topics/db/optimization.txt.",
+  "answers": [
+   {
+    "file": "docs/topics/db/optimization.txt",
+    "line": 227,
+    "section": 218
+   }
+  ]
+ },
+ {
+  "commit": "f715bc8990b5b8a1df948c2b71e8edbdda47e7db",
+  "subject": "Fixed #36669 -- Doc'd that negative indexes are not supported in F() slices.",
+  "query": "Doc'd that negative indexes are not supported in F() slices.",
+  "answers": [
+   {
+    "file": "docs/ref/models/expressions.txt",
+    "line": 193,
+    "section": 188
+   }
+  ]
+ },
+ {
+  "commit": "6dc9b04018032dccbb5ad8347f7ddf4341316166",
+  "subject": "Refs #28586 -- Copied fetch modes to related objects.",
+  "query": "Copied fetch modes to related objects.",
+  "answers": [
+   {
+    "file": "docs/topics/db/fetch-modes.txt",
+    "line": 32,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "f6bd90c84050a1c74fe2161cced00e7282cb845c",
+  "subject": "Refs #28586 -- Edited related objects documentation.",
+  "query": "Edited related objects documentation.",
+  "answers": [
+   {
+    "file": "docs/topics/db/queries.txt",
+    "line": 1736,
+    "section": 1733
+   }
+  ]
+ },
+ {
+  "commit": "cc9df52666b90e2e6fdebd2213493c1c396e804a",
+  "subject": "Removed pre-release wheel-only advice in docs/internals/howto-release-django.txt.",
+  "query": "Removed pre-release wheel-only advice in docs/internals/howto-release-django.txt.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 645,
+    "section": 600
+   }
+  ]
+ },
+ {
+  "commit": "a545eb0c1ad5dcbb4e4cf22ce6cf486224c0ba8a",
+  "subject": "Cautioned against multi-level relative imports in coding style docs.",
+  "query": "Cautioned against multi-level relative imports in coding style docs.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/coding-style.txt",
+    "line": 153,
+    "section": 131
+   }
+  ]
+ },
+ {
+  "commit": "d5543a23d32d6438edae060081a054f617193341",
+  "subject": "Added notes about automatic roadmap generation for next version in docs/internals/howto-release-django.txt.",
+  "query": "Added notes about automatic roadmap generation for next version in docs/internals/howto-release-django.txt.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 387,
+    "section": 362
+   }
+  ]
+ },
+ {
+  "commit": "92d0c21e69901cb7b749040670d3e6611353e1fa",
+  "subject": "Fixed #36625 -- Mentioned exit() in tutorial's instruction to restart the shell.",
+  "query": "Mentioned exit() in tutorial's instruction to restart the shell.",
+  "answers": [
+   {
+    "file": "docs/intro/tutorial02.txt",
+    "line": 375,
+    "section": 271
+   }
+  ]
+ },
+ {
+  "commit": "5b51e6f759f2ba993219347435149173c756c478",
+  "subject": "Fixed #36611, Refs #36580 -- Added system check for multicolumn ForeignObject in Meta.indexes/constraints/unique_together.",
+  "query": "Fixed #36611, Refs #36580 -- Added system check for multicolumn ForeignObject in Meta.indexes/constraints/unique_together.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 471,
+    "section": 374
+   }
+  ]
+ },
+ {
+  "commit": "1167cd1d639c3fee69dbdef351d31e8a17d1fedf",
+  "subject": "Corrected admin check IDs in docs.",
+  "query": "Corrected admin check IDs in docs.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 865,
+    "section": 858
+   }
+  ]
+ },
+ {
+  "commit": "608d3ebc8889863d43be1090d634b9507fe4a85e",
+  "subject": "Fixed #36526 -- Doc'd QuerySet.bulk_update() memory usage when batching.",
+  "query": "Doc'd QuerySet.bulk_update() memory usage when batching.",
+  "answers": [
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 2545,
+    "section": 2510
+   }
+  ]
+ },
+ {
+  "commit": "4a8ca8bd6906b705c4445bc915d71beda2fc4b84",
+  "subject": "Added missing backticks in docs/ref/models/fields.txt.",
+  "query": "Added missing backticks in docs/ref/models/fields.txt.",
+  "answers": [
+   {
+    "file": "docs/ref/models/fields.txt",
+    "line": 1774,
+    "section": 1732
+   }
+  ]
+ },
+ {
+  "commit": "2514857e3fae831106832cca8823237801cf2cad",
+  "subject": "Fixed #36636, Refs #15902 -- Removed session-based storage reference from set_language() docs.",
+  "query": "Fixed #36636, Refs #15902 -- Removed session-based storage reference from set_language() docs.",
+  "answers": [
+   {
+    "file": "docs/topics/i18n/translation.txt",
+    "line": 1887,
+    "section": 1863
+   }
+  ]
+ },
+ {
+  "commit": "0a09c60e97166e0188717ff340b4d93b72207e96",
+  "subject": "Refs #36143, #28596 -- Avoided mentioning exact query parameter limit in bulk_create() docs.",
+  "query": "Avoided mentioning exact query parameter limit in bulk_create() docs.",
+  "answers": [
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 2483,
+    "section": 2433
+   }
+  ]
+ },
+ {
+  "commit": "8b241f84e25f679c459393dab2947c8354eb01a9",
+  "subject": "Fixed #36614 -- Deprecated QuerySet.values_list(flat=True) without a field.",
+  "query": "Deprecated QuerySet.values_list(flat=True) without a field.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 83,
+    "section": 36
+   }
+  ]
+ },
+ {
+  "commit": "afe6634146d0fe70498976c49d2eb4d745aa9064",
+  "subject": "Fixed #36587 -- Clarified usage of `list.insert()` for upload handlers.",
+  "query": "Clarified usage of `list.insert()` for upload handlers.",
+  "answers": [
+   {
+    "file": "docs/topics/http/file-uploads.txt",
+    "line": 294,
+    "section": 279
+   }
+  ]
+ },
+ {
+  "commit": "daba609a9bdc7a97bcf327c7ba0a5f7b3540b46e",
+  "subject": "Fixed #35877, Refs #36128 -- Documented unique constraint when migrating a m2m field to use a through model.",
+  "query": "Fixed #35877, Refs #36128 -- Documented unique constraint when migrating a m2m field to use a through model.",
+  "answers": [
+   {
+    "file": "docs/howto/writing-migrations.txt",
+    "line": 339,
+    "section": 331
+   }
+  ]
+ },
+ {
+  "commit": "1820d35b17f0a95f4ce888971b9ca0c7a3697c83",
+  "subject": "Fixed #36605 -- Added support for QuerySet.in_bulk() after .values() or .values_list().",
+  "query": "Added support for QuerySet.in_bulk() after .values() or .values_list().",
+  "answers": [
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 2644,
+    "section": 2605
+   }
+  ]
+ },
+ {
+  "commit": "5ddb01c76038278187d6b892a8bf38e4cc25ac2e",
+  "subject": "Clarified feature freeze and alpha release steps in docs/internals/howto-release-django.txt.",
+  "query": "Clarified feature freeze and alpha release steps in docs/internals/howto-release-django.txt.",
+  "answers": [
+   {
+    "file": "docs/internals/howto-release-django.txt",
+    "line": 372,
+    "section": 362
+   }
+  ]
+ },
+ {
+  "commit": "762d3be8c559b0abf415be8d6117f04fb6347983",
+  "subject": "Fixed #36581 -- Updated serialization examples from XML to JSON.",
+  "query": "Updated serialization examples from XML to JSON.",
+  "answers": [
+   {
+    "file": "docs/topics/serialization.txt",
+    "line": 22,
+    "section": 15
+   }
+  ]
+ },
+ {
+  "commit": "cebbd5a6ad6b065ee2ea89fe7ded544b0bf48d12",
+  "subject": "Advanced deprecation warnings for Django 6.1.",
+  "query": "Advanced deprecation warnings for Django 6.1.",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 80,
+    "section": 36
+   }
+  ]
+ },
+ {
+  "commit": "1db79d8acf20c38aaf52e8e7c57f43c0e6501bb9",
+  "subject": "Added stub release notes for 6.1.",
+  "query": "Added stub release notes for 6.1.",
+  "answers": [
+   {
+    "file": "docs/faq/install.txt",
+    "line": 55,
+    "section": 47
+   }
+  ]
+ },
+ {
+  "commit": "9334499f537e402ce5b92708209933045a8c5e7d",
+  "subject": "Refs #35859 -- Included Task backends in system checks docs.",
+  "query": "Included Task backends in system checks docs.",
+  "answers": [
+   {
+    "file": "docs/topics/checks.txt",
+    "line": 134,
+    "section": 134
+   }
+  ]
+ },
+ {
+  "commit": "218f69f05eb51da1ea17d62a914a67ceff5bfd55",
+  "subject": "Fixed #28041 -- Added Lexeme expression to contrib.postgres.search.",
+  "query": "Added Lexeme expression to contrib.postgres.search.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/postgres/search.txt",
+    "line": 99,
+    "section": 76
+   }
+  ]
+ },
+ {
+  "commit": "e08fa42fa6d0e9f2a74e8fcdc5a47f5c3b825877",
+  "subject": "Fixed #36426 -- Added support for further iterables in prefetch_related_objects().",
+  "query": "Added support for further iterables in prefetch_related_objects().",
+  "answers": [
+   {
+    "file": "docs/ref/models/querysets.txt",
+    "line": 4370,
+    "section": 4358
+   }
+  ]
+ },
+ {
+  "commit": "014be2f0dabb1eea4748df528edf65878dcfdecc",
+  "subject": "Fixed #36591 -- Removed unnecessary dotted paths in email docs.",
+  "query": "Removed unnecessary dotted paths in email docs.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 295,
+    "section": 283
+   }
+  ]
+ },
+ {
+  "commit": "94680437a45a71c70ca8bd2e68b72aa1e2eff337",
+  "subject": "Fixed #27222 -- Refreshed model field values assigned expressions on save().",
+  "query": "Refreshed model field values assigned expressions on save().",
+  "answers": [
+   {
+    "file": "docs/ref/models/expressions.txt",
+    "line": 223,
+    "section": 223
+   }
+  ]
+ },
+ {
+  "commit": "c48904a225e2e8f02274257247d5b7d29c5fe183",
+  "subject": "Fixed typo in docs/ref/contrib/contenttypes.txt.",
+  "query": "Fixed typo in docs/ref/contrib/contenttypes.txt.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/contenttypes.txt",
+    "line": 392,
+    "section": 245
+   }
+  ]
+ },
+ {
+  "commit": "9932866e3a7693930a90a924014c10614820ea70",
+  "subject": "Refs #35667 -- Corrected usage of skip_file_prefixes in contributing docs.",
+  "query": "Corrected usage of skip_file_prefixes in contributing docs.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/submitting-patches.txt",
+    "line": 369,
+    "section": 291
+   }
+  ]
+ },
+ {
+  "commit": "46fdeb1373aa7e9089d14440987444493cc9c2e0",
+  "subject": "Fixed #36486 -- Added MongoDB to list of third-party DB backends.",
+  "query": "Added MongoDB to list of third-party DB backends.",
+  "answers": [
+   {
+    "file": "docs/ref/databases.txt",
+    "line": 1297,
+    "section": 1287
+   }
+  ]
+ },
+ {
+  "commit": "0231f71d31b3afa92b9b5b64ddad7efb9fab9a40",
+  "subject": "Fixed #36524 -- Enabled docs cross references to EmailMessage methods.",
+  "query": "Enabled docs cross references to EmailMessage methods.",
+  "answers": [
+   {
+    "file": "docs/topics/email.txt",
+    "line": 479,
+    "section": 457
+   }
+  ]
+ },
+ {
+  "commit": "4e7a991c12a113229e0927974d3bf94ea04eecf6",
+  "subject": "Refs #36588 -- Warned about using external templates in startapp/startproject commands.",
+  "query": "Warned about using external templates in startapp/startproject commands.",
+  "answers": [
+   {
+    "file": "docs/ref/django-admin.txt",
+    "line": 1355,
+    "section": 1304
+   }
+  ]
+ },
+ {
+  "commit": "0a67611b81567687cd24d2be1c0e390931f06262",
+  "subject": "Fixed #36549 -- Doc'd use of OpenLayersWidget and OSMWidget with CSP.",
+  "query": "Doc'd use of OpenLayersWidget and OSMWidget with CSP.",
+  "answers": [
+   {
+    "file": "docs/ref/contrib/gis/forms-api.txt",
+    "line": 190,
+    "section": 159
+   }
+  ]
+ },
+ {
+  "commit": "183fcebf88aa0762a2e28477f9b24c34341a75f4",
+  "subject": "Fixed #35831 -- Documented the model form meta API in model form reference docs.",
+  "query": "Documented the model form meta API in model form reference docs.",
+  "answers": [
+   {
+    "file": "docs/ref/forms/models.txt",
+    "line": 6,
+    "section": 2
+   },
+   {
+    "file": "docs/topics/forms/modelforms.txt",
+    "line": 41,
+    "section": 7
+   }
+  ]
+ },
+ {
+  "commit": "550822bceea227b07445d1852c4376b663c09ea4",
+  "subject": "Fixed #36532 -- Added Content Security Policy view decorators to override or disable policies.",
+  "query": "Added Content Security Policy view decorators to override or disable policies.",
+  "answers": [
+   {
+    "file": "docs/ref/csp.txt",
+    "line": 158,
+    "section": 155
+   },
+   {
+    "file": "docs/topics/async.txt",
+    "line": 85,
+    "section": 76
+   }
+  ]
+ },
+ {
+  "commit": "c594574175e379fff356e274893d797f6e6a95fa",
+  "subject": "Clarified Trac \"version\" attribute in contributing guide.",
+  "query": "Clarified Trac \"version\" attribute in contributing guide.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/triaging-tickets.txt",
+    "line": 257,
+    "section": 254
+   }
+  ]
+ },
+ {
+  "commit": "43e4d0a1422d87cc804097f7eb127b6ffa07e840",
+  "subject": "Fixed #36485 -- Added lint-docs check in Tox and GitHub Actions.",
+  "query": "Added lint-docs check in Tox and GitHub Actions.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-documentation.txt",
+    "line": 208,
+    "section": 204
+   }
+  ]
+ },
+ {
+  "commit": "01a460f23e470555a733b8980401402b7947bb9f",
+  "subject": "Refs #36485 -- Removed trailing spaces and tabs in docs.",
+  "query": "Removed trailing spaces and tabs in docs.",
+  "answers": [
+   {
+    "file": "docs/howto/custom-shell.txt",
+    "line": 40,
+    "section": 17
+   }
+  ]
+ },
+ {
+  "commit": "724e5ec6f2c89cacbd7c28e0e3ee63d292810cbd",
+  "subject": "Refs #36485 -- Fixed dangling hyphen and unbalanced inline markup in docs.",
+  "query": "Fixed dangling hyphen and unbalanced inline markup in docs.",
+  "answers": [
+   {
+    "file": "docs/topics/cache.txt",
+    "line": 13,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "165ad74c578f94f962624a40dff14e1b2e23a1f8",
+  "subject": "Removed reference to flake8 file exclusions.",
+  "query": "Removed reference to flake8 file exclusions.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-code/coding-style.txt",
+    "line": 49,
+    "section": 35
+   }
+  ]
+ },
+ {
+  "commit": "b3166e1e15824aedb7a609dfda18ef36ea023d06",
+  "subject": "Refs #35530 -- Corrected deprecation message in auth.alogin().",
+  "query": "Corrected deprecation message in auth.alogin().",
+  "answers": [
+   {
+    "file": "docs/internals/deprecation.txt",
+    "line": 186,
+    "section": 177
+   }
+  ]
+ },
+ {
+  "commit": "fda3c1712a1eb7b20dfc91e6c9abae32bd64d081",
+  "subject": "Aligned format of constraint examples in docs/ref/models/constraints.txt.",
+  "query": "Aligned format of constraint examples in docs/ref/models/constraints.txt.",
+  "answers": [
+   {
+    "file": "docs/ref/models/constraints.txt",
+    "line": 29,
+    "section": 2
+   }
+  ]
+ },
+ {
+  "commit": "7f9bf357feac06bb34017e1f6c7a7730b1991ede",
+  "subject": "Refs #36485 -- Grouped docs checks under a unified make check target.",
+  "query": "Grouped docs checks under a unified make check target.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-documentation.txt",
+    "line": 202,
+    "section": 190
+   }
+  ]
+ },
+ {
+  "commit": "cba73281966c816824c9bfa028a1bf44e188ded2",
+  "subject": "Refs #34140 -- Added dedicated code block formatting section in docs/internals/contributing/writing-documentation.txt.",
+  "query": "Added dedicated code block formatting section in docs/internals/contributing/writing-documentation.txt.",
+  "answers": [
+   {
+    "file": "docs/internals/contributing/writing-documentation.txt",
+    "line": 248,
+    "section": 224
+   }
+  ]
+ },
+ {
+  "commit": "2013092b693be0ebdf36f41dc61615a2de1bbe31",
+  "subject": "Fixed #36530 -- Extended fields.E347 to check for ManyToManyField involving CompositePrimaryKey on either side.",
+  "query": "Extended fields.E347 to check for ManyToManyField involving CompositePrimaryKey on either side.",
+  "answers": [
+   {
+    "file": "docs/ref/checks.txt",
+    "line": 369,
+    "section": 287
+   }
+  ]
+ },
+ {
+  "commit": "dca8284a376128c64bd0e0792ad12391ae3e7202",
+  "subject": "Corrected assertNumQueries() example in docs/topics/testing/tools.txt.",
+  "query": "Corrected assertNumQueries() example in docs/topics/testing/tools.txt.",
+  "answers": [
+   {
+    "file": "docs/topics/testing/tools.txt",
+    "line": 1918,
+    "section": 1613
+   }
+  ]
+ },
+ {
+  "commit": "8914f4703cf03e2a01683c4ba00f5ae7d3fa449d",
+  "subject": "Fixed #35972 -- Fixed lookup crashes after subquery annotations.",
+  "query": "Fixed lookup crashes after subquery annotations.",
+  "answers": [
+   {
+    "file": "docs/ref/models/expressions.txt",
+    "line": 1222,
+    "section": 1065
+   }
+  ]
+ }
+]

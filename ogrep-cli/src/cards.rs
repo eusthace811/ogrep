@@ -54,7 +54,7 @@ fn clip(text: &str) -> String {
     }
 }
 
-fn is_prose(path: &str) -> bool {
+pub fn is_prose(path: &str) -> bool {
     let p = path.to_ascii_lowercase();
     [".md", ".markdown", ".rst", ".adoc", ".txt"]
         .iter()
@@ -278,6 +278,78 @@ fn headings(lines: &[&str]) -> Vec<Entry> {
         .collect()
 }
 
+/// A heading-delimited part of a prose file: a heading and its own text, up
+/// to the next heading at any depth. `--about` scores prose by its best
+/// section, so a long page is not diluted by everything else it covers.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Section {
+    /// The heading's line; 1 for the text before the first heading.
+    pub line: usize,
+    /// The section's last line.
+    pub end: usize,
+    /// The headings enclosing the section, outermost first and ending with
+    /// its own: (line, last line covered with subsections, title). Empty for
+    /// the text before the first heading.
+    pub chain: Vec<(usize, usize, String)>,
+    /// The section's size in bytes.
+    pub bytes: usize,
+}
+
+/// A prose file's sections, in order, when it is prose with at least one
+/// heading; empty otherwise.
+pub fn sections(path: &str, text: &str) -> Vec<Section> {
+    if !is_prose(path) {
+        return Vec::new();
+    }
+    let lines: Vec<&str> = text.lines().collect();
+    let mut heads = headings(&lines);
+    // In a .txt file (reStructuredText, or plain notes such as a
+    // CMakeLists.txt) a line starting with `#` is a comment, not a heading.
+    if path.to_ascii_lowercase().ends_with(".txt") {
+        heads.retain(|h| !h.2.starts_with('#'));
+    }
+    if heads.is_empty() {
+        return Vec::new();
+    }
+    // Byte offset of each line start, plus the end of the text.
+    let mut starts = Vec::with_capacity(lines.len() + 1);
+    let mut offset = 0;
+    for l in text.split_inclusive('\n') {
+        starts.push(offset);
+        offset += l.len();
+    }
+    starts.push(offset);
+    let span_bytes = |first: usize, last: usize| {
+        starts.get(last).copied().unwrap_or(offset)
+            - starts.get(first - 1).copied().unwrap_or(offset)
+    };
+    let title = |t: &str| t.trim().trim_start_matches('#').trim().to_string();
+    let mut out = Vec::with_capacity(heads.len() + 1);
+    if heads[0].0 > 1 {
+        out.push(Section {
+            line: 1,
+            end: heads[0].0 - 1,
+            chain: Vec::new(),
+            bytes: span_bytes(1, heads[0].0 - 1),
+        });
+    }
+    let mut stack: Vec<(usize, usize, usize, String)> = Vec::new();
+    for (k, (line, depth, text, covered)) in heads.iter().enumerate() {
+        while stack.last().is_some_and(|s| s.1 >= *depth) {
+            stack.pop();
+        }
+        stack.push((*line, *depth, *covered, title(text)));
+        let end = heads.get(k + 1).map_or(lines.len(), |h| h.0 - 1).max(*line);
+        out.push(Section {
+            line: *line,
+            end,
+            chain: stack.iter().map(|s| (s.0, s.2, s.3.clone())).collect(),
+            bytes: span_bytes(*line, end),
+        });
+    }
+    out
+}
+
 /// The first line of a module docstring or leading comment that reads as a
 /// sentence (three words or more), skipping shebangs, licence headers and
 /// editor modelines.
@@ -406,6 +478,27 @@ mod tests {
         let card = build("docs/x.rst", rst, &[]);
         let heads: Vec<(usize, usize)> = card.lines.iter().map(|l| (l.line, l.depth)).collect();
         assert_eq!(heads, [(1, 0), (4, 1)]);
+    }
+
+    #[test]
+    fn prose_splits_into_heading_sections_with_their_chains() {
+        let md = "intro\n# Guide\ntext\n## Install\nsteps\n## Upgrade\nmore\n";
+        let secs = sections("docs/guide.md", md);
+        let spans: Vec<(usize, usize)> = secs.iter().map(|s| (s.line, s.end)).collect();
+        assert_eq!(spans, [(1, 1), (2, 3), (4, 5), (6, 7)]);
+        assert!(secs[0].chain.is_empty());
+        assert_eq!(
+            secs[2].chain,
+            [(2, 7, "Guide".to_string()), (4, 5, "Install".to_string())]
+        );
+        assert_eq!(secs[2].bytes, "## Install\nsteps\n".len());
+        // Code has no sections; in a .txt file a `#` line is a comment.
+        assert!(sections("src/guide.py", md).is_empty());
+        assert!(sections("CMakeLists.txt", "# build\nproject(x)\n").is_empty());
+        let rst = "Title\n=====\n\nSection\n-------\ntext\n";
+        let secs = sections("docs/x.txt", rst);
+        assert_eq!(secs.len(), 2);
+        assert_eq!(secs[1].chain.last().unwrap().2, "Section");
     }
 
     #[test]
