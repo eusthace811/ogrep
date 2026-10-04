@@ -864,7 +864,7 @@ fn score_about(
     };
     // Per file, per term: matching lines holding it.
     let tallies: Vec<Vec<usize>> = files
-        .iter()
+        .par_iter()
         .map(|(_, hits)| {
             let mut tf = vec![0usize; lower.len()];
             for m in &hits.matches {
