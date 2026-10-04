@@ -809,6 +809,61 @@ fn about_ranks_files_by_the_words_of_a_description() {
 }
 
 #[test]
+fn about_reports_whether_its_first_file_stands_out() {
+    let dir = TempDir::new().unwrap();
+    fs::write(
+        dir.path().join("pool.py"),
+        "def drain_pool(pool):\n    pool.drain()  # drain the connection pool on shutdown\n",
+    )
+    .unwrap();
+    fs::write(dir.path().join("a.txt"), "retry timeout\n").unwrap();
+    fs::write(dir.path().join("b.txt"), "retry timeout\n").unwrap();
+    let first_rank = |text: &str| -> serde_json::Value {
+        let out = stdout(ogrep(dir.path()).args(["--no-index", "--json", "--about", text]));
+        let line = out
+            .lines()
+            .find(|l| l.contains("\"type\":\"rank\""))
+            .unwrap()
+            .to_string();
+        serde_json::from_str::<serde_json::Value>(&line).unwrap()["data"].clone()
+    };
+    // One file matches: nothing to confuse it with.
+    let sure = first_rank("drain the connection pool");
+    assert_eq!(sure["confidence"]["level"], "confident", "{sure}");
+    assert_eq!(sure["confidence"]["margin"], 1.0);
+    // Two identical files tie, so the first one is a coin toss.
+    let tie = first_rank("retry timeout");
+    assert_eq!(tie["confidence"]["level"], "unsure", "{tie}");
+    assert_eq!(tie["confidence"]["margin"], 0.0);
+    // Text output stays the same on stdout; the doubt goes to stderr, unless silenced.
+    let out = ogrep(dir.path())
+        .args(["--no-index", "--about", "retry timeout", "-l"])
+        .output()
+        .unwrap();
+    assert_eq!(String::from_utf8_lossy(&out.stdout), "a.txt\nb.txt\n");
+    assert!(String::from_utf8_lossy(&out.stderr).contains("--about: unsure"));
+    let quiet = ogrep(dir.path())
+        .args([
+            "--no-index",
+            "--about",
+            "retry timeout",
+            "-l",
+            "--no-messages",
+        ])
+        .output()
+        .unwrap();
+    assert!(quiet.stderr.is_empty());
+    let sure = ogrep(dir.path())
+        .args(["--no-index", "--about", "drain the connection pool", "-l"])
+        .output()
+        .unwrap();
+    assert!(sure.stderr.is_empty());
+    // --rank on a name reports nothing new.
+    let rank = stdout(ogrep(dir.path()).args(["--no-index", "--json", "--rank", "-F", "retry"]));
+    assert!(!rank.contains("confidence"));
+}
+
+#[test]
 fn cards_show_outline_and_matches_within_the_budget() {
     let dir = TempDir::new().unwrap();
     fs::write(

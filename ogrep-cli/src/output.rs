@@ -429,10 +429,11 @@ impl OutputWriter {
         score: f64,
         features: &impl serde::Serialize,
         explain: bool,
+        confidence: Option<&crate::rank::Confidence>,
     ) -> io::Result<()> {
         if self.is_json() {
             self.finish_json_file()?;
-            let msg = serde_json::json!({
+            let mut msg = serde_json::json!({
                 "type": "rank",
                 "data": {
                     "path": { "text": self.display_path(file) },
@@ -441,6 +442,9 @@ impl OutputWriter {
                     "features": features,
                 },
             });
+            if let Some(c) = confidence {
+                msg["data"]["confidence"] = serde_json::to_value(c).unwrap_or_default();
+            }
             return writeln!(self.stdout, "{msg}");
         }
         if !explain {
@@ -472,10 +476,11 @@ impl OutputWriter {
         score: f64,
         card: &crate::cards::Card,
         features: Option<&impl serde::Serialize>,
+        confidence: Option<&crate::rank::Confidence>,
     ) -> io::Result<()> {
         let path = self.display_path(file);
         if self.is_json() {
-            let msg = serde_json::json!({
+            let mut msg = serde_json::json!({
                 "type": "card",
                 "data": {
                     "path": { "text": path },
@@ -486,6 +491,9 @@ impl OutputWriter {
                     "features": features.map(|f| serde_json::to_value(f).unwrap_or_default()),
                 },
             });
+            if let Some(c) = confidence {
+                msg["data"]["confidence"] = serde_json::to_value(c).unwrap_or_default();
+            }
             return writeln!(self.stdout, "{msg}");
         }
         match &card.summary {

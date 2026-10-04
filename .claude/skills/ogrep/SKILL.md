@@ -133,6 +133,22 @@ ogrep -n --explain-rank --budget 5 -F bulk_update .   # with each file's score
 Ranking only reorders and trims real matches, and its order is deterministic.
 Drop `--rank` when you need every occurrence.
 
+### Starting from a task or bug report: `--about`
+
+When you have a description instead of a name, pass the text itself. Its words
+are searched together and the files are ranked the same way:
+
+```bash
+ogrep -l --about "Handled out-of-range year in admin date_hierarchy" .
+ogrep -n --about "$(cat issue.txt)" --budget 10 .
+```
+
+If ogrep prints `--about: unsure` on stderr (or `"confidence":{"level":"unsure"}`
+with `--json`), the first two files scored almost the same. The first file is
+then right less than half the time, but a right one is usually in the top
+five: read those, or rerun with a name from the code added to the text. When it
+is silent, the first file is right about four times in five.
+
 ### Structure-aware filters
 
 ```bash

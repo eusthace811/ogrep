@@ -533,13 +533,57 @@ pub fn emit(
         score_files(&files, &PatternSet::new(patterns, fixed, ci), &opts.weights)
     };
     let keep = keep_count(&ranked, opts);
-    if let Some(budget) = opts.cards {
-        return emit_cards(&files, &ranked[..keep], patterns, opts, budget, writer);
+    let confidence = opts.about.then(|| about_confidence(&ranked)).flatten();
+    let printed = match opts.cards {
+        Some(budget) => emit_cards(
+            &files,
+            &ranked[..keep],
+            patterns,
+            opts,
+            budget,
+            confidence.as_ref(),
+            writer,
+        )?,
+        None => emit_ranked(
+            &files,
+            &ranked[..keep],
+            patterns,
+            opts,
+            confidence.as_ref(),
+            search,
+            writer,
+        )?,
+    };
+    if let Some(c) = &confidence
+        && c.level == "unsure"
+        && printed
+        && !writer.is_json()
+        && !search.quiet
+        && !search.no_messages
+    {
+        eprintln!(
+            "ogrep: --about: unsure: the first two files score within {:.0}% of each other; \
+             read the top five, or add a name from the code to the description",
+            ABOUT_UNSURE_MARGIN * 100.0
+        );
     }
-    for (rank, r) in ranked.iter().take(keep).enumerate() {
+    Ok(printed)
+}
+
+fn emit_ranked(
+    files: &[(String, FileHits)],
+    ranked: &[Ranked],
+    patterns: &[String],
+    opts: &RankOptions,
+    confidence: Option<&Confidence>,
+    search: &crate::search::SearchOptions,
+    writer: &mut OutputWriter,
+) -> Result<bool> {
+    for (rank, r) in ranked.iter().enumerate() {
         let hits = &files[r.file].1;
         writer.set_path_display(hits.display.clone());
-        writer.write_rank_record(&r.path, rank + 1, r.score, &r.features, opts.explain)?;
+        let first = confidence.filter(|_| rank == 0);
+        writer.write_rank_record(&r.path, rank + 1, r.score, &r.features, opts.explain, first)?;
         let shown = if opts.about {
             select_about_lines(&hits.matches, patterns, opts.per_file)
         } else {
@@ -547,7 +591,40 @@ pub fn emit(
         };
         crate::post::emit_file(&r.path, hits, &shown, &[], search, writer)?;
     }
-    Ok(keep > 0)
+    Ok(!ranked.is_empty())
+}
+
+/// How far `--about` trusts its first file: `unsure` when the first two files
+/// score within this fraction of the first one's score. On the localization
+/// sets in `scripts/eval` the 30% of queries below it found a changed file
+/// first 41-53% of the time, against 79-80% above it, with one threshold set
+/// on django and kept for llama.cpp and rust (`research_notes`, round 8).
+pub const ABOUT_UNSURE_MARGIN: f64 = 0.05;
+
+/// `--about`'s confidence in its first file, reported with it.
+#[derive(Debug, serde::Serialize)]
+pub struct Confidence {
+    /// `confident` or `unsure`.
+    pub level: &'static str,
+    /// (first score - second score) / first score; 1 when one file matched.
+    pub margin: f64,
+}
+
+fn about_confidence(ranked: &[Ranked]) -> Option<Confidence> {
+    let first = ranked.first()?.score;
+    let margin = match ranked.get(1) {
+        Some(second) if first > 0.0 => (first - second.score) / first,
+        Some(_) => 0.0,
+        None => 1.0,
+    };
+    Some(Confidence {
+        level: if margin < ABOUT_UNSURE_MARGIN {
+            "unsure"
+        } else {
+            "confident"
+        },
+        margin: (margin * 1e4).round() / 1e4,
+    })
 }
 
 /// `--about`'s scoring constants, chosen on the localization sets in
@@ -871,6 +948,7 @@ fn emit_cards(
     patterns: &[String],
     opts: &RankOptions,
     budget: usize,
+    confidence: Option<&Confidence>,
     writer: &mut OutputWriter,
 ) -> Result<bool> {
     let mut used = 0usize;
@@ -901,6 +979,7 @@ fn emit_cards(
             r.score,
             &card,
             opts.explain.then_some(&r.features),
+            confidence.filter(|_| rank == 0),
         )?;
     }
     Ok(printed)
@@ -974,6 +1053,34 @@ mod tests {
         assert!(!is_definition("        qs.bulk_update(objs)", 11));
         assert!(!is_definition("x = bulk_update(objs)", 4));
         assert!(!is_definition("self.bulk_update()", 5));
+    }
+
+    #[test]
+    fn about_confidence_compares_the_first_two_scores() {
+        let ranked = |scores: &[f64]| -> Vec<Ranked> {
+            scores
+                .iter()
+                .enumerate()
+                .map(|(file, &score)| Ranked {
+                    file,
+                    path: format!("f{file}"),
+                    score,
+                    features: Features::default(),
+                })
+                .collect()
+        };
+        assert!(about_confidence(&[]).is_none());
+        let c = about_confidence(&ranked(&[10.0, 8.0, 1.0])).unwrap();
+        assert_eq!((c.level, c.margin), ("confident", 0.2));
+        let c = about_confidence(&ranked(&[10.0, 9.6])).unwrap();
+        assert_eq!((c.level, c.margin), ("unsure", 0.04));
+        let c = about_confidence(&ranked(&[10.0, 9.5])).unwrap();
+        assert_eq!(
+            c.level, "confident",
+            "the threshold itself counts as confident"
+        );
+        let c = about_confidence(&ranked(&[3.0])).unwrap();
+        assert_eq!((c.level, c.margin), ("confident", 1.0));
     }
 
     #[test]

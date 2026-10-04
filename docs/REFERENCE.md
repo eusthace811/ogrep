@@ -461,6 +461,23 @@ subject's most specific identifier:
 A description's common words make it a broader search than a name: p50 127 ms
 on django (7K files), 169 ms on llama.cpp (3.6K) and 537 ms on rust (63K).
 
+`--about` also says how far to trust its first file. When the first two files
+score within 5% of each other ((s1 − s2) / s1 < 0.05) it is **unsure**: text
+output stays the same, and one line on stderr suggests reading the top five or
+adding a name from the code to the description (`--no-messages` and `-q`
+silence it). With `--json`, the first `rank` record (or `card`, with `--cards`)
+carries `"confidence": {"level": "confident"|"unsure", "margin": ...}`; the
+margin is 1 when only one file matched.
+
+| Repository (300 commits) | Confident: share, first file right | Unsure: share, first file right, right file in top 5 |
+|------------|-----------------------|---------------------|
+| django | 72%, 78.1% | 28%, 41.2%, 84.7% |
+| llama.cpp (threshold not set here) | 71%, 78.8% | 29%, 54.5%, 92.0% |
+| rust (threshold not set here) | 68%, 79.3% | 32%, 41.2%, 77.3% |
+
+The margin's AUROC for "the first file is right" is 0.72–0.78 (0.5 is chance).
+Measured by `scripts/eval/about_confidence.py`.
+
 #### Cards: `--cards[=TOKENS]`
 
 `--cards` prints each ranked file as a card instead of its lines: the path and a
