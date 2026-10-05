@@ -105,6 +105,9 @@ Rules of thumb for agents:
   `-m` only trims output.
 - **Use `-l` first** on a broad query, then search the specific files. This
   keeps output small.
+- **Use `--max-results N`** rather than `| head -N` to sample a broad query:
+  the output is the same first N results (lines, or files with `-l`/`-c`), and
+  ogrep stops reading files once it has them.
 - **Use `-C 2` or `-C 3`** when you need to read the surrounding code.
 - **Use `-q`** when you only need a yes/no answer; read the exit code.
 
@@ -193,7 +196,9 @@ A parser should skip record types it does not know.
 | `2` | Error (unreadable path, bad regex, ...) |
 
 A match plus an error yields `2`, unless `-q` is set, which yields `0`. Same
-as ripgrep.
+as ripgrep. When a search for one identifier finds nothing, stderr may name
+similar identifiers that do exist (`ogrep: no matches for "enabel_feature";
+similar names: enable_feature`); the exit code stays `1`.
 
 ## When the index is not used
 

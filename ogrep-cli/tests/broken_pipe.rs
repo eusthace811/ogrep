@@ -5,7 +5,7 @@
 use std::fs;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
 
 use tempfile::TempDir;
@@ -63,23 +63,35 @@ fn closed_pipe_ends_a_local_search_quietly() {
     assert!(stderr.is_empty(), "stderr: {stderr}");
 }
 
+/// Kills the server even when an assertion fails first.
+struct Server(Child);
+
+impl Drop for Server {
+    fn drop(&mut self) {
+        let _ = self.0.kill();
+        let _ = self.0.wait();
+    }
+}
+
 #[test]
 fn closed_pipe_is_not_a_server_failure() {
     let dir = fixture();
     let index = dir.path().join(".idx");
-    let mut server = Command::new(ogrep_bin())
-        .args([
-            "serve",
-            "--no-watch",
-            "--index-path",
-            index.to_str().unwrap(),
-            ".",
-        ])
-        .current_dir(dir.path())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn()
-        .unwrap();
+    let _server = Server(
+        Command::new(ogrep_bin())
+            .args([
+                "serve",
+                "--no-watch",
+                "--index-path",
+                index.to_str().unwrap(),
+                ".",
+            ])
+            .current_dir(dir.path())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+            .unwrap(),
+    );
     let start = Instant::now();
     while !index.join("serve.json").exists() {
         assert!(
@@ -113,8 +125,6 @@ fn closed_pipe_is_not_a_server_failure() {
         std::thread::sleep(Duration::from_millis(100));
     }
     let (code, stderr) = search_then_close(dir.path(), &index);
-    let _ = server.kill();
-    let _ = server.wait();
     assert_eq!(code, Some(0), "stderr: {stderr}");
     assert!(
         !stderr.contains("falling back"),

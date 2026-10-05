@@ -94,10 +94,12 @@ fn an_ignored_sighup_stays_ignored() {
     // SAFETY: kill(2) on our own child's PID.
     assert_eq!(unsafe { libc::kill(server.id() as i32, libc::SIGHUP) }, 0);
     std::thread::sleep(Duration::from_millis(300));
-    assert!(server.try_wait().unwrap().is_none(), "nohup'd server exited");
-    assert!(idx.join("serve.json").exists());
-    // SAFETY: as above.
-    assert_eq!(unsafe { libc::kill(server.id() as i32, libc::SIGTERM) }, 0);
-    assert!(server.wait().unwrap().success());
+    let survived = server.try_wait().unwrap().is_none() && idx.join("serve.json").exists();
+    // Stop it before asserting: a server that ignores SIGHUP would outlive a
+    // failed test otherwise. SAFETY: as above.
+    unsafe { libc::kill(server.id() as i32, libc::SIGTERM) };
+    let status = server.wait().unwrap();
+    assert!(survived, "nohup'd server exited");
+    assert!(status.success(), "{status:?}");
     assert!(!idx.join("serve.json").exists(), "serve.json left behind");
 }
