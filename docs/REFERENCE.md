@@ -1166,9 +1166,13 @@ A file is binary if it contains a NUL byte. Following ripgrep:
   a binary hit apart from a text one. `stats.bytes_searched` stops at that
   offset rather than counting the whole file.
 
-ogrep additionally rejects ~65 binary file *extensions* during the walk to keep
-indexing cheap, which ripgrep does not do. `--binary` and `-a` also lift that
-restriction, and `--files` never applies it.
+ogrep additionally rejects about 60 binary file *extensions* (images, audio and
+video, archives, fonts, compiled objects, office documents, databases) during
+the walk to keep indexing cheap, which ripgrep does not do. Extensions that
+often name text are judged by content like any other file: `.dat`, `.bin`
+(Git LFS pointers), `.obj` (Wavefront models), `.lib` (EDA symbol libraries)
+and `.a`. `--binary` and `-a` also lift the restriction, and `--files` never
+applies it.
 
 ### Flags that bypass the index
 

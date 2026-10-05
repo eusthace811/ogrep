@@ -9571,8 +9571,8 @@ mod tests {
     #[test]
     fn background_filename_membership_requires_one_complete_walk() {
         let root = Path::new("repo");
-        let initial = vec![root.join("from-initial.bin")];
-        let metadata = vec!["from-metadata.bin".to_string()];
+        let initial = vec![root.join("from-initial.png")];
+        let metadata = vec!["from-metadata.png".to_string()];
 
         assert_eq!(
             complete_background_listed_files(root, initial.clone(), 0, metadata.clone(), 0),
@@ -9581,7 +9581,7 @@ mod tests {
         );
         assert_eq!(
             complete_background_listed_files(root, initial.clone(), 0, metadata, 1),
-            Some(vec!["from-initial.bin".to_string()]),
+            Some(vec!["from-initial.png".to_string()]),
             "an incomplete final walk must preserve the complete initial membership"
         );
         assert_eq!(
@@ -9636,7 +9636,7 @@ mod tests {
             .filename_extra_paths
             .write()
             .unwrap()
-            .insert("asset.bin".to_string());
+            .insert("asset.png".to_string());
         state.filename_index_ready.store(true, Ordering::SeqCst);
 
         let (response, _permit) =
@@ -9644,7 +9644,7 @@ mod tests {
         let value: serde_json::Value = serde_json::from_str(&response).unwrap();
         assert_eq!(
             value.pointer("/result/files").unwrap(),
-            &serde_json::json!(["asset.bin", "src/main.rs"])
+            &serde_json::json!(["asset.png", "src/main.rs"])
         );
     }
 
@@ -9655,13 +9655,13 @@ mod tests {
         let index_dir = temp.path().join("index");
         std::fs::create_dir_all(&root).unwrap();
         std::fs::write(root.join("main.rs"), "fn main() {}\n").unwrap();
-        std::fs::write(root.join("new.bin"), [1, 2, 3]).unwrap();
+        std::fs::write(root.join("new.png"), [1, 2, 3]).unwrap();
         let state = test_server_state(&root, &index_dir);
         state
             .filename_extra_paths
             .write()
             .unwrap()
-            .insert("removed.bin".to_string());
+            .insert("removed.png".to_string());
 
         let response = handle_reload(Some(serde_json::json!(1)), &state);
         let value: serde_json::Value = serde_json::from_str(&response).unwrap();
@@ -9672,7 +9672,7 @@ mod tests {
         let value: serde_json::Value = serde_json::from_str(&response).unwrap();
         assert_eq!(
             value.pointer("/result/files").unwrap(),
-            &serde_json::json!(["main.rs", "new.bin"])
+            &serde_json::json!(["main.rs", "new.png"])
         );
     }
 
@@ -9686,7 +9686,7 @@ mod tests {
         state.gitignore_pending.store(false, Ordering::SeqCst);
         state.filename_index_ready.store(true, Ordering::SeqCst);
 
-        let asset = root.join("asset.bin");
+        let asset = root.join("asset.png");
         std::fs::write(&asset, [1, 2, 3]).unwrap();
         let create =
             Event::new(EventKind::Create(notify::event::CreateKind::File)).add_path(asset.clone());
@@ -9696,7 +9696,7 @@ mod tests {
                 .filename_extra_paths
                 .read()
                 .unwrap()
-                .contains("asset.bin")
+                .contains("asset.png")
         );
         assert!(state.index.read().unwrap().all_paths().is_empty());
         let dirty = state.index.read().unwrap().live.dirty_count();
@@ -9718,7 +9718,7 @@ mod tests {
                 .filename_extra_paths
                 .read()
                 .unwrap()
-                .contains("asset.bin")
+                .contains("asset.png")
         );
     }
 
@@ -9733,7 +9733,7 @@ mod tests {
             .filename_extra_paths
             .write()
             .unwrap()
-            .insert("asset.bin".to_string());
+            .insert("asset.png".to_string());
         state.filename_index_ready.store(true, Ordering::SeqCst);
         state.filename_index_dirty.store(true, Ordering::SeqCst);
         ogrep_core::path_index::write_extra_paths(&index_dir, &[]).unwrap();
@@ -9741,13 +9741,13 @@ mod tests {
         refresh_filename_index(
             state.as_ref(),
             &index_dir,
-            &["asset.bin".to_string()],
+            &["asset.png".to_string()],
             &Default::default(),
         );
 
         assert_eq!(
             ogrep_core::path_index::read_extra_paths(&index_dir).unwrap(),
-            Some(vec!["asset.bin".to_string()])
+            Some(vec!["asset.png".to_string()])
         );
         assert!(!state.filename_index_dirty.load(Ordering::SeqCst));
     }
@@ -9763,9 +9763,9 @@ mod tests {
             .filename_extra_paths
             .write()
             .unwrap()
-            .insert("assets/missing.bin".to_string());
+            .insert("assets/missing.png".to_string());
         state.filename_index_ready.store(true, Ordering::SeqCst);
-        ogrep_core::path_index::write_extra_paths(&index_dir, &["assets/missing.bin".to_string()])
+        ogrep_core::path_index::write_extra_paths(&index_dir, &["assets/missing.png".to_string()])
             .unwrap();
 
         sweep_removed_files(
@@ -9780,7 +9780,7 @@ mod tests {
                 .filename_extra_paths
                 .read()
                 .unwrap()
-                .contains("assets/missing.bin")
+                .contains("assets/missing.png")
         );
         assert!(
             !state.index.read().unwrap().live.has_pending_changes(),
@@ -11461,8 +11461,8 @@ mod tests {
         let tmp = TempDir::new().unwrap();
         let root = std::fs::canonicalize(tmp.path()).unwrap();
         test_git(&root, &["init", "--quiet"]);
-        let removed = root.join("removed.bin");
-        let added = root.join("added.bin");
+        let removed = root.join("removed.png");
+        let added = root.join("added.png");
         std::fs::write(&removed, [1, 2, 3]).unwrap();
         let state = test_server_state(&root, &root.join(".ogrep"));
         state.gitignore_pending.store(false, Ordering::SeqCst);
@@ -11499,7 +11499,7 @@ mod tests {
         let value: serde_json::Value = serde_json::from_str(&response).unwrap();
         assert_eq!(
             value.pointer("/result/files").unwrap(),
-            &serde_json::json!(["added.bin"]),
+            &serde_json::json!(["added.png"]),
             "binary filename events must be replayed against the reloaded sidecar"
         );
     }
@@ -13087,14 +13087,14 @@ mod tests {
         let root = std::fs::canonicalize(tmp.path()).unwrap();
         let dir = root.join("removed");
         std::fs::create_dir(&dir).unwrap();
-        std::fs::write(dir.join("deep.bin"), [1, 2, 3]).unwrap();
+        std::fs::write(dir.join("deep.png"), [1, 2, 3]).unwrap();
         let state = test_server_state(&root, &root.join(".ogrep"));
         state.gitignore_pending.store(false, Ordering::SeqCst);
         state
             .filename_extra_paths
             .write()
             .unwrap()
-            .insert("removed/deep.bin".to_string());
+            .insert("removed/deep.png".to_string());
         state.filename_index_ready.store(true, Ordering::SeqCst);
 
         state.indexing.store(true, Ordering::SeqCst);
@@ -13122,10 +13122,10 @@ mod tests {
         }
         let paths = state.filename_extra_paths.read().unwrap();
         assert!(
-            !paths.contains("removed/deep.bin"),
+            !paths.contains("removed/deep.png"),
             "the coalesced reconcile must retire filename-only descendants"
         );
-        assert!(paths.contains("moved/deep.bin"));
+        assert!(paths.contains("moved/deep.png"));
     }
 
     /// A file that cannot be opened right now is not a file that stopped
@@ -14739,7 +14739,7 @@ mod tests {
         // through std::error::Error::source() so callers can recover
         // raw_os_error() for diagnostics.
         let tmp = TempDir::new().unwrap();
-        let src = tmp.path().join("missing.bin");
+        let src = tmp.path().join("missing.png");
         let dst = tmp.path().join("dst.bin");
         let err = publish_file(&src, &dst).unwrap_err();
 

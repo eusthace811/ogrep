@@ -2635,7 +2635,7 @@ mod tests {
     fn filename_sidecar_captures_paths_outside_the_content_index() {
         let repo = tempfile::tempdir().unwrap();
         std::fs::write(repo.path().join("main.rs"), "fn main() {}\n").unwrap();
-        std::fs::write(repo.path().join("asset.bin"), [1, 2, 3]).unwrap();
+        std::fs::write(repo.path().join("asset.png"), [1, 2, 3]).unwrap();
         std::fs::write(repo.path().join("binary.txt"), b"before\0after").unwrap();
         let index = tempfile::tempdir().unwrap();
 
@@ -2649,7 +2649,7 @@ mod tests {
             .unwrap();
         assert_eq!(
             extras,
-            vec!["asset.bin".to_string(), "binary.txt".to_string()]
+            vec!["asset.png".to_string(), "binary.txt".to_string()]
         );
     }
 

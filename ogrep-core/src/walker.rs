@@ -45,13 +45,18 @@ pub use ignore::overrides::{Override, OverrideBuilder};
 pub const DEFAULT_MAX_FILE_SIZE: Option<u64> = Some(64 * 1024 * 1024);
 
 /// Binary extensions that can be rejected without reading file content.
+///
+/// Only formats that are binary in practice. Extensions that often name text
+/// (`.dat` CSV tables, `.bin` Git LFS pointers and fixtures, `.obj` Wavefront
+/// models, `.lib` EDA symbol libraries, `.a` test fixtures) are judged by
+/// their content instead, as ripgrep judges every file: skipping them hid
+/// real matches (CPython's `Doc/data/*.dat`).
 const BINARY_EXTENSIONS: &[&str] = &[
     "png", "jpg", "jpeg", "gif", "bmp", "ico", "webp", "tiff", "tif", "psd", "mp3", "mp4", "avi",
     "mkv", "mov", "wav", "flac", "ogg", "wma", "aac", "m4a", "webm", "zip", "tar", "gz", "bz2",
-    "xz", "zst", "7z", "rar", "lz4", "lzma", "cab", "exe", "dll", "so", "dylib", "obj", "o", "a",
-    "lib", "pdb", "wasm", "class", "jar", "pyc", "pyo", "beam", "pdf", "doc", "docx", "xls",
-    "xlsx", "ppt", "pptx", "ttf", "otf", "woff", "woff2", "eot", "bin", "dat", "db", "sqlite",
-    "sqlite3",
+    "xz", "zst", "7z", "rar", "lz4", "lzma", "cab", "exe", "dll", "so", "dylib", "o", "pdb",
+    "wasm", "class", "jar", "pyc", "pyo", "beam", "pdf", "doc", "docx", "xls", "xlsx", "ppt",
+    "pptx", "ttf", "otf", "woff", "woff2", "eot", "db", "sqlite", "sqlite3",
 ];
 
 /// Number of parallel walker threads (capped at 12 to avoid diminishing returns).
@@ -948,11 +953,11 @@ mod tests {
     fn walk_dir_retains_binary_extensions_for_file_listing() {
         let dir = setup_fixture();
         let root = dir.path().join("testdata");
-        fs::write(root.join("asset.bin"), [0, 1, 2]).unwrap();
+        fs::write(root.join("asset.png"), [0, 1, 2]).unwrap();
 
         let result = walk_dir(&root, &WalkOptions::default());
-        assert!(!sorted_filenames(&result, &root).contains(&"asset.bin".to_string()));
-        assert!(sorted_listed_filenames(&result, &root).contains(&"asset.bin".to_string()));
+        assert!(!sorted_filenames(&result, &root).contains(&"asset.png".to_string()));
+        assert!(sorted_listed_filenames(&result, &root).contains(&"asset.png".to_string()));
     }
 
     #[test]

@@ -683,7 +683,7 @@ fn binary_flag_includes_extension_rejected_files() {
     let dir = fixture();
     // Text content behind a binary extension. ogrep skips these by extension to
     // keep indexing cheap; --binary is the escape hatch back to rg's coverage.
-    fs::write(dir.path().join("blob.dat"), "needle plain\n").unwrap();
+    fs::write(dir.path().join("blob.png"), "needle plain\n").unwrap();
 
     let without = stdout_of(ogrep().current_dir(dir.path()).args([
         "--no-index",
@@ -692,7 +692,7 @@ fn binary_flag_includes_extension_rejected_files() {
         ".",
     ]));
     assert!(
-        !without.contains("blob.dat"),
+        !without.contains("blob.png"),
         "binary extensions are skipped by default: {without:?}"
     );
 
@@ -704,9 +704,55 @@ fn binary_flag_includes_extension_rejected_files() {
         ".",
     ]));
     assert!(
-        with.contains("blob.dat"),
+        with.contains("blob.png"),
         "--binary must include extension-rejected files: {with:?}"
     );
+}
+
+#[test]
+fn text_behind_an_ambiguous_extension_is_searched() {
+    // `.dat` tables, `.bin` LFS pointers, `.obj` models, `.lib` symbol
+    // libraries: text often enough that ogrep judges them by content, as rg
+    // does, with and without an index. A NUL byte still makes them binary.
+    let dir = fixture();
+    for name in [
+        "table.dat",
+        "pointer.bin",
+        "mesh.obj",
+        "symbols.lib",
+        "fixture.a",
+    ] {
+        fs::write(dir.path().join(name), "needle plain\n").unwrap();
+    }
+    fs::write(dir.path().join("real.bin"), b"needle\0binary").unwrap();
+    let idx = dir.path().join(".idx");
+    let built = ogrep()
+        .current_dir(dir.path())
+        .args(["index", ".", "--index-path", idx.to_str().unwrap()])
+        .output()
+        .unwrap();
+    assert!(built.status.success());
+    for index in [
+        &["--no-index"][..],
+        &["--index-path", idx.to_str().unwrap()],
+    ] {
+        let out = stdout_of(ogrep().current_dir(dir.path()).args(index).args([
+            "-l",
+            "--sort=path",
+            "needle",
+            ".",
+        ]));
+        for name in [
+            "table.dat",
+            "pointer.bin",
+            "mesh.obj",
+            "symbols.lib",
+            "fixture.a",
+        ] {
+            assert!(out.contains(name), "{index:?} missed {name}: {out:?}");
+        }
+        assert!(!out.contains("real.bin"), "{index:?}: {out:?}");
+    }
 }
 
 // Extension is not a binary signal on its own. Verified against rg 15.2.0 in a
