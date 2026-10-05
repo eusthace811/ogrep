@@ -45,3 +45,8 @@ A single refresh worker handles at most one active and one pending pass. New cal
 ## First spans only
 
 `detail` (default true) asks for each match row's `spans` and `columns`. With it, `all_spans: false` (default true) asks for each row's first span only (multiline and `replace` rows keep theirs) and no `columns`: a reshaping client (`--rank`, `--scope`) places and ranks lines by their first match and prints no columns, so the rest only enlarges the reply. It does not apply with `only_matching` (one row per match) or `stats` (match totals), which keep every span and column. Older servers ignore it and send every span with its column; clients must accept either.
+
+## Result limits
+
+A search request may carry `limit` (a positive integer) and `limit_files` (default false); `ogrep --max-results` sends them. The server then verifies candidates in growing batches, in candidate order, and stops once the files verified so far hold `limit` results: files when `limit_files` (`-l`, `-c`), else `match` rows, where a binary file reached by traversal counts for nothing because the client hides it. It always sends whole files and sets `"limited": true` when candidates were left unverified. The client cuts the output at exactly `limit` results itself. If a limited reply holds fewer results than `limit` once the client has dropped the rows it never prints, the client asks again without the limit, so the output never depends on where the server stopped. Older servers ignore both fields and send everything.
+

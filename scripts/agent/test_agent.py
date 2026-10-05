@@ -35,7 +35,7 @@ class InstallerTests(unittest.TestCase):
         self.project.mkdir()
         self.base = self.project / ".ogrep-agent"
         self.fake = self.root / "fake-ogrep"
-        self.fake.write_text('#!/bin/sh\nprintf "%s\\n" "ogrep test --no-index --index-path --json --files --timeout-secs"\n')
+        self.fake.write_text('#!/bin/sh\nprintf "%s\\n" "ogrep test --no-index --index-path --json --files --max-results --timeout-secs"\n')
         self.fake.chmod(0o755)
         self.environment = patch.dict(os.environ, {"XDG_CACHE_HOME": str(self.root / "cache"), "XDG_DATA_HOME": str(self.root / "data")})
         self.environment.start()
@@ -69,8 +69,13 @@ class InstallerTests(unittest.TestCase):
             self.assertEqual(install.binary_path(SimpleNamespace(binary=None), self.base), str(self.fake))
 
     def test_old_binary_without_refresh_is_rejected(self):
-        self.fake.write_text('#!/bin/sh\necho "ogrep --no-index --index-path --json --files"\n')
+        self.fake.write_text('#!/bin/sh\necho "ogrep --no-index --index-path --json --files --max-results"\n')
         with self.assertRaisesRegex(ValueError, "refresh completion"):
+            install.binary_help(self.fake)
+
+    def test_old_binary_without_max_results_is_rejected(self):
+        self.fake.write_text('#!/bin/sh\necho "ogrep --no-index --index-path --json --files --timeout-secs"\n')
+        with self.assertRaisesRegex(ValueError, "--max-results"):
             install.binary_help(self.fake)
 
     def test_install_reinstall_partial_uninstall_preserves_user_configuration(self):

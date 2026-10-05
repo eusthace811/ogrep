@@ -155,6 +155,11 @@ pub struct OutputConfig {
     pub path_display: PathDisplay,
     /// `--line-buffered`: flush after every line.
     pub line_buffered: bool,
+    /// `--max-results`: print at most this many results (matching lines, or
+    /// files with `-l`/`-c`), then only the last match's trailing context.
+    pub limit: Option<u64>,
+    /// Trailing context (`-A`) still printed after the last admitted match.
+    pub after_context: usize,
 }
 
 /// How to render the path of a file found under a search argument.
@@ -194,6 +199,8 @@ impl Default for OutputConfig {
             path_separator: None,
             path_display: PathDisplay::Bare,
             line_buffered: false,
+            limit: None,
+            after_context: 0,
         }
     }
 }
@@ -323,6 +330,10 @@ pub struct OutputWriter {
     capture: Option<Vec<Captured>>,
     /// Whether a capture records a binary file's lines, or only its note.
     capture_binary_lines: bool,
+    /// Results printed so far, against `config.limit`.
+    results: u64,
+    /// The last match printed, for the trailing context of the final one.
+    last_match: Option<(String, usize)>,
 }
 
 /// A result recorded by a capturing writer, in the order it was reported.
@@ -561,7 +572,31 @@ impl OutputWriter {
             total_matched_lines: 0,
             capture: None,
             capture_binary_lines: false,
+            results: 0,
+            last_match: None,
         }
+    }
+
+    /// Whether `--max-results` results have been printed: a search can stop
+    /// at the end of the current file.
+    pub fn is_full(&self) -> bool {
+        self.capture.is_none() && self.config.limit.is_some_and(|n| self.results >= n)
+    }
+
+    /// Count one more result, or refuse it once the limit is reached.
+    fn admit(&mut self) -> bool {
+        if self.is_full() {
+            return false;
+        }
+        self.results += 1;
+        true
+    }
+
+    /// Past the limit, only the last match's trailing context is printed.
+    fn trailing_context(&self, file: &str, line: usize) -> bool {
+        self.last_match
+            .as_ref()
+            .is_some_and(|(f, l)| f == file && line > *l && line <= l + self.config.after_context)
     }
 
     pub fn match_totals(&self) -> (u64, u64) {
@@ -618,9 +653,16 @@ impl OutputWriter {
             return Ok(self.capture_binary_lines);
         }
         if self.is_json() {
+            if self.is_full() {
+                return Ok(false);
+            }
             self.ensure_json_begin(file)?;
             self.current_binary_offset = Some(offset as u64);
             return Ok(true);
+        }
+        // The note stands for the file's matches: one result.
+        if !self.admit() {
+            return Ok(false);
         }
         let note = format!("binary file matches (found \"\\0\" byte around offset {offset})");
         if self.config.no_filename {
@@ -699,7 +741,8 @@ impl OutputWriter {
     /// Substrate-sized tree. In heading mode there is no separator, because the
     /// blank line before the next heading already does that job.
     pub fn write_context_separator(&mut self, file: &str, line_num: usize) -> io::Result<()> {
-        if self.capture.is_some() || self.is_json() || !self.config.context {
+        // Trailing context follows its match without a gap.
+        if self.capture.is_some() || self.is_json() || !self.config.context || self.is_full() {
             return Ok(());
         }
         let Some(sep) = self.config.context_separator.clone() else {
@@ -811,6 +854,9 @@ impl OutputWriter {
             capture.push(Captured::Context(ctx.clone()));
             return Ok(());
         }
+        if self.is_full() && !self.trailing_context(&ctx.file, ctx.line_number) {
+            return Ok(());
+        }
         if self.is_json() {
             self.ensure_json_begin(&ctx.file)?;
             let (content, _) = self.trim_adjust(&ctx.content, &[]);
@@ -847,6 +893,14 @@ impl OutputWriter {
         if let Some(capture) = self.capture.as_mut() {
             capture.push(Captured::Match(m.clone()));
             return Ok(());
+        }
+        if !self.admit() {
+            // Trailing context ends at the first match past the limit.
+            self.last_match = None;
+            return Ok(());
+        }
+        if self.config.limit.is_some() {
+            self.last_match = Some((m.file.clone(), m.line_number));
         }
         let (content, spans) = self.trim_adjust(&m.content, &m.spans);
         let content = content.to_string();
@@ -930,6 +984,9 @@ impl OutputWriter {
     }
 
     pub fn write_file(&mut self, path: &str) -> io::Result<()> {
+        if !self.admit() {
+            return Ok(());
+        }
         let path = self.display_path(path);
         if self.config.null {
             write!(self.stdout, "{path}\0")?;
@@ -940,6 +997,9 @@ impl OutputWriter {
     }
 
     pub fn write_count(&mut self, file: &str, count: usize) -> io::Result<()> {
+        if !self.admit() {
+            return Ok(());
+        }
         if self.config.no_filename {
             writeln!(self.stdout, "{count}")?;
         } else {

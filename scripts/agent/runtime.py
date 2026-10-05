@@ -317,10 +317,13 @@ class Runtime:
             for glob in args.get("glob", []):
                 cmd.append("--glob=" + glob)
             mode = args["output_mode"]
+            # One result past the cap lets `run` see that output was truncated,
+            # while ogrep stops reading files once it has that many.
+            stop = ["--max-results", str(args["max_results"] + 1)]
             if mode == "content":
-                cmd += ["--json", "-C", str(args["context_lines"])]
+                cmd += ["--json", "-C", str(args["context_lines"]), *stop]
             elif mode == "files":
-                cmd += ["-l", "--null"]
+                cmd += ["-l", "--null", *stop]
             else:
                 # CLI count output cannot escape arbitrary filenames. JSON end
                 # records provide matched-line counts with unambiguous paths.

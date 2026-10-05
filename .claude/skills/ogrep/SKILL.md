@@ -89,7 +89,11 @@ ogrep -n -g 'src/**' -g '!**/tests/**' 'retry' .   # path globs
 ogrep -n -e 'TODO' -e 'FIXME' .            # several patterns (OR)
 ogrep -n -P '\bfoo(?!bar)' .               # lookaround / backreferences
 ogrep --json 'pattern' .                   # machine-readable events
+ogrep -n --max-results 50 'Vec<' .         # only the first 50 matching lines; stops searching there
 ```
+
+For a broad pattern you only want to sample, use `--max-results N` rather than
+`| head -N`: the output is the same, but ogrep stops reading files once it has N.
 
 **Put options before `--`.** `--` ends option parsing, so use
 `ogrep -n -F -- '-v' .`. In `ogrep -- '-v' . -n`, the `-n` is taken as a path.

@@ -45,6 +45,7 @@ described in detail in [analysis.md](analysis.md).
 | `-o` | only the matched text |
 | `-A N`, `-B N`, `-C N` | context lines after / before / around each match |
 | `-m N` | at most N matching lines per file |
+| `--max-results N` | the first N results in total (matching lines, or files with `-l`/`-c`), then stop searching. Faster than piping to `head` |
 | `--column`, `-b` | column / byte offset |
 | `--vimgrep` | `file:line:col:text`, one row per match |
 | `--json` | ripgrep's JSON event stream: begin, match, context, end, summary |

@@ -366,6 +366,13 @@ struct Cli {
     #[arg(short = 'm', long = "max-count", global = true)]
     max_count: Option<usize>,
 
+    /// Stop after NUM results in total: matching lines, or files with -l and
+    /// -c. The output is exactly the first NUM results of the full output, and
+    /// the search stops reading files once it has them.
+    #[arg(long = "max-results", value_name = "NUM", global = true,
+          value_parser = clap::value_parser!(u64).range(1..))]
+    max_results: Option<u64>,
+
     /// List files that would be searched (no search performed).
     #[arg(long = "files", global = true)]
     list_files: bool,
@@ -1315,6 +1322,7 @@ impl Cli {
             count: self.count,
             word_boundary: self.word_regexp,
             max_count: self.max_count,
+            max_results: self.max_results,
             json,
             vimgrep: self.vimgrep,
             stats: self.stats || self.debug || self.trace,
@@ -1607,6 +1615,18 @@ fn run_cli() {
     // Each tool answers its own question; two at once would silently run
     // one of them.
     let tools = cli.tools();
+    // Ranked output and the tools size their answers with --budget.
+    if cli.max_results.is_some() {
+        let other = tools.first().map(|t| t.flag).or_else(|| {
+            cli.rank_options()
+                .is_some()
+                .then_some("--rank, --about or --cards (use --budget)")
+        });
+        if let Some(other) = other {
+            eprintln!("ogrep: --max-results cannot be combined with {other}");
+            process::exit(2);
+        }
+    }
     if let [first, second, ..] = &tools[..] {
         eprintln!(
             "ogrep: {} cannot be combined with {}",
@@ -2265,6 +2285,10 @@ fn run_search(
 
     let mut changed = history_search::ChangedSets::new(cli.changed_since.as_deref());
     for target in targets {
+        // --max-results spans every path argument.
+        if writer.is_full() {
+            break;
+        }
         if !target.path.exists() {
             report_missing_path(&target.path, opts.no_messages);
             continue;

@@ -28,6 +28,18 @@ impl std::fmt::Display for ServerOverloaded {
 }
 impl std::error::Error for ServerOverloaded {}
 
+/// A reply the server cut at `--max-results` that turned out short once the
+/// client dropped rows it never prints (binary files, depth): ask again whole.
+#[derive(Debug)]
+struct LimitShort;
+
+impl std::fmt::Display for LimitShort {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("limited reply fell short")
+    }
+}
+impl std::error::Error for LimitShort {}
+
 fn server_error(error: &serde_json::Value) -> anyhow::Error {
     let message = error
         .get("message")
@@ -63,6 +75,9 @@ pub struct SearchOptions {
     pub count: bool,
     pub word_boundary: bool,
     pub max_count: Option<usize>,
+    /// `--max-results`: stop after this many results in total (matching
+    /// lines, or files with `-l`/`-c`), in output order.
+    pub max_results: Option<u64>,
     pub json: bool,
     pub vimgrep: bool,
     pub stats: bool,
@@ -509,6 +524,12 @@ impl SearchOptions {
             path_separator: self.path_separator.clone(),
             path_display: self.path_display.clone(),
             line_buffered: self.line_buffered,
+            limit: self.max_results,
+            after_context: if self.has_context() {
+                self.after_ctx()
+            } else {
+                0
+            },
         }
     }
 
@@ -1131,6 +1152,30 @@ fn search_via_server(
     ci: bool,
     writer: &mut OutputWriter,
 ) -> Result<bool> {
+    // `--sort` reorders the reply, so the server cannot know which rows come
+    // first; the writer still applies the limit.
+    let limit = opts
+        .max_results
+        .filter(|_| opts.sort.is_none() && !opts.quiet);
+    match search_via_server_limited(info, root, index_root, scope, opts, ci, writer, limit) {
+        Err(error) if error.is::<LimitShort>() => {
+            search_via_server_limited(info, root, index_root, scope, opts, ci, writer, None)
+        }
+        result => result,
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn search_via_server_limited(
+    info: &ServerInfo,
+    root: &Path,
+    index_root: &Path,
+    scope: &IndexScope,
+    opts: &SearchOptions,
+    ci: bool,
+    writer: &mut OutputWriter,
+    limit: Option<u64>,
+) -> Result<bool> {
     let mut stream = info.connect(None)?;
     stream.set_read_timeout(Some(std::time::Duration::from_secs(300)))?;
 
@@ -1210,6 +1255,12 @@ fn search_via_server(
         },
         "id": 1,
     });
+    if let Some(limit) = limit {
+        // Stop once this many results are found, counting files for -l/-c.
+        request["params"]["limit"] = limit.into();
+        request["params"]["limit_files"] =
+            (opts.files_only || opts.count || opts.count_matches).into();
+    }
     // Every match (and its column), by the local search's rule for
     // `MatchOptions::all_spans`, or only each line's first for a capture
     // that needs no more (see `SearchOptions::reshaping`).
@@ -1225,7 +1276,8 @@ fn search_via_server(
     let mut line = String::new();
     reader.read_line(&mut line)?;
 
-    if file_list && let Some(had_matches) = write_file_list_reply(&line, root, scope, opts, writer)?
+    if file_list
+        && let Some(had_matches) = write_file_list_reply(&line, root, scope, opts, writer, limit)?
     {
         writer.flush()?;
         return Ok(had_matches);
@@ -1331,6 +1383,13 @@ fn search_via_server(
             &sorted
         }
     };
+
+    if let Some(n) = limit
+        && result.get("limited").and_then(|l| l.as_bool()) == Some(true)
+        && reply_results(matches, opts) < n
+    {
+        return Err(LimitShort.into());
+    }
 
     let had_matches = !matches.is_empty();
 
@@ -1542,6 +1601,9 @@ struct FileListResult {
     matches: Vec<serde_json::Value>,
     hidden_complete: Option<bool>,
     file_filters: Option<bool>,
+    /// The server stopped at the request's `limit`.
+    #[serde(default)]
+    limited: bool,
 }
 
 /// Print a `file_list` reply, or `None` when the server predates it and sent
@@ -1550,12 +1612,41 @@ struct FileListResult {
 /// The reply lists every matching file in candidate order, binary ones
 /// included, with `matches` carrying only the binary markers, so the same
 /// visibility rule as the row path applies: traversal hides binary files.
+/// How many results the writer will count in these reply rows (see
+/// `--max-results`): files for -l/-c, else matching lines, where a binary
+/// file's note stands for its lines outside JSON.
+fn reply_results(rows: &[serde_json::Value], opts: &SearchOptions) -> u64 {
+    let kind = |m: &serde_json::Value| m.get("type").and_then(|t| t.as_str()).map(str::to_owned);
+    let file = |m: &serde_json::Value| m.get("file").and_then(|f| f.as_str()).map(str::to_owned);
+    if opts.files_only || opts.count || opts.count_matches {
+        let files: std::collections::HashSet<String> = rows
+            .iter()
+            .filter(|m| matches!(kind(m).as_deref(), Some("match" | "binary")))
+            .filter_map(file)
+            .collect();
+        return files.len() as u64;
+    }
+    let binary: std::collections::HashSet<String> = rows
+        .iter()
+        .filter(|m| kind(m).as_deref() == Some("binary"))
+        .filter_map(file)
+        .collect();
+    let lines = rows
+        .iter()
+        .filter(|m| kind(m).as_deref() == Some("match"))
+        .filter(|m| opts.json || file(m).is_none_or(|f| !binary.contains(&f)))
+        .count();
+    let notes = if opts.json { 0 } else { binary.len() };
+    (lines + notes) as u64
+}
+
 fn write_file_list_reply(
     line: &str,
     root: &Path,
     scope: &IndexScope,
     opts: &SearchOptions,
     writer: &mut OutputWriter,
+    limit: Option<u64>,
 ) -> Result<Option<bool>> {
     let envelope: FileListEnvelope = serde_json::from_str(line)?;
     if let Some(error) = envelope.error {
@@ -1580,25 +1671,24 @@ fn write_file_list_reply(
                 .collect()
         };
     let whole = matches!(scope, IndexScope::Whole) && opts.max_depth.is_none();
-    let mut had_matches = false;
-    for file in &files {
-        if hidden_binary.contains(file.as_str()) {
-            continue;
-        }
-        if whole {
-            writer.write_file(file)?;
-        } else {
-            let Some(rel) = scope.relativize(file, root) else {
-                continue;
-            };
-            if !within_max_depth(&rel, opts) {
-                continue;
+    let shown: Vec<std::borrow::Cow<str>> = files
+        .iter()
+        .filter(|file| !hidden_binary.contains(file.as_str()))
+        .filter_map(|file| {
+            if whole {
+                return Some(std::borrow::Cow::Borrowed(file.as_str()));
             }
-            writer.write_file(&rel)?;
-        }
-        had_matches = true;
+            let rel = scope.relativize(file, root)?;
+            within_max_depth(&rel, opts).then_some(std::borrow::Cow::Owned(rel))
+        })
+        .collect();
+    if result.limited && limit.is_some_and(|n| (shown.len() as u64) < n) {
+        return Err(LimitShort.into());
     }
-    Ok(Some(had_matches))
+    for file in &shown {
+        writer.write_file(file)?;
+    }
+    Ok(Some(!shown.is_empty()))
 }
 
 fn search_local_index(
@@ -1777,7 +1867,7 @@ fn search_local_index(
                 explicit,
             )? {
                 had_matches = true;
-                if opts.quiet {
+                if opts.quiet || writer.is_full() {
                     break;
                 }
             }
@@ -1929,7 +2019,18 @@ fn verify_candidates_parallel(
     };
 
     let mut had_matches = false;
-    for batch in candidates.chunks(PARALLEL_VERIFY_BATCH) {
+    // Under --max-results the first files usually suffice: start with small
+    // batches so the pool reads few files past the last one printed.
+    let mut size = if opts.max_results.is_some() {
+        64
+    } else {
+        PARALLEL_VERIFY_BATCH
+    };
+    let mut rest = candidates;
+    while !rest.is_empty() {
+        let (batch, tail) = rest.split_at(size.min(rest.len()));
+        rest = tail;
+        size = (size * 2).min(PARALLEL_VERIFY_BATCH);
         let results: Vec<Result<Verified>> =
             pool.install(|| batch.par_iter().map(|(_, rel)| verify(rel)).collect());
         for ((_, rel_path), result) in batch.iter().zip(results) {
@@ -1952,6 +2053,9 @@ fn verify_candidates_parallel(
                     had_matches |=
                         search_file(&read, matcher, None, rel_path, opts, writer, explicit)?;
                 }
+            }
+            if writer.is_full() {
+                return Ok(had_matches);
             }
         }
     }
@@ -2142,7 +2246,7 @@ fn brute_force_search(
             false,
         )? {
             had_matches = true;
-            if opts.quiet {
+            if opts.quiet || writer.is_full() {
                 break;
             }
         }
@@ -2778,6 +2882,26 @@ pub(crate) fn plan_summary(plan: &QueryPlan) -> String {
 
 #[cfg(test)]
 mod tests {
+    /// The client counts a reply's results as its writer will, so a server
+    /// reply cut at `--max-results` is retried exactly when it falls short.
+    #[test]
+    fn reply_results_counts_as_the_writer_does() {
+        let rows: Vec<serde_json::Value> = serde_json::from_str(
+            r#"[{"type":"match","file":"a","line":1},{"type":"context","file":"a","line":2},
+                {"type":"match","file":"a","line":3},{"type":"binary","file":"b","offset":0},
+                {"type":"match","file":"b","line":1},{"type":"match","file":"c","line":9}]"#,
+        )
+        .unwrap();
+        let mut opts = super::SearchOptions::default();
+        // Lines, a binary file's note standing for its lines.
+        assert_eq!(super::reply_results(&rows, &opts), 4);
+        opts.json = true;
+        assert_eq!(super::reply_results(&rows, &opts), 4);
+        opts.json = false;
+        opts.files_only = true;
+        assert_eq!(super::reply_results(&rows, &opts), 3);
+    }
+
     #[test]
     fn identifier_pattern_matches_every_naming_convention() {
         for name in [

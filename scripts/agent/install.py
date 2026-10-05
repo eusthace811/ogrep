@@ -177,7 +177,7 @@ def agent_paths(agent, scope, root):
 def binary_help(binary):
     subprocess.run([str(binary), "--version"], check=True, capture_output=True, timeout=5)
     help_text = subprocess.run([str(binary), "--help"], check=True, capture_output=True, text=True, timeout=5).stdout
-    for flag in ("--no-index", "--index-path", "--json", "--files"):
+    for flag in ("--no-index", "--index-path", "--json", "--files", "--max-results"):
         if flag not in help_text:
             raise ValueError(f"{binary} does not support required flag {flag}; provide a current ogrep binary")
     refresh_help = subprocess.run([str(binary), "refresh", "--help"], check=True,

@@ -1717,6 +1717,10 @@ struct SearchRequest {
     encoding: ogrep_core::encoding::EncodingMode,
     opts: SearchOpts,
     scope: SearchScope,
+    /// `--max-results`: stop once the files verified so far hold this many
+    /// results, counting files when `limit_files` (-l/-c), else matching lines.
+    limit: Option<usize>,
+    limit_files: bool,
 }
 
 /// Parse and validate all search parameters from a JSON-RPC request.
@@ -1751,6 +1755,14 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
         .get("max_count")
         .and_then(|m| m.as_u64())
         .map(|m| m as usize);
+    let limit = params
+        .get("limit")
+        .and_then(|m| m.as_u64())
+        .map(|m| m as usize);
+    let limit_files = params
+        .get("limit_files")
+        .and_then(|m| m.as_bool())
+        .unwrap_or(false);
     let glob_filter_strs = str_array("glob");
     let iglob_strs = str_array("iglob");
     let glob_case_insensitive = params
@@ -1947,6 +1959,8 @@ fn parse_search_params(params: &serde_json::Value) -> std::result::Result<Search
         type_filter,
         encoding,
         scope: SearchScope::parse(params)?,
+        limit,
+        limit_files,
         opts: SearchOpts {
             files_only,
             compact_files: params
@@ -2001,6 +2015,8 @@ fn handle_search(
     let pattern = req.pattern;
     let case_insensitive = req.case_insensitive;
     let scope = req.scope;
+    let limit = req.limit;
+    let limit_files = req.limit_files;
 
     // The index build already dropped everything above the server's own cap, so
     // re-checking a query cap that is no stricter can never reject a candidate
@@ -2132,74 +2148,76 @@ fn handle_search(
     // lock, then a single write-lock to promote hits and insert misses.
     let t_resolve = Instant::now();
     let candidate_count = candidate_info.len();
-    let candidate_contents: Vec<(String, Arc<DecodedFile>)> = if encoding.may_differ_from_index() {
-        // The cache holds text decoded with the default (BOM-sniffing) rules and
-        // is shared by every client. A request that asked for a different
-        // `--encoding` must neither read those entries nor write its own, or one
-        // client's `-E sjis` would silently change what the next client sees.
-        candidate_info
-            .into_iter()
-            .filter_map(|(rel_path, full_path)| {
-                let bytes = std::fs::read(full_path).ok()?;
-                Some((rel_path, Arc::new(DecodedFile::new(bytes, encoding))))
-            })
-            .collect()
-    } else {
-        let cache_generation = state.cache_generation.load(Ordering::SeqCst);
-        // Phase 1: read-lock to find cache hits (peek avoids write-lock need),
-        // one slot per candidate so order needs no map to restore.
-        let mut slots: Vec<Option<Arc<DecodedFile>>> = {
-            let cache = state.cache.read().unwrap();
-            let peek = |(rel_path, _): &(String, PathBuf)| cache.peek(rel_path).cloned();
-            if candidate_info.len() >= PARALLEL_SERVER_MIN {
-                candidate_info
-                    .par_iter()
-                    .with_min_len(512)
-                    .map(peek)
-                    .collect()
-            } else {
-                candidate_info.iter().map(peek).collect()
-            }
-        }; // read lock released
-
-        // Phase 2: read cache misses from disk (no lock held). Lossy, like the
-        // local path: refusing invalid UTF-8 would make UTF-16 and Latin-1
-        // sources silently invisible over the server while the same query
-        // works with --no-index.
-        let missing: Vec<usize> = (0..slots.len()).filter(|&i| slots[i].is_none()).collect();
-        let read = |&i: &usize| {
-            let bytes = std::fs::read(&candidate_info[i].1).ok()?;
-            let decoded = DecodedFile::new(bytes, ogrep_core::encoding::EncodingMode::Auto);
-            Some((i, Arc::new(decoded)))
-        };
-        let disk_results: Vec<(usize, Arc<DecodedFile>)> = if missing.len() > 1 {
-            missing.par_iter().filter_map(read).collect()
+    let resolve = |candidate_info: Vec<(String, PathBuf)>| -> Vec<(String, Arc<DecodedFile>)> {
+        if encoding.may_differ_from_index() {
+            // The cache holds text decoded with the default (BOM-sniffing) rules and
+            // is shared by every client. A request that asked for a different
+            // `--encoding` must neither read those entries nor write its own, or one
+            // client's `-E sjis` would silently change what the next client sees.
+            candidate_info
+                .into_iter()
+                .filter_map(|(rel_path, full_path)| {
+                    let bytes = std::fs::read(full_path).ok()?;
+                    Some((rel_path, Arc::new(DecodedFile::new(bytes, encoding))))
+                })
+                .collect()
         } else {
-            missing.iter().filter_map(read).collect()
-        };
+            let cache_generation = state.cache_generation.load(Ordering::SeqCst);
+            // Phase 1: read-lock to find cache hits (peek avoids write-lock need),
+            // one slot per candidate so order needs no map to restore.
+            let mut slots: Vec<Option<Arc<DecodedFile>>> = {
+                let cache = state.cache.read().unwrap();
+                let peek = |(rel_path, _): &(String, PathBuf)| cache.peek(rel_path).cloned();
+                if candidate_info.len() >= PARALLEL_SERVER_MIN {
+                    candidate_info
+                        .par_iter()
+                        .with_min_len(512)
+                        .map(peek)
+                        .collect()
+                } else {
+                    candidate_info.iter().map(peek).collect()
+                }
+            }; // read lock released
 
-        // Phase 3: single write-lock to promote hits and insert misses
-        let hit_keys: Vec<&str> = slots
-            .iter()
-            .zip(&candidate_info)
-            .filter(|(slot, _)| slot.is_some())
-            .map(|(_, (rel_path, _))| rel_path.as_str())
-            .collect();
-        if !hit_keys.is_empty() || !disk_results.is_empty() {
-            let inserted: Vec<(&str, &Arc<DecodedFile>)> = disk_results
+            // Phase 2: read cache misses from disk (no lock held). Lossy, like the
+            // local path: refusing invalid UTF-8 would make UTF-16 and Latin-1
+            // sources silently invisible over the server while the same query
+            // works with --no-index.
+            let missing: Vec<usize> = (0..slots.len()).filter(|&i| slots[i].is_none()).collect();
+            let read = |&i: &usize| {
+                let bytes = std::fs::read(&candidate_info[i].1).ok()?;
+                let decoded = DecodedFile::new(bytes, ogrep_core::encoding::EncodingMode::Auto);
+                Some((i, Arc::new(decoded)))
+            };
+            let disk_results: Vec<(usize, Arc<DecodedFile>)> = if missing.len() > 1 {
+                missing.par_iter().filter_map(read).collect()
+            } else {
+                missing.iter().filter_map(read).collect()
+            };
+
+            // Phase 3: single write-lock to promote hits and insert misses
+            let hit_keys: Vec<&str> = slots
                 .iter()
-                .map(|(i, content)| (candidate_info[*i].0.as_str(), content))
+                .zip(&candidate_info)
+                .filter(|(slot, _)| slot.is_some())
+                .map(|(_, (rel_path, _))| rel_path.as_str())
                 .collect();
-            update_content_cache(state, cache_generation, &hit_keys, &inserted);
+            if !hit_keys.is_empty() || !disk_results.is_empty() {
+                let inserted: Vec<(&str, &Arc<DecodedFile>)> = disk_results
+                    .iter()
+                    .map(|(i, content)| (candidate_info[*i].0.as_str(), content))
+                    .collect();
+                update_content_cache(state, cache_generation, &hit_keys, &inserted);
+            }
+            for (i, content) in disk_results {
+                slots[i] = Some(content);
+            }
+            candidate_info
+                .into_iter()
+                .zip(slots)
+                .filter_map(|((rel_path, _), slot)| slot.map(|c| (rel_path, c)))
+                .collect()
         }
-        for (i, content) in disk_results {
-            slots[i] = Some(content);
-        }
-        candidate_info
-            .into_iter()
-            .zip(slots)
-            .filter_map(|((rel_path, _), slot)| slot.map(|c| (rel_path, c)))
-            .collect()
     };
     let resolve_ms = t_resolve.elapsed().as_secs_f64() * 1000.0;
 
@@ -2209,12 +2227,72 @@ fn handle_search(
         search_file_matches(rel_path, content, &matcher, file_filter.as_ref(), &opts)
             .map_err(|e| format!("{e}"))
     };
-    let per_file: std::result::Result<Vec<FileSearchResult>, String> =
-        if candidate_contents.len() >= PARALLEL_SERVER_MIN / 8 {
-            candidate_contents.par_iter().map(verify).collect()
+    let verify_all = |contents: &[(String, Arc<DecodedFile>)]| -> std::result::Result<Vec<FileSearchResult>, String> {
+        if contents.len() >= PARALLEL_SERVER_MIN / 8 {
+            contents.par_iter().map(verify).collect()
         } else {
-            candidate_contents.iter().map(verify).collect()
-        };
+            contents.iter().map(verify).collect()
+        }
+    };
+    // The results a file adds to the client's output: a binary file reached
+    // by traversal is hidden there, so it adds none.
+    let results = |f: &FileSearchResult| -> usize {
+        let binary = f
+            .rows
+            .first()
+            .and_then(|r| r.get("type"))
+            .and_then(|t| t.as_str())
+            == Some("binary");
+        if binary {
+            0
+        } else if limit_files {
+            usize::from(f.listed || !f.rows.is_empty())
+        } else {
+            f.rows
+                .iter()
+                .filter(|r| r.get("type").and_then(|t| t.as_str()) == Some("match"))
+                .count()
+        }
+    };
+    let mut limited = false;
+    let (candidate_contents, per_file) = match limit {
+        None => {
+            let contents = resolve(candidate_info);
+            let per_file = verify_all(&contents);
+            (contents, per_file)
+        }
+        // Verify in growing chunks, in candidate order, until the files so far
+        // hold `limit` results. Whole files are sent; the client's writer makes
+        // the exact cut, so the output is the head of the full one.
+        Some(limit) => {
+            let mut rest = candidate_info.into_iter().peekable();
+            let (mut contents, mut per_file, mut found_so_far, mut chunk) =
+                (Vec::new(), Ok(Vec::new()), 0, 64);
+            while rest.peek().is_some() {
+                let part: Vec<(String, PathBuf)> = rest.by_ref().take(chunk).collect();
+                let part = resolve(part);
+                match verify_all(&part) {
+                    Ok(found) => {
+                        found_so_far += found.iter().map(results).sum::<usize>();
+                        if let Ok(all) = per_file.as_mut() {
+                            all.extend(found);
+                        }
+                    }
+                    Err(e) => {
+                        per_file = Err(e);
+                        break;
+                    }
+                }
+                contents.extend(part);
+                if found_so_far >= limit {
+                    limited = rest.peek().is_some();
+                    break;
+                }
+                chunk = (chunk * 2).min(4096);
+            }
+            (contents, per_file)
+        }
+    };
     let per_file = match per_file {
         Ok(per_file) => per_file,
         Err(e) => return json_rpc_error(id, -32603, &e),
@@ -2265,6 +2343,7 @@ fn handle_search(
             elapsed_ms,
             hidden_complete: true,
             file_filters: true,
+            limited,
             file_stats: total_files.is_some().then_some(file_stats.as_slice()),
             index_stats: total_files.map(|total_files| {
                 serde_json::json!({
@@ -2299,6 +2378,9 @@ struct SearchReplyResult<'a> {
     hidden_complete: bool,
     /// Tells clients `with`/`without` were applied; older servers omit it.
     file_filters: bool,
+    /// The search stopped at the request's `limit`; candidates were left.
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    limited: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     file_stats: Option<&'a [crate::search::FileMatchStats]>,
     #[serde(skip_serializing_if = "Option::is_none")]

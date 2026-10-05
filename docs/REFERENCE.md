@@ -953,6 +953,7 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `--files-without-match` | Print files that do NOT match |
 | `-q, --quiet` | Suppress output; exit code only |
 | `-m, --max-count <N>` | Limit matches per file |
+| `--max-results <N>` | Stop after N results in total: matching lines, or files with `-l`/`-c` |
 | `-g, --glob <GLOB>` | Filter files by glob pattern, case-sensitive (repeatable) |
 | `--iglob <GLOB>` | Case-insensitive glob filter (repeatable) |
 | `--glob-case-insensitive` | Treat all `-g` globs as case-insensitive |
