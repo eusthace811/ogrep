@@ -58,7 +58,10 @@ pub fn similar_names(
         .map(|p| regex::escape(p))
         .collect::<Vec<_>>()
         .join("|");
-    let pattern = format!("[A-Za-z0-9_]*(?i:{alternatives})[A-Za-z0-9_]*");
+    // ASCII case folding: Unicode's would also match the Kelvin sign for `k`
+    // and `ſ` for `s`, which the index (ASCII-folded) cannot narrow, so a
+    // piece holding either letter made the probe read every file.
+    let pattern = format!("[A-Za-z0-9_]*(?i-u:{alternatives})[A-Za-z0-9_]*");
     let Ok(word) = regex::Regex::new(&pattern) else {
         return Vec::new();
     };

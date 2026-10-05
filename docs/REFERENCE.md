@@ -1170,8 +1170,9 @@ search; `-q`, `--no-messages`, `-v`, `-e`/`-f`/`--ident` and regular expressions
 never print it. On 100 real Rust identifiers, the right name came first for
 98 of 98 with two letters swapped, 91 of 98 with one letter dropped (all 98 in
 the first five), 100 of 100 with one doubled, and 58 of 58 with a wrong plural.
-No random string got a suggestion. Finding them costs a median 40 ms through
-the server (p95 about 200 ms), only when nothing matched.
+No random string got a suggestion. Finding them costs a median 21 to 57 ms
+through the server depending on the kind of typo (p95 under 400 ms), and about
+4 ms when nothing is close, only when nothing matched.
 
 ### Multiline matches
 
