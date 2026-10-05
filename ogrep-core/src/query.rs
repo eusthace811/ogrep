@@ -949,6 +949,77 @@ fn ascii_class_literal(class: &Class) -> Option<u8> {
     folded
 }
 
+/// A class matching one ASCII letter in either case and the few non-ASCII
+/// characters Unicode folds to it (`k`: the Kelvin sign; `s`: long `ſ`): the
+/// ASCII-folded byte and the others' UTF-8 encodings.
+fn fold_variants(class: &Class) -> Option<(u8, Vec<Vec<u8>>)> {
+    let Class::Unicode(ranges) = class else {
+        return None;
+    };
+    let mut ascii = None;
+    let mut others = Vec::new();
+    for range in ranges.iter() {
+        if u32::from(range.end()) - u32::from(range.start()) > 2 {
+            return None;
+        }
+        for c in range.start()..=range.end() {
+            if c.is_ascii() {
+                let byte = (c as u8).to_ascii_lowercase();
+                if ascii.is_some_and(|previous| previous != byte) {
+                    return None;
+                }
+                ascii = Some(byte);
+            } else if others.len() < 2 {
+                others.push(c.to_string().into_bytes());
+            } else {
+                return None;
+            }
+        }
+    }
+    Some((ascii?, others)).filter(|(_, others)| !others.is_empty())
+}
+
+/// Trigrams of which a file holds at least one if it holds `literal` (ASCII
+/// folded) with any of its `variants` (offset, encodings) spelt non-ASCII: a
+/// three-byte character is its own trigram, a two-byte one is paired with
+/// each way its neighbour in the literal can be spelt. `None` when one has no
+/// neighbour.
+fn variant_guards(literal: &[u8], variants: &[(usize, Vec<Vec<u8>>)]) -> Option<Vec<TrigramHash>> {
+    let spellings = |at: usize| {
+        let others = variants
+            .iter()
+            .find(|(offset, _)| *offset == at)
+            .map_or(&[][..], |(_, encodings)| encodings.as_slice());
+        (literal[at], others)
+    };
+    let mut guards = Vec::new();
+    for (offset, encodings) in variants {
+        for encoding in encodings {
+            match encoding[..] {
+                [a, b, c, ..] => guards.push(trigram::hash(a, b, c)),
+                [a, b] if *offset > 0 => {
+                    let (byte, others) = spellings(offset - 1);
+                    for last in
+                        std::iter::once(byte).chain(others.iter().filter_map(|e| e.last().copied()))
+                    {
+                        guards.push(trigram::hash(last, a, b));
+                    }
+                }
+                [a, b] if offset + 1 < literal.len() => {
+                    let (byte, others) = spellings(offset + 1);
+                    for first in std::iter::once(byte).chain(others.iter().map(|e| e[0])) {
+                        guards.push(trigram::hash(a, b, first));
+                    }
+                }
+                _ => return None,
+            }
+        }
+    }
+    guards.sort_unstable();
+    guards.dedup();
+    Some(guards)
+}
+
 fn decompose_hir(hir: &Hir) -> QueryPlan {
     match hir.kind() {
         HirKind::Literal(Literal(bytes)) => literals_to_query_plan(bytes),
@@ -956,6 +1027,11 @@ fn decompose_hir(hir: &Hir) -> QueryPlan {
             let mut conditions = Vec::new();
             let mut current_literal = Vec::new();
             let mut fold_run = false;
+            // The run across classes that also fold to a non-ASCII character
+            // (`k`, `s`): those split `current_literal`, but the whole run in
+            // ASCII, or a file holding one of those characters, still narrows.
+            let mut whole = Vec::new();
+            let mut variants: Vec<(usize, Vec<Vec<u8>>)> = Vec::new();
             let flush =
                 |literal: &mut Vec<u8>, fold: &mut bool, conditions: &mut Vec<QueryPlan>| {
                     // Fold the entire run, including case-sensitive neighbours,
@@ -969,17 +1045,49 @@ fn decompose_hir(hir: &Hir) -> QueryPlan {
                     literal.clear();
                     *fold = false;
                 };
+            let flush_whole = |whole: &mut Vec<u8>,
+                               variants: &mut Vec<(usize, Vec<Vec<u8>>)>,
+                               conditions: &mut Vec<QueryPlan>| {
+                if !variants.is_empty() {
+                    whole.make_ascii_lowercase();
+                    if let QueryPlan::And(ascii) = literals_to_query_plan(whole)
+                        && let Some(guards) = variant_guards(whole, variants)
+                    {
+                        let mut branches = vec![QueryPlan::And(ascii)];
+                        branches.extend(guards.into_iter().map(|hash| {
+                            QueryPlan::And(vec![TrigramQuery {
+                                hash,
+                                expected_next: None,
+                                position: None,
+                                fallback: false,
+                            }])
+                        }));
+                        conditions.push(QueryPlan::Or(branches));
+                    }
+                }
+                whole.clear();
+                variants.clear();
+            };
 
             for sub in subs {
                 if let HirKind::Literal(Literal(bytes)) = sub.kind() {
                     current_literal.extend_from_slice(bytes);
+                    whole.extend_from_slice(bytes);
                 } else if let HirKind::Class(class) = sub.kind()
                     && let Some(byte) = ascii_class_literal(class)
                 {
                     current_literal.push(byte);
+                    whole.push(byte);
                     fold_run = true;
+                } else if let HirKind::Class(class) = sub.kind()
+                    && let Some((byte, encodings)) = fold_variants(class)
+                {
+                    flush(&mut current_literal, &mut fold_run, &mut conditions);
+                    variants.push((whole.len(), encodings));
+                    whole.push(byte);
                 } else {
                     flush(&mut current_literal, &mut fold_run, &mut conditions);
+                    flush_whole(&mut whole, &mut variants, &mut conditions);
                     // Recurse into the non-literal child
                     let sub_plan = decompose_hir(sub);
                     match sub_plan {
@@ -990,6 +1098,7 @@ fn decompose_hir(hir: &Hir) -> QueryPlan {
             }
 
             flush(&mut current_literal, &mut fold_run, &mut conditions);
+            flush_whole(&mut whole, &mut variants, &mut conditions);
             simplify(QueryPlan::All(conditions))
         }
         HirKind::Alternation(alts) => {
@@ -1758,6 +1867,8 @@ mod tests {
         match plan {
             QueryPlan::And(qs) => qs.iter().map(|q| q.hash).collect(),
             QueryPlan::All(ps) => ps.iter().flat_map(required_hashes).collect(),
+            // Either branch may hold: nothing in it is required.
+            QueryPlan::Or(_) => Vec::new(),
             other => panic!("expected required literal constraints, got {other:?}"),
         }
     }
@@ -1804,6 +1915,13 @@ mod tests {
             "prefix\u{e9}suffix",
             "AbC",
             "aBC",
+            "ta\u{17f}\u{212a} list",
+            "TASK",
+            "TAs\u{212a} list",
+            "\u{17f}\u{212a}ip",
+            "SKIP",
+            "de\u{17f}k",
+            "a mask here",
             "unrelated decoy",
         ];
         let mut inverted = std::collections::HashMap::<u32, Vec<PostingEntry>>::new();
@@ -1841,6 +1959,11 @@ mod tests {
             ("(?i)prefix\u{e9}suffix", false),
             ("A(?i:bc)", false),
             ("(?i:ab)C", false),
+            // `s` and `k` also fold to non-ASCII characters.
+            ("task", true),
+            ("(?i)skip", false),
+            ("(?i)desk|mask", false),
+            ("(?i)ta(?-i:s)k list", false),
         ];
         for (pattern, ci) in cases {
             let plan = build_query_plan(pattern, ci).unwrap();
