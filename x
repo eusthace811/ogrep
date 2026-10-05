@@ -17,8 +17,8 @@
 #   ./x build | release    debug or release build of ogrep.exe
 #   ./x install [dir]      release build, then copy ogrep.exe and ogrep-lab.exe to dir
 #                          (default ~/bin, which Git Bash has on PATH)
-#   ./x install-skill      copy the Claude Code skill (.claude/skills/ogrep)
-#                          into the Windows user's ~/.claude/skills
+#   ./x install-skill      copy the agent skill (.claude/skills/ogrep)
+#                          into the Windows user's ~/.agents/skills
 #   ./x test [args]        cargo test --workspace --locked
 #   ./x vendor             cargo vendor into ./vendor, for offline builds
 #   ./x doctor             where cargo, the build and the crates come from
@@ -63,7 +63,7 @@ if [ "$HOST" = wsl ]; then
   export CARGO_INCREMENTAL=0
   export WSLENV="${WSLENV:+$WSLENV:}CARGO_TARGET_DIR:CARGO_INCREMENTAL:RUST_TEST_THREADS:RUST_BACKTRACE:CARGO_REGISTRIES_OGREP_MIRROR_TOKEN"
   BIN_DEFAULT="$WINHOME_U/bin"
-  SKILLS_DIR="$WINHOME_U/.claude/skills"
+  SKILLS_DIR="$WINHOME_U/.agents/skills"
   TASKLIST=/mnt/c/Windows/System32/tasklist.exe
   winpath() { wslpath -w "$1"; }
   KILL_HINT="taskkill.exe /IM ogrep.exe /F"
@@ -85,7 +85,7 @@ else
     esac
   fi
   BIN_DEFAULT="$HOME/bin"
-  SKILLS_DIR="$HOME/.claude/skills"
+  SKILLS_DIR="$HOME/.agents/skills"
   TASKLIST=tasklist
   winpath() { cygpath -w "$1"; }
   KILL_HINT="taskkill //IM ogrep.exe //F"
@@ -163,7 +163,7 @@ case "${1:-help}" in
            mkdir -p "$SKILLS_DIR"
            rm -rf "$SKILLS_DIR/ogrep"
            cp -r "$HERE/.claude/skills/ogrep" "$SKILLS_DIR/ogrep"
-           echo "installed the ogrep skill to $SKILLS_DIR/ogrep (restart Claude Code to load it)" ;;
+           echo "installed the ogrep skill to $SKILLS_DIR/ogrep (restart your agent to load it)" ;;
 
   test)    shift; run_cargo test --workspace --locked "$@" ;;
 

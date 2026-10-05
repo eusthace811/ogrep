@@ -211,9 +211,13 @@ Exit codes are ripgrep's: 0 found a match, 1 found nothing, 2 hit an error.
 search with ogrep. Install it for every project:
 
 ```sh
-make install-skill       # Linux, macOS, WSL: ~/.claude/skills/ogrep
-./x install-skill        # Windows: %USERPROFILE%\.claude\skills\ogrep
+make install-skill       # Linux, macOS, WSL: ~/.agents/skills/ogrep
+./x install-skill        # Windows: %USERPROFILE%\.agents\skills\ogrep
 ```
+
+Both install into the shared `~/.agents/skills` directory (`make install-skill
+SKILLS_DIR=...` picks another). Claude Code reads `~/.claude/skills`, so link it
+there once: `ln -s ../../.agents/skills/ogrep ~/.claude/skills/ogrep`.
 
 **Codex and pi:** `./install-agent.sh` installs MCP search tools that start and
 share an ogrep server automatically. Results come back as compact text, each

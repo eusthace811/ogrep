@@ -11,11 +11,12 @@ install: release
 	install -m 755 target/release/ogrep ~/.cargo/bin/ogrep
 	install -m 755 target/release/ogrep-lab ~/.cargo/bin/ogrep-lab
 
-# Claude Code skill: teaches Claude to search with ogrep in any project.
+# Agent skill: teaches coding agents to search with ogrep in any project.
+SKILLS_DIR ?= ~/.agents/skills
 install-skill:
-	mkdir -p ~/.claude/skills
-	rm -rf ~/.claude/skills/ogrep
-	cp -r .claude/skills/ogrep ~/.claude/skills/ogrep
+	mkdir -p $(SKILLS_DIR)
+	rm -rf $(SKILLS_DIR)/ogrep
+	cp -r .claude/skills/ogrep $(SKILLS_DIR)/ogrep
 
 test:
 	cargo test --workspace --locked

@@ -3,9 +3,10 @@
 A short guide for AI agents (and the humans who wire them up) that want to
 use `ogrep` as a fast search tool inside a repository. It complements the
 [command reference](docs/REFERENCE.md), which documents every flag; this file covers the few
-things an agent has to get right. For Claude Code, install the bundled skill
-with `make install-skill` (or `./x install-skill` on Windows). It carries this
-guidance in a form Claude loads on demand.
+things an agent has to get right. Install the bundled skill with
+`make install-skill` (or `./x install-skill` on Windows) into `~/.agents/skills`;
+for Claude Code, link it into `~/.claude/skills` (see the README). It carries
+this guidance in a form the agent loads on demand.
 
 ## The mental model
 
