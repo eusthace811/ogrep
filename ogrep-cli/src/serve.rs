@@ -2258,33 +2258,29 @@ fn handle_search(
     let (candidate_contents, per_file) = match limit {
         None => {
             let contents = resolve(candidate_info);
-            let per_file = verify_all(&contents);
-            (contents, per_file)
+            match verify_all(&contents) {
+                Ok(per_file) => (contents, per_file),
+                Err(e) => return json_rpc_error(id, -32603, &e),
+            }
         }
         // Verify in growing chunks, in candidate order, until the files so far
         // hold `limit` results. Whole files are sent; the client's writer makes
         // the exact cut, so the output is the head of the full one.
         Some(limit) => {
             let mut rest = candidate_info.into_iter().peekable();
-            let (mut contents, mut per_file, mut found_so_far, mut chunk) =
-                (Vec::new(), Ok(Vec::new()), 0, 64);
+            let (mut contents, mut per_file, mut found, mut chunk) =
+                (Vec::new(), Vec::new(), 0, 64);
             while rest.peek().is_some() {
-                let part: Vec<(String, PathBuf)> = rest.by_ref().take(chunk).collect();
-                let part = resolve(part);
+                let part = resolve(rest.by_ref().take(chunk).collect());
                 match verify_all(&part) {
-                    Ok(found) => {
-                        found_so_far += found.iter().map(results).sum::<usize>();
-                        if let Ok(all) = per_file.as_mut() {
-                            all.extend(found);
-                        }
+                    Ok(verified) => {
+                        found += verified.iter().map(results).sum::<usize>();
+                        per_file.extend(verified);
                     }
-                    Err(e) => {
-                        per_file = Err(e);
-                        break;
-                    }
+                    Err(e) => return json_rpc_error(id, -32603, &e),
                 }
                 contents.extend(part);
-                if found_so_far >= limit {
+                if found >= limit {
                     limited = rest.peek().is_some();
                     break;
                 }
@@ -2292,10 +2288,6 @@ fn handle_search(
             }
             (contents, per_file)
         }
-    };
-    let per_file = match per_file {
-        Ok(per_file) => per_file,
-        Err(e) => return json_rpc_error(id, -32603, &e),
     };
     let mut matches = Vec::new();
     let mut file_stats = Vec::new();

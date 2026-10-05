@@ -525,11 +525,7 @@ impl SearchOptions {
             path_display: self.path_display.clone(),
             line_buffered: self.line_buffered,
             limit: self.max_results,
-            after_context: if self.has_context() {
-                self.after_ctx()
-            } else {
-                0
-            },
+            after_context: self.after_ctx(),
         }
     }
 
@@ -1606,40 +1602,39 @@ struct FileListResult {
     limited: bool,
 }
 
+/// How many results the writer will count in these reply rows (see
+/// `--max-results`): files for -l/-c, else matching lines, where a binary
+/// file's note stands for its lines outside JSON.
+fn reply_results(rows: &[serde_json::Value], opts: &SearchOptions) -> u64 {
+    use std::collections::HashSet;
+    fn field<'a>(m: &'a serde_json::Value, key: &str) -> Option<&'a str> {
+        m.get(key).and_then(|v| v.as_str())
+    }
+    let files_of = |kind: &[&str]| -> HashSet<&str> {
+        rows.iter()
+            .filter(|m| field(m, "type").is_some_and(|t| kind.contains(&t)))
+            .filter_map(|m| field(m, "file"))
+            .collect()
+    };
+    if opts.files_only || opts.count || opts.count_matches {
+        return files_of(&["match", "binary"]).len() as u64;
+    }
+    let binary = files_of(&["binary"]);
+    let lines = rows
+        .iter()
+        .filter(|m| field(m, "type") == Some("match"))
+        .filter(|m| opts.json || field(m, "file").is_none_or(|f| !binary.contains(f)))
+        .count();
+    let notes = if opts.json { 0 } else { binary.len() };
+    (lines + notes) as u64
+}
+
 /// Print a `file_list` reply, or `None` when the server predates it and sent
 /// ordinary rows instead.
 ///
 /// The reply lists every matching file in candidate order, binary ones
 /// included, with `matches` carrying only the binary markers, so the same
 /// visibility rule as the row path applies: traversal hides binary files.
-/// How many results the writer will count in these reply rows (see
-/// `--max-results`): files for -l/-c, else matching lines, where a binary
-/// file's note stands for its lines outside JSON.
-fn reply_results(rows: &[serde_json::Value], opts: &SearchOptions) -> u64 {
-    let kind = |m: &serde_json::Value| m.get("type").and_then(|t| t.as_str()).map(str::to_owned);
-    let file = |m: &serde_json::Value| m.get("file").and_then(|f| f.as_str()).map(str::to_owned);
-    if opts.files_only || opts.count || opts.count_matches {
-        let files: std::collections::HashSet<String> = rows
-            .iter()
-            .filter(|m| matches!(kind(m).as_deref(), Some("match" | "binary")))
-            .filter_map(file)
-            .collect();
-        return files.len() as u64;
-    }
-    let binary: std::collections::HashSet<String> = rows
-        .iter()
-        .filter(|m| kind(m).as_deref() == Some("binary"))
-        .filter_map(file)
-        .collect();
-    let lines = rows
-        .iter()
-        .filter(|m| kind(m).as_deref() == Some("match"))
-        .filter(|m| opts.json || file(m).is_none_or(|f| !binary.contains(&f)))
-        .count();
-    let notes = if opts.json { 0 } else { binary.len() };
-    (lines + notes) as u64
-}
-
 fn write_file_list_reply(
     line: &str,
     root: &Path,
