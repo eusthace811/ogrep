@@ -24,6 +24,7 @@ mod refresh;
 mod search;
 mod serve;
 mod status;
+mod suggest;
 mod walkcount;
 
 use std::path::{Path, PathBuf};
@@ -2283,6 +2284,7 @@ fn run_search(
     // only the first path's numbers.
     let mut writer = search::new_writer(&opts);
 
+    let roots: Vec<std::path::PathBuf> = targets.iter().map(|t| t.path.clone()).collect();
     let mut changed = history_search::ChangedSets::new(cli.changed_since.as_deref());
     for target in targets {
         // --max-results spans every path argument.
@@ -2334,6 +2336,19 @@ fn run_search(
     // ripgrep's exit code: 0 on a match with no errors, 2 if anything was
     // reported to stderr, otherwise 1 for "no matches".
     let errored = ERRORED.load(std::sync::atomic::Ordering::SeqCst);
+    // An identifier that matched nothing is often misspelt: name the closest
+    // ones on stderr. Output and exit status stay those of the search.
+    if !had_matches && !errored && cli.changed_since.is_none() && suggest::applies(&opts) {
+        let roots: Vec<&std::path::Path> = roots.iter().map(|p| p.as_path()).collect();
+        let names = suggest::similar_names(&roots, cli.index_path.as_deref(), &opts);
+        if !names.is_empty() {
+            eprintln!(
+                "ogrep: no matches for {:?}; similar names: {}",
+                opts.pattern,
+                names.join(", ")
+            );
+        }
+    }
     if had_matches && (opts.quiet || !errored) {
         process::exit(0);
     }

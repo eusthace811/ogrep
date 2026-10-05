@@ -1137,6 +1137,42 @@ One divergence: ripgrep stops reading a file once the limit is reached, so its
 `--stats` `bytes_searched` is lower than ogrep's, which searches from a
 whole-file buffer. The match counts themselves agree.
 
+`--max-results N` is ogrep's own: a limit on the whole output rather than per
+file. A result is a matching line (each one with `-o`), or a file with `-l` and
+`-c`. The output is exactly the first N results of the full output, followed by
+the last match's own `-A` context up to the next match, and the search stops
+reading files once it has them, so it is the fast way to ask for "the first
+page". The server stops early as well: on the Rust tree, the first 50 lines of a
+broad query (at most 10 per file) come back in a median 4.6 ms, against 12 ms
+for the whole answer and 33 ms for the whole answer piped to `head`. It spans all path arguments,
+and follows `--sort` when given. A scan without an index (`--no-index`) walks
+files in parallel, so which N results come first can change between runs, as in
+ripgrep; add `--sort=path` for a stable answer. `--rank`, `--about`, `--cards`
+and the tools size their output with `--budget` and refuse it.
+
+### No matches: similar names
+
+When a search for one identifier (a single pattern of letters, digits and `_`,
+four characters or more) finds nothing, ogrep searches the same files for the
+names closest to it and lists up to five on stderr:
+
+```text
+$ ogrep enabel_feature
+ogrep: no matches for "enabel_feature"; similar names: enable_feature, enable_features
+```
+
+Each half of the name, less the middle two characters, is searched through the
+index, and the identifiers holding one are kept when they are within two edits
+(insertion, deletion, substitution or swapping two neighbours), ignoring case.
+They are ranked by that distance, then by the distance as typed, then by how
+often they occur. Standard output and the exit status (1) are those of the
+search; `-q`, `--no-messages`, `-v`, `-e`/`-f`/`--ident` and regular expressions
+never print it. On 100 real Rust identifiers, the right name came first for
+98 of 98 with two letters swapped, 91 of 98 with one letter dropped (all 98 in
+the first five), 100 of 100 with one doubled, and 58 of 58 with a wrong plural.
+No random string got a suggestion. Finding them costs a median 40 ms through
+the server (p95 about 200 ms), only when nothing matched.
+
 ### Multiline matches
 
 `-U/--multiline` lets a match cross line boundaries, and every line a match

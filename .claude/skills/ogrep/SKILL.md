@@ -26,7 +26,7 @@ about 40 ms with ripgrep. The gap grows with the size of the repository.
 | Code | Meaning |
 |---|---|
 | 0 | at least one match |
-| 1 | no match. This is not an error; do not retry with other tools |
+| 1 | no match. This is not an error; do not retry with other tools. If you searched for one identifier, stderr may list similar names that do exist (`similar names: enable_feature, ...`): check whether you misspelt it |
 | 2 | error: bad regex, unreadable path, unknown flag, or `refresh` without a server |
 
 An unsupported ripgrep flag is rejected with exit 2, never silently ignored.
