@@ -921,6 +921,7 @@ fn cover(len: usize, grams: &[(usize, usize, u32)]) -> Vec<(usize, usize, Option
 /// Collapse a class only when every member has the same ASCII-folded byte.
 /// The index stores ASCII-lowercased content, not Unicode case folding: classes
 /// such as [KkK] must break a literal run rather than exclude the non-ASCII hit.
+/// (`fold_variants` then narrows the run as a whole).
 fn ascii_class_literal(class: &Class) -> Option<u8> {
     let mut folded = None;
     let mut add_range = |start: u32, end: u32| {
