@@ -9,14 +9,17 @@ WSL, or with `./x install` from Git Bash on Windows (see the
 
 ```sh
 ogrep index /path/to/repository     # optional: serve builds the index if it is missing
-ogrep serve /path/to/repository     # foreground; stop with Ctrl-C
+ogrep serve /path/to/repository     # foreground; stop with Ctrl-C or SIGTERM
 ogrep status /path/to/repository    # service and indexing state
 ```
 
 `serve` watches for changes unless `--no-watch` is passed. Searches discover it
 through the index's `serve.json`. When no server is running, searches use the
 on-disk index, and when there is no index they scan the files directly. Only one
-server can serve an index directory at a time.
+server can serve an index directory at a time. Ctrl-C, SIGTERM (`kill`, a service
+manager's stop) and SIGHUP all shut it down cleanly and remove `serve.json`; a
+server that is killed outright (SIGKILL, a crash) leaves the file behind, and
+searches then print a fallback warning until a server runs again.
 
 ## Freshness and scope
 

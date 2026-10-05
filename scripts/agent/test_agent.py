@@ -644,7 +644,15 @@ class RuntimeTests(unittest.TestCase):
         info = json.loads((self.runtime.index / "serve.json").read_text())
         os.kill(info["pid"], signal.SIGTERM)
         deadline = time.monotonic() + 5
-        while self.runtime.status() is not None and time.monotonic() < deadline:
+
+        def alive():
+            try:
+                os.kill(info["pid"], 0)
+                return True
+            except OSError:
+                return False
+        # The server removes serve.json before it exits; wait for the exit.
+        while (self.runtime.status() is not None or alive()) and time.monotonic() < deadline:
             time.sleep(0.05)
         result = self.runtime.run("search_code", {"pattern": "needle"})
         self.assertTrue(result["results"])

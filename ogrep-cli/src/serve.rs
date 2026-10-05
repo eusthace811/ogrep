@@ -8816,25 +8816,38 @@ fn ctrlc_handler<F: Fn() + Send + Sync + 'static>(handler: F) {
 
     #[cfg(not(windows))]
     {
-        use std::sync::OnceLock;
-        static HANDLER: OnceLock<Box<dyn Fn() + Send + Sync>> = OnceLock::new();
-        HANDLER.get_or_init(|| Box::new(handler));
+        use std::sync::atomic::{AtomicBool, Ordering};
+
+        // A signal handler may only do async-signal-safe work: printing,
+        // removing files or exiting there can deadlock on a lock (stderr's,
+        // the allocator's) that the interrupted thread holds. So it only sets
+        // a flag, and an ordinary thread runs the shutdown.
+        static STOP: AtomicBool = AtomicBool::new(false);
 
         unsafe extern "C" fn signal_handler(_sig: std::ffi::c_int) {
-            if let Some(h) = HANDLER.get() {
-                h();
-            }
+            STOP.store(true, Ordering::SeqCst);
         }
 
         unsafe extern "C" {
             fn signal(sig: std::ffi::c_int, handler: unsafe extern "C" fn(std::ffi::c_int));
         }
 
-        // SAFETY: signal() is a POSIX API. The handler has the correct extern "C"
-        // signature, and HANDLER is 'static. SIGINT (2) is valid on all Unix.
-        // SIGINT = 2 on all Unix platforms
+        thread::spawn(move || {
+            while !STOP.load(Ordering::SeqCst) {
+                thread::sleep(Duration::from_millis(50));
+            }
+            handler();
+        });
+
+        // SAFETY: signal() is a POSIX API and the handler has the correct
+        // extern "C" signature. SIGTERM is what `kill` and service managers
+        // send; without it `serve.json` outlived the server and every later
+        // search printed a fallback warning. SIGHUP comes with a closed
+        // terminal.
         unsafe {
-            signal(2, signal_handler);
+            for sig in [libc::SIGHUP, libc::SIGINT, libc::SIGTERM] {
+                signal(sig, signal_handler);
+            }
         }
     }
 }
