@@ -294,9 +294,15 @@ class RuntimeTests(unittest.TestCase):
         (self.root / "ignored.txt").write_text("needle\n")
         self.config = {"root": str(self.root), "binary": str(BINARY), "cache_dir": str(self.directory / "cache"), "index_flags": []}
         self.runtime = runtime.Runtime(self.config)
+        # Tests that run the real installer get its default cache: keep that
+        # (and the servers it starts) inside the temporary directory too.
+        environment = patch.dict(os.environ, {"XDG_CACHE_HOME": str(self.directory / "xdg-cache"),
+                                              "XDG_DATA_HOME": str(self.directory / "xdg-data")})
+        environment.start()
+        self.addCleanup(environment.stop)
 
     def tearDown(self):
-        for info in self.directory.glob("cache/*/index/serve.json"):
+        for info in self.directory.glob("**/index/serve.json"):
             try:
                 pid = json.loads(info.read_text())["pid"]
                 # Never signal the runner itself or a whole process group.
