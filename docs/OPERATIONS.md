@@ -17,9 +17,11 @@ ogrep status /path/to/repository    # service and indexing state
 through the index's `serve.json`. When no server is running, searches use the
 on-disk index, and when there is no index they scan the files directly. Only one
 server can serve an index directory at a time. Ctrl-C, SIGTERM (`kill`, a service
-manager's stop) and SIGHUP all shut it down cleanly and remove `serve.json`; a
-server that is killed outright (SIGKILL, a crash) leaves the file behind, and
-searches then print a fallback warning until a server runs again.
+manager's stop) and SIGHUP all shut it down cleanly and remove `serve.json`,
+except a signal that was already ignored when it started: under `nohup` the
+server outlives its terminal. A server that is killed outright (SIGKILL, a
+crash) leaves the file behind, and searches then print a fallback warning until
+a server runs again.
 
 ## Freshness and scope
 

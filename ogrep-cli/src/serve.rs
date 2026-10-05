@@ -8913,14 +8913,21 @@ fn ctrlc_handler<F: Fn() + Send + Sync + 'static>(handler: F) {
             handler();
         });
 
-        // SAFETY: signal() is a POSIX API and the handler has the correct
-        // extern "C" signature. SIGTERM is what `kill` and service managers
-        // send; without it `serve.json` outlived the server and every later
-        // search printed a fallback warning. SIGHUP comes with a closed
-        // terminal.
+        // SAFETY: sigaction() with a null new action only reads the current
+        // disposition into `old`; signal() is a POSIX API and the handler has
+        // the correct extern "C" signature. SIGTERM is what `kill` and service
+        // managers send; without it `serve.json` outlived the server and every
+        // later search printed a fallback warning. SIGHUP comes with a closed
+        // terminal. A signal ignored at start stays ignored: `nohup` and
+        // background jobs of scripts ask for exactly that.
         unsafe {
             for sig in [libc::SIGHUP, libc::SIGINT, libc::SIGTERM] {
-                signal(sig, signal_handler);
+                let mut old: libc::sigaction = std::mem::zeroed();
+                let ignored = libc::sigaction(sig, std::ptr::null(), &mut old) == 0
+                    && old.sa_sigaction == libc::SIG_IGN;
+                if !ignored {
+                    signal(sig, signal_handler);
+                }
             }
         }
     }
