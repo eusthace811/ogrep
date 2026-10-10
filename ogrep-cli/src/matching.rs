@@ -219,7 +219,7 @@ pub fn group_spans_by_line(index: &LineIndex<'_>, spans: &[(usize, usize)]) -> V
             let mut merged: Vec<(usize, usize)> = Vec::with_capacity(spans.len());
             for span in spans {
                 match merged.last_mut() {
-                    Some(last) if span.0 <= last.1 => last.1 = last.1.max(span.1),
+                    Some(last) if span.0 < last.1 => last.1 = last.1.max(span.1),
                     _ => merged.push(span),
                 }
             }
@@ -604,15 +604,10 @@ pub fn build_search_matcher(patterns: &[String], cfg: &MatcherConfig) -> Result<
         let never = regex::Regex::new(r"[^\s\S]").expect("empty class compiles");
         return Ok(SearchMatcher::Standard(never, Prescan::Direct));
     }
-    let combined = combine_patterns(
-        patterns,
-        cfg.fixed_string,
-        cfg.word_boundary,
-        cfg.line_regexp,
-    );
+    let combined = combine_patterns(patterns, cfg, false);
 
     if cfg.engine == RegexEngine::Pcre2 {
-        return build_fancy(&combined, cfg).map_err(|e| {
+        return build_fancy(patterns, cfg).map_err(|e| {
             anyhow::anyhow!("regex error: PCRE-style engine rejected the pattern: {e}")
         });
     }
@@ -627,7 +622,7 @@ pub fn build_search_matcher(patterns: &[String], cfg: &MatcherConfig) -> Result<
         // would silently ignore the limit the user asked for.
         Err(e @ regex::Error::CompiledTooBig(_)) => Err(anyhow::anyhow!("regex error: {e}")),
         Err(regex_err) if !cfg.fixed_string && cfg.engine == RegexEngine::Auto => {
-            build_fancy(&combined, cfg).map_err(|fancy_err| {
+            build_fancy(patterns, cfg).map_err(|fancy_err| {
                 anyhow::anyhow!("regex error: {regex_err}; PCRE-style fallback failed: {fancy_err}")
             })
         }
@@ -635,7 +630,8 @@ pub fn build_search_matcher(patterns: &[String], cfg: &MatcherConfig) -> Result<
     }
 }
 
-fn build_fancy(combined: &str, cfg: &MatcherConfig) -> Result<SearchMatcher> {
+fn build_fancy(patterns: &[String], cfg: &MatcherConfig) -> Result<SearchMatcher> {
+    let combined = &combine_patterns(patterns, cfg, true);
     let mut flags = String::new();
     if cfg.case_insensitive {
         flags.push('i');
@@ -676,26 +672,35 @@ fn build_fancy_prefilter(combined: &str, wrap: &dyn Fn(&str) -> String) -> Optio
     regex::Regex::new(&wrap(&relaxed)).ok()
 }
 
-fn combine_patterns(
-    patterns: &[String],
-    fixed_string: bool,
-    word_boundary: bool,
-    line_regexp: bool,
-) -> String {
+/// `patterns` as one regex, for `fancy_regex` when `fancy` is set and the
+/// `regex` crate otherwise.
+fn combine_patterns(patterns: &[String], cfg: &MatcherConfig, fancy: bool) -> String {
     let wrap = |p: &String| {
-        let mut p = if fixed_string {
+        let p = if cfg.fixed_string {
             regex::escape(p)
         } else {
             p.clone()
         };
-        // `-x` beats `-w`: a whole-line match is already at word boundaries,
-        // and applying both would reject lines starting with punctuation.
-        if line_regexp {
-            p = format!(r"^(?:{p})$");
-        } else if word_boundary {
-            p = format!(r"\b(?:{p})\b");
+        // `-x` and `-w` never both reach here: the later flag wins.
+        if cfg.line_regexp {
+            format!(r"^(?:{p})$")
+        } else if cfg.word_boundary {
+            // ripgrep's `-w`: no word character on either side. A plain `\b`
+            // also demands one *inside*, so `a-` and `-a` would never match.
+            if fancy {
+                // fancy_regex has no half boundaries; lookaround says the same.
+                let word = if cfg.no_unicode {
+                    "[a-zA-Z0-9_]"
+                } else {
+                    r"\w"
+                };
+                format!(r"(?<!{word})(?:{p})(?!{word})")
+            } else {
+                format!(r"\b{{start-half}}(?:{p})\b{{end-half}}")
+            }
+        } else {
+            p
         }
-        p
     };
 
     if patterns.len() == 1 {
@@ -830,7 +835,15 @@ impl<'a> FileMatches<'a> {
         } else if opts.multiline && !opts.invert_match {
             // Count original matches after the search limit, but before
             // splitting, merging or clipping their spans for presentation.
-            let spans = matcher.find_spans(content)?;
+            let mut spans = matcher.find_spans(content)?;
+            // The end of a file that ends in a newline is not another line.
+            // Its empty match would land on the last line, a second match
+            // where that line's own end already matched.
+            if (content.is_empty() || content.ends_with('\n'))
+                && spans.last() == Some(&(content.len(), content.len()))
+            {
+                spans.pop();
+            }
             let spans = limit_to_line_blocks(&index, &spans, opts.max_count);
             let hits = group_spans_by_line(&index, &spans);
             let totals = (spans.len() as u64, hits.len() as u64);
@@ -1233,6 +1246,23 @@ fn collect_hits(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A lookahead sends `auto` to fancy_regex, which has no half boundaries;
+    /// `-w` has to keep meaning "no word character on either side" there.
+    #[test]
+    fn automatic_fancy_fallback_preserves_half_word_boundaries() {
+        let matcher = build_search_matcher(
+            &[r"a-(?= x)".into()],
+            &MatcherConfig {
+                word_boundary: true,
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        assert!(matches!(matcher, SearchMatcher::Fancy { .. }));
+        assert_eq!(matcher.find_spans("a- x").unwrap(), vec![(0, 2)]);
+        assert!(!matcher.is_match("xa- x").unwrap());
+    }
 
     #[test]
     fn plan_alternatives_plans_each_group_of_the_compiled_regex() {

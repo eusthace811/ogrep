@@ -6749,3 +6749,107 @@ fn unsupported_crlf_matching_fails_explicitly_and_no_crlf_restores_default() {
         .code(1)
         .stdout("");
 }
+
+/// Runs `args` against a fresh tree holding `files`, with and without an index,
+/// and returns each backend's exit code and stdout.
+fn both_backends(files: &[(&str, &str)], args: &[&str]) -> Vec<(i32, String)> {
+    let dir = TempDir::new().unwrap();
+    let root = dir.path().join("testdata");
+    fs::create_dir(&root).unwrap();
+    for (name, content) in files {
+        fs::write(root.join(name), content).unwrap();
+    }
+    let idx = dir.path().join("idx");
+    ogrep()
+        .args(["index", root.to_str().unwrap(), "--index-path"])
+        .arg(&idx)
+        .assert()
+        .success();
+    [
+        vec!["--no-index"],
+        vec!["--index-path", idx.to_str().unwrap()],
+    ]
+    .into_iter()
+    .map(|backend| {
+        let output = ogrep()
+            .current_dir(&root)
+            .args(backend)
+            .args(["--color", "never", "--sort", "path"])
+            .args(args)
+            .output()
+            .unwrap();
+        (
+            output.status.code().unwrap(),
+            String::from_utf8(output.stdout).unwrap(),
+        )
+    })
+    .collect()
+}
+
+/// ripgrep's `-w` asks only that no word character sits next to the match,
+/// so a pattern that starts or ends with punctuation still matches.
+#[test]
+fn word_regexp_accepts_patterns_with_nonword_edges() {
+    let files = [
+        ("trailing.txt", "a- x\n"),
+        ("leading.txt", "x -a\n"),
+        ("inside.txt", "xa- x\n"),
+    ];
+    for engine in ["auto", "default", "pcre2"] {
+        for fixed in [false, true] {
+            for (pattern, expected) in [
+                ("a-", "./trailing.txt:a- x\n"),
+                ("-a", "./leading.txt:x -a\n"),
+            ] {
+                let mut args = vec!["--engine", engine, "-w"];
+                if fixed {
+                    args.push("-F");
+                }
+                args.extend(["--", pattern, "."]);
+                for (code, stdout) in both_backends(&files, &args) {
+                    assert_eq!((code, stdout.as_str()), (0, expected), "{args:?}");
+                }
+            }
+        }
+    }
+}
+
+/// The later of `-w` and `-x` wins, as in ripgrep.
+#[test]
+fn word_and_line_regexp_use_the_last_one_given() {
+    let files = [("a.txt", "foo bar\nfoo\n")];
+    for (flags, expected) in [
+        (vec!["-x", "-w"], "./a.txt:foo bar\n./a.txt:foo\n"),
+        (vec!["-w", "-x"], "./a.txt:foo\n"),
+    ] {
+        let mut args = flags.clone();
+        args.extend(["--", "foo", "."]);
+        for (code, stdout) in both_backends(&files, &args) {
+            assert_eq!((code, stdout.as_str()), (0, expected), "{flags:?}");
+        }
+    }
+}
+
+/// Under `-U`, matches that touch are still separate matches, and the end of
+/// a file that ends in a newline adds no match of its own.
+#[test]
+fn multiline_reports_touching_matches_separately() {
+    let files = [("a.txt", "aa\n")];
+    for (args, expected) in [
+        (
+            vec!["-U", "-o", "-n", "--", "a", "."],
+            "./a.txt:1:a\n./a.txt:1:a\n",
+        ),
+        (vec!["-U", "--count-matches", "--", "a", "."], "./a.txt:2\n"),
+        (
+            vec!["-U", "--vimgrep", "--", "a", "."],
+            "./a.txt:1:1:aa\n./a.txt:1:2:aa\n",
+        ),
+        (vec!["-U", "--vimgrep", "--", "a*", "."], "./a.txt:1:1:aa\n"),
+        (vec!["-U", "--count-matches", "--", "$", "."], "./a.txt:1\n"),
+    ] {
+        for (code, stdout) in both_backends(&files, &args) {
+            assert_eq!((code, stdout.as_str()), (0, expected), "{args:?}");
+        }
+    }
+}

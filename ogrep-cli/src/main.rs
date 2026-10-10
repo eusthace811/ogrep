@@ -101,8 +101,15 @@ struct Cli {
     #[arg(short = 'F', long = "fixed-strings", global = true)]
     fixed_strings: bool,
 
-    /// Match whole words only.
-    #[arg(short = 'w', long = "word-regexp", global = true)]
+    /// Match only when neither adjacent character is a word character. The
+    /// later of -w and -x wins.
+    #[arg(
+        short = 'w',
+        long = "word-regexp",
+        global = true,
+        group = "match_boundary",
+        overrides_with = "line_regexp"
+    )]
     word_regexp: bool,
 
     /// Invert match: show lines that do NOT match.
@@ -551,8 +558,15 @@ struct Cli {
     binary: bool,
 
     // ── Matching ─────────────────────────────────────
-    /// Only match when the whole line matches the pattern.
-    #[arg(short = 'x', long = "line-regexp", global = true)]
+    /// Only match when the whole line matches the pattern. The later of -w and
+    /// -x wins.
+    #[arg(
+        short = 'x',
+        long = "line-regexp",
+        global = true,
+        group = "match_boundary",
+        overrides_with = "word_regexp"
+    )]
     line_regexp: bool,
 
     /// Use the PCRE-style engine, enabling lookaround and backreferences.
@@ -1058,7 +1072,23 @@ impl Cli {
                     "--watch-budget cannot be used with --watch-mode poll",
                 ));
         }
-        Self::from_arg_matches(&matches)
+        let mut cli = Self::from_arg_matches(&matches)?;
+        // Global flags reach a subcommand without their mutual overrides
+        // applied across the two levels. The group keeps the choice made at
+        // each level, so the deepest one that made a choice wins, as the
+        // later flag does within one level.
+        let mut scope = &matches;
+        while let Some((_, subcommand)) = scope.subcommand() {
+            if let Some(boundary) = subcommand
+                .get_many::<clap::Id>("match_boundary")
+                .and_then(|mut choices| choices.next_back())
+            {
+                cli.word_regexp = boundary == "word_regexp";
+                cli.line_regexp = boundary == "line_regexp";
+            }
+            scope = subcommand;
+        }
+        Ok(cli)
     }
 
     /// Resolve `--max-filesize` once, so a malformed value is reported instead
@@ -2671,6 +2701,28 @@ mod tests {
                 );
             }
             assert!(parse(&["serve", flag]).is_err());
+        }
+    }
+
+    /// ripgrep lets the later of -w and -x win, including across the
+    /// top-level and `search` command lines.
+    #[test]
+    fn word_and_line_regexp_override_each_other_in_argument_order() {
+        for (args, word) in [
+            (vec!["-x", "-w", "foo"], true),
+            (vec!["-w", "-x", "foo"], false),
+            (vec!["-x", "search", "-w", "foo"], true),
+            (vec!["-w", "search", "-x", "foo"], false),
+            (vec!["search", "-xw", "foo"], true),
+            (vec!["search", "-wx", "foo"], false),
+            (vec!["-w", "search", "-xw", "foo"], true),
+            (vec!["-x", "search", "-wx", "foo"], false),
+            (vec!["-w", "search", "foo"], true),
+            (vec!["-x", "search", "foo"], false),
+        ] {
+            let cli = parse(&args).unwrap();
+            assert_eq!(cli.word_regexp, word, "{args:?}");
+            assert_eq!(cli.line_regexp, !word, "{args:?}");
         }
     }
 }

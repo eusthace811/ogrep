@@ -904,7 +904,7 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `-s, --case-sensitive` | Force case-sensitive matching (overrides `-S`) |
 | `-S, --smart-case` | Case-insensitive unless a literal character in any pattern is uppercase (escapes like `\S` do not count) |
 | `-F, --fixed-strings` | Treat pattern as a literal string |
-| `-w, --word-regexp` | Match whole words only |
+| `-w, --word-regexp` | No word character may sit on either side of a match (so `a-` still matches in `a- x`); the later of `-w` and `-x` wins |
 | `-v, --invert-match` | Show lines that do NOT match |
 | `-o, --only-matching` | Print only the matched parts |
 | `-e, --regexp <PAT>` | Additional pattern (repeatable for OR) |
@@ -992,7 +992,7 @@ Prints the count to stdout (scriptable) and details to stderr:
 
 | Flag | Description |
 |------|-------------|
-| `-x, --line-regexp` | The pattern must match a whole line (beats `-w`) |
+| `-x, --line-regexp` | The pattern must match a whole line; the later of `-w` and `-x` wins |
 | `-P, --pcre2` | Use the backtracking engine (lookaround, backreferences) |
 | `--engine <auto\|default\|pcre2>` | Pick the regex engine explicitly; `auto` falls back to `pcre2` |
 | `--pcre2-version` | Print the backtracking engine in use and exit |
