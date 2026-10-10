@@ -455,14 +455,19 @@ mod tests {
     // queryable and at least as large as current RSS. A platform returning the
     // wrong struct field (e.g. WorkingSetSize instead of PeakWorkingSetSize)
     // would still be non-zero, so compare the two rather than just check > 0.
+    //
+    // Within a margin: Linux folds per-thread RSS counts into the totals
+    // lazily, so `statm` and `VmHWM` read moments apart can disagree by a few
+    // pages (Alpine saw peak 12 KiB below current).
     #[cfg(any(target_os = "windows", target_os = "linux", target_os = "macos"))]
     #[test]
     fn peak_rss_is_at_least_current_rss() {
+        const MARGIN: u64 = 1024 * 1024;
         let current = process_rss_bytes().expect("current RSS query should succeed");
         let peak = peak_rss_bytes().expect("peak RSS query should succeed");
         assert!(peak > 0, "peak RSS should be non-zero");
         assert!(
-            peak >= current,
+            peak + MARGIN >= current,
             "peak RSS {peak} should be >= current RSS {current}"
         );
     }
