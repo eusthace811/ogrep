@@ -325,6 +325,14 @@ is backend-specific: the implementation intentionally keeps one recursive
 stream on macOS, where ignored events are filtered after delivery and ignored
 descendants remain watched. kqueue and `PollWatcher` are not covered.
 
+Git rewrites files under `.git` on every commit, checkout, status and gc. The
+server sets those changes aside rather than indexing each write: `.git` is
+hidden, so only a `--hidden` search or listing, or one rooted inside `.git`,
+can return its files, and such a request applies them before it is answered.
+The rest are applied once a minute, one read per changed file however often Git
+wrote it. On a Django clone, five commits with branch switches and a `gc` cost
+the server about a quarter of the CPU they did when each write was indexed.
+
 #### Wait for your edits: `ogrep refresh`
 
 The watcher is asynchronous, so a search issued right after an edit can run

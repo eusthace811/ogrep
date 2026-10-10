@@ -689,6 +689,9 @@ struct ServerState {
     /// repository and a checkout or a build tree churning underneath it is
     /// unbounded.
     deferred_events: Mutex<Option<std::collections::HashMap<PathBuf, bool>>>,
+    /// Changes under a `.git` directory, set aside until something can see
+    /// them; see [`flush_git_metadata_events`]. Keyed as `deferred_events`.
+    git_metadata_events: Mutex<std::collections::HashMap<PathBuf, bool>>,
     /// Progress: number of files indexed so far.
     index_progress: std::sync::atomic::AtomicU64,
     /// Total files discovered for indexing.
@@ -1045,6 +1048,7 @@ pub fn run(root: &Path, index_path: Option<&Path>, options: ServeOptions<'_>) ->
         ignore_source_stamps: RwLock::new(IgnoreStamps::new()),
         reindex_lock: Mutex::new(()),
         deferred_events: Mutex::new(Some(std::collections::HashMap::new())),
+        git_metadata_events: Mutex::new(std::collections::HashMap::new()),
         index_progress: std::sync::atomic::AtomicU64::new(0),
         index_total: std::sync::atomic::AtomicU64::new(0),
         watch_enabled: !no_watch,
@@ -1607,6 +1611,9 @@ fn process_request(
     } else {
         None
     };
+    if permit.is_some() && SearchScope::parse(&params).is_ok_and(|s| s.reaches_git_metadata()) {
+        flush_git_metadata_events(state);
+    }
     let response = match method {
         "search" => handle_search(id, &params, state),
         "files" => handle_files(id, &params, state),
@@ -1700,6 +1707,11 @@ impl SearchScope {
                 .and_then(|value| value.as_u64())
                 .map(|depth| usize::try_from(depth).unwrap_or(usize::MAX)),
         })
+    }
+
+    /// Whether the request can return files under `.git`, which is hidden.
+    fn reaches_git_metadata(&self) -> bool {
+        self.hidden || is_git_metadata(&self.prefix)
     }
 
     fn relative<'a>(&self, indexed: &'a str) -> Option<&'a str> {
@@ -5024,6 +5036,11 @@ fn has_indexed_descendant(state: &ServerState, relative: &str) -> bool {
 }
 
 fn handle_fs_event(state: &Arc<ServerState>, root: &Path, event: &Event) {
+    handle_fs_event_with(state, root, event, true);
+}
+
+/// [`handle_fs_event`], setting changes under `.git` aside when `defer_git`.
+fn handle_fs_event_with(state: &Arc<ServerState>, root: &Path, event: &Event, defer_git: bool) {
     if state.refresh.polling.load(Ordering::SeqCst) {
         return;
     }
@@ -5113,6 +5130,16 @@ fn handle_fs_event(state: &Arc<ServerState>, root: &Path, event: &Event) {
             should_skip_watcher_path(&rel_path, &state.exclude_dirs, gitignore.as_ref())
         };
         if should_skip {
+            continue;
+        }
+
+        if defer_git && is_git_metadata(&rel_path) {
+            *state
+                .git_metadata_events
+                .lock()
+                .unwrap()
+                .entry(path.clone())
+                .or_default() |= event_introduces_dir(&event.kind);
             continue;
         }
 
@@ -5231,6 +5258,42 @@ fn handle_fs_event(state: &Arc<ServerState>, root: &Path, event: &Event) {
         }
 
         reindex_file(state, path, &rel_path, true);
+    }
+}
+
+/// Whether `rel_path` is, or is inside, a `.git` directory.
+fn is_git_metadata(rel_path: &str) -> bool {
+    rel_path.split('/').any(|component| component == ".git")
+}
+
+/// Apply the changes under `.git` that [`handle_fs_event`] set aside.
+///
+/// Git rewrites its metadata on every commit, checkout, status and gc, and
+/// indexing each write as it happened kept the server busy for searches that
+/// never see it: `.git` is hidden, so only a `--hidden` request or one scoped
+/// inside it can return those files. Such requests call this first, and the
+/// auto-save tick applies the rest once a minute, one read per changed path
+/// however many times Git wrote it.
+fn flush_git_metadata_events(state: &Arc<ServerState>) {
+    let pending = std::mem::take(&mut *state.git_metadata_events.lock().unwrap());
+    for (path, introduces_dir) in pending {
+        let kind = if introduces_dir {
+            EventKind::Create(notify::event::CreateKind::Any)
+        } else {
+            EventKind::Modify(notify::event::ModifyKind::Data(
+                notify::event::DataChange::Any,
+            ))
+        };
+        handle_fs_event_with(
+            state,
+            &state.root,
+            &Event {
+                kind,
+                paths: vec![path],
+                attrs: Default::default(),
+            },
+            false,
+        );
     }
 }
 
@@ -5940,6 +6003,7 @@ fn auto_save_loop(state: Arc<ServerState>) {
         if state.indexing.load(Ordering::SeqCst) || state.flushing.load(Ordering::SeqCst) {
             continue;
         }
+        flush_git_metadata_events(&state);
 
         let dirty = {
             let index = state.index.read().unwrap();
@@ -9406,6 +9470,7 @@ mod tests {
             ignore_source_stamps: RwLock::new(IgnoreStamps::new()),
             reindex_lock: Mutex::new(()),
             deferred_events: Mutex::new(Some(std::collections::HashMap::new())),
+            git_metadata_events: Mutex::new(std::collections::HashMap::new()),
             index_progress: std::sync::atomic::AtomicU64::new(0),
             index_total: std::sync::atomic::AtomicU64::new(0),
             watch_enabled: true,
@@ -9573,6 +9638,60 @@ mod tests {
             value.pointer("/result/files").unwrap(),
             &serde_json::json!(["main.rs", "new.png"])
         );
+    }
+
+    /// Git's own writes wait until a request can see them: an ordinary one
+    /// cannot, since `.git` is hidden, and a `--hidden` one applies them first.
+    #[test]
+    fn watcher_defers_git_metadata_until_a_hidden_request() {
+        let temp = TempDir::new().unwrap();
+        let root = temp.path().join("root");
+        let index_dir = temp.path().join("index");
+        std::fs::create_dir_all(root.join(".git")).unwrap();
+        let state = test_server_state(&root, &index_dir);
+        state.gitignore_pending.store(false, Ordering::SeqCst);
+        state.filename_index_ready.store(true, Ordering::SeqCst);
+        state.hidden_complete.store(true, Ordering::SeqCst);
+
+        let head = root.join(".git").join("HEAD");
+        std::fs::write(&head, "ref: refs/heads/main\n").unwrap();
+        let source = root.join("main.rs");
+        std::fs::write(&source, "fn main() {}\n").unwrap();
+        for path in [&head, &source] {
+            let event = Event::new(EventKind::Create(notify::event::CreateKind::File))
+                .add_path(path.clone());
+            handle_fs_event(&state, &root, &event);
+        }
+        let indexed = |state: &ServerState| {
+            let mut paths: Vec<String> = state
+                .index
+                .read()
+                .unwrap()
+                .all_paths()
+                .iter()
+                .map(|p| p.to_string())
+                .collect();
+            paths.sort();
+            paths
+        };
+        assert_eq!(indexed(&state), ["main.rs"]);
+
+        let files = |hidden: bool| {
+            let request = serde_json::json!({
+                "jsonrpc": "2.0", "method": "files", "id": 1, "params": {"hidden": hidden},
+            });
+            let (response, _permit) = process_request(&request.to_string(), &state);
+            serde_json::from_str::<serde_json::Value>(&response).unwrap()["result"]["files"].clone()
+        };
+        assert_eq!(files(false), serde_json::json!(["main.rs"]));
+        assert_eq!(
+            indexed(&state),
+            ["main.rs"],
+            "an ordinary request applied it"
+        );
+        assert_eq!(files(true), serde_json::json!([".git/HEAD", "main.rs"]));
+        assert_eq!(indexed(&state), [".git/HEAD", "main.rs"]);
+        assert!(state.git_metadata_events.lock().unwrap().is_empty());
     }
 
     #[test]
