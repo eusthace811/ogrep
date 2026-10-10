@@ -79,7 +79,7 @@ fn env_vars(root: &Path, paths: &[String]) -> HashMap<String, String> {
         .iter()
         .filter(|p| file_name(p) == ".env" || file_name(p).ends_with(".env"))
     {
-        let Ok(text) = std::fs::read_to_string(root.join(p)) else {
+        let Ok(text) = crate::rooted::read_indexed_to_string(root, p) else {
             continue;
         };
         for line in text.lines() {
@@ -540,7 +540,7 @@ pub fn scan(root: &Path, paths: &[String]) -> OpsModel {
     };
     let mut services_seen = Vec::new();
     for path in paths.iter().filter(|p| is_yaml(p)) {
-        let Ok(text) = std::fs::read_to_string(root.join(path)) else {
+        let Ok(text) = crate::rooted::read_indexed_to_string(root, path) else {
             continue;
         };
         if text.len() > 4 << 20 {
@@ -564,7 +564,7 @@ pub fn scan(root: &Path, paths: &[String]) -> OpsModel {
         .map(|e| e.id.to_ascii_lowercase())
         .collect();
     for (svc, file, refs) in services_seen {
-        let lines: Vec<String> = std::fs::read_to_string(root.join(&file))
+        let lines: Vec<String> = crate::rooted::read_indexed_to_string(root, &file)
             .map(|t| t.lines().map(String::from).collect())
             .unwrap_or_default();
         for (line, key, value) in refs {

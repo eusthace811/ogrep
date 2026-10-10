@@ -132,4 +132,4 @@ mod implementation {
     }
 }
 
-pub use implementation::{Session, span};
+pub use implementation::{Session, Span, span};

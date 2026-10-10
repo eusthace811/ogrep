@@ -77,10 +77,10 @@ change a later search has to see, including your own edits.
 
 The command line follows ripgrep. The common `rg` flags are supported with the
 same names; an unsupported flag is rejected with an error rather than ignored.
-The full list is in the [command reference](docs/REFERENCE.md#cli-flags). Three accepted flags
-only take effect on a full scan: `-L`/`--follow`, `--one-file-system` and
-`--ignore-file`. An indexed search ignores them silently, so pair them with
-`--no-index`.
+The full list is in the [command reference](docs/REFERENCE.md#cli-flags). Two accepted flags
+only take effect on a full scan: `--one-file-system` and `--ignore-file`. An
+indexed search ignores them silently, so pair them with `--no-index`.
+`-L`/`--follow` always scans, since the index never follows links.
 
 ```bash
 ogrep -- "fn parse_config" .                 # regex, default
@@ -207,6 +207,7 @@ These fall back to a full scan even with a server running:
 
 - `--no-ignore` and variants, `-u`/`-uu`/`-uuu`
 - `-a`/`--text`, `--binary`, non-`auto` `-E`/`--encoding`
+- `-L`/`--follow`
 - `--no-index` (explicit)
 - naming a single file instead of a directory
 

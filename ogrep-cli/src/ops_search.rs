@@ -284,8 +284,7 @@ fn trace(repo: &Path, opts: &SearchOptions, out: &mut impl Write) -> Result<bool
             continue;
         };
         found = true;
-        let full = repo.join(path);
-        let source = std::fs::read_to_string(&full).unwrap_or_default();
+        let source = ogrep_core::rooted::read_indexed_to_string(repo, path).unwrap_or_default();
         let line_text = source
             .lines()
             .nth(f.line.saturating_sub(1))
@@ -671,7 +670,7 @@ fn similar_incidents(
     let texts: Vec<(String, Vec<String>)> = docs
         .iter()
         .filter_map(|p| {
-            std::fs::read_to_string(repo.join(p))
+            ogrep_core::rooted::read_indexed_to_string(repo, p)
                 .ok()
                 .map(|t| ((*p).clone(), terms(&t)))
         })

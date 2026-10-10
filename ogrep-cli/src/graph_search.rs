@@ -170,11 +170,7 @@ fn near(
         .iter()
         .take(64)
         .filter_map(|s| {
-            std::fs::read_to_string(ogrep_core::hybrid::join_indexed_path(
-                root,
-                &g.files[s.0 as usize],
-            ))
-            .ok()
+            ogrep_core::rooted::read_indexed_to_string(root, &g.files[s.0 as usize]).ok()
         })
         .collect();
     let seed_words = words(&seed_texts);
@@ -221,11 +217,7 @@ fn map(
         .iter()
         .take(32)
         .filter_map(|s| {
-            std::fs::read_to_string(ogrep_core::hybrid::join_indexed_path(
-                root,
-                &g.files[s.0 as usize],
-            ))
-            .ok()
+            ogrep_core::rooted::read_indexed_to_string(root, &g.files[s.0 as usize]).ok()
         })
         .collect();
     let seed_words = words(&seed_texts);
@@ -309,8 +301,7 @@ fn callees(g: &Graph, root: &Path, opts: &SearchOptions, out: &mut impl Write) -
     let mut printed = false;
     for def in defs {
         let path = &g.files[def.file as usize];
-        let Ok(text) = std::fs::read_to_string(ogrep_core::hybrid::join_indexed_path(root, path))
-        else {
+        let Ok(text) = ogrep_core::rooted::read_indexed_to_string(root, path) else {
             continue;
         };
         let body: String = text

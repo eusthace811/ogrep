@@ -1035,7 +1035,9 @@ pub fn run(
     // nothing but NUL-interleaved bytes) is absent from the index entirely, so
     // even a full-scan plan cannot reach it. The only way `-E` means the same
     // thing with and without an index is to walk the tree. `-a`/`--binary` are
-    // the same story, as is explicitly disabling ignore rules.
+    // the same story, as is explicitly disabling ignore rules. So is `-L`: the
+    // index holds no file reached through a link, and reads by indexed name
+    // refuse links rather than follow them.
     // Globs and --hidden only filter the indexed corpus. Use --no-index for
     // positive glob overrides that reinclude ignored files.
     //
@@ -1046,6 +1048,7 @@ pub fn run(
         || opts.encoding.may_differ_from_index()
         || opts.text
         || opts.binary
+        || opts.follow
         || opts.no_ignore
         || opts.no_ignore_dot
         || opts.no_ignore_exclude
@@ -1825,6 +1828,8 @@ fn search_local_index(
     // A single-file search root is a file the user named on the command line,
     // which is what makes binary files visible in ripgrep.
     let explicit = matches!(scope, IndexScope::File(_));
+    // Opened once: every candidate is read relative to it.
+    let rooted = ogrep_core::rooted::RootDir::open(&index_root)?;
 
     let threads = local_verify_threads(opts, candidates.len());
     if threads > 1 && parallel_prefilter_is_exact(opts) {
@@ -1832,6 +1837,7 @@ fn search_local_index(
             &candidates,
             threads,
             &index_root,
+            &rooted,
             &scope,
             &matcher,
             filter.as_ref(),
@@ -1847,7 +1853,7 @@ fn search_local_index(
                 continue;
             }
             drop(metadata_span);
-            let read = match read_text_lossy(&full_path, opts.encoding) {
+            let read = match read_indexed_text(&rooted, &full_path, opts.encoding) {
                 Ok(c) => c,
                 Err(_) => continue,
             };
@@ -1944,6 +1950,7 @@ fn verify_candidates_parallel(
     candidates: &[(u32, String)],
     threads: usize,
     index_root: &Path,
+    rooted: &ogrep_core::rooted::RootDir,
     scope: &IndexScope,
     matcher: &SearchMatcher,
     filter: Option<&crate::matching::FileFilter>,
@@ -1983,7 +1990,7 @@ fn verify_candidates_parallel(
         if exceeds_max_filesize(&full_path, opts, explicit) {
             return Ok(Verified::Skipped);
         }
-        let Ok(read) = read_text_lossy(&full_path, opts.encoding) else {
+        let Ok(read) = read_indexed_text(rooted, &full_path, opts.encoding) else {
             return Ok(Verified::Skipped);
         };
         let binary_offset = read.binary_offset(opts);
@@ -2440,7 +2447,30 @@ fn read_text_lossy(
     encoding: ogrep_core::encoding::EncodingMode,
 ) -> std::io::Result<FileRead> {
     let read_span = crate::profile::span(crate::profile::Phase::Read);
-    let mut file = std::fs::File::open(path)?;
+    let file = std::fs::File::open(path)?;
+    read_open_text(file, encoding, read_span)
+}
+
+/// [`read_text_lossy`] for a path the index recorded below `rooted`.
+///
+/// The name may now run through a link that was not there when the file was
+/// indexed, and following it would search content outside the tree. A scan
+/// never sees that content, since the walker does not follow links.
+fn read_indexed_text(
+    rooted: &ogrep_core::rooted::RootDir,
+    path: &Path,
+    encoding: ogrep_core::encoding::EncodingMode,
+) -> std::io::Result<FileRead> {
+    let read_span = crate::profile::span(crate::profile::Phase::Read);
+    let file = rooted.open_file(path)?;
+    read_open_text(file, encoding, read_span)
+}
+
+fn read_open_text(
+    mut file: std::fs::File,
+    encoding: ogrep_core::encoding::EncodingMode,
+    read_span: crate::profile::Span,
+) -> std::io::Result<FileRead> {
     // A mapped file is always already-valid UTF-8, so it needs no fixups.
     if let Some((text, first_nul)) = try_map_text(&file, encoding) {
         return Ok(FileRead {

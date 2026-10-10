@@ -200,15 +200,21 @@ pub fn build(root: &Path, index_dir: &Path) -> Result<Graph> {
     let reader = IndexReader::open(index_dir)?;
     let files: Vec<String> = reader.all_paths().iter().map(|s| s.to_string()).collect();
     let cache = crate::facts::FactStore::open(index_dir, crate::facts::STRUCTURE);
+    let rooted = crate::rooted::RootDir::open(root)?;
     let scanned: Vec<(Scanned, Option<crate::facts::NewFact>)> = files
         .par_iter()
         .enumerate()
         .map(|(i, path)| {
             let full = crate::hybrid::join_indexed_path(root, path);
-            let text = std::fs::metadata(&full)
+            let text = rooted
+                .open_file(&full)
                 .ok()
-                .filter(|m| m.len() <= MAX_FILE)
-                .and_then(|_| std::fs::read(&full).ok())
+                .filter(|f| f.metadata().is_ok_and(|m| m.len() <= MAX_FILE))
+                .and_then(|mut f| {
+                    let mut bytes = Vec::new();
+                    std::io::Read::read_to_end(&mut f, &mut bytes).ok()?;
+                    Some(bytes)
+                })
                 .filter(|t| !crate::trigram::is_binary(t))
                 .unwrap_or_default();
             scan(i as u32, path, &text, &cache)

@@ -288,11 +288,11 @@ correct, just slower:
 - `--no-ignore`, `-u`
 - `-a`/`--text`, `--binary`
 - `-E`/`--encoding`
+- `-L`/`--follow`
 - naming a single file
 
-Three flags only take effect on a scan, and an indexed search ignores them:
-`-L`/`--follow`, `--one-file-system` and `--ignore-file`. Pair them with
-`--no-index`.
+Two flags only take effect on a scan, and an indexed search ignores them:
+`--one-file-system` and `--ignore-file`. Pair them with `--no-index`.
 
 ## When a result looks wrong
 

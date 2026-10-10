@@ -17,6 +17,7 @@ pub mod ops;
 pub mod path_index;
 pub mod query;
 pub mod reader;
+pub mod rooted;
 pub mod sparse;
 #[cfg(feature = "structure")]
 pub mod structure;

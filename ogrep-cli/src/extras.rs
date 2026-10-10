@@ -316,7 +316,7 @@ fn similar(
     let span = end + 1 - start;
     let mut found: Vec<(f64, String, usize, usize, String)> = Vec::new();
     for path in candidates.iter().take(2000) {
-        let Ok(t) = std::fs::read_to_string(repo.join(path)) else {
+        let Ok(t) = ogrep_core::rooted::read_indexed_to_string(repo, path) else {
             continue;
         };
         let mut best: Option<(f64, usize, usize, String)> = None;
@@ -561,7 +561,7 @@ fn doc_drift(
     let mut examples: HashSet<String> = HashSet::new();
     let defined = regex::Regex::new(r"\b(?:class|def|fn|func|function|struct|interface|type)\s+([A-Za-z_][A-Za-z0-9_]*)|\b([A-Za-z_][A-Za-z0-9_]*)\s*=").unwrap();
     for d in &docs {
-        let Ok(text) = std::fs::read_to_string(repo.join(d)) else {
+        let Ok(text) = ogrep_core::rooted::read_indexed_to_string(repo, d) else {
             continue;
         };
         for c in defined.captures_iter(&text) {
@@ -571,7 +571,7 @@ fn doc_drift(
         }
     }
     for d in docs {
-        let Ok(text) = std::fs::read_to_string(repo.join(d)) else {
+        let Ok(text) = ogrep_core::rooted::read_indexed_to_string(repo, d) else {
             continue;
         };
         for (i, line) in text.lines().enumerate() {
@@ -627,9 +627,9 @@ fn doc_drift(
                 .filter(|p| is_code.contains(p.as_str()))
                 .collect(),
         };
-        let exists = candidates
-            .iter()
-            .any(|p| std::fs::read_to_string(repo.join(p)).is_ok_and(|t| word(&t, name)));
+        let exists = candidates.iter().any(|p| {
+            ogrep_core::rooted::read_indexed_to_string(repo, p).is_ok_and(|t| word(&t, name))
+        });
         if !exists {
             missing.push((name, locs));
         }

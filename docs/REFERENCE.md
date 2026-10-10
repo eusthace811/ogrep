@@ -1224,9 +1224,16 @@ including its staging and retired generations, is always excluded from indexing
 and query filesystem walks.
 
 Flags that widen or re-interpret the indexed corpus still walk the tree:
-non-`auto` `-E/--encoding`, `-a/--text`, `--binary`, and ignore-disabling flags
-such as `--no-ignore`. Naming a single file also skips the index, since reading
-one file directly is cheaper than loading one.
+non-`auto` `-E/--encoding`, `-a/--text`, `--binary`, `-L/--follow`, and
+ignore-disabling flags such as `--no-ignore`. Naming a single file also skips
+the index, since reading one file directly is cheaper than loading one.
+
+Indexed searches never follow a link. The index is built without following
+links, and a file is read by its indexed name without traversing a link at any
+level, so a directory or file replaced by a link after indexing is skipped
+rather than read from outside the tree. The features that read files Git lists
+(`--entities`, `--blast` and the other operations queries) refuse links the
+same way.
 
 Both positive and negative `--glob`/`--iglob` patterns filter the indexed corpus
 when a compatible index or server is available, for content searches and
