@@ -48,7 +48,25 @@ fn start(dir: &Path, idx: &Path, ignored: Option<i32>) -> Child {
         );
         std::thread::sleep(Duration::from_millis(50));
     }
+    // serve.json appears before the first index build ends. A server stopped
+    // before then leaves an index that later searches warn about.
+    while !indexed(dir, idx) {
+        assert!(
+            start.elapsed() < Duration::from_secs(30),
+            "server did not finish indexing"
+        );
+        std::thread::sleep(Duration::from_millis(50));
+    }
     server
+}
+
+fn indexed(dir: &Path, idx: &Path) -> bool {
+    let out = Command::new(ogrep_bin())
+        .args(["status", "--index-path", idx.to_str().unwrap(), "."])
+        .current_dir(dir)
+        .output()
+        .unwrap();
+    String::from_utf8_lossy(&out.stdout).contains("Hidden coverage: complete")
 }
 
 fn stop_with(signal: i32) {

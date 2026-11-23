@@ -12,17 +12,18 @@ fn ogrep(dir: &Path) -> Command {
     cmd
 }
 
+/// Output with `/` between path parts: on Windows ogrep prints `\`, as ripgrep does.
 fn stdout(cmd: &mut Command) -> String {
-    String::from_utf8(cmd.output().unwrap().stdout).unwrap()
-}
-
-/// Output whose paths use `/`: on Windows ogrep prints `\`, as ripgrep does.
-fn slashed(out: String) -> String {
+    let out = raw_stdout(cmd);
     if cfg!(windows) {
         out.replace('\\', "/")
     } else {
         out
     }
+}
+
+fn raw_stdout(cmd: &mut Command) -> String {
+    String::from_utf8(cmd.output().unwrap().stdout).unwrap()
 }
 
 #[test]
@@ -33,13 +34,7 @@ fn rank_keeps_same_named_files_under_two_paths_apart() {
     fs::write(dir.path().join("a/mod.rs"), "fn zebra_one() {}\n").unwrap();
     fs::write(dir.path().join("b/mod.rs"), "zebra_one(); zebra_one();\n").unwrap();
 
-    let out = slashed(stdout(ogrep(dir.path()).args([
-        "--no-index",
-        "--rank",
-        "zebra_one",
-        "a",
-        "b",
-    ])));
+    let out = stdout(ogrep(dir.path()).args(["--no-index", "--rank", "zebra_one", "a", "b"]));
     let lines: Vec<&str> = out.lines().collect();
     assert_eq!(
         lines,
@@ -155,7 +150,7 @@ fn repository_tools_read_non_ascii_paths() {
         .args(["index", "--graph", "."])
         .assert()
         .success();
-    let out = stdout(ogrep(dir.path()).args(["--related-tests", "café.py"]));
+    let out = raw_stdout(ogrep(dir.path()).args(["--related-tests", "café.py"]));
     assert!(out.contains("test_café.py"), "{out:?}");
     assert!(!out.contains("\\303"), "{out:?}");
 }
@@ -220,19 +215,10 @@ fn at_revision_skips_hidden_files_like_a_working_tree_search() {
         ("src/a.txt", "TODO_MARK a\n"),
         (".github/ci.yml", "TODO_MARK ci\n"),
     ]);
-    let at = slashed(stdout(ogrep(dir.path()).args([
-        "--at",
-        "HEAD",
-        "TODO_MARK",
-    ])));
+    let at = stdout(ogrep(dir.path()).args(["--at", "HEAD", "TODO_MARK"]));
     assert_eq!(at, "src/a.txt:TODO_MARK a\n");
-    let hidden = slashed(stdout(ogrep(dir.path()).args([
-        "--at",
-        "HEAD",
-        "--hidden",
-        "--sort=path",
-        "TODO_MARK",
-    ])));
+    let hidden =
+        stdout(ogrep(dir.path()).args(["--at", "HEAD", "--hidden", "--sort=path", "TODO_MARK"]));
     assert!(hidden.contains(".github/ci.yml"), "{hidden:?}");
 }
 
@@ -804,12 +790,12 @@ fn about_ranks_files_by_the_words_of_a_description() {
     )
     .unwrap();
     fs::write(dir.path().join("notes.txt"), "nothing relevant here\n").unwrap();
-    let out = slashed(stdout(ogrep(dir.path()).args([
+    let out = stdout(ogrep(dir.path()).args([
         "--no-index",
         "--about",
         "Handled out-of-range year in admin date_hierarchy.",
         "-l",
-    ])));
+    ]));
     let files: Vec<&str> = out.lines().collect();
     assert_eq!(files, ["admin/main.py", "admin/forms.py"], "{out:?}");
     // The text is the query: every positional argument is a path, and a
