@@ -1,0 +1,100 @@
+name: Release
+
+# Push a tag such as v0.1.0 to build ogrep for each platform, publish the archives and
+# SHA256SUMS as a GitHub release, and then install that release with install.sh.
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  BIN: ogrep
+  PKG: ogrep-cli
+  # Release archives carry no debug info.
+  CARGO_PROFILE_RELEASE_DEBUG: "0"
+  CARGO_PROFILE_RELEASE_STRIP: "true"
+
+jobs:
+  build:
+    name: Build (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, target: x86_64-unknown-linux-musl }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-musl }
+          - { os: macos-latest, target: aarch64-apple-darwin }
+          - { os: macos-latest, target: x86_64-apple-darwin, cross: true }
+          - { os: windows-latest, target: x86_64-pc-windows-msvc }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: rustup target add ${{ matrix.target }}
+      - if: contains(matrix.target, 'linux-musl')
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - run: cargo build --release --locked -p "$PKG" --bin "$BIN" --target ${{ matrix.target }}
+      - if: ${{ !matrix.cross }}
+        run: target/${{ matrix.target }}/release/$BIN --version
+      - name: Package
+        run: |
+          t=${{ matrix.target }}
+          mkdir "$BIN-$t"
+          cp README.md LICENSE "$BIN-$t/"
+          if [[ $t == *windows* ]]; then
+            cp "target/$t/release/$BIN.exe" "$BIN-$t/"
+            7z a -bd "$BIN-$t.zip" "$BIN-$t" >/dev/null
+          else
+            cp "target/$t/release/$BIN" "$BIN-$t/"
+            tar -czf "$BIN-$t.tar.gz" "$BIN-$t"
+          fi
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ env.BIN }}-${{ matrix.target }}
+          path: |
+            ${{ env.BIN }}-*.tar.gz
+            ${{ env.BIN }}-*.zip
+
+  publish:
+    name: Publish
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Create the release
+        working-directory: dist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sha256sum -- * > SHA256SUMS
+          cat SHA256SUMS
+          gh release create "$GITHUB_REF_NAME" -- * --repo "$GITHUB_REPOSITORY" --title "$BIN $GITHUB_REF_NAME" --generate-notes
+
+  install:
+    name: Install (${{ matrix.os }})
+    needs: publish
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Install with install.sh from this tag
+        run: |
+          curl -fsSL "https://raw.githubusercontent.com/$GITHUB_REPOSITORY/$GITHUB_REF_NAME/install.sh" |
+            OGREP_VERSION="$GITHUB_REF_NAME" OGREP_INSTALL_DIR="$HOME/ogrep-bin" sh
+          "$HOME/ogrep-bin/$BIN" --version | grep -F "${GITHUB_REF_NAME#v}"

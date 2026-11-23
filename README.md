@@ -52,7 +52,14 @@ It also does things plain grep cannot:
 
 ## Install
 
-You need a Rust toolchain (edition 2024, Rust 1.85 or newer).
+**Prebuilt release** (Linux, macOS and Windows in Git Bash), into `~/.local/bin` (`~/bin` in Git Bash):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/eusthace811/ogrep/main/install.sh | sh
+```
+
+**From source**, where downloaded executables are not allowed. You need a Rust toolchain
+(edition 2024, Rust 1.85 or newer).
 
 **Linux, macOS and WSL:**
 
