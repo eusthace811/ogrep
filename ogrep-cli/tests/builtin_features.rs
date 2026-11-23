@@ -12,7 +12,8 @@ fn ogrep(dir: &Path) -> Command {
     cmd
 }
 
-/// Output with `/` between path parts: on Windows ogrep prints `\`, as ripgrep does.
+/// Text output with `/` between path parts: on Windows ogrep prints `\`, as ripgrep
+/// does. JSON output escapes `\`, so it is read with `raw_stdout`.
 fn stdout(cmd: &mut Command) -> String {
     let out = raw_stdout(cmd);
     if cfg!(windows) {
@@ -549,7 +550,7 @@ fn scope_is_taken_at_the_match_that_passes() {
         "function a() { return \"x\" } function b() { x() }\n",
     )
     .unwrap();
-    let out = stdout(ogrep(dir.path()).args([
+    let out = raw_stdout(ogrep(dir.path()).args([
         "--no-index",
         "--json",
         "--scope",
@@ -731,7 +732,9 @@ fn reshaped_output_keeps_structure_context_and_callers_straight() {
         run(&["--rank", "--per-file", "1", "-n", "-o", "foo", "k.rs"]),
         "2:foo\n"
     );
-    assert!(run(&["--rank", "--json", "-o", "foo", "k.rs"]).contains(r#""text":"fn foo() {}\n""#));
+    let json =
+        raw_stdout(ogrep(dir.path()).args(["--no-index", "--rank", "--json", "-o", "foo", "k.rs"]));
+    assert!(json.contains(r#""text":"fn foo() {}\n""#), "{json}");
     // Under -o, a dropped matching line is context, as a whole line.
     write("h.rs", b"fn foo() {\n    foo();\n    x\n}\n");
     assert_eq!(
@@ -854,7 +857,7 @@ fn about_scores_prose_by_its_best_section_and_prints_it() {
         "{out}"
     );
     // JSON names the section and the headings above it.
-    let json = stdout(ogrep(dir.path()).args([
+    let json = raw_stdout(ogrep(dir.path()).args([
         "--no-index",
         "--json",
         "--about",
@@ -879,7 +882,7 @@ fn about_scores_prose_by_its_best_section_and_prints_it() {
         "def cache_timeout():\n    return 1\n",
     )
     .unwrap();
-    let code = stdout(ogrep(dir.path()).args([
+    let code = raw_stdout(ogrep(dir.path()).args([
         "--no-index",
         "--json",
         "--about",
@@ -922,7 +925,7 @@ fn about_reports_whether_its_first_file_stands_out() {
     fs::write(dir.path().join("a.txt"), "retry timeout\n").unwrap();
     fs::write(dir.path().join("b.txt"), "retry timeout\n").unwrap();
     let first_rank = |text: &str| -> serde_json::Value {
-        let out = stdout(ogrep(dir.path()).args(["--no-index", "--json", "--about", text]));
+        let out = raw_stdout(ogrep(dir.path()).args(["--no-index", "--json", "--about", text]));
         let line = out
             .lines()
             .find(|l| l.contains("\"type\":\"rank\""))
@@ -962,7 +965,8 @@ fn about_reports_whether_its_first_file_stands_out() {
         .unwrap();
     assert!(sure.stderr.is_empty());
     // --rank on a name reports nothing new.
-    let rank = stdout(ogrep(dir.path()).args(["--no-index", "--json", "--rank", "-F", "retry"]));
+    let rank =
+        raw_stdout(ogrep(dir.path()).args(["--no-index", "--json", "--rank", "-F", "retry"]));
     assert!(!rank.contains("confidence"));
 }
 
@@ -1020,7 +1024,7 @@ fn cards_show_outline_and_matches_within_the_budget() {
         "{one:?}"
     );
     // JSON carries the same card.
-    let json = stdout(ogrep(dir.path()).args([
+    let json = raw_stdout(ogrep(dir.path()).args([
         "--no-index",
         "--rank",
         "--cards",
