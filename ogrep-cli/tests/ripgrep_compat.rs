@@ -6779,7 +6779,7 @@ fn both_backends(files: &[(&str, &str)], args: &[&str]) -> Vec<(i32, String)> {
             .output()
             .unwrap();
         let stdout = String::from_utf8(output.stdout).unwrap();
-        // The files sit directly under the searched `.`, which Windows prints as `.\\`.
+        // The files sit directly under the searched `.`, which Windows prints as `.\`.
         let stdout = if cfg!(windows) {
             stdout.replace(".\\", "./")
         } else {
