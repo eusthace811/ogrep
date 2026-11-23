@@ -4,3 +4,4 @@ __pycache__/
 .ogrep_staging/
 .ogrep_flush_staging/
 .ogrep_save_staging/
+.DS_Store
