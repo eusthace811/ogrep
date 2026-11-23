@@ -133,8 +133,12 @@ def reap_process(proc):
             except ProcessLookupError:
                 pass
             except PermissionError:
-                # macOS can return EPERM for an exited process group.
-                # Ignore it only if our child really finished in the race.
+                # macOS returns EPERM for a process group whose members are exiting.
+                # Ignore it only if our child then finishes.
+                try:
+                    proc.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    pass
                 if proc.poll() is None:
                     raise
         proc.wait()
