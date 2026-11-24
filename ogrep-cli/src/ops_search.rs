@@ -34,15 +34,36 @@ fn model(repo: &Path) -> Result<(OpsModel, Vec<String>)> {
     Ok((ops::scan(repo, &files), files))
 }
 
-fn when(repo: &Path, value: Option<&str>, default: &str) -> Result<i64> {
-    let time = crate::history_search::resolve_when(repo, value.unwrap_or(default), false);
-    // Name the flag only when the user gave it.
-    if value.is_some() {
-        time.map_err(|e| e.context("--since"))
-    } else {
-        time
-    }
+/// The commit times `--suspects` and `--timeline` look at.
+struct Window {
+    since: i64,
+    until: Option<i64>,
 }
+
+/// The window `--since` and `--until` describe. Without `--since` it is
+/// `default_secs` long and ends at `--until`, or now.
+fn window(
+    repo: &Path,
+    since: Option<&str>,
+    until: Option<&str>,
+    default_secs: i64,
+) -> Result<Window> {
+    use crate::history_search::resolve_when;
+    let until = until
+        .map(|u| resolve_when(repo, u, true).map_err(|e| e.context("--until")))
+        .transpose()?;
+    let since = match (since, until) {
+        (Some(s), _) => resolve_when(repo, s, false).map_err(|e| e.context("--since"))?,
+        (None, Some(until)) => until - default_secs,
+        (None, None) => resolve_when(repo, &format!("{default_secs} seconds ago"), false)?,
+    };
+    if until.is_some_and(|until| since > until) {
+        bail!("--since is later than --until; a duration such as 2h counts back from now");
+    }
+    Ok(Window { since, until })
+}
+
+const DAY: i64 = 86_400;
 
 fn ago(time: i64) -> String {
     let now = std::time::SystemTime::now()
@@ -63,6 +84,7 @@ pub fn run(
     ci: bool,
     mode: &Mode,
     since: Option<&str>,
+    until: Option<&str>,
 ) -> Result<bool> {
     let mut out = BufWriter::new(std::io::stdout().lock());
     if let Mode::LogTemplates { new_since, to_code } = mode {
@@ -86,8 +108,8 @@ pub fn run(
     let found = match mode {
         Mode::Entities => entities(&repo, opts, ci, &mut out)?,
         Mode::Blast => blast(&repo, opts, &mut out)?,
-        Mode::Suspects => suspects(&repo, opts, since, &mut out)?,
-        Mode::Timeline => timeline(&repo, opts, since, &mut out)?,
+        Mode::Suspects => suspects(&repo, opts, since, until, &mut out)?,
+        Mode::Timeline => timeline(&repo, opts, since, until, &mut out)?,
         Mode::Trace => trace(&repo, opts, &mut out)?,
         Mode::LogTemplates { .. } => unreachable!("handled above"),
         Mode::SimilarIncidents { budget } => similar_incidents(&repo, opts, *budget, &mut out)?,
@@ -182,6 +204,7 @@ fn suspects(
     repo: &Path,
     opts: &SearchOptions,
     since: Option<&str>,
+    until: Option<&str>,
     out: &mut impl Write,
 ) -> Result<bool> {
     let (m, _) = model(repo)?;
@@ -192,7 +215,8 @@ fn suspects(
         .filter(|s| !s.is_empty())
         .map(|s| one_service(&m, s).map(String::from))
         .collect::<Result<_>>()?;
-    let changes = ops::recent_changes(repo, when(repo, since, "24 hours ago")?);
+    let w = window(repo, since, until, DAY)?;
+    let changes = ops::recent_changes(repo, w.since, w.until);
     let ranked = m.suspects(&failing, &changes);
     for (i, s) in ranked.iter().take(10).enumerate() {
         if opts.json {
@@ -231,11 +255,13 @@ fn timeline(
     repo: &Path,
     opts: &SearchOptions,
     since: Option<&str>,
+    until: Option<&str>,
     out: &mut impl Write,
 ) -> Result<bool> {
     let (m, _) = model(repo)?;
     let target = one_service(&m, &opts.pattern)?;
-    let changes = ops::recent_changes(repo, when(repo, since, "7 days ago")?);
+    let w = window(repo, since, until, 7 * DAY)?;
+    let changes = ops::recent_changes(repo, w.since, w.until);
     // The service and what it depends on directly.
     let mut scope: Vec<(String, usize)> = m
         .dependencies(target)

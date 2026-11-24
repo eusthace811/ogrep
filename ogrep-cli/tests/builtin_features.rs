@@ -1047,3 +1047,158 @@ fn cards_show_outline_and_matches_within_the_budget() {
         .assert()
         .code(2);
 }
+
+/// Commit everything in `dir` with the given author and committer time.
+fn commit_at(dir: &Path, time: &str, subject: &str) {
+    git(dir, &["add", "."]);
+    let ok = std::process::Command::new("git")
+        .current_dir(dir)
+        .env("GIT_AUTHOR_DATE", time)
+        .env("GIT_COMMITTER_DATE", time)
+        .args(["-c", "user.name=t", "-c", "user.email=t@t"])
+        .args(["-c", "commit.gpgsign=false", "commit", "-q", "-m", subject])
+        .status()
+        .unwrap()
+        .success();
+    assert!(ok, "git commit {subject:?}");
+}
+
+/// Checkout depends on cart and on payment; frontend on nothing. One commit
+/// to each service's code in March 2024, then a later one to cart.
+fn incident_repo() -> TempDir {
+    let dir = TempDir::new().unwrap();
+    git(dir.path(), &["init", "-q", "-b", "main"]);
+    let write = |path: &str, text: &str| {
+        let file = dir.path().join(path);
+        fs::create_dir_all(file.parent().unwrap()).unwrap();
+        fs::write(file, text).unwrap();
+    };
+    write(
+        "compose.yaml",
+        "services:\n  checkout:\n    depends_on:\n      - cart\n      - payment\n  cart:\n    image: cart\n  payment:\n    image: payment\n  frontend:\n    image: frontend\n",
+    );
+    for svc in ["cart", "checkout", "payment", "frontend"] {
+        write(&format!("src/{svc}/main.go"), "package main\n");
+    }
+    commit_at(dir.path(), "2024-01-01T12:00:00Z", "base");
+    for (svc, time) in [
+        ("cart", "2024-03-01T12:00:00Z"),
+        ("checkout", "2024-03-02T12:00:00Z"),
+        ("frontend", "2024-03-03T12:00:00Z"),
+        ("cart", "2024-03-10T12:00:00Z"),
+    ] {
+        write(
+            &format!("src/{svc}/main.go"),
+            &format!("package main // {time}\n"),
+        );
+        commit_at(dir.path(), time, &format!("{svc} at {time}"));
+    }
+    dir
+}
+
+/// The JSON records of `cmd`, one per output line.
+fn records(cmd: &mut Command) -> Vec<serde_json::Value> {
+    raw_stdout(cmd)
+        .lines()
+        .map(|l| serde_json::from_str(l).unwrap())
+        .collect()
+}
+
+/// `(service, commit subject)` of each `event` record.
+fn events(cmd: &mut Command) -> Vec<(String, String)> {
+    records(cmd)
+        .iter()
+        .map(|r| {
+            assert_eq!(r["type"], "event");
+            let d = &r["data"];
+            (
+                d["service"].as_str().unwrap().to_string(),
+                d["commit"]["subject"].as_str().unwrap().to_string(),
+            )
+        })
+        .collect()
+}
+
+fn pairs(list: &[(&str, &str)]) -> Vec<(String, String)> {
+    list.iter()
+        .map(|(a, b)| (a.to_string(), b.to_string()))
+        .collect()
+}
+
+#[test]
+fn until_hides_later_commits_from_timeline_and_suspects() {
+    let dir = incident_repo();
+    let timeline = |args: &[&str]| {
+        events(
+            ogrep(dir.path())
+                .args(["--json", "--timeline", "checkout"])
+                .args(args),
+        )
+    };
+    assert_eq!(
+        timeline(&[
+            "--since",
+            "2024-02-01T00:00:00Z",
+            "--until",
+            "2024-03-05T00:00:00Z"
+        ]),
+        pairs(&[
+            ("checkout", "checkout at 2024-03-02T12:00:00Z"),
+            ("cart", "cart at 2024-03-01T12:00:00Z"),
+        ])
+    );
+    // The default seven days count back from --until, not from now.
+    assert_eq!(
+        timeline(&["--until", "2024-03-12T00:00:00Z"]),
+        pairs(&[("cart", "cart at 2024-03-10T12:00:00Z")])
+    );
+    // An explicit --since is taken as given.
+    assert_eq!(
+        timeline(&["--since", "2024-02-01T00:00:00Z"]).len(),
+        3,
+        "without --until every later commit is listed"
+    );
+
+    let suspects = |until: &str| {
+        records(ogrep(dir.path()).args(["--json", "--suspects", "checkout", "--until", until]))
+    };
+    let cart = |records: &[serde_json::Value]| {
+        records
+            .iter()
+            .map(|r| r["data"]["suspect"].clone())
+            .find(|s| s["service"] == "cart")
+            .unwrap()
+    };
+    // The default 24 hours before --until hold one commit to cart.
+    let during = cart(&suspects("2024-03-01T18:00:00Z"));
+    let subjects: Vec<&str> = during["changes"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|c| c["subject"].as_str().unwrap())
+        .collect();
+    assert_eq!(subjects, ["cart at 2024-03-01T12:00:00Z"]);
+    // Before any change, cart has no commits and loses the bonus for them.
+    let before = cart(&suspects("2024-02-15T00:00:00Z"));
+    assert_eq!(before["changes"].as_array().unwrap().len(), 0);
+    assert!(
+        during["score"].as_f64() > before["score"].as_f64(),
+        "{during} {before}"
+    );
+}
+
+#[test]
+fn until_is_refused_where_it_means_nothing() {
+    let dir = incident_repo();
+    ogrep(dir.path())
+        .args(["--until", "2024-03-05", "--blast", "cart"])
+        .assert()
+        .code(2)
+        .stderr(predicates::str::contains("--since and --until need"));
+    ogrep(dir.path())
+        .args(["--timeline", "checkout", "--since", "2024-03-05T00:00:00Z"])
+        .args(["--until", "2024-03-01T00:00:00Z"])
+        .assert()
+        .code(2)
+        .stderr(predicates::str::contains("--since is later than --until"));
+}

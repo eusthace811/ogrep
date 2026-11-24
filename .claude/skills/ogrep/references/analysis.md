@@ -124,6 +124,9 @@ These flags combine with each other and with `--rank`.
     hypotheses to check, not a verdict.
 - **`--timeline SERVICE`**: commits to SERVICE and to its direct dependencies,
   newest first (default: the last 7 days; `--since` changes it).
+- **`--until WHEN`** (with `--suspects` or `--timeline`): ignore commits made
+  after WHEN, to look at a past incident. Without `--since`, the default window
+  counts back from WHEN; an explicit `--since` is taken as given.
 - **`--stack-trace FILE`** (or `-` for stdin): frames from Python, Java/Kotlin,
   Go, Rust, JavaScript/TypeScript (or any `path:line`).
   - **Resolution:** each frame maps to the tracked file with the longest

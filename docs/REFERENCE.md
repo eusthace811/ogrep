@@ -751,6 +751,21 @@ dependency alone.
 **`--timeline SERVICE`** lists commits to SERVICE and to the services it depends
 on directly, newest first (default: the last 7 days).
 
+**`--until WHEN`** makes `--suspects` and `--timeline` ignore commits made
+after WHEN, which takes the same forms as `--since`: use it to look at a past
+incident without the commits that came later. For `--suspects` a later commit
+neither appears in a suspect's `changes` nor adds to its score. Without
+`--since`, the default window (24 hours for `--suspects`, 7 days for
+`--timeline`) counts back from WHEN; an explicit `--since` is taken as given,
+so a duration such as `--since 2h` still counts back from now, and a `--since`
+later than `--until` is an error. Both flags compare against the commit
+(committer) time.
+
+```bash
+ogrep --suspects checkout --until 2024-03-01T18:00:00Z .                  # the 24 hours before then
+ogrep --timeline checkout --since 2024-02-01 --until 2024-03-05T00:00:00Z .
+```
+
 **`--stack-trace FILE`** (`-` for standard input) reads Python, Java/Kotlin, Go,
 Rust and JavaScript/TypeScript frames, or any `path:line`, resolves each path to
 the tracked file with the longest matching path suffix (so frames from
@@ -936,8 +951,8 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `--callees` | Names used by the definitions of PATTERN, and where they are defined (needs the graph) |
 | `--entities` | Services, alerts and dependencies from operations files; PATTERN filters names |
 | `--blast` | Everything that depends on the service PATTERN, by distance |
-| `--suspects` | Likely causes for failing services PATTERN (comma-separated), with `--since` |
-| `--timeline` | Commits to the service PATTERN and its dependencies, with `--since` |
+| `--suspects` | Likely causes for failing services PATTERN (comma-separated), with `--since` and `--until` |
+| `--timeline` | Commits to the service PATTERN and its dependencies, with `--since` and `--until` |
 | `--stack-trace` | Frames of the stack trace in file PATTERN (`-`: stdin), resolved to this repository |
 | `--log-templates` | Group matching log lines into templates; `--new-since WHEN`, `--template-to-code` |
 | `--similar-incidents` | Postmortems most similar to the description PATTERN |
@@ -948,7 +963,7 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `--rank-fit <FILE>` | Fit `--rank` weights to this repository from examples |
 | `--history` | Search the lines commits added or removed (needs `ogrep index --history`); see [Search history](#search-history-and-past-versions) |
 | `--introduced` | When a pattern first appeared, was last removed, and whether it is present now |
-| `--since <WHEN>` / `--until <WHEN>` | With `--history`/`--introduced`: commit time window (`2 weeks ago`, `2024-05-01`, `2h`, `3d`) |
+| `--since <WHEN>` / `--until <WHEN>` | With `--history`/`--introduced`/`--suspects`/`--timeline`: commit time window (`2 weeks ago`, `2024-05-01`, `2h`, `3d`) |
 | `--author <PAT>` | With `--history`/`--introduced`: author regex (case-insensitive) |
 | `--changed-since <REV\|WHEN>` | Search only files changed since a commit or time, with uncommitted changes |
 | `--at <REV>` | Search the tree as it was at a git revision |

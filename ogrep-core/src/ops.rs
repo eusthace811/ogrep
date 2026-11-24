@@ -719,17 +719,15 @@ pub struct Change {
     pub files: Vec<String>,
 }
 
-/// Commits since `since` (UNIX time) and the files each touched.
-pub fn recent_changes(root: &Path, since: i64) -> Vec<Change> {
-    let out = crate::history::git(root)
-        .args([
-            "log",
-            "--no-merges",
-            &format!("--since={since}"),
-            "--format=%x01%H %ct %s",
-            "--name-only",
-        ])
-        .output();
+/// Commits from `since` up to `until` (UNIX times; no upper bound when `None`)
+/// and the files each touched.
+pub fn recent_changes(root: &Path, since: i64, until: Option<i64>) -> Vec<Change> {
+    let mut git = crate::history::git(root);
+    git.args(["log", "--no-merges", &format!("--since={since}")]);
+    if let Some(until) = until {
+        git.arg(format!("--until={until}"));
+    }
+    let out = git.args(["--format=%x01%H %ct %s", "--name-only"]).output();
     let Ok(out) = out else { return Vec::new() };
     String::from_utf8_lossy(&out.stdout)
         .split('\x01')

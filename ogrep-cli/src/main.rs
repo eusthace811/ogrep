@@ -252,12 +252,14 @@ struct Cli {
 
     /// Rank likely causes for failing services (PATTERN: comma-separated
     /// names): services they depend on, weighted by how many failing services
-    /// each explains and by commits since --since (default 24 hours).
+    /// each explains and by commits since --since (default 24 hours) and, with
+    /// --until, no later than it.
     #[arg(long = "suspects")]
     suspects: bool,
 
     /// Commits to the service PATTERN and to what it directly depends on, since
-    /// --since (default 7 days), newest first.
+    /// --since (default 7 days) and, with --until, no later than it, newest
+    /// first.
     #[arg(long = "timeline")]
     timeline: bool,
 
@@ -316,12 +318,14 @@ struct Cli {
     #[arg(long = "introduced")]
     introduced: bool,
 
-    /// With --history/--introduced: only commits since WHEN (a date, `2 weeks
-    /// ago`, or 2h, 3d, 2w, 6mo, 1y).
+    /// With --history/--introduced/--suspects/--timeline: only commits since
+    /// WHEN (a date, `2 weeks ago`, or 2h, 3d, 2w, 6mo, 1y).
     #[arg(long = "since", value_name = "WHEN")]
     since: Option<String>,
 
-    /// With --history/--introduced: only commits until WHEN.
+    /// With --history/--introduced/--suspects/--timeline: only commits until
+    /// WHEN. For --suspects and --timeline the default --since window then
+    /// counts back from WHEN.
     #[arg(long = "until", value_name = "WHEN")]
     until: Option<String>,
 
@@ -1627,12 +1631,14 @@ fn run_cli() {
 
     // History searches report commits, not files.
     let history = cli.history || cli.introduced;
-    if !history && (cli.until.is_some() || cli.author.is_some()) {
-        eprintln!("ogrep: --until and --author need --history or --introduced");
+    if !history && cli.author.is_some() {
+        eprintln!("ogrep: --author needs --history or --introduced");
         process::exit(2);
     }
-    if !(history || cli.suspects || cli.timeline) && cli.since.is_some() {
-        eprintln!("ogrep: --since needs --history, --introduced, --suspects or --timeline");
+    if !(history || cli.suspects || cli.timeline) && (cli.since.is_some() || cli.until.is_some()) {
+        eprintln!(
+            "ogrep: --since and --until need --history, --introduced, --suspects or --timeline"
+        );
         process::exit(2);
     }
     if (cli.new_since.is_some() || cli.template_to_code) && !cli.log_templates {
@@ -2282,6 +2288,7 @@ fn run_search(
             ci,
             &mode,
             cli.since.as_deref(),
+            cli.until.as_deref(),
         ));
     }
     if cli.near || cli.map.is_some() || cli.callees {
