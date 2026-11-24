@@ -319,13 +319,15 @@ struct Cli {
     introduced: bool,
 
     /// With --history/--introduced/--suspects/--timeline: only commits since
-    /// WHEN (a date, `2 weeks ago`, or 2h, 3d, 2w, 6mo, 1y).
+    /// WHEN (a date, `2 weeks ago`, or 2h, 3d, 2w, 6mo, 1y). For --suspects
+    /// and --timeline a revision instead keeps commits not reachable from it.
     #[arg(long = "since", value_name = "WHEN")]
     since: Option<String>,
 
     /// With --history/--introduced/--suspects/--timeline: only commits until
     /// WHEN. For --suspects and --timeline the default --since window then
-    /// counts back from WHEN.
+    /// counts back from WHEN, and a revision instead keeps commits reachable
+    /// from it.
     #[arg(long = "until", value_name = "WHEN")]
     until: Option<String>,
 

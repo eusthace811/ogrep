@@ -34,33 +34,46 @@ fn model(repo: &Path) -> Result<(OpsModel, Vec<String>)> {
     Ok((ops::scan(repo, &files), files))
 }
 
-/// The commit times `--suspects` and `--timeline` look at.
-struct Window {
-    since: i64,
-    until: Option<i64>,
-}
-
-/// The window `--since` and `--until` describe. Without `--since` it is
-/// `default_secs` long and ends at `--until`, or now.
-fn window(
+/// The commits `--since` and `--until` describe. Each is a revision, bounding
+/// by ancestry, or else a time. Without `--since` the range is `default_secs`
+/// long and ends at `--until` (for a revision, at its commit time), or now.
+fn range(
     repo: &Path,
     since: Option<&str>,
     until: Option<&str>,
     default_secs: i64,
-) -> Result<Window> {
-    use crate::history_search::resolve_when;
-    let until = until
-        .map(|u| resolve_when(repo, u, true).map_err(|e| e.context("--until")))
-        .transpose()?;
-    let since = match (since, until) {
-        (Some(s), _) => resolve_when(repo, s, false).map_err(|e| e.context("--since"))?,
-        (None, Some(until)) => until - default_secs,
-        (None, None) => resolve_when(repo, &format!("{default_secs} seconds ago"), false)?,
+) -> Result<ops::Range> {
+    use crate::history_search::{is_revision, resolve_when};
+    use ops::Bound;
+    let bound = |value: &str, is_until: bool| -> Result<Bound> {
+        if is_revision(repo, value) {
+            return Ok(Bound::Rev(value.to_string()));
+        }
+        let flag = if is_until { "--until" } else { "--since" };
+        let time = resolve_when(repo, value, is_until).map_err(|e| e.context(flag))?;
+        Ok(Bound::Time(time))
     };
-    if until.is_some_and(|until| since > until) {
+    let until = until.map(|u| bound(u, true)).transpose()?;
+    let since = match (since, &until) {
+        (Some(s), _) => bound(s, false)?,
+        (None, Some(Bound::Time(until))) => Bound::Time(until - default_secs),
+        (None, Some(Bound::Rev(rev))) => {
+            let time = ogrep_core::history::git_output(repo, &["log", "-1", "--format=%ct", rev])?;
+            let time: i64 = time.trim().parse().context("reading a commit time")?;
+            Bound::Time(time - default_secs)
+        }
+        (None, None) => Bound::Time(resolve_when(
+            repo,
+            &format!("{default_secs} seconds ago"),
+            false,
+        )?),
+    };
+    if let (Bound::Time(since), Some(Bound::Time(until))) = (&since, &until)
+        && since > until
+    {
         bail!("--since is later than --until; a duration such as 2h counts back from now");
     }
-    Ok(Window { since, until })
+    Ok(ops::Range { since, until })
 }
 
 const DAY: i64 = 86_400;
@@ -226,8 +239,7 @@ fn suspects(
 ) -> Result<bool> {
     let (m, _) = model(repo)?;
     let failing = services_named(&m, &opts.pattern)?;
-    let w = window(repo, since, until, DAY)?;
-    let changes = ops::recent_changes(repo, w.since, w.until);
+    let changes = ops::recent_changes(repo, &range(repo, since, until, DAY)?);
     let ranked = m.suspects(&failing, &changes);
     for (i, s) in ranked.iter().take(10).enumerate() {
         if opts.json {
@@ -274,8 +286,7 @@ fn timeline(
     if targets.is_empty() {
         bail!("--timeline needs a service name; `ogrep --entities .` lists them");
     }
-    let w = window(repo, since, until, 7 * DAY)?;
-    let changes = ops::recent_changes(repo, w.since, w.until);
+    let changes = ops::recent_changes(repo, &range(repo, since, until, 7 * DAY)?);
     // Each service asked for and what it depends on directly, once.
     let scope: BTreeSet<String> = targets
         .iter()

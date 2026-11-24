@@ -1064,7 +1064,8 @@ fn commit_at(dir: &Path, time: &str, subject: &str) {
 }
 
 /// Checkout depends on cart and on payment; frontend on nothing. One commit
-/// to each service's code in March 2024, then a later one to cart.
+/// to cart (tagged `v1`), checkout and frontend (tagged `v2`) in March 2024,
+/// then a later one to cart.
 fn incident_repo() -> TempDir {
     let dir = TempDir::new().unwrap();
     git(dir.path(), &["init", "-q", "-b", "main"]);
@@ -1092,6 +1093,11 @@ fn incident_repo() -> TempDir {
             &format!("package main // {time}\n"),
         );
         commit_at(dir.path(), time, &format!("{svc} at {time}"));
+        match (svc, dir.path().join(".git/refs/tags/v1").exists()) {
+            ("cart", false) => git(dir.path(), &["tag", "v1"]),
+            ("frontend", _) => git(dir.path(), &["tag", "v2"]),
+            _ => {}
+        }
     }
     dir
 }
@@ -1437,4 +1443,81 @@ fn a_service_selecting_one_workload_is_its_alias() {
         })
         .collect();
     assert_eq!(dependents, [("frontend", "loadgenerator")]);
+}
+
+#[test]
+fn a_revision_bounds_timeline_and_suspects_by_ancestry() {
+    let dir = incident_repo();
+    // A commit off main, later than the one to checkout on main.
+    git(dir.path(), &["checkout", "-q", "-b", "side", "v1"]);
+    fs::write(dir.path().join("src/payment/main.go"), "package side\n").unwrap();
+    commit_at(dir.path(), "2024-03-02T18:00:00Z", "payment on side");
+    git(dir.path(), &["checkout", "-q", "main"]);
+
+    let timeline = |services: &str, args: &[&str]| {
+        events(
+            ogrep(dir.path())
+                .args(["--json", "--timeline", services])
+                .args(args),
+        )
+    };
+    let checkout = ("checkout", "checkout at 2024-03-02T12:00:00Z");
+    let frontend = ("frontend", "frontend at 2024-03-03T12:00:00Z");
+    let cart_early = ("cart", "cart at 2024-03-01T12:00:00Z");
+    let cart_late = ("cart", "cart at 2024-03-10T12:00:00Z");
+    // v1..v2, however long ago: the range, not the default window.
+    assert_eq!(
+        timeline("checkout,frontend", &["--since", "v1", "--until", "v2"]),
+        pairs(&[frontend, checkout])
+    );
+    assert_eq!(
+        timeline("checkout", &["--since", "v1"]),
+        pairs(&[cart_late, checkout])
+    );
+    // What `side` reaches, not what is older than it.
+    assert_eq!(
+        timeline("checkout", &["--since", "v1", "--until", "side"]),
+        pairs(&[("payment", "payment on side")])
+    );
+    // A revision and a time together.
+    assert_eq!(
+        timeline(
+            "checkout,frontend",
+            &["--since", "2024-03-02T18:00:00Z", "--until", "v2"]
+        ),
+        pairs(&[frontend])
+    );
+    assert_eq!(
+        timeline(
+            "checkout,frontend",
+            &["--since", "v1", "--until", "2024-03-02T18:00:00Z"]
+        ),
+        pairs(&[checkout])
+    );
+    // Without --since: the seven days before v2's commit.
+    assert_eq!(
+        timeline("checkout", &["--until", "v2"]),
+        pairs(&[checkout, cart_early])
+    );
+
+    let suspects = records(ogrep(dir.path()).args([
+        "--json",
+        "--suspects",
+        "checkout",
+        "--since",
+        "v1",
+        "--until",
+        "v2",
+    ]));
+    let changed: Vec<(&str, usize)> = suspects
+        .iter()
+        .map(|r| &r["data"]["suspect"])
+        .map(|s| {
+            (
+                s["service"].as_str().unwrap(),
+                s["changes"].as_array().unwrap().len(),
+            )
+        })
+        .collect();
+    assert_eq!(changed, [("checkout", 1), ("cart", 0), ("payment", 0)]);
 }

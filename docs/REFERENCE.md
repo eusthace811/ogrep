@@ -782,6 +782,24 @@ ogrep --suspects checkout --until 2024-03-01T18:00:00Z .                  # the 
 ogrep --timeline checkout --since 2024-02-01 --until 2024-03-05T00:00:00Z .
 ```
 
+With `--suspects` and `--timeline`, a `--since` or `--until` value that names a
+git revision (a tag, a branch or a commit hash) bounds by ancestry instead of
+time: `--since REV` keeps the commits not reachable from REV, and `--until REV`
+the commits reachable from it, so the two together are `git log SINCE..UNTIL`:
+what shipped between two deployed versions.
+
+```bash
+ogrep --timeline checkout --since v2.0.0 --until v2.1.0 .   # commits to checkout in v2.0.0..v2.1.0
+```
+
+A value is a revision when `git rev-parse --verify VALUE^{commit}` accepts it,
+the rule `--changed-since` decides by; anything else is a time, as before. A
+revision range is not cut to the default window, and no number of commits caps
+it; merge commits are left out, as they always are. One bound may be a revision
+and the other a time. With `--until REV` alone, the default window counts back
+from REV's commit time. Services and their directories are still read from the
+working tree, not from the revision.
+
 **`--stack-trace FILE`** (`-` for standard input) reads Python, Java/Kotlin, Go,
 Rust, JavaScript/TypeScript and C# (`in /src/File.cs:line 42`, also with a
 Windows path) frames, or any `path:line`, resolves each path to
@@ -980,7 +998,7 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `--rank-fit <FILE>` | Fit `--rank` weights to this repository from examples |
 | `--history` | Search the lines commits added or removed (needs `ogrep index --history`); see [Search history](#search-history-and-past-versions) |
 | `--introduced` | When a pattern first appeared, was last removed, and whether it is present now |
-| `--since <WHEN>` / `--until <WHEN>` | With `--history`/`--introduced`/`--suspects`/`--timeline`: commit time window (`2 weeks ago`, `2024-05-01`, `2h`, `3d`) |
+| `--since <WHEN>` / `--until <WHEN>` | With `--history`/`--introduced`/`--suspects`/`--timeline`: commit time window (`2 weeks ago`, `2024-05-01`, `2h`, `3d`); with the last two also a revision, bounding by ancestry |
 | `--author <PAT>` | With `--history`/`--introduced`: author regex (case-insensitive) |
 | `--changed-since <REV\|WHEN>` | Search only files changed since a commit or time, with uncommitted changes |
 | `--at <REV>` | Search the tree as it was at a git revision |

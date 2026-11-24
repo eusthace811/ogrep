@@ -225,6 +225,7 @@ ogrep --blast cart .                               # who depends on cart (with e
 ogrep --suspects checkout,frontend --since 2h .    # likely root causes, recent changes weighted
 ogrep --timeline checkout --since 3d .             # commits to checkout and to what it depends on
 ogrep --suspects checkout --until 2024-03-01T18:00Z .   # a past incident: nothing after WHEN counts
+ogrep --timeline checkout --since v2.0.0 --until v2.1.0 .   # commits shipped between two versions (tags, branches or hashes)
 ogrep --stack-trace trace.txt .                    # where each frame of a trace is in this repo (- for stdin)
 ogrep --log-templates . logs/app.log               # a log reduced to its message templates, with counts
 ogrep --log-templates --new-since 1h . logs/       # log messages that only started recently

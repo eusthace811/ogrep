@@ -132,6 +132,9 @@ These flags combine with each other and with `--rank`.
 - **`--until WHEN`** (with `--suspects` or `--timeline`): ignore commits made
   after WHEN, to look at a past incident. Without `--since`, the default window
   counts back from WHEN; an explicit `--since` is taken as given.
+- **`--since REV` / `--until REV`** (with `--suspects` or `--timeline`): a tag,
+  branch or commit hash bounds by ancestry, so `--since v1 --until v2` is the
+  commits in `v1..v2`, however old (what shipped between two deployments).
 - **`--stack-trace FILE`** (or `-` for stdin): frames from Python, Java/Kotlin,
   Go, Rust, JavaScript/TypeScript, C# (or any `path:line`).
   - **Resolution:** each frame maps to the tracked file with the longest

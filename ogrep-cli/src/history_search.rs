@@ -743,19 +743,24 @@ impl ChangedSets {
     }
 }
 
-/// The files changed since `since` in `repo`, repository-relative.
-fn changed_in_repo(repo: &Path, since: &str) -> Result<Changed> {
-    let git = |args: &[&str]| history::git_output(repo, args);
-    let is_rev = history::git(repo)
+/// Whether `value` names a commit in `repo` (a tag, branch or hash) rather
+/// than a time: the rule every flag taking `REV|WHEN` decides by.
+pub fn is_revision(repo: &Path, value: &str) -> bool {
+    history::git(repo)
         .args([
             "rev-parse",
             "--verify",
             "--quiet",
-            &format!("{since}^{{commit}}"),
+            &format!("{value}^{{commit}}"),
         ])
         .output()
-        .is_ok_and(|o| o.status.success());
-    let rev = if is_rev {
+        .is_ok_and(|o| o.status.success())
+}
+
+/// The files changed since `since` in `repo`, repository-relative.
+fn changed_in_repo(repo: &Path, since: &str) -> Result<Changed> {
+    let git = |args: &[&str]| history::git_output(repo, args);
+    let rev = if is_revision(repo, since) {
         Some(since.to_string())
     } else {
         let time = resolve_when(repo, since, false)?;

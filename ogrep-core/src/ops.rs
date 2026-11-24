@@ -865,15 +865,46 @@ pub struct Change {
     pub files: Vec<String>,
 }
 
-/// Commits from `since` up to `until` (UNIX times; no upper bound when `None`)
-/// and the files each touched.
-pub fn recent_changes(root: &Path, since: i64, until: Option<i64>) -> Vec<Change> {
+/// One end of the commits to read: a commit time, or a revision bounding by
+/// ancestry.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Bound {
+    /// UNIX time.
+    Time(i64),
+    Rev(String),
+}
+
+/// The commits to read: from `since` (commits at or after a time, or not
+/// reachable from a revision) up to `until` (commits at or before a time, or
+/// reachable from a revision; from `HEAD` when `None`). Two revisions are
+/// `git log SINCE..UNTIL`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Range {
+    pub since: Bound,
+    pub until: Option<Bound>,
+}
+
+/// The commits in `range`, merges aside, and the files each touched.
+pub fn recent_changes(root: &Path, range: &Range) -> Vec<Change> {
     let mut git = crate::history::git(root);
-    git.args(["log", "--no-merges", &format!("--since={since}")]);
-    if let Some(until) = until {
-        git.arg(format!("--until={until}"));
+    git.args([
+        "log",
+        "--no-merges",
+        "--format=%x01%H %ct %s",
+        "--name-only",
+    ]);
+    let mut tip = "HEAD";
+    match &range.until {
+        Some(Bound::Time(until)) => _ = git.arg(format!("--until={until}")),
+        Some(Bound::Rev(rev)) => tip = rev,
+        None => {}
     }
-    let out = git.args(["--format=%x01%H %ct %s", "--name-only"]).output();
+    git.arg(tip);
+    match &range.since {
+        Bound::Time(since) => git.arg(format!("--since={since}")),
+        Bound::Rev(rev) => git.arg(format!("^{rev}")),
+    };
+    let out = git.arg("--").output();
     let Ok(out) = out else { return Vec::new() };
     String::from_utf8_lossy(&out.stdout)
         .split('\x01')
