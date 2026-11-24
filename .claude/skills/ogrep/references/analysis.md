@@ -122,8 +122,9 @@ These flags combine with each other and with `--rank`.
   - **Evidence:** in a test on 30 injected incidents, the cause was first in 67%
     of cases and in the top three in all of them. Treat it as a ranked list of
     hypotheses to check, not a verdict.
-- **`--timeline SERVICE`**: commits to SERVICE and to its direct dependencies,
-  newest first (default: the last 7 days; `--since` changes it).
+- **`--timeline A,B,...`**: commits to the named services and to their direct
+  dependencies, newest first, one row per service and commit (default: the last
+  7 days; `--since` changes it).
 - **`--until WHEN`** (with `--suspects` or `--timeline`): ignore commits made
   after WHEN, to look at a past incident. Without `--since`, the default window
   counts back from WHEN; an explicit `--since` is taken as given.

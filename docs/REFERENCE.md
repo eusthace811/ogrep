@@ -749,7 +749,10 @@ in the top three in all of them, against 27% and 57% for ranking by shared
 dependency alone.
 
 **`--timeline SERVICE`** lists commits to SERVICE and to the services it depends
-on directly, newest first (default: the last 7 days).
+on directly, newest first (default: the last 7 days). SERVICE may be a
+comma-separated list (`--timeline checkout,frontend`): each commit is then
+listed once per service it touched among those named and their direct
+dependencies, and a name that is not a service is an error.
 
 **`--until WHEN`** makes `--suspects` and `--timeline` ignore commits made
 after WHEN, which takes the same forms as `--since`: use it to look at a past
@@ -952,7 +955,7 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `--entities` | Services, alerts and dependencies from operations files; PATTERN filters names |
 | `--blast` | Everything that depends on the service PATTERN, by distance |
 | `--suspects` | Likely causes for failing services PATTERN (comma-separated), with `--since` and `--until` |
-| `--timeline` | Commits to the service PATTERN and its dependencies, with `--since` and `--until` |
+| `--timeline` | Commits to the services PATTERN (comma-separated) and their direct dependencies, with `--since` and `--until` |
 | `--stack-trace` | Frames of the stack trace in file PATTERN (`-`: stdin), resolved to this repository |
 | `--log-templates` | Group matching log lines into templates; `--new-since WHEN`, `--template-to-code` |
 | `--similar-incidents` | Postmortems most similar to the description PATTERN |

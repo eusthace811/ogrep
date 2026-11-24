@@ -1,7 +1,7 @@
 //! Incident and operations commands: `--entities`, `--blast`, `--suspects`,
 //! `--timeline`, `--trace`, `--log-templates` and `--similar-incidents`.
 
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
@@ -174,6 +174,15 @@ fn one_service<'m>(m: &'m OpsModel, name: &str) -> Result<&'m str> {
     }
 }
 
+/// The services a comma-separated list names.
+fn services_named(m: &OpsModel, list: &str) -> Result<Vec<String>> {
+    list.split(',')
+        .map(str::trim)
+        .filter(|s| !s.is_empty())
+        .map(|s| one_service(m, s).map(String::from))
+        .collect()
+}
+
 fn blast(repo: &Path, opts: &SearchOptions, out: &mut impl Write) -> Result<bool> {
     let (m, _) = model(repo)?;
     let target = one_service(&m, &opts.pattern)?;
@@ -208,13 +217,7 @@ fn suspects(
     out: &mut impl Write,
 ) -> Result<bool> {
     let (m, _) = model(repo)?;
-    let failing: Vec<String> = opts
-        .pattern
-        .split(',')
-        .map(str::trim)
-        .filter(|s| !s.is_empty())
-        .map(|s| one_service(&m, s).map(String::from))
-        .collect::<Result<_>>()?;
+    let failing = services_named(&m, &opts.pattern)?;
     let w = window(repo, since, until, DAY)?;
     let changes = ops::recent_changes(repo, w.since, w.until);
     let ranked = m.suspects(&failing, &changes);
@@ -259,18 +262,21 @@ fn timeline(
     out: &mut impl Write,
 ) -> Result<bool> {
     let (m, _) = model(repo)?;
-    let target = one_service(&m, &opts.pattern)?;
+    let targets = services_named(&m, &opts.pattern)?;
+    if targets.is_empty() {
+        bail!("--timeline needs a service name; `ogrep --entities .` lists them");
+    }
     let w = window(repo, since, until, 7 * DAY)?;
     let changes = ops::recent_changes(repo, w.since, w.until);
-    // The service and what it depends on directly.
-    let mut scope: Vec<(String, usize)> = m
-        .dependencies(target)
-        .into_iter()
-        .filter(|(_, d)| *d <= 1)
+    // Each service asked for and what it depends on directly, once.
+    let scope: BTreeSet<String> = targets
+        .iter()
+        .flat_map(|t| m.dependencies(t))
+        .filter(|(_, distance)| *distance <= 1)
+        .map(|(svc, _)| svc)
         .collect();
-    scope.sort_by(|a, b| (a.1, &a.0).cmp(&(b.1, &b.0)));
     let mut events: Vec<(i64, &str, &ops::Change)> = Vec::new();
-    for (svc, _) in &scope {
+    for svc in &scope {
         for c in m.attribute(svc, &changes) {
             events.push((c.time, svc.as_str(), c));
         }

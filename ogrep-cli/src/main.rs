@@ -257,9 +257,9 @@ struct Cli {
     #[arg(long = "suspects")]
     suspects: bool,
 
-    /// Commits to the service PATTERN and to what it directly depends on, since
-    /// --since (default 7 days) and, with --until, no later than it, newest
-    /// first.
+    /// Commits to the services PATTERN (comma-separated names) and to what
+    /// they directly depend on, since --since (default 7 days) and, with
+    /// --until, no later than it, newest first.
     #[arg(long = "timeline")]
     timeline: bool,
 

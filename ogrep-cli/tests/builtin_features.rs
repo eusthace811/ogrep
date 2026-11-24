@@ -1202,3 +1202,40 @@ fn until_is_refused_where_it_means_nothing() {
         .code(2)
         .stderr(predicates::str::contains("--since is later than --until"));
 }
+
+#[test]
+fn timeline_takes_a_list_of_services() {
+    let dir = incident_repo();
+    let timeline = |services: &str| {
+        events(ogrep(dir.path()).args([
+            "--json",
+            "--timeline",
+            services,
+            "--since",
+            "2024-02-01T00:00:00Z",
+        ]))
+    };
+    let cart_late = ("cart", "cart at 2024-03-10T12:00:00Z");
+    let frontend = ("frontend", "frontend at 2024-03-03T12:00:00Z");
+    let checkout = ("checkout", "checkout at 2024-03-02T12:00:00Z");
+    let cart_early = ("cart", "cart at 2024-03-01T12:00:00Z");
+    // One name: the service and what it depends on directly.
+    assert_eq!(
+        timeline("checkout"),
+        pairs(&[cart_late, checkout, cart_early])
+    );
+    assert_eq!(
+        timeline("checkout,frontend"),
+        pairs(&[cart_late, frontend, checkout, cart_early])
+    );
+    // Cart is asked for and is a dependency of checkout: listed once.
+    assert_eq!(
+        timeline("checkout, cart,checkout"),
+        pairs(&[cart_late, checkout, cart_early])
+    );
+    ogrep(dir.path())
+        .args(["--timeline", "checkout,nosuch"])
+        .assert()
+        .code(2)
+        .stderr(predicates::str::contains("no service named \"nosuch\""));
+}
