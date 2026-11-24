@@ -1239,3 +1239,47 @@ fn timeline_takes_a_list_of_services() {
         .code(2)
         .stderr(predicates::str::contains("no service named \"nosuch\""));
 }
+
+#[test]
+fn csharp_stack_frames_resolve_to_repository_files() {
+    let store = "namespace Shop.Cart;\n\npublic class CartStore\n{\n    public void AddItem(string userId)\n    {\n        throw new InvalidOperationException(\"boom\");\n    }\n}\n";
+    let program = "namespace Shop.Cart;\n\npublic static class Program\n{\n    public static void Main()\n    {\n        new CartStore().AddItem(\"u\");\n    }\n}\n";
+    let dir = repo(&[
+        ("src/cart/src/cartstore/CartStore.cs", store),
+        ("src/cart/src/Program.cs", program),
+    ]);
+    // A container path, then a Windows build path.
+    fs::write(
+        dir.path().join("trace.txt"),
+        "Unhandled exception. System.InvalidOperationException: boom\n   at Shop.Cart.CartStore.AddItem(String userId) in /usr/src/app/src/cartstore/CartStore.cs:line 7\n   at Shop.Cart.Program.Main() in C:\\build\\cart\\src\\Program.cs:line 7\n",
+    )
+    .unwrap();
+    let frames: Vec<(String, u64, String)> =
+        records(ogrep(dir.path()).args(["--json", "--stack-trace", "trace.txt"]))
+            .iter()
+            .map(|r| {
+                assert_eq!(r["type"], "frame");
+                let d = &r["data"];
+                (
+                    d["path"].as_str().unwrap().to_string(),
+                    d["line_number"].as_u64().unwrap(),
+                    d["function"].as_str().unwrap().to_string(),
+                )
+            })
+            .collect();
+    assert_eq!(
+        frames,
+        [
+            (
+                "src/cart/src/cartstore/CartStore.cs".to_string(),
+                7,
+                "Shop.Cart.CartStore.AddItem".to_string()
+            ),
+            (
+                "src/cart/src/Program.cs".to_string(),
+                7,
+                "Shop.Cart.Program.Main".to_string()
+            ),
+        ]
+    );
+}

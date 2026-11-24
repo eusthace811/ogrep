@@ -2,8 +2,9 @@
 //!
 //! Recognises the frame formats of Python (`File "x.py", line 12, in f`), Java
 //! and Kotlin (`at pkg.Cls.m(Cls.java:12)`), Go (`/src/x.go:12 +0x1f`), Rust
-//! (`at src/x.rs:12:5`), JavaScript/TypeScript (`at f (src/x.ts:12:5)`), and
-//! bare `path:line` references. Paths in a trace are often absolute or from
+//! (`at src/x.rs:12:5`), JavaScript/TypeScript (`at f (src/x.ts:12:5)`), C#
+//! (`at Ns.Cls.M(String a) in /src/Cls.cs:line 12`), and bare `path:line`
+//! references. Paths in a trace are often absolute or from
 //! another machine; a frame resolves to the indexed file with the longest
 //! matching path suffix.
 
@@ -33,6 +34,9 @@ pub fn frames(trace: &str) -> Vec<Frame> {
         // Generic path:line[:col] (Go, Rust, C, Ruby, PHP, compilers)
         Regex::new(r"((?:[A-Za-z]:)?[\w./\\-]+\.(?:go|rs|c|cc|cpp|h|hpp|rb|php|py|cs|swift|m|mm|ex|exs|erl|clj|lua|pl)):(\d+)").unwrap(),
     ];
+    // C#: at Ns.Cls.M(String a) in /src/Cls.cs:line 12. The path may hold
+    // spaces and a drive letter.
+    let csharp = Regex::new(r"at (\S+?) ?\(.*\) in (.+?):line (\d+)").unwrap();
     let file_url = Regex::new(r"file://(?:/([A-Za-z]:))?").unwrap();
     let mut out = Vec::new();
     for line in trace.lines() {
@@ -57,6 +61,12 @@ pub fn frames(trace: &str) -> Vec<Frame> {
                 format!("{dir}/{file}")
             };
             Some((path, c[3].parse().unwrap_or(0), Some(qualified.to_string())))
+        } else if let Some(c) = csharp.captures(line) {
+            Some((
+                c[2].to_string(),
+                c[3].parse().unwrap_or(0),
+                Some(c[1].to_string()),
+            ))
         } else if let Some(c) = patterns[2].captures(line) {
             Some((
                 c[2].to_string(),
@@ -137,6 +147,36 @@ mod tests {
                 ("C:/app/x.js".to_string(), 1, Some("f".to_string())),
             ]
         );
+    }
+
+    #[test]
+    fn csharp_frames_are_read() {
+        let trace = "Unhandled exception. System.InvalidOperationException: boom\n   at Shop.Cart.CartStore.AddItemAsync(String userId, Int32 quantity) in /usr/src/app/src/cartstore/CartStore.cs:line 42\n   at Shop.Cart.Program.<Main>d__0.MoveNext() in C:\\src\\My App\\Program.cs:line 7\n   at System.Threading.Tasks.Task.Wait()\n";
+        let found: Vec<(String, usize, Option<String>)> = frames(trace)
+            .into_iter()
+            .map(|f| (f.raw_path, f.line, f.function))
+            .collect();
+        assert_eq!(
+            found,
+            [
+                (
+                    "/usr/src/app/src/cartstore/CartStore.cs".to_string(),
+                    42,
+                    Some("Shop.Cart.CartStore.AddItemAsync".to_string())
+                ),
+                (
+                    "C:/src/My App/Program.cs".to_string(),
+                    7,
+                    Some("Shop.Cart.Program.<Main>d__0.MoveNext".to_string())
+                ),
+            ]
+        );
+        let paths = [
+            "src/cart/src/cartstore/CartStore.cs".to_string(),
+            "src/cart/src/Program.cs".to_string(),
+            "src/accounting/Program.cs".to_string(),
+        ];
+        assert_eq!(resolve(&found[0].0, &paths), Some(paths[0].as_str()));
     }
 
     #[test]

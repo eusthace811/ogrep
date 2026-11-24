@@ -129,7 +129,7 @@ These flags combine with each other and with `--rank`.
   after WHEN, to look at a past incident. Without `--since`, the default window
   counts back from WHEN; an explicit `--since` is taken as given.
 - **`--stack-trace FILE`** (or `-` for stdin): frames from Python, Java/Kotlin,
-  Go, Rust, JavaScript/TypeScript (or any `path:line`).
+  Go, Rust, JavaScript/TypeScript, C# (or any `path:line`).
   - **Resolution:** each frame maps to the tracked file with the longest
     matching path suffix, so frames from containers or CI paths still resolve.
   - **Output:** the line and its enclosing definition.

@@ -770,7 +770,8 @@ ogrep --timeline checkout --since 2024-02-01 --until 2024-03-05T00:00:00Z .
 ```
 
 **`--stack-trace FILE`** (`-` for standard input) reads Python, Java/Kotlin, Go,
-Rust and JavaScript/TypeScript frames, or any `path:line`, resolves each path to
+Rust, JavaScript/TypeScript and C# (`in /src/File.cs:line 42`, also with a
+Windows path) frames, or any `path:line`, resolves each path to
 the tracked file with the longest matching path suffix (so frames from
 `site-packages`, containers or CI machines still land), and shows the line and
 its enclosing definition.
