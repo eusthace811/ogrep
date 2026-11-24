@@ -2,6 +2,10 @@
 //! repository already has: Docker Compose files, Kubernetes manifests,
 //! Backstage `catalog-info.yaml`, Prometheus alert rules, and `.env` files.
 //!
+//! A Kubernetes Service that selects the pods of one workload with another
+//! name (`frontend-external` in front of the Deployment `frontend`) is an alias
+//! of that workload, not a service of its own.
+//!
 //! Every dependency edge records where it came from:
 //!
 //! - **declared**: the file states it (`depends_on`, Backstage `dependsOn`);
@@ -36,6 +40,10 @@ pub struct Entity {
     pub kind: String,
     pub id: String,
     pub locations: Vec<Location>,
+    /// Other names the entity answers to, sorted: the Kubernetes Services
+    /// that select only this workload's pods.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub aliases: Vec<String>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -178,10 +186,58 @@ fn find_line(lines: &[&str], from: usize, until: usize, needle: &str) -> Option<
 /// A configuration value of a service: `(line, variable name, expanded value)`.
 type EnvRef = (usize, String, String);
 
+/// The labels a Kubernetes Service selects pods by, or the labels a
+/// workload gives its pods.
+struct PodLabels {
+    /// The Service or the workload.
+    owner: String,
+    namespace: Option<String>,
+    labels: serde_yaml::Mapping,
+}
+
+impl PodLabels {
+    fn of(
+        owner: &str,
+        doc: &serde_yaml::Value,
+        labels: Option<&serde_yaml::Value>,
+    ) -> Option<Self> {
+        let labels = labels?.as_mapping().filter(|l| !l.is_empty())?;
+        Some(PodLabels {
+            owner: owner.to_string(),
+            namespace: doc
+                .get("metadata")
+                .and_then(|m| m.get("namespace"))
+                .and_then(|n| n.as_str())
+                .map(String::from),
+            labels: labels.clone(),
+        })
+    }
+
+    /// Whether this selector picks the pods `pods` describes. A manifest
+    /// that leaves the namespace out can be applied to any.
+    fn selects(&self, pods: &PodLabels) -> bool {
+        let same_namespace = match (&self.namespace, &pods.namespace) {
+            (Some(a), Some(b)) => a == b,
+            _ => true,
+        };
+        same_namespace
+            && self
+                .labels
+                .iter()
+                .all(|(k, v)| pods.labels.get(k) == Some(v))
+    }
+}
+
 struct Builder<'a> {
     model: OpsModel,
     entity_index: HashMap<(String, String), usize>,
     env: &'a HashMap<String, String>,
+    /// Services declared by anything but a Kubernetes Service.
+    declared: HashSet<String>,
+    /// Kubernetes Service selectors.
+    selectors: Vec<PodLabels>,
+    /// Pod template labels of Deployments, StatefulSets and DaemonSets.
+    pods: Vec<PodLabels>,
 }
 
 impl Builder<'_> {
@@ -203,6 +259,7 @@ impl Builder<'_> {
                     kind: kind.to_string(),
                     id: id.to_string(),
                     locations: vec![loc],
+                    aliases: Vec::new(),
                 });
             }
         }
@@ -273,6 +330,7 @@ impl Builder<'_> {
                 })
                 .map_or(1, |i| i + 1);
             self.entity("service", name, file, svc_line);
+            self.declared.insert(name.to_string());
             // The block ends at the next line indented like the service key.
             let indent = lines[svc_line - 1].len() - lines[svc_line - 1].trim_start().len();
             let end = (svc_line..lines.len())
@@ -396,6 +454,20 @@ impl Builder<'_> {
             };
             let line = find_line(&lines, 0, lines.len(), &format!("name: {name}")).unwrap_or(1);
             self.entity("service", name, file, line);
+            let spec = doc.get("spec");
+            if kind == "Service" {
+                let selector = spec.and_then(|s| s.get("selector"));
+                self.selectors.extend(PodLabels::of(name, &doc, selector));
+            } else {
+                self.declared.insert(name.to_string());
+            }
+            if matches!(kind, "Deployment" | "StatefulSet" | "DaemonSet") {
+                let labels = spec
+                    .and_then(|s| s.get("template"))
+                    .and_then(|t| t.get("metadata"))
+                    .and_then(|m| m.get("labels"));
+                self.pods.extend(PodLabels::of(name, &doc, labels));
+            }
             let mut env_refs = Vec::new();
             // A pod spec sits at spec (Pod), spec.template.spec (Deployment
             // and the like) or spec.jobTemplate.spec.template.spec (CronJob).
@@ -406,8 +478,7 @@ impl Builder<'_> {
                     .unwrap_or(s);
                 s.get("template").and_then(|t| t.get("spec")).or(Some(s))
             }
-            let containers = doc
-                .get("spec")
+            let containers = spec
                 .and_then(pod)
                 .and_then(|s| s.get("containers"))
                 .and_then(|c| c.as_sequence())
@@ -453,6 +524,9 @@ impl Builder<'_> {
             .to_ascii_lowercase();
             let line = find_line(&lines, 0, lines.len(), &format!("name: {name}")).unwrap_or(1);
             self.entity(&kind, name, file, line);
+            if kind == "service" {
+                self.declared.insert(name.to_string());
+            }
             for field in ["dependsOn", "consumesApis"] {
                 for dep in doc
                     .get("spec")
@@ -526,6 +600,71 @@ impl Builder<'_> {
         }
         true
     }
+
+    /// Fold each Kubernetes Service that selects the pods of exactly one
+    /// workload with another name into that workload: the Service's entity
+    /// goes, and the workload gains its name as an alias and its locations.
+    /// Returns alias (lowercase) -> workload.
+    fn alias_selected_services(&mut self) -> HashMap<String, String> {
+        // A Service declared twice must pick the same workload both times.
+        let mut picked: BTreeMap<&str, Option<&str>> = BTreeMap::new();
+        for selector in &self.selectors {
+            let workloads: BTreeSet<&str> = self
+                .pods
+                .iter()
+                .filter(|pods| selector.selects(pods))
+                .map(|pods| pods.owner.as_str())
+                .collect();
+            let one = match workloads.first() {
+                Some(&w) if workloads.len() == 1 => Some(w),
+                _ => None,
+            };
+            picked
+                .entry(&selector.owner)
+                .and_modify(|w| *w = w.filter(|_| *w == one))
+                .or_insert(one);
+        }
+        let mut aliases = HashMap::new();
+        for (service, workload) in picked {
+            let Some(workload) = workload else { continue };
+            if service == workload || self.declared.contains(service) {
+                continue;
+            }
+            let is = |e: &Entity, id: &str| e.kind == "service" && e.id == id;
+            let Some(at) = self.model.entities.iter().position(|e| is(e, service)) else {
+                continue;
+            };
+            let alias = self.model.entities.remove(at);
+            let Some(entity) = self.model.entities.iter_mut().find(|e| is(e, workload)) else {
+                continue;
+            };
+            entity.aliases.push(alias.id);
+            for loc in alias.locations {
+                if !entity.locations.contains(&loc) {
+                    entity.locations.push(loc);
+                }
+            }
+            aliases.insert(service.to_ascii_lowercase(), workload.to_string());
+        }
+        // Edges read so far named the Service.
+        let canonical = |name: &mut String| {
+            if let Some(workload) = aliases.get(&name.to_ascii_lowercase()) {
+                name.clone_from(workload);
+            }
+        };
+        for e in &mut self.model.edges {
+            canonical(&mut e.from);
+            canonical(&mut e.to);
+        }
+        let mut seen: Vec<Edge> = Vec::new();
+        for e in std::mem::take(&mut self.model.edges) {
+            if e.from != e.to && !seen.contains(&e) {
+                seen.push(e);
+            }
+        }
+        self.model.edges = seen;
+        aliases
+    }
 }
 
 use serde::Deserialize;
@@ -537,6 +676,9 @@ pub fn scan(root: &Path, paths: &[String]) -> OpsModel {
         model: OpsModel::default(),
         entity_index: HashMap::new(),
         env: &env,
+        declared: HashSet::new(),
+        selectors: Vec::new(),
+        pods: Vec::new(),
     };
     let mut services_seen = Vec::new();
     for path in paths.iter().filter(|p| is_yaml(p)) {
@@ -555,6 +697,7 @@ pub fn scan(root: &Path, paths: &[String]) -> OpsModel {
             b.kubernetes(path, &text, &mut services_seen);
         }
     }
+    let aliases = b.alias_selected_services();
     // Inferred edges: configuration values naming another known service.
     let known: HashSet<String> = b
         .model
@@ -576,6 +719,9 @@ pub fn scan(root: &Path, paths: &[String]) -> OpsModel {
                 "calls"
             };
             for host in hosts(&value) {
+                let host = aliases
+                    .get(&host)
+                    .map_or(host, |workload| workload.to_ascii_lowercase());
                 if known.contains(&host) && host != svc.to_ascii_lowercase() {
                     let text = lines.get(line - 1).cloned().unwrap_or_default();
                     b.edge(
@@ -840,6 +986,72 @@ mod tests {
             vec!["checkout"]
         );
         assert_eq!(hosts("user:pw@db:5432"), vec!["db"]);
+    }
+
+    fn workload(name: &str, namespace: &str, app: &str) -> String {
+        format!(
+            "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: {name}\n  namespace: {namespace}\nspec:\n  template:\n    metadata:\n      labels:\n        app: {app}\n---\n"
+        )
+    }
+
+    fn service(name: &str, namespace: &str, app: &str) -> String {
+        format!(
+            "apiVersion: v1\nkind: Service\nmetadata:\n  name: {name}\n  namespace: {namespace}\nspec:\n  selector:\n    app: {app}\n---\n"
+        )
+    }
+
+    /// `(id, aliases)` of the services in manifests, one file each.
+    fn aliases(manifests: &[String]) -> Vec<(String, Vec<String>)> {
+        let repo = tempfile::tempdir().unwrap();
+        let mut paths = Vec::new();
+        for (i, text) in manifests.iter().enumerate() {
+            paths.push(format!("m{i}.yaml"));
+            std::fs::write(repo.path().join(&paths[i]), text).unwrap();
+        }
+        scan(repo.path(), &paths)
+            .entities
+            .into_iter()
+            .map(|e| (e.id, e.aliases))
+            .collect()
+    }
+
+    #[test]
+    fn service_aliases_need_one_workload_in_the_namespace() {
+        let own = |id: &str| (id.to_string(), Vec::new());
+        // The Service and its workload may sit in different files.
+        assert_eq!(
+            aliases(&[
+                service("web-public", "shop", "web"),
+                workload("web", "shop", "web")
+            ]),
+            [("web".to_string(), vec!["web-public".to_string()])]
+        );
+        // Another namespace's pods are not selected.
+        assert_eq!(
+            aliases(&[
+                service("web-public", "ops", "web"),
+                workload("web", "shop", "web")
+            ]),
+            [own("web"), own("web-public")]
+        );
+        // Two workloads carry the label: the Service stands for neither.
+        assert_eq!(
+            aliases(&[
+                service("web-public", "shop", "web"),
+                workload("web", "shop", "web"),
+                workload("web-canary", "shop", "web"),
+            ]),
+            [own("web"), own("web-canary"), own("web-public")]
+        );
+        // A name that is also a workload stays an entity.
+        assert_eq!(
+            aliases(&[
+                service("worker", "shop", "web"),
+                workload("web", "shop", "web"),
+                workload("worker", "shop", "worker"),
+            ]),
+            [own("web"), own("worker")]
+        );
     }
 
     #[test]

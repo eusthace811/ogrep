@@ -123,7 +123,11 @@ fn entities(repo: &Path, opts: &SearchOptions, ci: bool, out: &mut impl Write) -
     let matcher = opts.matcher(ci)?;
     let mut any = false;
     for e in &m.entities {
-        if !matcher.is_match(&e.id)? {
+        let mut named = matcher.is_match(&e.id)?;
+        for alias in &e.aliases {
+            named = named || matcher.is_match(alias)?;
+        }
+        if !named {
             continue;
         }
         any = true;
@@ -143,17 +147,14 @@ fn entities(repo: &Path, opts: &SearchOptions, ci: bool, out: &mut impl Write) -
             t.dedup();
             t
         };
-        if targets.is_empty() {
-            writeln!(out, "{:<8} {:<24} {at}", e.kind, e.id)?;
-        } else {
-            writeln!(
-                out,
-                "{:<8} {:<24} {at}  -> {}",
-                e.kind,
-                e.id,
-                targets.join(", ")
-            )?;
+        write!(out, "{:<8} {:<24} {at}", e.kind, e.id)?;
+        if !targets.is_empty() {
+            write!(out, "  -> {}", targets.join(", "))?;
         }
+        if !e.aliases.is_empty() {
+            write!(out, "  (also {})", e.aliases.join(", "))?;
+        }
+        writeln!(out)?;
     }
     Ok(any)
 }
@@ -162,6 +163,13 @@ fn one_service<'m>(m: &'m OpsModel, name: &str) -> Result<&'m str> {
     let services = m.services();
     if let Some(s) = services.iter().find(|s| s.eq_ignore_ascii_case(name)) {
         return Ok(s);
+    }
+    let alias_of = m
+        .entities
+        .iter()
+        .find(|e| e.kind == "service" && e.aliases.iter().any(|a| a.eq_ignore_ascii_case(name)));
+    if let Some(e) = alias_of {
+        return Ok(&e.id);
     }
     let close: Vec<&&str> = services.iter().filter(|s| s.contains(name)).collect();
     match close.as_slice() {

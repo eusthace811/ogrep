@@ -735,6 +735,19 @@ sends telemetry (`OTEL_*` variables) and what a telemetry collector scrapes are
 kept apart as `telemetry` and `observes` edges: they are not dependencies, and
 counting them would put every service in every blast radius.
 
+A Kubernetes Service whose `spec.selector` selects the pods of exactly one
+Deployment, StatefulSet or DaemonSet with a different name is an **alias** of
+that workload rather than a service of its own: a public `frontend-external`
+in front of the Deployment `frontend` adds `frontend-external` to `frontend`.
+The text output ends such a row with `(also frontend-external)`, and with
+`--json` the entity carries `"aliases": ["frontend-external"]` (sorted; the
+field is left out when there are none) and the Service's file and line among
+its `locations`. Edges that name the alias point at the workload, and
+`--entities`, `--blast`, `--suspects` and `--timeline` accept the alias as a
+name for it. A Service that selects no workload or several, or whose name
+another workload, Compose service or Backstage component has, stays an entity.
+A selector applies within its namespace; a manifest without one matches any.
+
 **`--blast SERVICE`** walks dependency edges backwards: everything that depends
 on SERVICE, directly or not, grouped by distance. **`--suspects A,B,...`** ranks
 the services the failing ones depend on (and the failing ones themselves) by the

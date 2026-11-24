@@ -114,6 +114,10 @@ These flags combine with each other and with `--rank`.
     `CART_ADDR=cart:7070`), with its file and line. Telemetry and scraping
     edges are kept apart as `telemetry`/`observes`, so they don't inflate blast
     radius.
+  - **Aliases:** a Kubernetes Service that selects the pods of one workload
+    with another name (`frontend-external` for `frontend`) is not an entity.
+    The workload lists it under `aliases` (`(also ...)` in text output), edges
+    naming it point at the workload, and the service flags accept either name.
 - **`--blast SERVICE`**: everything that depends on SERVICE, directly or not,
   grouped by distance, with evidence.
 - **`--suspects A,B,...`**: candidate root causes for failing services A, B.

@@ -1283,3 +1283,158 @@ fn csharp_stack_frames_resolve_to_repository_files() {
         ]
     );
 }
+
+/// The shape of Online Boutique's manifests: a Deployment `frontend` behind a
+/// Service of the same name and a second, public Service `frontend-external`.
+/// `shared` selects two workloads and `orphan` none.
+const BOUTIQUE: &str = "apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+        tier: web
+    spec:
+      containers:
+        - name: server
+          env:
+            - name: CART_SERVICE_ADDR
+              value: cartservice:7070
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-external
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cartservice
+spec:
+  template:
+    metadata:
+      labels:
+        app: cartservice
+        tier: web
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cartservice
+spec:
+  selector:
+    app: cartservice
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shared
+spec:
+  selector:
+    tier: web
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orphan
+spec:
+  selector:
+    app: nothing
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadgenerator
+spec:
+  template:
+    metadata:
+      labels:
+        app: loadgenerator
+    spec:
+      containers:
+        - name: main
+          env:
+            - name: FRONTEND_ADDR
+              value: frontend-external:80
+";
+
+#[test]
+fn a_service_selecting_one_workload_is_its_alias() {
+    let dir = repo(&[("kubernetes-manifests/all.yaml", BOUTIQUE)]);
+    let entities = records(ogrep(dir.path()).args(["--json", "--entities", "."]));
+    let ids: Vec<&str> = entities
+        .iter()
+        .map(|r| r["data"]["entity"]["id"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        ids,
+        [
+            "cartservice",
+            "frontend",
+            "loadgenerator",
+            "orphan",
+            "shared"
+        ]
+    );
+    let entity = |id: &str| {
+        let record = entities
+            .iter()
+            .find(|r| r["data"]["entity"]["id"] == id)
+            .unwrap();
+        &record["data"]
+    };
+    assert_eq!(
+        entity("frontend")["entity"]["aliases"],
+        serde_json::json!(["frontend-external"])
+    );
+    // A Deployment and Service of one name stay one entity without aliases.
+    assert!(
+        entity("cartservice")["entity"].get("aliases").is_none(),
+        "{}",
+        entity("cartservice")
+    );
+    // An address naming the Service is a call to the workload.
+    let calls: Vec<&str> = entity("loadgenerator")["edges"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| e["to"].as_str().unwrap())
+        .collect();
+    assert_eq!(calls, ["frontend"]);
+
+    let text = stdout(ogrep(dir.path()).args(["--entities", "frontend-external"]));
+    assert_eq!(
+        text.trim_end(),
+        "service  frontend                 kubernetes-manifests/all.yaml:4  -> cartservice  (also frontend-external)"
+    );
+    let blast = records(ogrep(dir.path()).args(["--json", "--blast", "frontend-external"]));
+    let dependents: Vec<(&str, &str)> = blast
+        .iter()
+        .map(|r| {
+            (
+                r["data"]["target"].as_str().unwrap(),
+                r["data"]["service"].as_str().unwrap(),
+            )
+        })
+        .collect();
+    assert_eq!(dependents, [("frontend", "loadgenerator")]);
+}
