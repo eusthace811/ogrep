@@ -114,6 +114,9 @@ These flags combine with each other and with `--rank`.
     `CART_ADDR=cart:7070`), with its file and line. Telemetry and scraping
     edges are kept apart as `telemetry`/`observes`, so they don't inflate blast
     radius.
+  - **Dates:** `--dated` adds `since` (commit and time) to each entity and
+    edge: the first-parent commit since which the files have held it. Use it to
+    ask whether a dependency existed when an incident happened.
   - **Aliases:** a Kubernetes Service that selects the pods of one workload
     with another name (`frontend-external` for `frontend`) is not an entity.
     The workload lists it under `aliases` (`(also ...)` in text output), edges

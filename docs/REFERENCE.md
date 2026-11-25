@@ -713,6 +713,7 @@ ogrep --rank-fit feedback.json .                    # tune --rank for this repos
 
 ```bash
 ogrep --entities .                         # services, alerts, ... and their dependencies
+ogrep --entities . --dated --json          # and the commit since which each has held
 ogrep --blast cart .                       # who depends on cart, by distance, with evidence
 ogrep --suspects checkout,frontend --since 2h .   # likely causes, newest changes weighted
 ogrep --timeline checkout --since 3d .     # commits to checkout and what it depends on
@@ -747,6 +748,20 @@ its `locations`. Edges that name the alias point at the workload, and
 name for it. A Service that selects no workload or several, or whose name
 another workload, Compose service or Backstage component has, stays an entity.
 A selector applies within its namespace; a manifest without one matches any.
+
+**`--dated`** gives each entity and each edge the commit since which the
+repository has held it: with `--json`, `"since": {"commit": SHA, "time": SECONDS}`
+on the entity and on each edge; in text, `cart (since 1a2b3c4, 40d ago)` for
+each dependency. ogrep reads the operations files of every first-parent commit
+of HEAD that changed one, so the date is when the entity or edge reached the
+main line, and one that was removed and added back is dated by the commit that
+added it back. An edge is the same edge while its two ends and its relation
+stay; moving it to another file or line does not date it again. The field is
+left out for what only the work tree holds and for what a shallow clone has
+held since its boundary commit, whose earlier history is missing. On
+microservices-demo (502 commits that change an operations file, 51 edges) it
+takes 1.1 to 1.4 s against 0.05 s without it, and on opentelemetry-demo (802
+commits, 156 edges) 1.7 to 2.1 s, on a machine with a load average of 11.
 
 **`--blast SERVICE`** walks dependency edges backwards: everything that depends
 on SERVICE, directly or not, grouped by distance. **`--suspects A,B,...`** ranks
@@ -985,6 +1000,7 @@ Prints the count to stdout (scriptable) and details to stderr:
 | `--callers` | Definitions that use PATTERN, once each, with use counts |
 | `--callees` | Names used by the definitions of PATTERN, and where they are defined (needs the graph) |
 | `--entities` | Services, alerts and dependencies from operations files; PATTERN filters names |
+| `--dated` | With `--entities`: the commit since which each entity and dependency has held |
 | `--blast` | Everything that depends on the service PATTERN, by distance |
 | `--suspects` | Likely causes for failing services PATTERN (comma-separated), with `--since` and `--until` |
 | `--timeline` | Commits to the services PATTERN (comma-separated) and their direct dependencies, with `--since` and `--until` |

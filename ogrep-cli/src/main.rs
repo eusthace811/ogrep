@@ -245,6 +245,12 @@ struct Cli {
     #[arg(long = "entities")]
     entities: bool,
 
+    /// With --entities: give each entity and dependency the first-parent
+    /// commit since which the repository's files have held it (`since` in
+    /// --json output). Reads the operations files of every such commit.
+    #[arg(long = "dated", requires = "entities")]
+    dated: bool,
+
     /// Show every service that depends on the service PATTERN, directly or not,
     /// by distance, with the file and line each dependency comes from.
     #[arg(long = "blast")]
@@ -2258,7 +2264,7 @@ fn run_search(
         ));
     }
     let ops_mode = if cli.entities {
-        Some(ops_search::Mode::Entities)
+        Some(ops_search::Mode::Entities { dated: cli.dated })
     } else if cli.blast {
         Some(ops_search::Mode::Blast)
     } else if cli.suspects {

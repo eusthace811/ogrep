@@ -22,6 +22,9 @@ use std::path::Path;
 
 use serde::Serialize;
 
+mod dates;
+pub use dates::{Since, date};
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Provenance {
@@ -44,6 +47,9 @@ pub struct Entity {
     /// that select only this workload's pods.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub aliases: Vec<String>,
+    /// The commit since which the files have declared it, from [`date`].
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub since: Option<Since>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize)]
@@ -56,6 +62,9 @@ pub struct Edge {
     pub provenance: Provenance,
     pub evidence: Location,
     pub text: String,
+    /// The commit since which the files have held it, from [`date`].
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub since: Option<Since>,
 }
 
 #[derive(Clone, Debug, Default, Serialize)]
@@ -81,13 +90,13 @@ fn is_compose(path: &str) -> bool {
 }
 
 /// Variables from `.env` files, with `${VAR}` and `${VAR:-default}` expanded.
-fn env_vars(root: &Path, paths: &[String]) -> HashMap<String, String> {
+fn env_vars(paths: &[String], read: &dyn Fn(&str) -> Option<String>) -> HashMap<String, String> {
     let mut raw = HashMap::new();
     for p in paths
         .iter()
         .filter(|p| file_name(p) == ".env" || file_name(p).ends_with(".env"))
     {
-        let Ok(text) = crate::rooted::read_indexed_to_string(root, p) else {
+        let Some(text) = read(p) else {
             continue;
         };
         for line in text.lines() {
@@ -278,6 +287,7 @@ impl Builder<'_> {
                     id: id.to_string(),
                     locations: vec![loc],
                     aliases: Vec::new(),
+                    since: None,
                 });
             }
         }
@@ -307,6 +317,7 @@ impl Builder<'_> {
                 line,
             },
             text: text.trim().to_string(),
+            since: None,
         };
         if !self.model.edges.contains(&edge) {
             self.model.edges.push(edge);
@@ -685,9 +696,32 @@ impl Builder<'_> {
 
 use serde::Deserialize;
 
+/// Whether [`scan_with`] takes anything from a file with this path and text:
+/// the same tests its loop over the files makes.
+fn read_by_scan(path: &str, text: &str) -> bool {
+    let name = file_name(path);
+    if name == ".env" || name.ends_with(".env") {
+        return true;
+    }
+    is_yaml(path)
+        && text.len() <= 4 << 20
+        && (is_compose(path)
+            || name.starts_with("catalog-info")
+            || (text.contains("groups:") && text.contains("alert:"))
+            || (text.contains("kind:") && text.contains("apiVersion:")))
+}
+
 /// Read every operations file among `paths` (relative to `root`).
 pub fn scan(root: &Path, paths: &[String]) -> OpsModel {
-    let env = env_vars(root, paths);
+    scan_with(paths, &|p| {
+        crate::rooted::read_indexed_to_string(root, p).ok()
+    })
+}
+
+/// [`scan`] over files `read` returns the text of, such as the files of a
+/// past commit.
+pub fn scan_with(paths: &[String], read: &dyn Fn(&str) -> Option<String>) -> OpsModel {
+    let env = env_vars(paths, read);
     let mut b = Builder {
         model: OpsModel::default(),
         entity_index: HashMap::new(),
@@ -698,7 +732,7 @@ pub fn scan(root: &Path, paths: &[String]) -> OpsModel {
     };
     let mut services_seen = Vec::new();
     for path in paths.iter().filter(|p| is_yaml(p)) {
-        let Ok(text) = crate::rooted::read_indexed_to_string(root, path) else {
+        let Some(text) = read(path) else {
             continue;
         };
         if text.len() > 4 << 20 {
@@ -725,7 +759,7 @@ pub fn scan(root: &Path, paths: &[String]) -> OpsModel {
     let mut texts: HashMap<String, Vec<String>> = HashMap::new();
     for (svc, file, refs) in services_seen {
         let lines = texts.entry(file.clone()).or_insert_with(|| {
-            crate::rooted::read_indexed_to_string(root, &file)
+            read(&file)
                 .map(|t| t.lines().map(String::from).collect())
                 .unwrap_or_default()
         });

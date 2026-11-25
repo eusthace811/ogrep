@@ -1521,3 +1521,71 @@ fn a_revision_bounds_timeline_and_suspects_by_ancestry() {
         .collect();
     assert_eq!(changed, [("checkout", 1), ("cart", 0), ("payment", 0)]);
 }
+
+/// The commit at `rev`.
+fn rev(dir: &Path, rev: &str) -> String {
+    let out = std::process::Command::new("git")
+        .current_dir(dir)
+        .args(["rev-parse", rev])
+        .output()
+        .unwrap();
+    String::from_utf8(out.stdout).unwrap().trim().to_string()
+}
+
+#[test]
+fn dated_entities_carry_the_commit_since_which_the_files_hold_them() {
+    let compose = |deps: &[&str], extra: &str| {
+        let list: String = deps.iter().map(|d| format!("      - {d}\n")).collect();
+        format!(
+            "services:\n  web:\n    image: web\n    depends_on:\n{list}  api:\n    image: api\n  fraud:\n    image: fraud\n{extra}"
+        )
+    };
+    let dir = repo(&[
+        ("compose.yaml", &compose(&["api"], "")),
+        (".github/workflows/ci.yml", "on: push\n"),
+        ("compose.yaml", &compose(&["api", "fraud"], "")),
+        ("compose.yaml", &compose(&["fraud"], "")),
+        ("compose.yaml", &compose(&["api", "fraud"], "")),
+    ]);
+    fs::write(
+        dir.path().join("compose.yaml"),
+        compose(&["api", "fraud", "cache"], "  cache:\n    image: cache\n"),
+    )
+    .unwrap();
+    let entities = records(ogrep(dir.path()).args(["--json", "--entities", "web", "--dated"]));
+    let web = &entities[0]["data"];
+    assert_eq!(web["entity"]["since"]["commit"], rev(dir.path(), "HEAD~4"));
+    let since: Vec<(&str, Option<String>)> = web["edges"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|e| {
+            let commit = e
+                .get("since")
+                .map(|s| s["commit"].as_str().unwrap().to_string());
+            (e["to"].as_str().unwrap(), commit)
+        })
+        .collect();
+    // Removed and added back, an edge is dated by the commit that added it
+    // back; one only the work tree holds has no date.
+    assert_eq!(
+        since,
+        [
+            ("api", Some(rev(dir.path(), "HEAD"))),
+            ("cache", None),
+            ("fraud", Some(rev(dir.path(), "HEAD~2"))),
+        ]
+    );
+    let plain = records(ogrep(dir.path()).args(["--json", "--entities", "web"]));
+    assert!(plain[0]["data"]["edges"][0].get("since").is_none());
+
+    let text = stdout(ogrep(dir.path()).args(["--entities", "web", "--dated"]));
+    let head = rev(dir.path(), "HEAD");
+    assert!(
+        text.contains(&format!("api (since {}, ", &head[..7])),
+        "{text}"
+    );
+
+    let alone = ogrep(dir.path()).args(["--dated", "web"]).output().unwrap();
+    assert!(!alone.status.success(), "--dated needs --entities");
+}

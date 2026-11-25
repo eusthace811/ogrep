@@ -12,7 +12,9 @@ use crate::search::SearchOptions;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Mode {
-    Entities,
+    Entities {
+        dated: bool,
+    },
     Blast,
     Suspects,
     Timeline,
@@ -119,7 +121,7 @@ pub fn run(
     }
     let repo = repo_of(root)?;
     let found = match mode {
-        Mode::Entities => entities(&repo, opts, ci, &mut out)?,
+        Mode::Entities { dated } => entities(&repo, opts, ci, *dated, &mut out)?,
         Mode::Blast => blast(&repo, opts, &mut out)?,
         Mode::Suspects => suspects(&repo, opts, since, until, &mut out)?,
         Mode::Timeline => timeline(&repo, opts, since, until, &mut out)?,
@@ -131,8 +133,17 @@ pub fn run(
     Ok(found)
 }
 
-fn entities(repo: &Path, opts: &SearchOptions, ci: bool, out: &mut impl Write) -> Result<bool> {
-    let (m, _) = model(repo)?;
+fn entities(
+    repo: &Path,
+    opts: &SearchOptions,
+    ci: bool,
+    dated: bool,
+    out: &mut impl Write,
+) -> Result<bool> {
+    let (mut m, _) = model(repo)?;
+    if dated {
+        ops::date(repo, &mut m)?;
+    }
     let matcher = opts.matcher(ci)?;
     let mut any = false;
     for e in &m.entities {
@@ -155,7 +166,13 @@ fn entities(repo: &Path, opts: &SearchOptions, ci: bool, out: &mut impl Write) -
             .first()
             .map_or(String::new(), |l| format!("{}:{}", l.file, l.line));
         let targets: Vec<String> = {
-            let mut t: Vec<String> = deps.iter().map(|d| d.to.clone()).collect();
+            let mut t: Vec<String> = deps
+                .iter()
+                .map(|d| match &d.since {
+                    Some(s) => format!("{} (since {:.7}, {})", d.to, s.commit, ago(s.time)),
+                    None => d.to.clone(),
+                })
+                .collect();
             t.sort();
             t.dedup();
             t
