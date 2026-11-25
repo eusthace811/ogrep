@@ -228,6 +228,19 @@ impl PodLabels {
     }
 }
 
+/// The documents of a multi-document YAML stream that parse, in order. After a
+/// syntax error serde_yaml yields that error for ever; the stream ends there.
+fn documents(text: &str) -> impl Iterator<Item = serde_yaml::Value> + '_ {
+    let mut last_error = None;
+    serde_yaml::Deserializer::from_str(text)
+        .map(serde_yaml::Value::deserialize)
+        .take_while(move |doc| match doc {
+            Ok(_) => true,
+            Err(e) => last_error.replace(e.to_string()) != Some(e.to_string()),
+        })
+        .filter_map(Result::ok)
+}
+
 struct Builder<'a> {
     model: OpsModel,
     entity_index: HashMap<(String, String), usize>,
@@ -435,10 +448,7 @@ impl Builder<'_> {
             "Pod",
         ];
         let lines: Vec<&str> = text.lines().collect();
-        for doc in serde_yaml::Deserializer::from_str(text) {
-            let Ok(doc) = serde_yaml::Value::deserialize(doc) else {
-                continue;
-            };
+        for doc in documents(text) {
             let Some(kind) = doc.get("kind").and_then(|k| k.as_str()) else {
                 continue;
             };
@@ -505,10 +515,7 @@ impl Builder<'_> {
 
     fn backstage(&mut self, file: &str, text: &str) {
         let lines: Vec<&str> = text.lines().collect();
-        for doc in serde_yaml::Deserializer::from_str(text) {
-            let Ok(doc) = serde_yaml::Value::deserialize(doc) else {
-                continue;
-            };
+        for doc in documents(text) {
             let (Some(kind), Some(name)) = (
                 doc.get("kind").and_then(|k| k.as_str()),
                 doc.get("metadata")
@@ -1131,5 +1138,16 @@ mod tests {
         let s = m.suspects(&["frontend".into(), "checkout".into()], &changes);
         assert_eq!(s[0].service, "cart");
         assert_eq!(s[0].explains.len(), 2);
+    }
+
+    /// A Helm template is not YAML; the manifests before it still count, and
+    /// the scan ends.
+    #[test]
+    fn a_manifest_that_stops_parsing_keeps_what_came_before() {
+        let repo = tempfile::tempdir().unwrap();
+        let text = "apiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: cart\n---\n{{- if .Values.x }}\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: other\n";
+        std::fs::write(repo.path().join("k8s.yaml"), text).unwrap();
+        let m = scan(repo.path(), &["k8s.yaml".to_string()]);
+        assert_eq!(m.services(), vec!["cart"]);
     }
 }
