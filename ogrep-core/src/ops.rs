@@ -170,16 +170,21 @@ fn hosts(value: &str) -> Vec<String> {
     out
 }
 
-/// 1-based line of the first line after `from` (0-based) whose trimmed text
-/// starts with `needle`.
-fn find_line(lines: &[&str], from: usize, until: usize, needle: &str) -> Option<usize> {
-    (from..until.min(lines.len()))
-        .find(|&i| {
-            lines[i]
-                .trim_start()
-                .trim_start_matches("- ")
-                .starts_with(needle)
-        })
+/// A line as [`find_line`] matches it: without its indentation and list dashes.
+fn key_text(line: &str) -> &str {
+    let mut text = line.trim_start();
+    while let Some(rest) = text.strip_prefix("- ") {
+        text = rest;
+    }
+    text
+}
+
+/// 1-based line of the first line after `from` (0-based) whose [`key_text`]
+/// starts with `needle`. `keys` holds the [`key_text`] of every line, made once
+/// per file: a manifest is searched once per workload and per variable.
+fn find_line(keys: &[&str], from: usize, until: usize, needle: &str) -> Option<usize> {
+    (from..until.min(keys.len()))
+        .find(|&i| keys[i].starts_with(needle))
         .map(|i| i + 1)
 }
 
@@ -321,6 +326,7 @@ impl Builder<'_> {
             return;
         };
         let lines: Vec<&str> = text.lines().collect();
+        let keys: Vec<&str> = lines.iter().map(|l| key_text(l)).collect();
         let start = lines
             .iter()
             .position(|l| l.starts_with("services:"))
@@ -367,9 +373,9 @@ impl Builder<'_> {
                         .collect(),
                     _ => Vec::new(),
                 };
-                let dep_line = find_line(&lines, svc_line, end, "depends_on").unwrap_or(svc_line);
+                let dep_line = find_line(&keys, svc_line, end, "depends_on").unwrap_or(svc_line);
                 for dep in names {
-                    let line = find_line(&lines, dep_line, end, &dep).unwrap_or(dep_line);
+                    let line = find_line(&keys, dep_line, end, &dep).unwrap_or(dep_line);
                     self.edge(
                         name,
                         &dep,
@@ -409,7 +415,7 @@ impl Builder<'_> {
                         Some(v) => expand(&v, self.env, 0),
                         None => self.env.get(&k).cloned().unwrap_or_default(),
                     };
-                    let line = find_line(&lines, svc_line, end, &k).unwrap_or(svc_line);
+                    let line = find_line(&keys, svc_line, end, &k).unwrap_or(svc_line);
                     env_refs.push((line, k.clone(), value));
                 }
             }
@@ -448,6 +454,7 @@ impl Builder<'_> {
             "Pod",
         ];
         let lines: Vec<&str> = text.lines().collect();
+        let keys: Vec<&str> = lines.iter().map(|l| key_text(l)).collect();
         for doc in documents(text) {
             let Some(kind) = doc.get("kind").and_then(|k| k.as_str()) else {
                 continue;
@@ -462,7 +469,7 @@ impl Builder<'_> {
             else {
                 continue;
             };
-            let line = find_line(&lines, 0, lines.len(), &format!("name: {name}")).unwrap_or(1);
+            let line = find_line(&keys, 0, lines.len(), &format!("name: {name}")).unwrap_or(1);
             self.entity("service", name, file, line);
             let spec = doc.get("spec");
             if kind == "Service" {
@@ -503,7 +510,7 @@ impl Builder<'_> {
                 {
                     if let Some(v) = e.get("value").and_then(|v| v.as_str()) {
                         let key = e.get("name").and_then(|n| n.as_str()).unwrap_or("");
-                        let l = find_line(&lines, line, lines.len(), &format!("name: {key}"))
+                        let l = find_line(&keys, line, lines.len(), &format!("name: {key}"))
                             .unwrap_or(line);
                         env_refs.push((l, key.to_string(), expand(v, self.env, 0)));
                     }
@@ -515,6 +522,7 @@ impl Builder<'_> {
 
     fn backstage(&mut self, file: &str, text: &str) {
         let lines: Vec<&str> = text.lines().collect();
+        let keys: Vec<&str> = lines.iter().map(|l| key_text(l)).collect();
         for doc in documents(text) {
             let (Some(kind), Some(name)) = (
                 doc.get("kind").and_then(|k| k.as_str()),
@@ -529,7 +537,7 @@ impl Builder<'_> {
                 other => other,
             }
             .to_ascii_lowercase();
-            let line = find_line(&lines, 0, lines.len(), &format!("name: {name}")).unwrap_or(1);
+            let line = find_line(&keys, 0, lines.len(), &format!("name: {name}")).unwrap_or(1);
             self.entity(&kind, name, file, line);
             if kind == "service" {
                 self.declared.insert(name.to_string());
@@ -550,7 +558,7 @@ impl Builder<'_> {
                         .rsplit('/')
                         .next()
                         .unwrap_or(dep);
-                    let l = find_line(&lines, 0, lines.len(), dep).unwrap_or(line);
+                    let l = find_line(&keys, 0, lines.len(), dep).unwrap_or(line);
                     self.edge(
                         name,
                         target,
@@ -575,6 +583,7 @@ impl Builder<'_> {
             return false;
         };
         let lines: Vec<&str> = text.lines().collect();
+        let keys: Vec<&str> = lines.iter().map(|l| key_text(l)).collect();
         let label =
             regex::Regex::new(r#"(?:job|service|service_name|app)\s*=~?\s*"([A-Za-z0-9_.-]+)""#)
                 .unwrap();
@@ -589,7 +598,7 @@ impl Builder<'_> {
                     continue;
                 };
                 let line =
-                    find_line(&lines, 0, lines.len(), &format!("alert: {alert}")).unwrap_or(1);
+                    find_line(&keys, 0, lines.len(), &format!("alert: {alert}")).unwrap_or(1);
                 self.entity("alert", alert, file, line);
                 let expr = r.get("expr").and_then(|e| e.as_str()).unwrap_or("");
                 for cap in label.captures_iter(expr) {
@@ -713,10 +722,13 @@ pub fn scan(root: &Path, paths: &[String]) -> OpsModel {
         .filter(|e| e.kind == "service")
         .map(|e| e.id.to_ascii_lowercase())
         .collect();
+    let mut texts: HashMap<String, Vec<String>> = HashMap::new();
     for (svc, file, refs) in services_seen {
-        let lines: Vec<String> = crate::rooted::read_indexed_to_string(root, &file)
-            .map(|t| t.lines().map(String::from).collect())
-            .unwrap_or_default();
+        let lines = texts.entry(file.clone()).or_insert_with(|| {
+            crate::rooted::read_indexed_to_string(root, &file)
+                .map(|t| t.lines().map(String::from).collect())
+                .unwrap_or_default()
+        });
         for (line, key, value) in refs {
             // Where a service sends its telemetry is not something it needs to
             // work.
