@@ -375,10 +375,10 @@ fn open_search_only(root: &Path) -> std::io::Result<std::fs::File> {
     open_dir_at(libc::AT_FDCWD, &path, 0).map(std::fs::File::from)
 }
 
-/// `EACCES` for a directory this process may not search. A search-only open
-/// needs no permission on the directory, nor does the read-only retry need
-/// permission to search it, so such a root opens and then resolves nothing
-/// below it. Opening `.` in it the same way makes the lookup every read
+/// `EACCES` for a directory this process may not search. Linux's `O_PATH`
+/// needs no permission on the directory, and where `O_SEARCH` refuses it
+/// (macOS) the read-only retry needs none to search it, so such a root
+/// opens and then resolves nothing below it. Opening `.` in it the same way makes the lookup every read
 /// below makes, with this process's effective credentials, and nothing more
 /// (no attribute check a security module might refuse on its own). Only
 /// `EACCES` is that check's answer, certain to fail every lookup below too;
