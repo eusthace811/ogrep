@@ -239,14 +239,14 @@ fn server_search_does_not_follow_a_directory_swapped_for_a_link() {
     );
 }
 
-/// A server that cannot open its root answers with an error rather than an
-/// answer missing every file it would read, and the fallback says why.
+/// The server reads through the root it opened at startup, so a tree moved
+/// while it runs is still the one it answers for.
 #[test]
-fn a_server_that_cannot_open_its_root_says_so() {
+fn a_server_keeps_serving_its_tree_after_it_moves() {
     let fixture = Fixture::new();
     let _server = Server::start(&fixture);
-    // The tree moves away from the root the server opens; its index, and the
-    // server's address in it, move along, so the client still asks it.
+    // Its index, and the server's address in it, move along, so the client
+    // still asks it.
     let moved = fixture.temp.path().join("moved");
     fs::rename(&fixture.root, &moved).unwrap();
     let output = Command::cargo_bin("ogrep")
@@ -259,13 +259,11 @@ fn a_server_that_cannot_open_its_root_says_so() {
         String::from_utf8(output.stdout).unwrap(),
         String::from_utf8(output.stderr).unwrap(),
     );
+    assert!(output.status.success(), "{stderr}");
+    assert!(stdout.contains("kept"), "{stdout}");
     assert!(
-        stderr.contains("falling back to local index: cannot open the served root"),
-        "{stderr}"
-    );
-    assert!(
-        stdout.contains("kept"),
-        "the fallback still answers: {stdout}"
+        !stderr.contains("falling back"),
+        "the server answers: {stderr}"
     );
 }
 
@@ -289,9 +287,8 @@ fn indexed_search_needs_only_search_permission_on_the_root() {
     assert!(stdout.contains("kept"), "{stdout}");
 }
 
-/// The root itself replaced by a link, here to a look-alike tree, is not the
-/// tree the server indexed: it refuses to read through it, and the client
-/// falls back to searching what it named.
+/// The root itself replaced by a link, here to a look-alike tree: the server
+/// still reads the tree it opened at startup, never through the link.
 #[test]
 fn a_server_does_not_follow_its_root_replaced_by_a_link() {
     let fixture = Fixture::new();
@@ -320,9 +317,18 @@ fn a_server_does_not_follow_its_root_replaced_by_a_link() {
         .args(["-F", "--", "needle", "repo"])
         .output()
         .unwrap();
-    let stderr = String::from_utf8(output.stderr).unwrap();
+    let (stdout, stderr) = (
+        String::from_utf8(output.stdout).unwrap(),
+        String::from_utf8(output.stderr).unwrap(),
+    );
+    assert!(output.status.success(), "{stderr}");
+    assert!(stdout.contains("kept"), "{stdout}");
     assert!(
-        stderr.contains("no longer the directory the server started on"),
-        "{stderr}"
+        !stdout.contains(SENTINEL),
+        "read through the link: {stdout}"
+    );
+    assert!(
+        !stderr.contains("falling back"),
+        "the server answers: {stderr}"
     );
 }

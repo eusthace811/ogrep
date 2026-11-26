@@ -142,11 +142,13 @@ impl RootDir {
         use std::os::fd::AsRawFd;
 
         // Whether the call is there at all is the process's, so it is probed
-        // once, on the root itself: an `EPERM` for a file (an EDR or a FUSE
-        // mount refusing it) says nothing about the call.
+        // once, on `/`: an `EPERM` for a file or a root (an EDR or a FUSE
+        // mount refusing it) says nothing about the call, while a seccomp
+        // filter refuses it whatever it opens.
         static AVAILABLE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
         let available = AVAILABLE.get_or_init(|| {
-            let probe = openat2(self.dir.as_raw_fd(), c".", libc::O_DIRECTORY);
+            let probe = std::fs::File::open("/")
+                .and_then(|slash| openat2(slash.as_raw_fd(), c".", libc::O_DIRECTORY));
             !matches!(
                 probe.err().and_then(|e| e.raw_os_error()),
                 Some(libc::ENOSYS | libc::EPERM)
@@ -483,24 +485,43 @@ fn relative_components(root: &Path, path: &Path) -> std::io::Result<Vec<std::ffi
     Ok(components)
 }
 
-/// Which directory a [`RootDir`] opened, whatever path named it: the device
-/// and inode on unix, the resolved path on Windows.
-#[derive(Clone, Debug, PartialEq, Eq)]
-pub struct RootIdentity(#[cfg(unix)] (u64, u64), #[cfg(windows)] PathBuf);
-
 impl RootDir {
-    /// Which directory this is, to tell whether a later open of the same path
-    /// still reaches it.
-    pub fn identity(&self) -> std::io::Result<RootIdentity> {
-        #[cfg(unix)]
+    /// Whether the root has been removed since it was opened: nothing below
+    /// it can be read any more.
+    pub fn is_removed(&self) -> bool {
+        // Linux counts no links to a removed directory.
+        #[cfg(target_os = "linux")]
         {
             use std::os::unix::fs::MetadataExt;
-            let meta = self.dir.metadata()?;
-            Ok(RootIdentity((meta.dev(), meta.ino())))
+            self.dir.metadata().is_ok_and(|m| m.nlink() == 0)
         }
-        #[cfg(windows)]
+        // macOS keeps counting them, but the handle's path then no longer
+        // leads to it (a moved one's does: the tree is still there).
+        #[cfg(target_os = "macos")]
         {
-            Ok(RootIdentity(self.anchor.clone()))
+            use std::os::fd::AsRawFd;
+            use std::os::unix::ffi::OsStrExt;
+            use std::os::unix::fs::MetadataExt;
+
+            let mut buf = vec![0u8; libc::PATH_MAX as usize];
+            // SAFETY: `dir` is a live descriptor and `buf` holds `PATH_MAX`
+            // bytes, as `F_GETPATH` requires.
+            if unsafe { libc::fcntl(self.dir.as_raw_fd(), libc::F_GETPATH, buf.as_mut_ptr()) } != 0
+            {
+                return false;
+            }
+            let len = buf.iter().position(|&b| b == 0).unwrap_or(buf.len());
+            let path = Path::new(std::ffi::OsStr::from_bytes(&buf[..len]));
+            match (std::fs::metadata(path), self.dir.metadata()) {
+                (Ok(now), Ok(opened)) => (now.dev(), now.ino()) != (opened.dev(), opened.ino()),
+                (Err(_), Ok(_)) => true,
+                _ => false,
+            }
+        }
+        // Elsewhere names are opened by path, so a root gone from its path is.
+        #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+        {
+            std::fs::metadata(&self.root).is_err()
         }
     }
 
