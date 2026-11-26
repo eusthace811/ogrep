@@ -40,8 +40,8 @@ impl std::fmt::Display for LimitShort {
 }
 impl std::error::Error for LimitShort {}
 
-/// Any other error the server answered with, kept apart from a server that
-/// did not answer so the fallback can say why.
+/// An error the server answered with that is its own, not the request's, kept
+/// apart from a server that did not answer so the fallback can say why.
 #[derive(Debug)]
 struct ServerReplied(String);
 
@@ -57,10 +57,12 @@ fn server_error(error: &serde_json::Value) -> anyhow::Error {
         .get("message")
         .and_then(|m| m.as_str())
         .unwrap_or("unknown error");
-    if error.get("code").and_then(|v| v.as_i64()) == Some(crate::serve::OVERLOADED) {
-        ServerOverloaded(message.to_owned()).into()
-    } else {
-        ServerReplied(message.to_owned()).into()
+    match error.get("code").and_then(|v| v.as_i64()) {
+        Some(crate::serve::OVERLOADED) => ServerOverloaded(message.to_owned()).into(),
+        // Rejected parameters are the user's, such as a bad regex: the local
+        // search reports them itself, so they are no reason for the fallback.
+        Some(crate::serve::INVALID_PARAMS) => anyhow::anyhow!("server error: {message}"),
+        _ => ServerReplied(message.to_owned()).into(),
     }
 }
 
@@ -2172,24 +2174,49 @@ impl IndexScope {
 /// The slice of the index at `index_dir` that covers `root`, with the absolute
 /// root the index was built for.
 fn resolve_scope(index_dir: &Path, root: &Path) -> Option<(PathBuf, IndexScope)> {
-    let index_root = IndexMeta::load(index_dir)
-        .ok()
-        .and_then(|m| std::fs::canonicalize(m.root_path).ok())
-        .unwrap_or_else(|| relocated_index_root(index_dir, root));
+    let index_root = index_tree_root(index_dir, root)?;
     let scope = IndexScope::resolve(&index_root, root)?;
     Some((index_root, scope))
 }
 
-/// Where the tree of an index is when the root it recorded is not: a tree
-/// moved or copied with its index has it in `.ogrep` at its top, so the
-/// tree is that directory's parent; with any other index path, the path
-/// searched is the best there is.
-pub(crate) fn relocated_index_root(index_dir: &Path, root: &Path) -> PathBuf {
-    std::fs::canonicalize(index_dir)
+/// The directory the paths in the index at `index_dir` are relative to, for
+/// a search of `root`; `None` when the index is of another tree.
+///
+/// That is the root the index recorded, unless the tree was moved or copied
+/// with its index since. Then the recorded root is gone or is the original,
+/// and the tree is the directory holding the index, if the index is in
+/// `.ogrep` and that directory holds `root`. A copy made inside its original
+/// is told from an index kept below the root it covers by the original still
+/// having an index of its own. A recorded root that is gone, with an index
+/// kept anywhere else, leaves `root` as the best guess.
+pub(crate) fn index_tree_root(index_dir: &Path, root: &Path) -> Option<PathBuf> {
+    let searched = std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf());
+    let recorded = IndexMeta::load(index_dir)
+        .ok()
+        .and_then(|m| std::fs::canonicalize(m.root_path).ok())
+        .filter(|recorded| recorded.is_dir());
+    let holder = std::fs::canonicalize(index_dir)
         .ok()
         .filter(|dir| dir.file_name().is_some_and(|name| name == ".ogrep"))
         .and_then(|dir| dir.parent().map(Path::to_path_buf))
-        .unwrap_or_else(|| root.to_path_buf())
+        .filter(|holder| searched.starts_with(holder));
+    match (recorded, holder) {
+        (Some(recorded), Some(holder))
+            if holder != recorded
+                && holder.starts_with(&recorded)
+                && IndexMeta::load(&builder::default_index_dir(&recorded)).is_ok() =>
+        {
+            Some(holder)
+        }
+        (Some(recorded), _)
+            if searched.starts_with(&recorded) || recorded.starts_with(&searched) =>
+        {
+            Some(recorded)
+        }
+        (_, Some(holder)) => Some(holder),
+        (Some(_), None) => None,
+        (None, None) => Some(searched),
+    }
 }
 
 /// `true` when the path is shallow enough to keep under `--max-depth`.

@@ -279,6 +279,17 @@ fn a_server_that_cannot_open_its_root_says_so() {
     assert!(!stderr.contains("falling back"), "{stderr}");
 }
 
+/// A pattern the server rejects is the user's error, reported once by the
+/// local search, not a reason the server gives for a fallback.
+#[test]
+fn a_pattern_the_server_rejects_is_reported_once() {
+    let fixture = Fixture::new();
+    let _server = Server::start(&fixture);
+    let (_, stderr) = fixture.search(Path::new("."), &["--", "needle("]);
+    assert_eq!(stderr.matches("unclosed group").count(), 1, "{stderr}");
+    assert!(!stderr.contains("local index:"), "{stderr}");
+}
+
 /// The same once every candidate is cached: whether the root's loss is
 /// reported does not depend on what the cache happens to hold. The server
 /// runs without a watcher, so nothing evicts what the first search cached,

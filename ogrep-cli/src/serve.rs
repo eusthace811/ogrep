@@ -38,6 +38,7 @@ const REQUEST_WAIT: Duration = Duration::from_secs(30);
 
 const SOCKET_IDLE_TIMEOUT: Duration = Duration::from_secs(30);
 pub const OVERLOADED: i64 = -32002;
+pub const INVALID_PARAMS: i64 = -32602;
 
 #[cfg(test)]
 #[path = "serve/poll_tests.rs"]
@@ -1606,7 +1607,8 @@ fn process_request(
     // backlog would otherwise hold slots that unrelated searches wait for. A
     // wait past `REQUEST_WAIT` is an error the client falls back from, not
     // an overload it gives up on; admission then has a wait of its own.
-    // Not for a request a full queue is about to refuse.
+    // Not for a request a full queue is about to refuse. Once it has a slot
+    // it waits again, for the few set aside while it queued for one.
     let queue = state.searches.status();
     if reaches_git_metadata
         && queue.active >= queue.capacity
@@ -1614,11 +1616,11 @@ fn process_request(
     {
         return overloaded("server search queue is full");
     }
-    if reaches_git_metadata && !await_git_metadata(state, Instant::now() + REQUEST_WAIT) {
-        return (
-            json_rpc_error(id, -32603, "server .git flush wait timed out"),
-            None,
-        );
+    let git_metadata_applied =
+        || !reaches_git_metadata || await_git_metadata(state, Instant::now() + REQUEST_WAIT);
+    let flush_timed_out = "server .git flush wait timed out";
+    if !git_metadata_applied() {
+        return (json_rpc_error(id, -32603, flush_timed_out), None);
     }
     let permit = if matches!(method, "search" | "files") {
         match state.searches.acquire(REQUEST_WAIT) {
@@ -1633,6 +1635,9 @@ fn process_request(
     } else {
         None
     };
+    if !git_metadata_applied() {
+        return (json_rpc_error(id, -32603, flush_timed_out), None);
+    }
     let response = match method {
         "search" => handle_search(id, &params, state),
         "files" => handle_files(id, &params, state),
@@ -1652,7 +1657,7 @@ fn handle_files(
     state.note_search();
     let scope = match SearchScope::parse(params) {
         Ok(scope) => scope,
-        Err(error) => return json_rpc_error(id, -32602, &error),
+        Err(error) => return json_rpc_error(id, INVALID_PARAMS as i32, &error),
     };
 
     let mut files = {
@@ -2038,7 +2043,7 @@ fn handle_search(
 
     let req = match parse_search_params(params) {
         Ok(r) => r,
-        Err(e) => return json_rpc_error(id, -32602, &e),
+        Err(e) => return json_rpc_error(id, INVALID_PARAMS as i32, &e),
     };
 
     let matcher = req.matcher;
@@ -2310,7 +2315,8 @@ fn handle_search(
     };
     // The reads happen where `resolve` is called below, between the matching
     // of one chunk and the next: timed there, and taken out of the search's.
-    let resolve_time = std::cell::Cell::new(t_resolve.elapsed());
+    let resolve_setup = t_resolve.elapsed();
+    let resolve_time = std::cell::Cell::new(Duration::ZERO);
     let resolve = |candidate_info| {
         let start = Instant::now();
         let contents = resolve(candidate_info);
@@ -2408,8 +2414,9 @@ fn handle_search(
         file_stats.extend(file.stats);
     }
 
-    let resolve_ms = resolve_time.get().as_secs_f64() * 1000.0;
-    let search_ms = (t_search.elapsed().as_secs_f64() * 1000.0 - resolve_ms).max(0.0);
+    let reading = resolve_time.get();
+    let resolve_ms = (resolve_setup + reading).as_secs_f64() * 1000.0;
+    let search_ms = t_search.elapsed().saturating_sub(reading).as_secs_f64() * 1000.0;
     let elapsed = start.elapsed();
     let elapsed_ms = elapsed.as_secs_f64() * 1000.0;
 
@@ -10063,6 +10070,34 @@ mod tests {
         let response = done_rx.recv_timeout(Duration::from_secs(10)).unwrap();
         assert!(response.contains(".git/HEAD"), "{response}");
         waiter.join().unwrap();
+    }
+
+    #[test]
+    fn a_hidden_request_sees_git_changes_made_while_it_queued() {
+        let temp = TempDir::new().unwrap();
+        let (root, state) = git_test_state(&temp);
+        let capacity = state.searches.status().capacity;
+        let slots: Vec<_> = (0..capacity)
+            .map(|_| state.searches.acquire(Duration::ZERO).unwrap())
+            .collect();
+        let waiter = {
+            let state = Arc::clone(&state);
+            thread::spawn(move || {
+                let request = serde_json::json!({
+                    "jsonrpc": "2.0", "method": "files", "id": 1, "params": {"hidden": true},
+                });
+                process_request(&request.to_string(), &state).0
+            })
+        };
+        let deadline = Instant::now() + Duration::from_secs(10);
+        while state.searches.status().queued == 0 {
+            assert!(Instant::now() < deadline, "the request never queued");
+            thread::sleep(Duration::from_millis(5));
+        }
+        queue_git_file(&state, &root, "HEAD");
+        drop(slots);
+        let response = waiter.join().unwrap();
+        assert!(response.contains(".git/HEAD"), "{response}");
     }
 
     #[test]

@@ -7,7 +7,7 @@
 | `warning: no index at <path>/.ogrep - scanning every file` | No index where ogrep looked (the first path argument) | Search from the root with `-g`, pass `--index-path`, or run `ogrep index .` |
 | `Server unavailable or index coverage not ready, falling back to local index` | A `serve.json` exists but the server is gone or still starting | Harmless. Results come from the local index, which may be stale |
 | The same message ending in `: cannot open the served root: ...` | The tree was moved, removed or made unreadable under a running server | Start `ogrep serve .` where the tree is now, or fix its permissions |
-| The same message ending in `: cannot read an indexed file: ...` or `: server .git flush wait timed out` | The server ran out of file descriptors or memory, or is still applying a large `.git` backlog | Results come from the local index; retry later, or raise the server's descriptor limit |
+| The same message ending in `: cannot read an indexed file: ...` or `: server .git flush wait timed out` | The server ran out of file descriptors or memory, or is still applying a large `.git` backlog | Results come from the local index, which omits changes since its last publication; retry later, or raise the server's descriptor limit |
 | `refresh requires a running server; start ogrep serve for this root` | `ogrep refresh` without a server (exit 2) | Start `ogrep serve .`, or use `--no-index` |
 | `regex error: ... PCRE-style fallback failed` | The pattern is invalid in both engines (exit 2) | Fix the regex, or use `-F` for literal text |
 | `server search queue is full` (exit 2) | More than 4 active and 32 queued searches | Retry after a moment |

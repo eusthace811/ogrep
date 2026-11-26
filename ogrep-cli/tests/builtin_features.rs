@@ -1672,6 +1672,100 @@ fn graph_tools_read_a_copied_tree_not_its_original() {
     assert!(callees.contains("bar -> a.rs:2"), "{callees}");
 }
 
+/// A tree copied with its index to a place inside the original is still
+/// its own tree: the original is neither searched nor read.
+#[test]
+fn a_tree_copied_inside_its_original_is_searched_itself() {
+    let temp = TempDir::new().unwrap();
+    let old = temp.path().join("proj");
+    fs::create_dir_all(old.join("src")).unwrap();
+    fs::write(old.join("src/a.rs"), "fn foo() { bar() }\nfn bar() {}\n").unwrap();
+    ogrep(&old)
+        .args(["index", ".", "--graph"])
+        .assert()
+        .success();
+    let copy = old.join("backup/proj2");
+    copy_dir(&old.join("src"), &copy.join("src"));
+    copy_dir(&old.join(".ogrep"), &copy.join(".ogrep"));
+    fs::write(
+        old.join("src/a.rs"),
+        "fn foo() { original_only() }\nfn bar() {}\n",
+    )
+    .unwrap();
+    let found = stdout(ogrep(&copy).args(["-F", "fn foo", "."]));
+    assert!(
+        found.contains("src/a.rs") && !found.contains("backup"),
+        "{found}"
+    );
+    let callees = stdout(ogrep(&copy).args(["--callees", "-F", "foo", "."]));
+    assert!(callees.contains("bar -> src/a.rs:2"), "{callees}");
+}
+
+/// An index kept in a `.ogrep` below the root it covers is not taken for a
+/// copy: a search of the directory holding it is a search of that subtree.
+#[test]
+fn an_index_kept_below_its_root_still_covers_the_root() {
+    let temp = TempDir::new().unwrap();
+    let tree = temp.path().join("proj");
+    fs::create_dir_all(tree.join("sub")).unwrap();
+    fs::write(tree.join("sub/a.rs"), "fn foo() {}\n").unwrap();
+    fs::write(tree.join("top.rs"), "fn foo() {}\n").unwrap();
+    ogrep(&tree)
+        .args(["index", ".", "--index-path", "sub/.ogrep"])
+        .assert()
+        .success();
+    let found = stdout(ogrep(&tree).args(["--stats", "-F", "fn foo", "sub"]));
+    assert!(
+        found.contains("a.rs") && !found.contains("top.rs"),
+        "{found}"
+    );
+    let whole = stdout(ogrep(&tree).args(["-F", "fn foo", ".", "--index-path", "sub/.ogrep"]));
+    assert!(
+        whole.contains("sub/a.rs") && whole.contains("top.rs"),
+        "{whole}"
+    );
+}
+
+/// A moved tree whose index is kept elsewhere, in a directory that happens
+/// to be named `.ogrep`, is still answered from that index.
+#[test]
+fn a_moved_tree_keeps_an_index_stored_outside_it() {
+    let temp = TempDir::new().unwrap();
+    let old = temp.path().join("t1");
+    fs::create_dir(&old).unwrap();
+    fs::write(old.join("a.rs"), "fn foo() {}\n").unwrap();
+    for n in 0..5 {
+        fs::write(
+            old.join(format!("other{n}.rs")),
+            format!("fn other{n}() {{}}\n"),
+        )
+        .unwrap();
+    }
+    ogrep(temp.path())
+        .args(["index", "t1", "--index-path", "idx/.ogrep"])
+        .assert()
+        .success();
+    fs::rename(&old, temp.path().join("t2")).unwrap();
+    let out = ogrep(temp.path())
+        .args([
+            "--stats",
+            "-F",
+            "fn foo",
+            "t2",
+            "--index-path",
+            "idx/.ogrep",
+        ])
+        .output()
+        .unwrap();
+    let all = format!(
+        "{}{}",
+        String::from_utf8(out.stdout).unwrap(),
+        String::from_utf8(out.stderr).unwrap()
+    );
+    assert!(all.contains("a.rs"), "{all}");
+    assert!(all.contains("candidates: 1/6"), "not from the index: {all}");
+}
+
 fn copy_dir(from: &std::path::Path, to: &std::path::Path) {
     fs::create_dir_all(to).unwrap();
     for entry in fs::read_dir(from).unwrap() {
