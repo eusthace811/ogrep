@@ -377,11 +377,28 @@ fn a_pattern_the_server_rejects_is_reported_once() {
     assert!(!stderr.contains("falling back"), "{stderr}");
 }
 
-/// A server whose tree is gone, as after a move across filesystems, is not
-/// asked about a copy of that tree, even for a listing, which it would answer
-/// from what it remembers. The user is told, and `status` says why.
+/// A server in another namespace (a container sharing the volume, Windows
+/// seen from WSL) records a root that is not a path here: it is still used.
 #[test]
-fn a_server_whose_tree_is_gone_is_not_asked() {
+fn a_server_whose_root_is_named_elsewhere_is_used() {
+    let fixture = Fixture::new();
+    let _server = Server::start(&fixture);
+    let info_path = fixture.root.join(".ogrep/serve.json");
+    let mut info: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(&info_path).unwrap()).unwrap();
+    info["root"] = "/nonexistent-namespace/workspace".into();
+    fs::write(&info_path, info.to_string()).unwrap();
+    let (stdout, stderr) = fixture.search(Path::new("."), &["-F", "--", "needle"]);
+    assert!(stdout.contains("needle kept"), "{stdout}");
+    assert!(stderr.contains("(via server)"), "{stderr}");
+}
+
+/// A server whose tree is gone, as after a move across filesystems, does
+/// not answer for a copy of that tree from what it remembers: not a listing,
+/// nor a search with no candidate, which a watcher that saw the files go
+/// would leave every search with. The user is told, and `status` says why.
+#[test]
+fn a_server_whose_tree_is_gone_says_so() {
     let fixture = Fixture::new();
     let _server = Server::start(&fixture);
     let copy = fixture.temp.path().join("copy");
@@ -391,7 +408,11 @@ fn a_server_whose_tree_is_gone_is_not_asked() {
     }
     fs::rename(fixture.root.join(".ogrep"), copy.join(".ogrep")).unwrap();
     fs::remove_dir(&fixture.root).unwrap();
-    for args in [&["--files"][..], &["-F", "--", "needle"]] {
+    for args in [
+        &["--files"][..],
+        &["-F", "--", "needle"],
+        &["-F", "--", "absent"],
+    ] {
         let output = Command::cargo_bin("ogrep")
             .unwrap()
             .current_dir(&copy)
@@ -404,7 +425,11 @@ fn a_server_whose_tree_is_gone_is_not_asked() {
             String::from_utf8(output.stdout).unwrap(),
             String::from_utf8(output.stderr).unwrap(),
         );
-        assert!(stdout.contains("kept"), "{stdout}");
+        assert_eq!(
+            stdout.contains("kept"),
+            args.last() != Some(&"absent"),
+            "{stdout}"
+        );
         assert!(!stderr.contains("(via server)"), "{stderr}");
         assert!(stderr.contains("cannot open the served root"), "{stderr}");
     }
@@ -415,7 +440,7 @@ fn a_server_whose_tree_is_gone_is_not_asked() {
         .output()
         .unwrap();
     let status = String::from_utf8(status.stdout).unwrap();
-    assert!(status.contains("is gone"), "{status}");
+    assert!(status.contains("cannot open"), "{status}");
 }
 
 /// The same once every candidate is cached: whether the root's loss is

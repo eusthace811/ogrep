@@ -25,10 +25,11 @@ pub fn run(root: &Path, index_path: Option<&Path>) -> Result<()> {
         println!("Server status for {}", root.display());
         println!("  PID:        {}", info.pid);
         println!("  Port:       {}", info.port);
-        if let Some(served) = info.root.as_ref().filter(|served| !served.is_dir()) {
+        if let Some(error) = &status.root_error {
             println!(
-                "  Root:       {} is gone; searches do not use this server. Restart `ogrep serve .` here",
-                served.display()
+                "  Root:       cannot open ({error}); searches do not use this server. \
+                 Stop it (pid {}) and start `ogrep serve .` where the tree is now",
+                info.pid
             );
         }
         println!("  Files:      {}", status.num_files);
@@ -128,6 +129,8 @@ struct StatusResult {
     #[serde(default)]
     index_total: u64,
     hidden_complete: Option<bool>,
+    /// Why the server cannot open the tree it serves, as after a move.
+    root_error: Option<String>,
 }
 
 fn coverage_label(complete: bool) -> &'static str {

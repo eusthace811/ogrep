@@ -760,13 +760,19 @@ pub fn list_files(root: &Path, index_path: Option<&Path>, opts: &SearchOptions) 
 
     if filename_index_compatible(opts) {
         if let Ok(info) = ServerInfo::load(&index_dir)
-            && !served_root_is_gone(&info, &root, opts)
             && let Some((index_root, scope)) = served_scope(&info, &index_dir, &root)
         {
             let paths = match list_files_via_server(&info, &scope, opts) {
                 Ok(paths) => Some(paths),
                 Err(error) if error.is::<ServerOverloaded>() => return Err(error),
-                Err(_) => None,
+                // Said only when the server gives a reason: a listing falls
+                // back quietly from one that is not up.
+                Err(error) => {
+                    if let Some(replied) = error.downcast_ref::<ServerReplied>() {
+                        warn_fallback(&root, opts, &format!(": {}", replied.0));
+                    }
+                    None
+                }
             };
             if let Some(paths) = paths {
                 write_indexed_file_paths(
@@ -1096,7 +1102,6 @@ pub fn run(
         && !opts.include_zero
         && opts.has_patterns()
         && let Ok(info) = ServerInfo::load(&index_dir)
-        && !served_root_is_gone(&info, &root, opts)
         && let Some((index_root, scope)) = served_scope(&info, &index_dir, &root)
     {
         match search_via_server(&info, &root, &index_root, &scope, opts, ci, writer) {
@@ -1172,24 +1177,6 @@ fn warn_fallback(root: &Path, opts: &SearchOptions, why: &str) {
             ),
         );
     }
-}
-
-/// Whether the tree the server records serving is gone, as after a move:
-/// the server is then not asked, since one with nothing left to read can
-/// answer from what it remembers, and the user is told.
-fn served_root_is_gone(info: &ServerInfo, root: &Path, opts: &SearchOptions) -> bool {
-    let Some(served) = info.root.as_ref().filter(|served| !served.is_dir()) else {
-        return false;
-    };
-    warn_fallback(
-        root,
-        opts,
-        &format!(
-            ": cannot open the served root: {} is gone",
-            served.display()
-        ),
-    );
-    true
 }
 
 /// Render a path the way the user typed it.
@@ -2255,15 +2242,14 @@ fn resolve_scope(index_dir: &Path, root: &Path) -> Option<(PathBuf, IndexScope)>
 /// The tree a server serves and the slice of it that covers the canonical
 /// `root`, when it serves `root` and was not found through a copy of its
 /// index made inside that tree. A server that predates recording its tree in
-/// `serve.json` is taken to serve the tree of the index it was found beside;
-/// one whose tree is gone serves nothing.
+/// `serve.json`, or whose tree is not here, is taken to serve the tree of the
+/// index it was found beside. The second is a server in another namespace (a
+/// container sharing the volume, Windows seen from WSL), or one whose tree is
+/// gone, which says so when asked.
 fn served_scope(info: &ServerInfo, index_dir: &Path, root: &Path) -> Option<(PathBuf, IndexScope)> {
-    let Some(served) = &info.root else {
+    let Some(served) = info.root.as_ref().filter(|served| served.is_dir()) else {
         return resolve_scope(index_dir, root);
     };
-    if !served.is_dir() {
-        return None;
-    }
     if copy_inside(index_dir, served, root) {
         return None;
     }
@@ -2271,13 +2257,9 @@ fn served_scope(info: &ServerInfo, index_dir: &Path, root: &Path) -> Option<(Pat
     Some((served.clone(), scope))
 }
 
-/// Whether the server described beside the index at `index_dir` serves
-/// `root`, or served it until its tree moved away.
+/// Whether the server described beside the index at `index_dir` serves `root`.
 pub(crate) fn serves(info: &ServerInfo, index_dir: &Path, root: &Path) -> bool {
-    match &info.root {
-        Some(served) if !served.is_dir() => resolve_scope(index_dir, root).is_some(),
-        _ => served_scope(info, index_dir, root).is_some(),
-    }
+    served_scope(info, index_dir, root).is_some()
 }
 
 /// What the index at some directory covers, for a search of some path.

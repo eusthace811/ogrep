@@ -1665,6 +1665,11 @@ fn handle_files(
         Ok(scope) => scope,
         Err(error) => return json_rpc_error(id, INVALID_PARAMS as i32, &error),
     };
+    // The listing reads no file, but one of a tree that is gone would be
+    // what the index remembers: said as a search says it.
+    if let Some(e) = unusable_root(state) {
+        return json_rpc_error(id, -32603, &format!("cannot open the served root: {e}"));
+    }
 
     let mut files = {
         // Keep the documented index -> filename lock order.
@@ -2194,14 +2199,13 @@ fn handle_search(
     // tree, as a scan or the local index never would. Without the root every
     // miss would drop out of an answer that still looked complete, so failing
     // to open it is an error, and the client falls back to a search that can
-    // read them. It is opened whenever there are candidates, even all cached:
-    // a root that is gone or refused is reported whatever the cache holds.
-    // Any other failure (out of descriptors, a network filesystem's hiccup)
-    // says nothing about the tree, so it is reported only once a file has to
-    // be read; until then the cache answers in full. (With no candidates,
-    // nothing would be read, and the answer is the index's.)
-    let opened =
-        (!candidate_info.is_empty()).then(|| ogrep_core::rooted::RootDir::open(&state.root));
+    // read them. It is opened for every search, even one with no candidate
+    // or with all of them cached: a root that is gone or refused is reported
+    // whatever the index or cache holds, which a moved tree's watcher may
+    // have emptied. Any other failure (out of descriptors, a network
+    // filesystem's hiccup) says nothing about the tree, so it is reported
+    // only once a file has to be read; until then the cache answers in full.
+    let opened = ogrep_core::rooted::RootDir::open(&state.root);
     let root_error = |e: &std::io::Error| {
         json_rpc_error(
             id.clone(),
@@ -2209,12 +2213,12 @@ fn handle_search(
             &format!("cannot open the served root: {e}"),
         )
     };
-    if let Some(Err(e)) = &opened
+    if let Err(e) = &opened
         && root_is_unusable(e)
     {
         return root_error(e);
     }
-    let root_dir = opened.as_ref().and_then(|r| r.as_ref().ok());
+    let root_dir = opened.as_ref().ok();
     let needed_root = std::sync::atomic::AtomicBool::new(false);
     // A file that failed to read for want of descriptors or memory is not
     // skipped as a gone or unreadable one is, or the answer would
@@ -2402,7 +2406,7 @@ fn handle_search(
         }
     };
     if needed_root.load(Ordering::Relaxed)
-        && let Some(Err(e)) = &opened
+        && let Err(e) = &opened
     {
         return root_error(e);
     }
@@ -2764,6 +2768,7 @@ fn handle_status(id: Option<serde_json::Value>, state: &ServerState) -> String {
         "hidden_complete": state.hidden_complete.load(Ordering::SeqCst) && !indexing,
         "index_progress": state.index_progress.load(std::sync::atomic::Ordering::Relaxed),
         "index_total": state.index_total.load(std::sync::atomic::Ordering::Relaxed),
+        "root_error": unusable_root(state).map(|e| e.to_string()),
     });
 
     json_rpc_result(id, result)
@@ -5677,6 +5682,13 @@ fn is_passing_failure(error: &std::io::Error) -> bool {
 
 /// Whether a failure to open the served root says the tree itself is gone
 /// or refused, rather than something passing (out of descriptors, I/O).
+/// Why the served root cannot be opened, when it is gone or refused.
+fn unusable_root(state: &ServerState) -> Option<std::io::Error> {
+    ogrep_core::rooted::RootDir::open(&state.root)
+        .err()
+        .filter(root_is_unusable)
+}
+
 fn root_is_unusable(error: &std::io::Error) -> bool {
     use std::io::ErrorKind;
     if matches!(
