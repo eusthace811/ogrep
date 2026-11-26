@@ -1606,6 +1606,14 @@ fn process_request(
     // backlog would otherwise hold slots that unrelated searches wait for. A
     // wait past `REQUEST_WAIT` is an error the client falls back from, not
     // an overload it gives up on; admission then has a wait of its own.
+    // Not for a request a full queue is about to refuse.
+    let queue = state.searches.status();
+    if reaches_git_metadata
+        && queue.active >= queue.capacity
+        && queue.queued >= queue.queue_capacity
+    {
+        return overloaded("server search queue is full");
+    }
     if reaches_git_metadata && !await_git_metadata(state, Instant::now() + REQUEST_WAIT) {
         return (
             json_rpc_error(id, -32603, "server .git flush wait timed out"),
@@ -2300,7 +2308,15 @@ fn handle_search(
                 .collect()
         }
     };
-    let resolve_ms = t_resolve.elapsed().as_secs_f64() * 1000.0;
+    // The reads happen where `resolve` is called below, between the matching
+    // of one chunk and the next: timed there, and taken out of the search's.
+    let resolve_time = std::cell::Cell::new(t_resolve.elapsed());
+    let resolve = |candidate_info| {
+        let start = Instant::now();
+        let contents = resolve(candidate_info);
+        resolve_time.set(resolve_time.get() + start.elapsed());
+        contents
+    };
 
     // Parallel regex matching across candidate files
     let t_search = Instant::now();
@@ -2392,7 +2408,8 @@ fn handle_search(
         file_stats.extend(file.stats);
     }
 
-    let search_ms = t_search.elapsed().as_secs_f64() * 1000.0;
+    let resolve_ms = resolve_time.get().as_secs_f64() * 1000.0;
+    let search_ms = (t_search.elapsed().as_secs_f64() * 1000.0 - resolve_ms).max(0.0);
     let elapsed = start.elapsed();
     let elapsed_ms = elapsed.as_secs_f64() * 1000.0;
 
@@ -5372,8 +5389,8 @@ struct GitFlushProgress {
 }
 
 /// Ask the worker, started on first use, to apply every change set aside
-/// so far, and return how many that is.
-fn start_git_metadata_flush(state: &Arc<ServerState>) -> u64 {
+/// so far, and return how many that is: `None` with no worker to ask.
+fn start_git_metadata_flush(state: &Arc<ServerState>) -> Option<u64> {
     let target = state.git_metadata_queued.load(Ordering::SeqCst);
     let flush = &state.git_flush;
     {
@@ -5387,7 +5404,10 @@ fn start_git_metadata_flush(state: &Arc<ServerState>) -> u64 {
                 .spawn(move || git_metadata_worker(&state, &worker_flush))
             {
                 Ok(_) => *running = true,
-                Err(e) => eprintln!("[ogrep serve] cannot start the .git flush worker: {e}"),
+                Err(e) => {
+                    eprintln!("[ogrep serve] cannot start the .git flush worker: {e}");
+                    return None;
+                }
             }
         }
     }
@@ -5396,13 +5416,16 @@ fn start_git_metadata_flush(state: &Arc<ServerState>) -> u64 {
         progress.wanted = target;
         flush.changed.notify_all();
     }
-    target
+    Some(target)
 }
 
 /// Wait, until `deadline` at most, for every change set aside before this
-/// call to be applied: `false` if the worker had not got that far.
+/// call to be applied: `false` if the worker had not got that far, or at
+/// once if there is none.
 fn await_git_metadata(state: &Arc<ServerState>, deadline: Instant) -> bool {
-    let target = start_git_metadata_flush(state);
+    let Some(target) = start_git_metadata_flush(state) else {
+        return state.git_metadata_events.lock().unwrap().is_empty();
+    };
     let flush = &state.git_flush;
     let mut progress = flush.progress.lock().unwrap();
     while progress.applied < target {

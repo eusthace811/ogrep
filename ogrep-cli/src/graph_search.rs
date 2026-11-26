@@ -98,13 +98,19 @@ pub fn run(
     // The graph's paths are relative to the index root, a search's to the
     // path searched, which may be below it (with --index-path): translate.
     // A recorded root that no longer exists is a tree moved since it was
-    // indexed: its files are read where it is now, the path searched.
+    // indexed, and one that neither holds the path searched nor lies below
+    // it is the tree this one was copied from: either way the files are
+    // read where this index is, not there.
+    let canonical = |p: &Path| std::fs::canonicalize(p).unwrap_or_else(|_| p.to_path_buf());
     let index_root = ogrep_core::meta::IndexMeta::load(&dir)
         .map(|m| std::path::PathBuf::from(m.root_path))
         .ok()
-        .filter(|recorded| recorded.is_dir())
-        .unwrap_or_else(|| root.to_path_buf());
-    let canonical = |p: &Path| std::fs::canonicalize(p).unwrap_or_else(|_| p.to_path_buf());
+        .filter(|recorded| {
+            let (recorded, searched) = (canonical(recorded), canonical(root));
+            recorded.is_dir()
+                && (searched.starts_with(&recorded) || recorded.starts_with(&searched))
+        })
+        .unwrap_or_else(|| crate::search::relocated_index_root(&dir, root));
     let below = canonical(root)
         .strip_prefix(canonical(&index_root))
         .map(|p| p.to_string_lossy().replace('\\', "/"))

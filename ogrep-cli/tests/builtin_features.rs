@@ -1619,6 +1619,72 @@ fn graph_tools_survive_a_moved_tree() {
     assert!(callees.contains("bar -> a.rs:2"), "{callees}");
 }
 
+/// A subdirectory of a moved tree, searched with its index: the tree is
+/// where the index is, not the path searched.
+#[test]
+fn a_moved_tree_is_searched_from_a_subdirectory() {
+    let temp = TempDir::new().unwrap();
+    let old = temp.path().join("proj");
+    fs::create_dir_all(old.join("sub")).unwrap();
+    fs::write(old.join("sub/a.rs"), "fn foo() { bar() }\nfn bar() {}\n").unwrap();
+    ogrep(&old)
+        .args(["index", ".", "--graph"])
+        .assert()
+        .success();
+    let moved = temp.path().join("moved");
+    fs::rename(&old, &moved).unwrap();
+    let out = ogrep(&moved)
+        .args(["-F", "fn foo", "sub", "--index-path", ".ogrep"])
+        .output()
+        .unwrap();
+    let (found, err) = (
+        String::from_utf8(out.stdout).unwrap(),
+        String::from_utf8(out.stderr).unwrap(),
+    );
+    assert!(found.contains("a.rs"), "{found}{err}");
+    assert!(!err.contains("scanning every file"), "{err}");
+    let callees =
+        stdout(ogrep(&moved).args(["--callees", "-F", "foo", "sub", "--index-path", ".ogrep"]));
+    assert!(callees.contains("bar ->"), "{callees}");
+}
+
+/// A tree copied with its index reads its own files, not the original's.
+#[test]
+fn graph_tools_read_a_copied_tree_not_its_original() {
+    let temp = TempDir::new().unwrap();
+    let (old, copy) = (temp.path().join("proj"), temp.path().join("copy"));
+    fs::create_dir(&old).unwrap();
+    fs::write(old.join("a.rs"), "fn foo() { bar() }\nfn bar() {}\n").unwrap();
+    ogrep(&old)
+        .args(["index", ".", "--graph"])
+        .assert()
+        .success();
+    fs::create_dir(&copy).unwrap();
+    fs::copy(old.join("a.rs"), copy.join("a.rs")).unwrap();
+    copy_dir(&old.join(".ogrep"), &copy.join(".ogrep"));
+    fs::write(
+        old.join("a.rs"),
+        "fn foo() { original_only() }\nfn bar() {}\n",
+    )
+    .unwrap();
+    // The callee is found in the copy's own body, which the original lost.
+    let callees = stdout(ogrep(&copy).args(["--callees", "-F", "foo", "."]));
+    assert!(callees.contains("bar -> a.rs:2"), "{callees}");
+}
+
+fn copy_dir(from: &std::path::Path, to: &std::path::Path) {
+    fs::create_dir_all(to).unwrap();
+    for entry in fs::read_dir(from).unwrap() {
+        let entry = entry.unwrap();
+        let target = to.join(entry.file_name());
+        if entry.file_type().unwrap().is_dir() {
+            copy_dir(&entry.path(), &target);
+        } else {
+            fs::copy(entry.path(), target).unwrap();
+        }
+    }
+}
+
 /// An index built for a subdirectory reads that subdirectory's files.
 #[test]
 fn graph_tools_read_an_index_built_for_a_subdirectory() {

@@ -2175,9 +2175,21 @@ fn resolve_scope(index_dir: &Path, root: &Path) -> Option<(PathBuf, IndexScope)>
     let index_root = IndexMeta::load(index_dir)
         .ok()
         .and_then(|m| std::fs::canonicalize(m.root_path).ok())
-        .unwrap_or_else(|| root.to_path_buf());
+        .unwrap_or_else(|| relocated_index_root(index_dir, root));
     let scope = IndexScope::resolve(&index_root, root)?;
     Some((index_root, scope))
+}
+
+/// Where the tree of an index is when the root it recorded is not: a tree
+/// moved or copied with its index has it in `.ogrep` at its top, so the
+/// tree is that directory's parent; with any other index path, the path
+/// searched is the best there is.
+pub(crate) fn relocated_index_root(index_dir: &Path, root: &Path) -> PathBuf {
+    std::fs::canonicalize(index_dir)
+        .ok()
+        .filter(|dir| dir.file_name().is_some_and(|name| name == ".ogrep"))
+        .and_then(|dir| dir.parent().map(Path::to_path_buf))
+        .unwrap_or_else(|| root.to_path_buf())
 }
 
 /// `true` when the path is shallow enough to keep under `--max-depth`.
