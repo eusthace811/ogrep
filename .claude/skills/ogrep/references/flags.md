@@ -72,7 +72,7 @@ described in detail in [analysis.md](analysis.md).
 | `--callers` | definitions that use the pattern |
 | `--related-tests FILE`, `--similar PATH:LINE` | tests to run; code like a definition |
 | `--conflicts`, `--doc-drift` | overlap with other local branches; names in docs missing from code |
-| `--entities`, `--blast S`, `--suspects A,B`, `--timeline A,B` | services and dependencies; dependents; likely causes; recent commits (the last two take `--since` and `--until`) |
+| `--entities [--dated]`, `--blast S`, `--suspects A,B`, `--timeline A,B` | services and dependencies (with `--dated`, the commit since which each has held); dependents; likely causes; recent commits (the last two take `--since` and `--until`) |
 | `--stack-trace FILE`, `--log-templates`, `--new-since`, `--template-to-code` | traces to code; log templates, new ones, and their writers |
 | `--similar-incidents TEXT` | related postmortems |
 | `--history`, `--introduced`, `--since`, `--until`, `--author` | commits that added/removed a matching line (need `index --history`) |
