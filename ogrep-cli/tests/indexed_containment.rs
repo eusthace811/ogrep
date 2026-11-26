@@ -270,7 +270,10 @@ fn a_server_that_cannot_open_its_root_says_so() {
 }
 
 /// The same once every candidate is cached: whether the root's loss is
-/// reported does not depend on what the cache happens to hold.
+/// reported does not depend on what the cache happens to hold. The server
+/// runs without a watcher, so nothing evicts what the first search cached,
+/// and the second is answered from the cache alone (with the root opened
+/// only on a miss, as before, this test fails).
 #[test]
 fn a_server_that_cannot_open_its_root_says_so_from_a_warm_cache() {
     let fixture = Fixture::new();

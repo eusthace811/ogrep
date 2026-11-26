@@ -157,10 +157,11 @@ impl RootDir {
         components: &[std::ffi::OsString],
     ) -> Option<std::io::Result<std::fs::File>> {
         use std::os::fd::AsRawFd;
-        use std::sync::atomic::{AtomicBool, Ordering};
 
-        static MISSING: AtomicBool = AtomicBool::new(false);
-        if MISSING.load(Ordering::Relaxed) {
+        // Whether the call is missing, asked once, on the first ENOSYS: a
+        // file whose own open answers ENOSYS again does not ask again.
+        static MISSING: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+        if MISSING.get() == Some(&true) {
             return None;
         }
         let name = joined_name(components)?;
@@ -171,8 +172,8 @@ impl RootDir {
         ) {
             Ok(file) => Some(Ok(file)),
             Err(e) => {
-                if e.raw_os_error() == Some(libc::ENOSYS) && openat2_missing() {
-                    MISSING.store(true, Ordering::Relaxed);
+                if e.raw_os_error() == Some(libc::ENOSYS) {
+                    MISSING.get_or_init(openat2_missing);
                 }
                 None
             }

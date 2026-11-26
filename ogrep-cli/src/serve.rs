@@ -1604,6 +1604,14 @@ fn process_request(
         .cloned()
         .unwrap_or(serde_json::Value::Null);
 
+    let reaches_git_metadata = matches!(method, "search" | "files")
+        && SearchScope::parse(&params).is_ok_and(|s| s.reaches_git_metadata());
+    // The backlog is applied, or another request's flush of it waited for,
+    // before admission: one flush runs at a time, and the requests behind it
+    // would otherwise hold search slots that unrelated searches wait for.
+    if reaches_git_metadata {
+        flush_git_metadata_events(state, None);
+    }
     let permit = if matches!(method, "search" | "files") {
         match state.searches.acquire(REQUEST_WAIT) {
             Ok(permit) => Some(permit),
@@ -1626,11 +1634,9 @@ fn process_request(
     } else {
         None
     };
-    // After admission, so the changes are applied just before the search
-    // reads them; one made while the request was queued is included. Waiting
-    // here for another flush holds the permit, as any search doing work its
-    // answer needs does.
-    if permit.is_some() && SearchScope::parse(&params).is_ok_and(|s| s.reaches_git_metadata()) {
+    // Again after admission, for the changes made while the request queued,
+    // so they are applied just before the search reads them.
+    if permit.is_some() && reaches_git_metadata {
         flush_git_metadata_events(state, None);
     }
     let response = match method {
@@ -2183,24 +2189,37 @@ fn handle_search(
     // tree, as a scan or the local index never would. Without the root every
     // miss would drop out of an answer that still looked complete, so failing
     // to open it is an error, and the client falls back to a search that can
-    // read them. It is opened whenever there are candidates, even all cached,
-    // so whether that is reported does not depend on the cache. (With none,
+    // read them. It is opened whenever there are candidates, even all cached:
+    // a root that is gone or refused is reported whatever the cache holds.
+    // Any other failure (out of descriptors, a network filesystem's hiccup)
+    // says nothing about the tree, so it is reported only once a file has to
+    // be read; until then the cache answers in full. (With no candidates,
     // nothing would be read, and the answer is the index's.)
-    let root_dir = if candidate_info.is_empty() {
-        None
-    } else {
-        match ogrep_core::rooted::RootDir::open(&state.root) {
-            Ok(dir) => Some(dir),
-            Err(e) => {
-                return json_rpc_error(id, -32603, &format!("cannot open the served root: {e}"));
-            }
-        }
+    let opened =
+        (!candidate_info.is_empty()).then(|| ogrep_core::rooted::RootDir::open(&state.root));
+    let root_error = |e: &std::io::Error| {
+        json_rpc_error(
+            id.clone(),
+            -32603,
+            &format!("cannot open the served root: {e}"),
+        )
     };
+    if let Some(Err(e)) = &opened
+        && root_is_unusable(e)
+    {
+        return root_error(e);
+    }
+    let root_dir = opened.as_ref().and_then(|r| r.as_ref().ok());
+    let needed_root = std::sync::atomic::AtomicBool::new(false);
     // A file that cannot be read is skipped, as a scan skips it, and one over
     // a query's `--max-filesize` too: sized by the handle the read uses, so
     // never through a link.
     let read_indexed = |full_path: &Path| {
-        let mut file = root_dir.as_ref()?.open_file(full_path).ok()?;
+        let Some(root_dir) = root_dir else {
+            needed_root.store(true, Ordering::Relaxed);
+            return None;
+        };
+        let mut file = root_dir.open_file(full_path).ok()?;
         if let Some(limit) = query_size_limit
             && file.metadata().ok()?.len() > limit
         {
@@ -2336,6 +2355,9 @@ fn handle_search(
                 (Vec::new(), Vec::new(), 0, 64);
             while rest.peek().is_some() {
                 let part = resolve(rest.by_ref().take(chunk).collect());
+                if needed_root.load(Ordering::Relaxed) {
+                    break; // reported below, without reading the rest
+                }
                 match verify_all(&part) {
                     Ok(verified) => {
                         found += verified.iter().map(results).sum::<usize>();
@@ -2353,6 +2375,11 @@ fn handle_search(
             (contents, per_file)
         }
     };
+    if needed_root.load(Ordering::Relaxed)
+        && let Some(Err(e)) = &opened
+    {
+        return root_error(e);
+    }
     let mut matches = Vec::new();
     let mut file_stats = Vec::new();
     let mut listed: Vec<&str> = Vec::new();
@@ -5327,7 +5354,9 @@ fn is_git_metadata(rel_path: &str) -> bool {
 /// chunk per hold of the lock, and stops early for a request waiting on it,
 /// which then applies the rest itself, since its answer needs them. Behind
 /// another request's flush, a request waits for that whole flush: it is
-/// applying changes both answers need.
+/// applying changes both answers need. Requests flush before admission, so
+/// neither waits holding a search slot, and again after it for whatever
+/// arrived while they queued.
 fn flush_git_metadata_events(state: &Arc<ServerState>, chunk: Option<usize>) {
     let Some(chunk) = chunk else {
         state.git_metadata_waiters.fetch_add(1, Ordering::SeqCst);
@@ -5539,6 +5568,24 @@ fn classify_event_target(meta: &std::io::Result<std::fs::Metadata>) -> EventTarg
 /// on that would evict live content because a build held the file open for a
 /// moment, and the stale path deliberately keeps unreadable files and retries
 /// them later.
+/// Whether a failure to open the served root says the tree itself is gone
+/// or refused, rather than something passing (out of descriptors, I/O).
+fn root_is_unusable(error: &std::io::Error) -> bool {
+    use std::io::ErrorKind;
+    if matches!(
+        error.kind(),
+        ErrorKind::NotFound | ErrorKind::NotADirectory | ErrorKind::PermissionDenied
+    ) {
+        return true;
+    }
+    // A link loop at the root, read from the raw code as below.
+    #[cfg(unix)]
+    if error.raw_os_error() == Some(libc::ELOOP) {
+        return true;
+    }
+    false
+}
+
 fn proves_ineligible(error: &std::io::Error) -> bool {
     use std::io::ErrorKind;
 
@@ -9825,6 +9872,44 @@ mod tests {
         waiter.join().unwrap();
     }
 
+    /// A `--hidden` request waiting on another's flush of a `.git` backlog
+    /// holds no search slot meanwhile: unrelated searches would wait for it.
+    #[test]
+    fn a_hidden_request_waits_for_a_flush_without_a_search_slot() {
+        let temp = TempDir::new().unwrap();
+        let root = temp.path().join("root");
+        std::fs::create_dir_all(&root).unwrap();
+        let state = test_server_state(&root, &temp.path().join("index"));
+        let in_progress = state.git_metadata_flush.lock().unwrap();
+        let (done_tx, done_rx) = std::sync::mpsc::channel();
+        let waiter = {
+            let state = Arc::clone(&state);
+            thread::spawn(move || {
+                let request = serde_json::json!({
+                    "jsonrpc": "2.0", "method": "files", "id": 1, "params": {"hidden": true},
+                });
+                let (response, _permit) = process_request(&request.to_string(), &state);
+                done_tx.send(response).unwrap();
+            })
+        };
+        let start = Instant::now();
+        while state.git_metadata_waiters.load(Ordering::SeqCst) == 0 {
+            assert!(
+                start.elapsed() < Duration::from_secs(10),
+                "the request never waited"
+            );
+            thread::sleep(Duration::from_millis(5));
+        }
+        assert_eq!(
+            state.searches.status().active,
+            0,
+            "it waited holding a search slot"
+        );
+        drop(in_progress);
+        done_rx.recv_timeout(Duration::from_secs(10)).unwrap();
+        waiter.join().unwrap();
+    }
+
     /// The background flush applies its backlog a chunk at a time, and stops
     /// for a request waiting to apply the rest.
     #[test]
@@ -11520,6 +11605,37 @@ mod tests {
             index.reader_has_path("ignored/forced.rs") || index.live.has_path("ignored/forced.rs"),
             "the correction must make reload's index agree with final B"
         );
+    }
+
+    /// A root that fails to open for a reason that says nothing about the
+    /// tree (here a NUL in its path, as an exhausted descriptor table would)
+    /// still lets the cache answer a query in full, and is reported once a
+    /// file has to be read.
+    #[test]
+    fn a_passing_root_failure_is_reported_only_when_a_file_must_be_read() {
+        let tmp = TempDir::new().unwrap();
+        let root = std::fs::canonicalize(tmp.path()).unwrap();
+        test_git(&root, &["init", "--quiet"]);
+        std::fs::write(root.join("a.rs"), "fn alpha_marker() {}\n").unwrap();
+        std::fs::write(root.join("b.rs"), "fn beta_marker() {}\n").unwrap();
+        let mut state = test_server_state(&root, &root.join(".ogrep"));
+        Arc::get_mut(&mut state).unwrap().watch_enabled = false;
+        state.gitignore_pending.store(false, Ordering::SeqCst);
+        let response = handle_reload(None, &state);
+        assert!(response.contains("\"status\":\"reloaded\""), "{response}");
+        let search = |state: &ServerState, pattern: &str| {
+            handle_search(None, &serde_json::json!({"pattern": pattern}), state)
+        };
+        assert!(search(&state, "alpha_marker").contains("a.rs"));
+
+        Arc::get_mut(&mut state).unwrap().root = root.join("gone\0");
+        let cached = search(&state, "alpha_marker");
+        assert!(
+            cached.contains("a.rs"),
+            "the cache holds the whole answer: {cached}"
+        );
+        let missed = search(&state, "beta_marker");
+        assert!(missed.contains("cannot open the served root"), "{missed}");
     }
 
     #[test]
