@@ -69,8 +69,9 @@ pub struct RootDir {
 }
 
 impl RootDir {
-    /// Open `root`, refusing one this process may not search: every name
-    /// below it would then fail on its own, an answer that looks complete.
+    /// Open `root`, refusing on unix one this process may not search: every
+    /// name below it would then fail on its own, an answer that looks
+    /// complete. Windows has no such permission to ask about up front.
     pub fn open(root: &Path) -> std::io::Result<Self> {
         let rooted = Self::open_unchecked(root)?;
         #[cfg(unix)]
@@ -377,25 +378,20 @@ fn open_search_only(root: &Path) -> std::io::Result<std::fs::File> {
 /// `EACCES` for a directory this process may not search. A search-only open
 /// needs no permission on the directory, nor does the read-only retry need
 /// permission to search it, so such a root opens and then resolves nothing
-/// below it. Looking up `.` in it asks the kernel, with this process's
-/// effective credentials. Only that answer is the kernel's own permission
-/// check, certain to fail every lookup below too; any other failure (a
-/// flaky network filesystem, a sandbox refusing `fstatat` alone with
-/// `EPERM`) says nothing about the reads, which report their own errors.
+/// below it. Opening `.` in it the same way makes the lookup every read
+/// below makes, with this process's effective credentials, and nothing more
+/// (no attribute check a security module might refuse on its own). Only
+/// `EACCES` is that check's answer, certain to fail every lookup below too;
+/// any other failure (a flaky network filesystem, a sandbox's `EPERM`) says
+/// nothing about the reads, which report their own errors.
 #[cfg(unix)]
 fn refuse_unsearchable(dir: &std::fs::File) -> std::io::Result<()> {
     use std::os::fd::AsRawFd;
 
-    // SAFETY: `dir` is a live directory descriptor, the name is a NUL-
-    // terminated literal, and `stat` is written by the call.
-    let mut stat: libc::stat = unsafe { std::mem::zeroed() };
-    if unsafe { libc::fstatat(dir.as_raw_fd(), c".".as_ptr(), &mut stat, 0) } != 0 {
-        let error = std::io::Error::last_os_error();
-        if error.raw_os_error() == Some(libc::EACCES) {
-            return Err(error);
-        }
+    match open_dir_at(dir.as_raw_fd(), c".", 0) {
+        Err(error) if error.raw_os_error() == Some(libc::EACCES) => Err(error),
+        _ => Ok(()),
     }
-    Ok(())
 }
 
 /// `name` below `parent` opened as a directory to look names up in, with
