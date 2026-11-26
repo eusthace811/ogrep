@@ -5544,8 +5544,9 @@ fn proves_ineligible(error: &std::io::Error) -> bool {
 
     // `InvalidInput` and `NotADirectory` are what `open_within_root` itself
     // returns for a path that escapes the root, has a non-literal component, or
-    // runs through something that is not a directory (a link on the way, met
-    // with `O_NOFOLLOW | O_DIRECTORY`, included).
+    // runs through something that is not a directory (on Linux, a link on the
+    // way too, which `O_NOFOLLOW | O_DIRECTORY` meets as `ENOTDIR`; macOS
+    // answers `ELOOP`, below).
     if matches!(
         error.kind(),
         ErrorKind::NotFound | ErrorKind::NotADirectory | ErrorKind::InvalidInput

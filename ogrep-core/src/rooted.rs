@@ -171,29 +171,27 @@ impl RootDir {
             let name = std::ffi::CString::new(component.as_bytes()).map_err(|_| {
                 Error::new(ErrorKind::InvalidInput, "path component contains a NUL")
             })?;
+            // `O_NOFOLLOW` on every component, including the last, and
             // `O_DIRECTORY` on the intermediates so a *file* in the middle of
-            // the path fails here rather than at the next `openat`, and
-            // `O_NOFOLLOW` on every one of them, including the last.
-            // `O_NONBLOCK` so a FIFO swapped in cannot stall the open. The
-            // intermediates are only searched, as `openat2` and a path lookup
-            // search them: read permission there is not needed, and asking for
-            // it would answer `EACCES` where the file is gone or a link.
-            let mut flags = libc::O_NOFOLLOW | libc::O_CLOEXEC;
-            if i == last {
-                flags |= libc::O_RDONLY | libc::O_NONBLOCK;
-            } else {
-                flags |= SEARCH_ONLY | libc::O_DIRECTORY;
-            }
+            // the path fails here rather than at the next `openat`.
             let parent = dir.as_ref().map_or(self.dir.as_raw_fd(), |d| d.as_raw_fd());
-            // SAFETY: `parent` is a live directory descriptor, and `name` is a
-            // NUL-terminated single path component that outlives the call.
-            let fd = retry_interrupted(|| unsafe { libc::openat(parent, name.as_ptr(), flags) });
-            if fd < 0 {
-                return Err(Error::last_os_error());
-            }
-            // SAFETY: `openat` returned a fresh owned descriptor. Assigning it
-            // drops the previous one, closing the parent we no longer need.
-            dir = Some(unsafe { OwnedFd::from_raw_fd(fd) });
+            let opened = if i == last {
+                let flags = libc::O_RDONLY | libc::O_NOFOLLOW | libc::O_CLOEXEC | libc::O_NONBLOCK;
+                // SAFETY: `parent` is a live directory descriptor, and `name`
+                // is a NUL-terminated single component that outlives the call.
+                let fd =
+                    retry_interrupted(|| unsafe { libc::openat(parent, name.as_ptr(), flags) });
+                if fd < 0 {
+                    return Err(Error::last_os_error());
+                }
+                // SAFETY: `openat` returned a fresh owned descriptor.
+                unsafe { OwnedFd::from_raw_fd(fd) }
+            } else {
+                open_dir_at(parent, &name, libc::O_NOFOLLOW)?
+            };
+            // Assigning drops the previous one, closing the parent we no
+            // longer need.
+            dir = Some(opened);
         }
         Ok(std::fs::File::from(dir.expect("at least one component")))
     }
@@ -341,25 +339,62 @@ pub fn indexed_text_reader(root: &Path) -> impl Fn(&str) -> std::io::Result<Stri
 }
 
 /// Open the root as a directory to resolve names under, which needs only
-/// permission to search it (`--x`), as reading a file by its full path did;
-/// opened for reading where the system has no such mode.
+/// permission to search it (`--x`), as reading a file by its full path did.
+/// A link at the root itself is the user's to have, so it is followed.
 #[cfg(unix)]
 fn open_search_only(root: &Path) -> std::io::Result<std::fs::File> {
-    use std::os::unix::fs::OpenOptionsExt;
+    use std::os::unix::ffi::OsStrExt;
+
+    let path = std::ffi::CString::new(root.as_os_str().as_bytes()).map_err(|_| {
+        std::io::Error::new(std::io::ErrorKind::InvalidInput, "root contains a NUL")
+    })?;
+    open_dir_at(libc::AT_FDCWD, &path, 0).map(std::fs::File::from)
+}
+
+/// `name` below `parent` opened as a directory to look names up in, with
+/// `flags` added: search-only (`O_PATH`, `O_SEARCH`), so its permission to
+/// search is all it needs, as a path lookup's; read-only where the system
+/// has no such mode, or refuses it. `O_NONBLOCK` so a FIFO swapped in cannot
+/// stall the open.
+#[cfg(unix)]
+fn open_dir_at(
+    parent: std::os::fd::RawFd,
+    name: &std::ffi::CStr,
+    flags: libc::c_int,
+) -> std::io::Result<std::os::fd::OwnedFd> {
+    use std::os::fd::FromRawFd;
 
     #[cfg(target_os = "linux")]
-    let search = libc::O_PATH | libc::O_DIRECTORY;
+    const SEARCH_ONLY: libc::c_int = libc::O_PATH;
     #[cfg(target_os = "macos")]
-    let search = libc::O_SEARCH;
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
-    if let Ok(dir) = std::fs::OpenOptions::new()
-        .read(true)
-        .custom_flags(search)
-        .open(root)
-    {
-        return Ok(dir);
+    const SEARCH_ONLY: libc::c_int = libc::O_SEARCH;
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+    const SEARCH_ONLY: libc::c_int = libc::O_RDONLY;
+
+    let open = |mode: libc::c_int| {
+        let flags = mode | libc::O_DIRECTORY | libc::O_CLOEXEC | libc::O_NONBLOCK | flags;
+        // SAFETY: `parent` is a live directory descriptor (or `AT_FDCWD`) and
+        // `name` is NUL-terminated and outlives the call.
+        let fd = retry_interrupted(|| unsafe { libc::openat(parent, name.as_ptr(), flags) });
+        if fd < 0 {
+            return Err(std::io::Error::last_os_error());
+        }
+        // SAFETY: `openat` returned a fresh descriptor owned here.
+        Ok(unsafe { std::os::fd::OwnedFd::from_raw_fd(fd) })
+    };
+    match open(SEARCH_ONLY) {
+        // A kernel without the mode (`O_SEARCH` is newer than some macOS
+        // releases ogrep runs on) refuses the flag itself.
+        Err(e)
+            if SEARCH_ONLY != libc::O_RDONLY
+                && e.raw_os_error().is_some_and(|code| {
+                    [libc::EINVAL, libc::ENOTSUP, libc::EOPNOTSUPP].contains(&code)
+                }) =>
+        {
+            open(libc::O_RDONLY)
+        }
+        opened => opened,
     }
-    std::fs::File::open(root)
 }
 
 /// `name` opened read-only beneath `dir` with `openat2`, refusing any link
@@ -394,15 +429,6 @@ fn openat2(
     // SAFETY: `openat2` returned a fresh descriptor owned here.
     Ok(unsafe { std::fs::File::from_raw_fd(fd as i32) })
 }
-
-/// Open a directory only to resolve names under it, which needs no more than
-/// permission to search it; read-only where the system has no such mode.
-#[cfg(target_os = "linux")]
-const SEARCH_ONLY: libc::c_int = libc::O_PATH;
-#[cfg(target_os = "macos")]
-const SEARCH_ONLY: libc::c_int = libc::O_SEARCH;
-#[cfg(all(unix, not(any(target_os = "linux", target_os = "macos"))))]
-const SEARCH_ONLY: libc::c_int = libc::O_RDONLY;
 
 /// Run an open again while a signal interrupts it, as `std::fs::File::open`
 /// does; the result is the call's, with `errno` set when it is negative.
@@ -648,6 +674,17 @@ mod tests {
         std::os::unix::fs::symlink(root.join("a/real"), root.join("a/linked")).unwrap();
         std::os::unix::fs::symlink(root.join("a/real/f.rs"), root.join("a/real/g.rs")).unwrap();
         std::fs::set_permissions(root.join("a"), std::fs::Permissions::from_mode(0o111)).unwrap();
+        // Back to listable whatever happens, or the temp tree cannot be removed.
+        struct Restore<'a>(&'a Path);
+        impl Drop for Restore<'_> {
+            fn drop(&mut self) {
+                let _ = std::fs::set_permissions(self.0, std::fs::Permissions::from_mode(0o755));
+            }
+        }
+        let _restore = Restore(&root.join("a"));
+        if std::fs::read_dir(root.join("a")).is_ok() {
+            return; // Privileged: permissions do not apply, so this proves nothing.
+        }
         let rooted = RootDir::open(root).unwrap();
         let components = |rel: &str| relative_components(root, &root.join(rel)).unwrap();
         let ineligible = |e: &std::io::Error| {
@@ -676,7 +713,6 @@ mod tests {
                 }
             }
         }
-        std::fs::set_permissions(root.join("a"), std::fs::Permissions::from_mode(0o755)).unwrap();
     }
 
     /// The helper the index, graph and Git-path readers share: a plain read
