@@ -2180,22 +2180,26 @@ fn handle_search(
     // Each name is the index's, and may now run through a link that was not
     // there when it was indexed: open it without following one, or the
     // response (and the shared cache) would hold content from outside the
-    // tree, as a scan or the local index never would. The root is opened on
-    // first use. Without it every miss would drop out of an answer that still
-    // looked complete, so any failure is an error, and the client falls back
-    // to a search that can read them.
-    let rooted = std::sync::OnceLock::new();
-    let root_dir = || {
-        rooted
-            .get_or_init(|| ogrep_core::rooted::RootDir::open(&state.root))
-            .as_ref()
-            .ok()
+    // tree, as a scan or the local index never would. Without the root every
+    // miss would drop out of an answer that still looked complete, so failing
+    // to open it is an error, and the client falls back to a search that can
+    // read them. It is opened even when every candidate is cached, so whether
+    // that is reported does not depend on the cache.
+    let root_dir = if candidate_info.is_empty() {
+        None
+    } else {
+        match ogrep_core::rooted::RootDir::open(&state.root) {
+            Ok(dir) => Some(dir),
+            Err(e) => {
+                return json_rpc_error(id, -32603, &format!("cannot open the served root: {e}"));
+            }
+        }
     };
     // A file that cannot be read is skipped, as a scan skips it, and one over
     // a query's `--max-filesize` too: sized by the handle the read uses, so
     // never through a link.
     let read_indexed = |full_path: &Path| {
-        let mut file = root_dir()?.open_file(full_path).ok()?;
+        let mut file = root_dir.as_ref()?.open_file(full_path).ok()?;
         if let Some(limit) = query_size_limit
             && file.metadata().ok()?.len() > limit
         {
@@ -2317,13 +2321,9 @@ fn handle_search(
     let (candidate_contents, per_file) = match limit {
         None => {
             let contents = resolve(candidate_info);
-            if matches!(rooted.get(), Some(Err(_))) {
-                (Vec::new(), Vec::new()) // reported below, without matching
-            } else {
-                match verify_all(&contents) {
-                    Ok(per_file) => (contents, per_file),
-                    Err(e) => return json_rpc_error(id, -32603, &e),
-                }
+            match verify_all(&contents) {
+                Ok(per_file) => (contents, per_file),
+                Err(e) => return json_rpc_error(id, -32603, &e),
             }
         }
         // Verify in growing chunks, in candidate order, until the files so far
@@ -2335,9 +2335,6 @@ fn handle_search(
                 (Vec::new(), Vec::new(), 0, 64);
             while rest.peek().is_some() {
                 let part = resolve(rest.by_ref().take(chunk).collect());
-                if matches!(rooted.get(), Some(Err(_))) {
-                    break; // reported below, without reading the rest
-                }
                 match verify_all(&part) {
                     Ok(verified) => {
                         found += verified.iter().map(results).sum::<usize>();
@@ -2355,9 +2352,6 @@ fn handle_search(
             (contents, per_file)
         }
     };
-    if let Some(Err(e)) = rooted.get() {
-        return json_rpc_error(id, -32603, &format!("cannot open the served root: {e}"));
-    }
     let mut matches = Vec::new();
     let mut file_stats = Vec::new();
     let mut listed: Vec<&str> = Vec::new();

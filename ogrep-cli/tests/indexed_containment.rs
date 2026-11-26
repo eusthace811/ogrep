@@ -269,6 +269,32 @@ fn a_server_that_cannot_open_its_root_says_so() {
     );
 }
 
+/// The same once every candidate is cached: whether the root's loss is
+/// reported does not depend on what the cache happens to hold.
+#[test]
+fn a_server_that_cannot_open_its_root_says_so_from_a_warm_cache() {
+    let fixture = Fixture::new();
+    let _server = Server::start(&fixture);
+    let (stdout, stderr) = fixture.search(Path::new("."), &["-F", "--", "needle"]);
+    assert!(
+        stdout.contains("kept") && !stderr.contains("falling back"),
+        "{stdout}{stderr}"
+    );
+    let moved = fixture.temp.path().join("moved");
+    fs::rename(&fixture.root, &moved).unwrap();
+    let output = Command::cargo_bin("ogrep")
+        .unwrap()
+        .current_dir(fixture.temp.path())
+        .args(["-F", "--", "needle", "moved"])
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(
+        stderr.contains("falling back to local index: cannot open the served root"),
+        "{stderr}"
+    );
+}
+
 /// A root that may be searched through but not listed (`-wx`) is opened to
 /// resolve names under it, which needs no more, as reading a file did.
 #[test]

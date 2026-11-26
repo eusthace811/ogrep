@@ -45,7 +45,8 @@ fn open_no_follow(path: &Path) -> std::io::Result<std::fs::File> {
 /// directory the user asked us to search, so a link there is theirs to have.
 /// For many files under one root, open a [`RootDir`] once instead.
 pub fn open_within_root(root: &Path, path: &Path) -> std::io::Result<std::fs::File> {
-    RootDir::open(root)?.open_file(path)
+    // One file: its own open reports a root it may not search.
+    RootDir::open_unchecked(root)?.open_file(path)
 }
 
 /// A root opened once, for opening many files below it with
@@ -68,7 +69,16 @@ pub struct RootDir {
 }
 
 impl RootDir {
+    /// Open `root`, refusing one this process may not search: every name
+    /// below it would then fail on its own, an answer that looks complete.
     pub fn open(root: &Path) -> std::io::Result<Self> {
+        let rooted = Self::open_unchecked(root)?;
+        #[cfg(unix)]
+        refuse_unsearchable(&rooted.dir)?;
+        Ok(rooted)
+    }
+
+    fn open_unchecked(root: &Path) -> std::io::Result<Self> {
         Ok(Self {
             root: root.to_path_buf(),
             #[cfg(unix)]
@@ -135,10 +145,11 @@ impl RootDir {
     /// and any escape from the root. `None` on any failure, for the walk to
     /// decide: the call may be missing (an old kernel) or refused (a sandbox,
     /// with whatever errno it was given), or the path too long for one lookup,
-    /// and the walk also reports a path that is really gone or a link. Only
-    /// `ENOSYS` is remembered, since only it says the call is gone for every
-    /// path (a seccomp filter, which may answer with it too, applies to the
-    /// whole process and is never lifted); any other refusal costs only itself.
+    /// and the walk also reports a path that is really gone or a link. Only a
+    /// missing call is remembered: `ENOSYS`, confirmed by a call the kernel
+    /// rejects before looking at any path (an unknown resolve flag, `EINVAL`
+    /// where the call exists), since a file's own open handler may answer
+    /// `ENOSYS` too. Any other refusal costs only itself.
     #[cfg(target_os = "linux")]
     fn open_beneath(
         &self,
@@ -159,7 +170,7 @@ impl RootDir {
         ) {
             Ok(file) => Some(Ok(file)),
             Err(e) => {
-                if e.raw_os_error() == Some(libc::ENOSYS) {
+                if e.raw_os_error() == Some(libc::ENOSYS) && openat2_missing() {
                     MISSING.store(true, Ordering::Relaxed);
                 }
                 None
@@ -360,26 +371,30 @@ fn open_search_only(root: &Path) -> std::io::Result<std::fs::File> {
     let path = std::ffi::CString::new(root.as_os_str().as_bytes()).map_err(|_| {
         std::io::Error::new(std::io::ErrorKind::InvalidInput, "root contains a NUL")
     })?;
-    let dir = open_dir_at(libc::AT_FDCWD, &path, 0)?;
-    // A search-only open needs no permission on the directory, nor does the
-    // read-only retry need permission to search it, so a root that may not
-    // be searched would open and then resolve nothing below it. Looking up
-    // `.` in it asks the kernel, with this process's effective credentials.
+    open_dir_at(libc::AT_FDCWD, &path, 0).map(std::fs::File::from)
+}
+
+/// `EACCES` for a directory this process may not search. A search-only open
+/// needs no permission on the directory, nor does the read-only retry need
+/// permission to search it, so such a root opens and then resolves nothing
+/// below it. Looking up `.` in it asks the kernel, with this process's
+/// effective credentials. Any other failure of the lookup (a flaky network
+/// filesystem, a sandbox refusing `fstatat`) says nothing about permission,
+/// and the reads below report their own errors, as before the check.
+#[cfg(unix)]
+fn refuse_unsearchable(dir: &std::fs::File) -> std::io::Result<()> {
+    use std::os::fd::AsRawFd;
+
     // SAFETY: `dir` is a live directory descriptor, the name is a NUL-
     // terminated literal, and `stat` is written by the call.
     let mut stat: libc::stat = unsafe { std::mem::zeroed() };
-    if unsafe {
-        libc::fstatat(
-            std::os::fd::AsRawFd::as_raw_fd(&dir),
-            c".".as_ptr(),
-            &mut stat,
-            0,
-        )
-    } != 0
-    {
-        return Err(std::io::Error::last_os_error());
+    if unsafe { libc::fstatat(dir.as_raw_fd(), c".".as_ptr(), &mut stat, 0) } != 0 {
+        let error = std::io::Error::last_os_error();
+        if error.raw_os_error() == Some(libc::EACCES) {
+            return Err(error);
+        }
     }
-    Ok(std::fs::File::from(dir))
+    Ok(())
 }
 
 /// `name` below `parent` opened as a directory to look names up in, with
@@ -462,6 +477,33 @@ fn openat2(
     }
     // SAFETY: `openat2` returned a fresh descriptor owned here.
     Ok(unsafe { std::fs::File::from_raw_fd(fd as i32) })
+}
+
+/// Whether `openat2` itself is missing (or refused with `ENOSYS`): asked
+/// with a resolve flag no kernel defines, which one with the call rejects
+/// with `EINVAL` before any lookup.
+#[cfg(target_os = "linux")]
+fn openat2_missing() -> bool {
+    // SAFETY: as in `openat2`; all-zero is `open_how`'s default.
+    let mut how: libc::open_how = unsafe { std::mem::zeroed() };
+    how.resolve = 1 << 63;
+    // SAFETY: the name is a NUL-terminated literal and `how` is passed with
+    // its own size; the call fails without opening anything.
+    let fd = unsafe {
+        libc::syscall(
+            libc::SYS_openat2,
+            libc::AT_FDCWD,
+            c".".as_ptr(),
+            &how as *const libc::open_how,
+            std::mem::size_of::<libc::open_how>(),
+        )
+    };
+    if fd >= 0 {
+        // SAFETY: an unexpected descriptor, owned here and closed.
+        unsafe { libc::close(fd as i32) };
+        return false;
+    }
+    std::io::Error::last_os_error().raw_os_error() == Some(libc::ENOSYS)
 }
 
 /// Run an open again while a signal interrupts it, as `std::fs::File::open`
@@ -692,10 +734,16 @@ mod tests {
         assert_eq!(rooted.read_indexed_to_string(&rel).unwrap(), "deep\n");
     }
 
-    /// The server decides from the error's kind whether a path left the
-    /// index, so the walk (which decides whenever `openat2` fails) must say
-    /// "gone" or "a link" as `openat2` would, also below a directory it may
-    /// only search, not list.
+    /// The probe says `openat2` is missing exactly when a real call says so:
+    /// not with it (an ordinary kernel), yes under a filter answering ENOSYS.
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn the_openat2_probe_agrees_with_a_real_call() {
+        let real = openat2(libc::AT_FDCWD, c".", libc::O_DIRECTORY);
+        let missing = real.as_ref().err().and_then(|e| e.raw_os_error()) == Some(libc::ENOSYS);
+        assert_eq!(openat2_missing(), missing, "{real:?}");
+    }
+
     /// A root that may be listed but not searched does not open: nothing
     /// below it would resolve, and every read would fail one by one.
     #[cfg(unix)]
@@ -732,6 +780,10 @@ mod tests {
         }
     }
 
+    /// The server decides from the error's kind whether a path left the
+    /// index, so the walk (which decides whenever `openat2` fails) must say
+    /// "gone" or "a link" as `openat2` would, also below a directory it may
+    /// only search, not list.
     #[cfg(unix)]
     #[test]
     fn the_walk_reports_gone_and_links_below_a_search_only_directory() {
