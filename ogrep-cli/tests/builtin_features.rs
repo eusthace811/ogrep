@@ -1697,8 +1697,62 @@ fn a_tree_copied_inside_its_original_is_searched_itself() {
         found.contains("src/a.rs") && !found.contains("backup"),
         "{found}"
     );
+    // The graph tools cannot scan instead, so they say what to do.
+    ogrep(&copy)
+        .args(["--callees", "-F", "foo", "."])
+        .assert()
+        .code(2)
+        .stderr(predicates::str::contains("ogrep index . --graph"));
+    // Once indexed where it is, the copy is read, not the original.
+    ogrep(&copy)
+        .args(["index", ".", "--graph"])
+        .assert()
+        .success();
     let callees = stdout(ogrep(&copy).args(["--callees", "-F", "foo", "."]));
     assert!(callees.contains("bar -> src/a.rs:2"), "{callees}");
+}
+
+/// An index of one tree, kept in `.ogrep` beside another, does not answer
+/// for the other.
+#[test]
+fn an_index_of_a_sibling_tree_is_not_used() {
+    let temp = TempDir::new().unwrap();
+    for (dir, file) in [("a", "x.txt"), ("b", "y.txt")] {
+        fs::create_dir(temp.path().join(dir)).unwrap();
+        fs::write(temp.path().join(dir).join(file), "needle\n").unwrap();
+    }
+    ogrep(temp.path())
+        .args(["index", "a", "--index-path", ".ogrep"])
+        .assert()
+        .success();
+    let found = stdout(ogrep(temp.path()).args(["--index-path", ".ogrep", "--", "needle", "b"]));
+    assert!(found.contains("y.txt"), "{found}");
+}
+
+/// An index kept below its root, beside the root's own, still reads the
+/// root's files when the directory holding it is searched.
+#[test]
+fn an_index_kept_below_an_indexed_root_reads_the_right_files() {
+    let temp = TempDir::new().unwrap();
+    let tree = temp.path().join("a");
+    fs::create_dir_all(tree.join("sub")).unwrap();
+    fs::write(tree.join("sub/s.txt"), "needle\n").unwrap();
+    fs::write(tree.join("top.txt"), "needle\n").unwrap();
+    ogrep(&tree).args(["index", "."]).assert().success();
+    ogrep(&tree)
+        .args(["index", ".", "--index-path", "sub/.ogrep"])
+        .assert()
+        .success();
+    let found = stdout(ogrep(&tree).args(["--index-path", "sub/.ogrep", "--", "needle", "sub"]));
+    assert!(
+        found.contains("s.txt") && !found.contains("top.txt"),
+        "{found}"
+    );
+    let files = stdout(ogrep(&tree).args(["--files", "--index-path", "sub/.ogrep", "sub"]));
+    assert!(
+        files.contains("s.txt") && !files.contains("top.txt"),
+        "{files}"
+    );
 }
 
 /// An index kept in a `.ogrep` below the root it covers is not taken for a

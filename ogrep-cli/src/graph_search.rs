@@ -100,8 +100,19 @@ pub fn run(
     // A tree moved or copied since it was indexed is read where this index
     // is, not where it recorded.
     let canonical = |p: &Path| std::fs::canonicalize(p).unwrap_or_else(|_| p.to_path_buf());
-    let index_root =
-        crate::search::index_tree_root(&dir, root).unwrap_or_else(|| root.to_path_buf());
+    use crate::search::IndexTree;
+    let index_root = match crate::search::index_tree(&dir, root) {
+        IndexTree::Root(index_root) => index_root,
+        // A copy of that tree, made with its index: read here.
+        IndexTree::Elsewhere => {
+            crate::search::index_holder(&dir).unwrap_or_else(|| root.to_path_buf())
+        }
+        IndexTree::CopyOrOriginal => anyhow::bail!(
+            "the index at {} is of a tree above it, or of a copy of that tree: \
+             run `ogrep index . --graph` here, or search from the root it was built for",
+            dir.display()
+        ),
+    };
     let below = canonical(root)
         .strip_prefix(canonical(&index_root))
         .map(|p| p.to_string_lossy().replace('\\', "/"))

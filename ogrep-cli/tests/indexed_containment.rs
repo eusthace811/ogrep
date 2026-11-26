@@ -279,6 +279,31 @@ fn a_server_that_cannot_open_its_root_says_so() {
     assert!(!stderr.contains("falling back"), "{stderr}");
 }
 
+/// A tree copied with its index takes along the address of the original's
+/// server. That server serves the original, so it must not answer for the
+/// copy, beside the original or inside it.
+#[test]
+fn a_copied_tree_is_not_answered_by_the_server_of_its_original() {
+    let fixture = Fixture::new();
+    let _server = Server::start(&fixture);
+    for copy in [fixture.temp.path().join("copy"), fixture.root.join("copy")] {
+        fs::create_dir(&copy).unwrap();
+        fs::write(copy.join("kept.txt"), "needle copied\n").unwrap();
+        fs::create_dir(copy.join(".ogrep")).unwrap();
+        for entry in fs::read_dir(fixture.root.join(".ogrep")).unwrap() {
+            let entry = entry.unwrap();
+            if entry.file_type().unwrap().is_file() {
+                fs::copy(entry.path(), copy.join(".ogrep").join(entry.file_name())).unwrap();
+            }
+        }
+        assert!(copy.join(".ogrep/serve.json").is_file());
+        let (stdout, _) = fixture.search(&copy, &["-F", "--", "needle"]);
+        assert!(stdout.contains("needle copied"), "{stdout}");
+        assert!(!stdout.contains("needle kept"), "{stdout}");
+        assert!(!stdout.contains("nested"), "{stdout}");
+    }
+}
+
 /// A pattern the server rejects is the user's error, reported once by the
 /// local search, not a reason the server gives for a fallback.
 #[test]

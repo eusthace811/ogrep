@@ -2174,48 +2174,60 @@ impl IndexScope {
 /// The slice of the index at `index_dir` that covers `root`, with the absolute
 /// root the index was built for.
 fn resolve_scope(index_dir: &Path, root: &Path) -> Option<(PathBuf, IndexScope)> {
-    let index_root = index_tree_root(index_dir, root)?;
+    let IndexTree::Root(index_root) = index_tree(index_dir, root) else {
+        return None;
+    };
     let scope = IndexScope::resolve(&index_root, root)?;
     Some((index_root, scope))
 }
 
-/// The directory the paths in the index at `index_dir` are relative to, for
-/// a search of `root`; `None` when the index is of another tree.
+/// What the index at some directory covers, for a search of some path.
+pub(crate) enum IndexTree {
+    /// Its paths are relative to this directory.
+    Root(PathBuf),
+    /// Another tree, which is still where the index recorded it.
+    Elsewhere,
+    /// Either the tree it recorded, or a copy of that tree made inside it:
+    /// the two leave the same files in the same places.
+    CopyOrOriginal,
+}
+
+/// The directory holding the index, when the index is in `.ogrep`: the tree
+/// of an index left where a build puts it by default.
+pub(crate) fn index_holder(index_dir: &Path) -> Option<PathBuf> {
+    std::fs::canonicalize(index_dir)
+        .ok()
+        .filter(|dir| dir.file_name().is_some_and(|name| name == ".ogrep"))
+        .and_then(|dir| dir.parent().map(Path::to_path_buf))
+}
+
+/// Which tree the index at `index_dir` covers, for a search of `root`.
 ///
-/// That is the root the index recorded, unless the tree was moved or copied
-/// with its index since. Then the recorded root is gone or is the original,
-/// and the tree is the directory holding the index, if the index is in
-/// `.ogrep` and that directory holds `root`. A copy made inside its original
-/// is told from an index kept below the root it covers by the original still
-/// having an index of its own. A recorded root that is gone, with an index
-/// kept anywhere else, leaves `root` as the best guess.
-pub(crate) fn index_tree_root(index_dir: &Path, root: &Path) -> Option<PathBuf> {
+/// The root it recorded is believed while it exists and holds `root` or lies
+/// below it, with one exception: an index in `.ogrep` at or above `root` but
+/// below the recorded root is what a copy of the tree made inside the tree
+/// has, and also what an index kept below its root has, so it is not used.
+/// A recorded root that is gone is a tree moved with its index if the
+/// directory holding the index holds `root`; with the index kept anywhere
+/// else, `root` is the best guess.
+pub(crate) fn index_tree(index_dir: &Path, root: &Path) -> IndexTree {
     let searched = std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf());
     let recorded = IndexMeta::load(index_dir)
         .ok()
         .and_then(|m| std::fs::canonicalize(m.root_path).ok())
         .filter(|recorded| recorded.is_dir());
-    let holder = std::fs::canonicalize(index_dir)
-        .ok()
-        .filter(|dir| dir.file_name().is_some_and(|name| name == ".ogrep"))
-        .and_then(|dir| dir.parent().map(Path::to_path_buf))
-        .filter(|holder| searched.starts_with(holder));
+    let holder = index_holder(index_dir).filter(|holder| searched.starts_with(holder));
     match (recorded, holder) {
-        (Some(recorded), Some(holder))
-            if holder != recorded
-                && holder.starts_with(&recorded)
-                && IndexMeta::load(&builder::default_index_dir(&recorded)).is_ok() =>
-        {
-            Some(holder)
+        (Some(recorded), Some(holder)) if holder != recorded && holder.starts_with(&recorded) => {
+            IndexTree::CopyOrOriginal
         }
         (Some(recorded), _)
             if searched.starts_with(&recorded) || recorded.starts_with(&searched) =>
         {
-            Some(recorded)
+            IndexTree::Root(recorded)
         }
-        (_, Some(holder)) => Some(holder),
-        (Some(_), None) => None,
-        (None, None) => Some(searched),
+        (Some(_), _) => IndexTree::Elsewhere,
+        (None, holder) => IndexTree::Root(holder.unwrap_or(searched)),
     }
 }
 
