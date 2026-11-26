@@ -1668,7 +1668,7 @@ fn handle_files(
     // The listing reads no file, but one of a tree that is gone would be
     // what the index remembers: said as a search says it.
     if let Some(e) = unusable_root(state) {
-        return json_rpc_error(id, -32603, &format!("cannot open the served root: {e}"));
+        return root_error(id, &e);
     }
 
     let mut files = {
@@ -2206,17 +2206,10 @@ fn handle_search(
     // filesystem's hiccup) says nothing about the tree, so it is reported
     // only once a file has to be read; until then the cache answers in full.
     let opened = ogrep_core::rooted::RootDir::open(&state.root);
-    let root_error = |e: &std::io::Error| {
-        json_rpc_error(
-            id.clone(),
-            -32603,
-            &format!("cannot open the served root: {e}"),
-        )
-    };
     if let Err(e) = &opened
         && root_is_unusable(e)
     {
-        return root_error(e);
+        return root_error(id, e);
     }
     let root_dir = opened.as_ref().ok();
     let needed_root = std::sync::atomic::AtomicBool::new(false);
@@ -2408,7 +2401,7 @@ fn handle_search(
     if needed_root.load(Ordering::Relaxed)
         && let Err(e) = &opened
     {
-        return root_error(e);
+        return root_error(id, e);
     }
     if let Some(e) = read_failure.lock().unwrap().take() {
         return json_rpc_error(id, -32603, &format!("cannot read an indexed file: {e}"));
@@ -5680,8 +5673,6 @@ fn is_passing_failure(error: &std::io::Error) -> bool {
         .is_some_and(|code| exhausted.contains(&code))
 }
 
-/// Whether a failure to open the served root says the tree itself is gone
-/// or refused, rather than something passing (out of descriptors, I/O).
 /// Why the served root cannot be opened, when it is gone or refused.
 fn unusable_root(state: &ServerState) -> Option<std::io::Error> {
     ogrep_core::rooted::RootDir::open(&state.root)
@@ -5689,6 +5680,13 @@ fn unusable_root(state: &ServerState) -> Option<std::io::Error> {
         .filter(root_is_unusable)
 }
 
+/// The reply to a request the served root could not be opened for.
+fn root_error(id: Option<serde_json::Value>, error: &std::io::Error) -> String {
+    json_rpc_error(id, -32603, &format!("cannot open the served root: {error}"))
+}
+
+/// Whether a failure to open the served root says the tree itself is gone
+/// or refused, rather than something passing (out of descriptors, I/O).
 fn root_is_unusable(error: &std::io::Error) -> bool {
     use std::io::ErrorKind;
     if matches!(

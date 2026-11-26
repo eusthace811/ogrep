@@ -768,8 +768,8 @@ pub fn list_files(root: &Path, index_path: Option<&Path>, opts: &SearchOptions) 
                 // Said only when the server gives a reason: a listing falls
                 // back quietly from one that is not up.
                 Err(error) => {
-                    if let Some(replied) = error.downcast_ref::<ServerReplied>() {
-                        warn_fallback(&root, opts, &format!(": {}", replied.0));
+                    if error.is::<ServerReplied>() {
+                        warn_fallback(&root, opts, &fallback_reason(&error));
                     }
                     None
                 }
@@ -1088,6 +1088,9 @@ pub fn run(
         || opts.no_ignore_parent
         || opts.no_ignore_vcs;
 
+    // A pattern the server rejected is a fallback only if the local search
+    // accepts it.
+    let mut warn_after = false;
     // Try to delegate to a running server (skip for files_without_match
     // since the server only returns matching files). `--include-zero` needs
     // the same bypass: a zero-count row can only come from a file the server
@@ -1110,33 +1113,12 @@ pub fn run(
                 return Err(error);
             }
             // Told only once the local search has not rejected them too.
-            Err(error) if error.is::<ServerRejected>() => {
-                let result = search_without_server(
-                    &root,
-                    &index_dir,
-                    index_path,
-                    bypass_index,
-                    opts,
-                    ci,
-                    writer,
-                );
-                if result.is_ok() {
-                    warn_fallback(&root, opts, "");
-                }
-                return result;
-            }
-            // A server that answered says why; one that did not is unavailable.
-            Err(error) => {
-                let why = error
-                    .downcast_ref::<ServerReplied>()
-                    .map(|e| format!(": {}", e.0))
-                    .unwrap_or_default();
-                warn_fallback(&root, opts, &why);
-            }
+            Err(error) if error.is::<ServerRejected>() => warn_after = true,
+            Err(error) => warn_fallback(&root, opts, &fallback_reason(&error)),
         }
     }
 
-    search_without_server(
+    let result = search_without_server(
         &root,
         &index_dir,
         index_path,
@@ -1144,7 +1126,20 @@ pub fn run(
         opts,
         ci,
         writer,
-    )
+    );
+    if warn_after && result.is_ok() {
+        warn_fallback(&root, opts, "");
+    }
+    result
+}
+
+/// Why the server was not used, for the fallback warning: what a server that
+/// answered says, nothing for one that did not.
+fn fallback_reason(error: &anyhow::Error) -> String {
+    error
+        .downcast_ref::<ServerReplied>()
+        .map(|e| format!(": {}", e.0))
+        .unwrap_or_default()
 }
 
 /// Search with the on-disk index, or by scanning when it cannot be used.
@@ -2239,13 +2234,11 @@ fn resolve_scope(index_dir: &Path, root: &Path) -> Option<(PathBuf, IndexScope)>
     Some((index_root, scope))
 }
 
-/// The tree a server serves and the slice of it that covers the canonical
-/// `root`, when it serves `root` and was not found through a copy of its
-/// index made inside that tree. A server that predates recording its tree in
-/// `serve.json`, or whose tree is not here, is taken to serve the tree of the
-/// index it was found beside. The second is a server in another namespace (a
-/// container sharing the volume, Windows seen from WSL), or one whose tree is
-/// gone, which says so when asked.
+/// The served tree and the scope of the canonical `root` in it; `None` when
+/// `root` is outside it, or the index was found through a copy made inside
+/// it. Without a recorded root, or with one not visible here (another
+/// namespace such as a container or WSL, or a tree that is gone, which the
+/// server reports when asked), this is [`resolve_scope`]'s answer.
 fn served_scope(info: &ServerInfo, index_dir: &Path, root: &Path) -> Option<(PathBuf, IndexScope)> {
     let Some(served) = info.root.as_ref().filter(|served| served.is_dir()) else {
         return resolve_scope(index_dir, root);
@@ -2372,12 +2365,11 @@ fn held(tree: &Path, sample: &[String]) -> usize {
 }
 
 /// Where the tree of the index at `index_dir` is now, its recorded root
-/// being gone: of the directory holding the index, when that is within
-/// `searched`, and the directories at or above `searched`, the one that holds
-/// the most of a sample of the indexed files; the holder, then the nearest,
-/// on a tie. `Some(None)` when none holds any, as when the index covers only
-/// part of what is searched, and `None` when the index lists no file to look
-/// for.
+/// being gone. The candidates are the directory holding the index, when it
+/// is within `searched`, then `searched` and its ancestors; the one holding
+/// the most of a sample of the indexed files wins, the earlier on a tie.
+/// `Some(None)` when none holds any, as when the index covers only part of
+/// what is searched, and `None` when the index lists no file to look for.
 fn moved_tree(index_dir: &Path, searched: &Path) -> Option<Option<PathBuf>> {
     let sample = sampled_paths(index_dir)?;
     let holder = std::fs::canonicalize(index_dir)
