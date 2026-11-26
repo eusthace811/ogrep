@@ -174,10 +174,15 @@ impl RootDir {
             // `O_DIRECTORY` on the intermediates so a *file* in the middle of
             // the path fails here rather than at the next `openat`, and
             // `O_NOFOLLOW` on every one of them, including the last.
-            // `O_NONBLOCK` so a FIFO swapped in cannot stall the open.
-            let mut flags = libc::O_RDONLY | libc::O_NOFOLLOW | libc::O_CLOEXEC | libc::O_NONBLOCK;
-            if i != last {
-                flags |= libc::O_DIRECTORY;
+            // `O_NONBLOCK` so a FIFO swapped in cannot stall the open. The
+            // intermediates are only searched, as `openat2` and a path lookup
+            // search them: read permission there is not needed, and asking for
+            // it would answer `EACCES` where the file is gone or a link.
+            let mut flags = libc::O_NOFOLLOW | libc::O_CLOEXEC;
+            if i == last {
+                flags |= libc::O_RDONLY | libc::O_NONBLOCK;
+            } else {
+                flags |= SEARCH_ONLY | libc::O_DIRECTORY;
             }
             let parent = dir.as_ref().map_or(self.dir.as_raw_fd(), |d| d.as_raw_fd());
             // SAFETY: `parent` is a live directory descriptor, and `name` is a
@@ -389,6 +394,15 @@ fn openat2(
     // SAFETY: `openat2` returned a fresh descriptor owned here.
     Ok(unsafe { std::fs::File::from_raw_fd(fd as i32) })
 }
+
+/// Open a directory only to resolve names under it, which needs no more than
+/// permission to search it; read-only where the system has no such mode.
+#[cfg(target_os = "linux")]
+const SEARCH_ONLY: libc::c_int = libc::O_PATH;
+#[cfg(target_os = "macos")]
+const SEARCH_ONLY: libc::c_int = libc::O_SEARCH;
+#[cfg(all(unix, not(any(target_os = "linux", target_os = "macos"))))]
+const SEARCH_ONLY: libc::c_int = libc::O_RDONLY;
 
 /// Run an open again while a signal interrupts it, as `std::fs::File::open`
 /// does; the result is the call's, with `errno` set when it is negative.
@@ -616,6 +630,53 @@ mod tests {
         let rel = format!("{}/f.txt", vec!["d".repeat(100); 45].join("/"));
         let rooted = RootDir::open(root.path()).unwrap();
         assert_eq!(rooted.read_indexed_to_string(&rel).unwrap(), "deep\n");
+    }
+
+    /// The server decides from the error's kind whether a path left the
+    /// index, so the walk (which decides whenever `openat2` fails) must say
+    /// "gone" or "a link" as `openat2` would, also below a directory it may
+    /// only search, not list.
+    #[cfg(unix)]
+    #[test]
+    fn the_walk_reports_gone_and_links_below_a_search_only_directory() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path();
+        std::fs::create_dir_all(root.join("a/real")).unwrap();
+        std::fs::write(root.join("a/real/f.rs"), "x\n").unwrap();
+        std::os::unix::fs::symlink(root.join("a/real"), root.join("a/linked")).unwrap();
+        std::os::unix::fs::symlink(root.join("a/real/f.rs"), root.join("a/real/g.rs")).unwrap();
+        std::fs::set_permissions(root.join("a"), std::fs::Permissions::from_mode(0o111)).unwrap();
+        let rooted = RootDir::open(root).unwrap();
+        let components = |rel: &str| relative_components(root, &root.join(rel)).unwrap();
+        let ineligible = |e: &std::io::Error| {
+            matches!(
+                e.kind(),
+                std::io::ErrorKind::NotFound | std::io::ErrorKind::NotADirectory
+            ) || e.raw_os_error() == Some(libc::ELOOP)
+        };
+        for (rel, gone) in [
+            ("a/real/f.rs", None),
+            ("a/real/missing.rs", Some(std::io::ErrorKind::NotFound)),
+            ("a/linked/f.rs", Some(std::io::ErrorKind::Other)),
+            ("a/real/g.rs", Some(std::io::ErrorKind::Other)),
+        ] {
+            for (how, result) in [
+                ("open_file", rooted.open_file(&root.join(rel))),
+                ("walk", rooted.open_by_component(&components(rel))),
+            ] {
+                match (gone, result) {
+                    (None, Ok(_)) => {}
+                    (Some(std::io::ErrorKind::NotFound), Err(e)) => {
+                        assert_eq!(e.kind(), std::io::ErrorKind::NotFound, "{how} {rel}: {e}")
+                    }
+                    (Some(_), Err(e)) => assert!(ineligible(&e), "{how} {rel}: {e}"),
+                    (want, got) => panic!("{how} {rel}: want {want:?}, got {got:?}"),
+                }
+            }
+        }
+        std::fs::set_permissions(root.join("a"), std::fs::Permissions::from_mode(0o755)).unwrap();
     }
 
     /// The helper the index, graph and Git-path readers share: a plain read
