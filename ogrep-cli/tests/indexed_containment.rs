@@ -165,12 +165,16 @@ struct Server(std::process::Child);
 
 impl Server {
     fn start(fixture: &Fixture) -> Self {
+        Self::start_in(fixture, &fixture.root)
+    }
+
+    fn start_in(fixture: &Fixture, root: &Path) -> Self {
         // Outside the tree, or the log would be a new file in the stale walk.
         let log = fixture.temp.path().join("serve.log");
         let server = Server(
             std::process::Command::new(assert_cmd::cargo::cargo_bin("ogrep"))
                 .args(["serve", ".", "--no-watch"])
-                .current_dir(&fixture.root)
+                .current_dir(root)
                 .stderr(fs::File::create(&log).unwrap())
                 .spawn()
                 .unwrap(),
@@ -194,7 +198,7 @@ impl Server {
             Command::cargo_bin("ogrep")
                 .unwrap()
                 .args(["status", "."])
-                .current_dir(&fixture.root)
+                .current_dir(root)
                 .output()
                 .unwrap()
                 .stdout,
@@ -311,6 +315,55 @@ fn a_copied_tree_is_not_answered_by_the_server_of_its_original() {
         let status = String::from_utf8(status.stdout).unwrap();
         assert!(status.contains("Server:     not running"), "{status}");
     }
+}
+
+/// Indexing a copy again leaves the original's address in it. The original's
+/// server still serves only the original, so it does not answer for the copy.
+#[test]
+fn a_copy_indexed_again_is_not_answered_by_the_server_of_its_original() {
+    let fixture = Fixture::new();
+    let _server = Server::start(&fixture);
+    let copy = fixture.temp.path().join("copy");
+    fs::create_dir(&copy).unwrap();
+    fs::write(copy.join("kept.txt"), "needle copied\n").unwrap();
+    fs::create_dir(copy.join(".ogrep")).unwrap();
+    fs::copy(
+        fixture.root.join(".ogrep/serve.json"),
+        copy.join(".ogrep/serve.json"),
+    )
+    .unwrap();
+    Command::cargo_bin("ogrep")
+        .unwrap()
+        .current_dir(&copy)
+        .args(["index", "."])
+        .assert()
+        .success();
+    assert!(copy.join(".ogrep/serve.json").is_file());
+    let (stdout, _) = fixture.search(&copy, &["-F", "--", "needle"]);
+    assert!(stdout.contains("needle copied"), "{stdout}");
+    assert!(!stdout.contains("needle kept"), "{stdout}");
+}
+
+/// A server for a moved tree serves it although the index still records the
+/// old place, which has been made again: `status` says so and searches use it.
+#[test]
+fn a_moved_tree_is_served_while_its_old_place_exists() {
+    let fixture = Fixture::new();
+    let moved = fixture.temp.path().join("moved");
+    fs::rename(&fixture.root, &moved).unwrap();
+    fs::create_dir(&fixture.root).unwrap();
+    let _server = Server::start_in(&fixture, &moved);
+    let status = Command::cargo_bin("ogrep")
+        .unwrap()
+        .current_dir(&moved)
+        .args(["status", "."])
+        .output()
+        .unwrap();
+    let status = String::from_utf8(status.stdout).unwrap();
+    assert!(status.contains("Server status for"), "{status}");
+    let (stdout, stderr) = fixture.search(&moved, &["-F", "--", "needle"]);
+    assert!(stdout.contains("needle kept"), "{stdout}");
+    assert!(stderr.contains("(via server)"), "{stderr}");
 }
 
 /// A pattern the server rejects is the user's error, reported once by the

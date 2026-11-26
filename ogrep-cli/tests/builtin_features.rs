@@ -1886,6 +1886,51 @@ fn graph_tools_read_a_copy_whose_index_is_kept_elsewhere() {
     assert!(callees.contains("bar ->"), "{callees}");
 }
 
+/// The graph tools find a moved tree below the directory they search, by
+/// the files its index lists, as they find one that has not moved.
+#[test]
+fn graph_tools_find_a_moved_tree_below_the_searched_directory() {
+    let temp = TempDir::new().unwrap();
+    let tree = temp.path().join("t");
+    fs::create_dir_all(tree.join("src")).unwrap();
+    fs::write(tree.join("src/a.rs"), "fn foo() { bar() }\nfn bar() {}\n").unwrap();
+    ogrep(&tree)
+        .args(["index", ".", "--graph"])
+        .assert()
+        .success();
+    fs::rename(&tree, temp.path().join("moved")).unwrap();
+    let callees = stdout(ogrep(temp.path()).args([
+        "--index-path",
+        "moved/.ogrep",
+        "--callees",
+        "-F",
+        "foo",
+        ".",
+    ]));
+    assert!(callees.contains("bar -> moved/src/a.rs:2"), "{callees}");
+}
+
+/// A copy made inside the original with its index under another name than
+/// `.ogrep` is searched itself, as one with `.ogrep` is.
+#[test]
+fn a_copy_inside_its_original_with_a_named_index_is_searched_itself() {
+    let temp = TempDir::new().unwrap();
+    let old = temp.path().join("proj");
+    fs::create_dir_all(old.join("src")).unwrap();
+    fs::write(old.join("src/a.rs"), "fn foo() {}\n").unwrap();
+    ogrep(&old)
+        .args(["index", ".", "--index-path", ".idx"])
+        .assert()
+        .success();
+    let copy = old.join("backup");
+    copy_dir(&old.join("src"), &copy.join("src"));
+    copy_dir(&old.join(".idx"), &copy.join(".idx"));
+    let found = stdout(ogrep(&copy).args(["--index-path", ".idx", "-F", "fn foo", "."]));
+    assert!(found.contains("src/a.rs"), "{found}");
+    let files = stdout(ogrep(&copy).args(["--files", "--index-path", ".idx", "."]));
+    assert!(files.contains("src/a.rs"), "{files}");
+}
+
 fn copy_dir(from: &std::path::Path, to: &std::path::Path) {
     fs::create_dir_all(to).unwrap();
     for entry in fs::read_dir(from).unwrap() {

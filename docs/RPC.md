@@ -1,6 +1,6 @@
 # Server protocol
 
-The server speaks newline-delimited JSON-RPC 2.0 over loopback TCP. A client finds it through `serve.json` in the index directory, which records the server's PID and port. This document describes compact file listings, first-span replies, admission limits and refresh; see the [operations guide](OPERATIONS.md) for the deployment scope.
+The server speaks newline-delimited JSON-RPC 2.0 over loopback TCP. A client finds it through `serve.json` in the index directory, which records the server's PID, port and the root it serves; a client sends a server only searches of paths in that root. This document describes compact file listings, first-span replies, admission limits and refresh; see the [operations guide](OPERATIONS.md) for the deployment scope.
 
 ## Compact file listings
 

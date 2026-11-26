@@ -749,7 +749,7 @@ pub fn list_files(root: &Path, index_path: Option<&Path>, opts: &SearchOptions) 
 
     if filename_index_compatible(opts) {
         if let Ok(info) = ServerInfo::load(&index_dir)
-            && let Some((index_root, scope)) = resolve_scope(&index_dir, &root)
+            && let Some((index_root, scope)) = served_scope(&info, &index_dir, &root)
         {
             let paths = match list_files_via_server(&info, &scope, opts) {
                 Ok(paths) => Some(paths),
@@ -1084,7 +1084,7 @@ pub fn run(
         && !opts.include_zero
         && opts.has_patterns()
         && let Ok(info) = ServerInfo::load(&index_dir)
-        && let Some((index_root, scope)) = resolve_scope(&index_dir, &root)
+        && let Some((index_root, scope)) = served_scope(&info, &index_dir, &root)
     {
         match search_via_server(&info, &root, &index_root, &scope, opts, ci, writer) {
             Ok(had_matches) => return Ok(had_matches),
@@ -2181,6 +2181,27 @@ fn resolve_scope(index_dir: &Path, root: &Path) -> Option<(PathBuf, IndexScope)>
     Some((index_root, scope))
 }
 
+/// The tree a server serves and the slice of it that covers the canonical
+/// `root`, when it serves `root` and was not found through a copy of its
+/// index made inside that tree. A server that predates recording its tree in `serve.json`, or
+/// whose tree is gone, is taken to serve the tree of the index it was found
+/// beside: the second says it cannot open its root, which the user is told.
+fn served_scope(info: &ServerInfo, index_dir: &Path, root: &Path) -> Option<(PathBuf, IndexScope)> {
+    let Some(served) = info.root.as_ref().filter(|served| served.is_dir()) else {
+        return resolve_scope(index_dir, root);
+    };
+    if copy_inside(index_dir, served, root) {
+        return None;
+    }
+    let scope = IndexScope::resolve(served, root)?;
+    Some((served.clone(), scope))
+}
+
+/// Whether the server described beside the index at `index_dir` serves `root`.
+pub(crate) fn serves(info: &ServerInfo, index_dir: &Path, root: &Path) -> bool {
+    served_scope(info, index_dir, root).is_some()
+}
+
 /// What the index at some directory covers, for a search of some path.
 pub(crate) enum IndexTree {
     /// Its paths are relative to this directory.
@@ -2204,11 +2225,12 @@ pub(crate) fn index_holder(index_dir: &Path) -> Option<PathBuf> {
 /// Which tree the index at `index_dir` covers, for a search of `root`.
 ///
 /// The root it recorded is believed while it exists and holds `root` or lies
-/// below it, with one exception: an index in `.ogrep` at or above `root` but
-/// below the recorded root is what a copy of the tree made inside the tree
-/// has, and also what an index kept below its root has, so it is not used.
-/// A recorded root that is gone is a tree moved since: it is found by its
-/// files ([`moved_tree`]), or the index is not used.
+/// below it, with one exception: an index at or above `root` but below the
+/// recorded root, either in `.ogrep` or beside most of the files it lists, is
+/// what a copy of the tree made inside the tree has, and also what an index
+/// kept below its root has, so it is not used. A recorded root that is gone
+/// is a tree moved since: it is found by its files ([`moved_tree`]), or the
+/// index is not used.
 pub(crate) fn index_tree(index_dir: &Path, root: &Path) -> IndexTree {
     let searched = std::fs::canonicalize(root).unwrap_or_else(|_| root.to_path_buf());
     // An index being built by a server has recorded no root yet.
@@ -2220,35 +2242,48 @@ pub(crate) fn index_tree(index_dir: &Path, root: &Path) -> IndexTree {
         .as_ref()
         .and_then(|path| std::fs::canonicalize(path).ok())
         .filter(|recorded| recorded.is_dir());
-    let holder = index_holder(index_dir).filter(|holder| searched.starts_with(holder));
-    match (recorded, holder) {
-        (Some(recorded), Some(holder)) if holder != recorded && holder.starts_with(&recorded) => {
-            IndexTree::CopyOrOriginal
-        }
-        (Some(recorded), _)
-            if searched.starts_with(&recorded) || recorded.starts_with(&searched) =>
-        {
-            IndexTree::Root(recorded)
-        }
-        (Some(_), _) => IndexTree::Elsewhere,
-        (None, holder) => {
-            let moved = recorded_path.and_then(|_| moved_tree(index_dir, &searched));
-            match moved {
-                Some(Some(tree)) => IndexTree::Root(tree),
-                Some(None) => IndexTree::Elsewhere,
-                // No file to misread, wherever the tree is.
-                None => IndexTree::Root(holder.unwrap_or(searched)),
-            }
-        }
+    let Some(recorded) = recorded else {
+        let moved = recorded_path.and_then(|_| moved_tree(index_dir, &searched));
+        return match moved {
+            Some(Some(tree)) => IndexTree::Root(tree),
+            Some(None) => IndexTree::Elsewhere,
+            // No file to misread, wherever the tree is.
+            None => IndexTree::Root(
+                index_holder(index_dir)
+                    .filter(|holder| searched.starts_with(holder))
+                    .unwrap_or(searched),
+            ),
+        };
+    };
+    if copy_inside(index_dir, &recorded, &searched) {
+        IndexTree::CopyOrOriginal
+    } else if searched.starts_with(&recorded) || recorded.starts_with(&searched) {
+        IndexTree::Root(recorded)
+    } else {
+        IndexTree::Elsewhere
     }
 }
 
-/// Where the tree of the index at `index_dir` is now, its recorded root
-/// being gone: the directory at or above `searched` that holds the most of
-/// a sample of the indexed files, the nearest on a tie. `Some(None)` when
-/// none holds any, as when the index covers only part of what is searched,
-/// and `None` when the index lists no file to look for.
-fn moved_tree(index_dir: &Path, searched: &Path) -> Option<Option<PathBuf>> {
+/// Whether the index at `index_dir` sits where a copy of its tree made inside
+/// `recorded`, and holding `searched`, keeps it: in `.ogrep`, or beside most
+/// of the files it lists.
+fn copy_inside(index_dir: &Path, recorded: &Path, searched: &Path) -> bool {
+    let Ok(dir) = std::fs::canonicalize(index_dir) else {
+        return false;
+    };
+    let Some(holder) = dir.parent() else {
+        return false;
+    };
+    if holder == recorded || !holder.starts_with(recorded) || !searched.starts_with(holder) {
+        return false;
+    }
+    dir.file_name().is_some_and(|name| name == ".ogrep")
+        || sampled_paths(index_dir).is_some_and(|sample| 2 * held(holder, &sample) > sample.len())
+}
+
+/// Up to eight of the files the index at `index_dir` lists, evenly spread;
+/// `None` when it lists none.
+fn sampled_paths(index_dir: &Path) -> Option<Vec<String>> {
     const SAMPLE: usize = 8;
     let reader = IndexReader::open(index_dir).ok()?;
     let paths = reader.all_paths();
@@ -2257,22 +2292,41 @@ fn moved_tree(index_dir: &Path, searched: &Path) -> Option<Option<PathBuf>> {
     if taken == 0 {
         return None;
     }
-    let sample: Vec<&str> = (0..taken)
-        .filter_map(|i| paths.get(i * count / taken))
-        .collect();
-    let held = |tree: &Path| {
-        sample
-            .iter()
-            .filter(|rel| {
-                ogrep_core::hybrid::join_indexed_path(tree, rel)
-                    .symlink_metadata()
-                    .is_ok()
-            })
-            .count()
-    };
+    Some(
+        (0..taken)
+            .filter_map(|i| paths.get(i * count / taken).map(str::to_owned))
+            .collect(),
+    )
+}
+
+/// How many of the index-relative `sample` paths exist under `tree`.
+fn held(tree: &Path, sample: &[String]) -> usize {
+    sample
+        .iter()
+        .filter(|rel| {
+            ogrep_core::hybrid::join_indexed_path(tree, rel)
+                .symlink_metadata()
+                .is_ok()
+        })
+        .count()
+}
+
+/// Where the tree of the index at `index_dir` is now, its recorded root
+/// being gone: of the directory holding the index, when that is within
+/// `searched`, and the directories at or above `searched`, the one that holds
+/// the most of a sample of the indexed files; the holder, then the nearest,
+/// on a tie. `Some(None)` when none holds any, as when the index covers only
+/// part of what is searched, and `None` when the index lists no file to look
+/// for.
+fn moved_tree(index_dir: &Path, searched: &Path) -> Option<Option<PathBuf>> {
+    let sample = sampled_paths(index_dir)?;
+    let holder = std::fs::canonicalize(index_dir)
+        .ok()
+        .and_then(|dir| dir.parent().map(Path::to_path_buf))
+        .filter(|holder| holder.starts_with(searched));
     let mut best: Option<(usize, &Path)> = None;
-    for tree in searched.ancestors() {
-        let held = held(tree);
+    for tree in holder.as_deref().into_iter().chain(searched.ancestors()) {
+        let held = held(tree, &sample);
         if held > best.map_or(0, |(most, _)| most) {
             best = Some((held, tree));
         }

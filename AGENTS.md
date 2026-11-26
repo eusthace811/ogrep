@@ -59,8 +59,8 @@ ogrep serve . &
 ```
 
 `serve` builds the index if none exists and answers queries while it builds.
-It writes `.ogrep/serve.json` (PID and port) so clients can find it. Do not
-commit `.ogrep/`; add it to `.gitignore`.
+It writes `.ogrep/serve.json` (PID, port and served root) so clients can find
+it. Do not commit `.ogrep/`; add it to `.gitignore`.
 
 Check that a server is up:
 

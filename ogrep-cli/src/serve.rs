@@ -203,6 +203,11 @@ impl RefreshControl {
 pub struct ServerInfo {
     pub pid: u32,
     pub port: u16,
+    /// The tree it serves. `serve.json` is copied along with an index, so a
+    /// client asks the server only about paths in this tree. Absent from
+    /// older servers' files, and for a root that is not UTF-8.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub root: Option<PathBuf>,
 }
 
 impl ServerInfo {
@@ -1094,6 +1099,7 @@ pub fn run(root: &Path, index_path: Option<&Path>, options: ServeOptions<'_>) ->
     let info = ServerInfo {
         pid: std::process::id(),
         port,
+        root: root.to_str().map(PathBuf::from),
     };
     info.save(&index_dir)?;
 
