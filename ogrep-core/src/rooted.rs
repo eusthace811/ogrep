@@ -170,13 +170,14 @@ impl RootDir {
         }
         let error = std::io::Error::last_os_error();
         match error.raw_os_error() {
-            Some(libc::ENOSYS) => {
+            // An old kernel, or a seccomp filter refusing the call (`EPERM`):
+            // either holds for the life of the process.
+            Some(libc::ENOSYS | libc::EPERM) => {
                 UNSUPPORTED.store(true, Ordering::Relaxed);
                 None
             }
-            // What seccomp filters answer for a call they do not allow, and a
-            // whole path past `PATH_MAX`, which the walk opens one name at a time.
-            Some(libc::EPERM | libc::ENAMETOOLONG) => None,
+            // A whole path past `PATH_MAX`, which the walk opens a name at a time.
+            Some(libc::ENAMETOOLONG) => None,
             _ => Some(Err(error)),
         }
     }
@@ -279,6 +280,16 @@ impl RootDir {
             // since. A filter that redirects to another object (a container
             // layer) is refused too; a scan still reads those files.
             if !same_file(&reopened, &file).map_err(transient)? {
+                // Opened once more: the same mismatch again is not a race but
+                // what this path is (a filter's other object, a link that
+                // stays), which no retry changes.
+                let again = std::fs::File::open(path).map_err(transient)?;
+                if !same_file(&again, &file).map_err(transient)? {
+                    return Err(Error::new(
+                        ErrorKind::InvalidInput,
+                        "path opens another file than it names",
+                    ));
+                }
                 // Transient, unlike the refusals above: the file is still
                 // there to retry, and must not be taken for ineligible.
                 return Err(Error::other("path changed while opening"));
