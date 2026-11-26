@@ -288,3 +288,41 @@ fn indexed_search_needs_only_search_permission_on_the_root() {
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert!(stdout.contains("kept"), "{stdout}");
 }
+
+/// The root itself replaced by a link, here to a look-alike tree, is not the
+/// tree the server indexed: it refuses to read through it, and the client
+/// falls back to searching what it named.
+#[test]
+fn a_server_does_not_follow_its_root_replaced_by_a_link() {
+    let fixture = Fixture::new();
+    let _server = Server::start(&fixture);
+    let swapped = fixture.temp.path().join("swapped");
+    assert!(
+        std::process::Command::new("cp")
+            .args(["-R"])
+            .arg(&fixture.root)
+            .arg(&swapped)
+            .status()
+            .unwrap()
+            .success()
+    );
+    fs::write(
+        swapped.join("nested/dir/file.txt"),
+        format!("needle {SENTINEL}\n"),
+    )
+    .unwrap();
+    fs::rename(&fixture.root, fixture.temp.path().join("original")).unwrap();
+    std::os::unix::fs::symlink(&swapped, &fixture.root).unwrap();
+
+    let output = Command::cargo_bin("ogrep")
+        .unwrap()
+        .current_dir(fixture.temp.path())
+        .args(["-F", "--", "needle", "repo"])
+        .output()
+        .unwrap();
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(
+        stderr.contains("no longer the directory the server started on"),
+        "{stderr}"
+    );
+}

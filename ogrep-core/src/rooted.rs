@@ -139,45 +139,40 @@ impl RootDir {
         &self,
         components: &[std::ffi::OsString],
     ) -> Option<std::io::Result<std::fs::File>> {
-        use std::os::fd::{AsRawFd, FromRawFd};
-        use std::sync::atomic::{AtomicBool, Ordering};
+        use std::os::fd::AsRawFd;
 
-        static UNSUPPORTED: AtomicBool = AtomicBool::new(false);
-        if UNSUPPORTED.load(Ordering::Relaxed) {
+        // Whether the call is there at all is the process's, so it is probed
+        // once, on the root itself: an `EPERM` for a file (an EDR or a FUSE
+        // mount refusing it) says nothing about the call.
+        static AVAILABLE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+        let available = AVAILABLE.get_or_init(|| {
+            let probe = openat2(self.dir.as_raw_fd(), c".", libc::O_DIRECTORY);
+            !matches!(
+                probe.err().and_then(|e| e.raw_os_error()),
+                Some(libc::ENOSYS | libc::EPERM)
+            )
+        });
+        if !available {
             return None;
         }
         let name = joined_name(components)?;
-        // SAFETY: `open_how` is plain data, and all-zero is its documented
-        // default for every field not set below.
-        let mut how: libc::open_how = unsafe { std::mem::zeroed() };
-        how.flags = (libc::O_RDONLY | libc::O_NOFOLLOW | libc::O_CLOEXEC | libc::O_NONBLOCK) as u64;
-        how.resolve =
-            libc::RESOLVE_BENEATH | libc::RESOLVE_NO_SYMLINKS | libc::RESOLVE_NO_MAGICLINKS;
-        // SAFETY: `dir` is a live directory descriptor, `name` is
-        // NUL-terminated, and `how` is passed with its own size.
-        let fd = retry_interrupted(|| unsafe {
-            libc::syscall(
-                libc::SYS_openat2,
-                self.dir.as_raw_fd(),
-                name.as_ptr(),
-                &how as *const libc::open_how,
-                std::mem::size_of::<libc::open_how>(),
-            )
-        });
-        if fd >= 0 {
-            // SAFETY: `openat2` returned a fresh descriptor owned here.
-            return Some(Ok(unsafe { std::fs::File::from_raw_fd(fd as i32) }));
-        }
-        let error = std::io::Error::last_os_error();
-        match error.raw_os_error() {
-            Some(libc::ENOSYS) => {
-                UNSUPPORTED.store(true, Ordering::Relaxed);
+        match openat2(
+            self.dir.as_raw_fd(),
+            &name,
+            libc::O_NOFOLLOW | libc::O_NONBLOCK,
+        ) {
+            Ok(file) => Some(Ok(file)),
+            // Refused for this file, or a whole path past `PATH_MAX`, which
+            // the walk opens a name at a time: it decides.
+            Err(e)
+                if matches!(
+                    e.raw_os_error(),
+                    Some(libc::ENOSYS | libc::EPERM | libc::ENAMETOOLONG)
+                ) =>
+            {
                 None
             }
-            // What seccomp filters answer for a call they do not allow, and a
-            // whole path past `PATH_MAX`, which the walk opens one name at a time.
-            Some(libc::EPERM | libc::ENAMETOOLONG) => None,
-            _ => Some(Err(error)),
+            Err(e) => Some(Err(e)),
         }
     }
 
@@ -248,7 +243,8 @@ impl RootDir {
         let mut file = open_no_follow(path)?;
         // Containment is the path's own object's: a reparse point's data may
         // live elsewhere (a filter's store), by design.
-        if !final_path_of(&file)?.starts_with(&self.anchor) {
+        let opened_at = final_path_of(&file)?;
+        if !opened_at.starts_with(&self.anchor) {
             return Err(Error::new(
                 ErrorKind::InvalidInput,
                 "path resolves outside the served root",
@@ -274,11 +270,11 @@ impl RootDir {
                 _ => Error::other(e),
             };
             let reopened = std::fs::File::open(path).map_err(transient)?;
-            // The data must come from the object checked above: the path
-            // could name a link between the two opens, even one put back
-            // since. A filter that redirects to another object (a container
-            // layer) is refused too; a scan still reads those files.
-            if !same_file(&reopened, &file).map_err(transient)? {
+            // The data must come from where the path was checked to lead: a
+            // link swapped in between the opens, even one put back since,
+            // resolves elsewhere. A file saved over it in place resolves to
+            // the same path and is read.
+            if final_path_of(&reopened).map_err(transient)? != opened_at {
                 // Transient, unlike the refusals above: the file is still
                 // there to retry, and must not be taken for ineligible.
                 return Err(Error::other("path changed while opening"));
@@ -311,50 +307,6 @@ impl RootDir {
         }
         open_no_follow(path)
     }
-}
-
-/// Whether two handles are the same file, whatever names they were opened by:
-/// the volume and 128-bit file ID (ReFS does not keep the 64-bit one unique),
-/// or the 64-bit one for both where a file system does not report the other.
-#[cfg(windows)]
-fn same_file(a: &std::fs::File, b: &std::fs::File) -> std::io::Result<bool> {
-    use std::os::windows::io::AsRawHandle;
-    use windows_sys::Win32::Storage::FileSystem::{
-        BY_HANDLE_FILE_INFORMATION, FILE_ID_INFO, FileIdInfo, GetFileInformationByHandle,
-        GetFileInformationByHandleEx,
-    };
-
-    let id128 = |file: &std::fs::File| {
-        // SAFETY: plain data, filled in by the call below.
-        let mut info: FILE_ID_INFO = unsafe { std::mem::zeroed() };
-        // SAFETY: the handle is live for the duration of the call, and `info`
-        // is a writable `FILE_ID_INFO` of the size passed.
-        let ok = unsafe {
-            GetFileInformationByHandleEx(
-                file.as_raw_handle(),
-                FileIdInfo,
-                (&raw mut info).cast(),
-                std::mem::size_of::<FILE_ID_INFO>() as u32,
-            )
-        };
-        (ok != 0).then_some((info.VolumeSerialNumber, info.FileId.Identifier))
-    };
-    if let (Some(a), Some(b)) = (id128(a), id128(b)) {
-        return Ok(a == b);
-    }
-    let id64 = |file: &std::fs::File| {
-        // SAFETY: as above, for the older call and its structure.
-        let mut info: BY_HANDLE_FILE_INFORMATION = unsafe { std::mem::zeroed() };
-        if unsafe { GetFileInformationByHandle(file.as_raw_handle(), &mut info) } == 0 {
-            return Err(std::io::Error::last_os_error());
-        }
-        Ok((
-            info.dwVolumeSerialNumber,
-            info.nFileIndexHigh,
-            info.nFileIndexLow,
-        ))
-    };
-    Ok(id64(a)? == id64(b)?)
 }
 
 /// Where an open handle actually is, with every reparse point on the way
@@ -424,6 +376,39 @@ fn open_search_only(root: &Path) -> std::io::Result<std::fs::File> {
         return Ok(dir);
     }
     std::fs::File::open(root)
+}
+
+/// `name` opened read-only beneath `dir` with `openat2`, refusing any link
+/// and any escape, with `flags` added.
+#[cfg(target_os = "linux")]
+fn openat2(
+    dir: std::os::fd::RawFd,
+    name: &std::ffi::CStr,
+    flags: libc::c_int,
+) -> std::io::Result<std::fs::File> {
+    use std::os::fd::FromRawFd;
+
+    // SAFETY: `open_how` is plain data, and all-zero is its documented
+    // default for every field not set below.
+    let mut how: libc::open_how = unsafe { std::mem::zeroed() };
+    how.flags = (libc::O_RDONLY | libc::O_CLOEXEC | flags) as u64;
+    how.resolve = libc::RESOLVE_BENEATH | libc::RESOLVE_NO_SYMLINKS | libc::RESOLVE_NO_MAGICLINKS;
+    // SAFETY: `dir` is a live directory descriptor, `name` is NUL-terminated,
+    // and `how` is passed with its own size.
+    let fd = retry_interrupted(|| unsafe {
+        libc::syscall(
+            libc::SYS_openat2,
+            dir,
+            name.as_ptr(),
+            &how as *const libc::open_how,
+            std::mem::size_of::<libc::open_how>(),
+        )
+    });
+    if fd < 0 {
+        return Err(std::io::Error::last_os_error());
+    }
+    // SAFETY: `openat2` returned a fresh descriptor owned here.
+    Ok(unsafe { std::fs::File::from_raw_fd(fd as i32) })
 }
 
 /// Run an open again while a signal interrupts it, as `std::fs::File::open`
@@ -498,7 +483,27 @@ fn relative_components(root: &Path, path: &Path) -> std::io::Result<Vec<std::ffi
     Ok(components)
 }
 
+/// Which directory a [`RootDir`] opened, whatever path named it: the device
+/// and inode on unix, the resolved path on Windows.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RootIdentity(#[cfg(unix)] (u64, u64), #[cfg(windows)] PathBuf);
+
 impl RootDir {
+    /// Which directory this is, to tell whether a later open of the same path
+    /// still reaches it.
+    pub fn identity(&self) -> std::io::Result<RootIdentity> {
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::MetadataExt;
+            let meta = self.dir.metadata()?;
+            Ok(RootIdentity((meta.dev(), meta.ino())))
+        }
+        #[cfg(windows)]
+        {
+            Ok(RootIdentity(self.anchor.clone()))
+        }
+    }
+
     /// Read all of `path` with [`RootDir::open_file`]'s guarantee.
     pub fn read(&self, path: &Path) -> std::io::Result<Vec<u8>> {
         let mut bytes = Vec::new();

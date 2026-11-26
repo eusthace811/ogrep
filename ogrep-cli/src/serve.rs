@@ -594,6 +594,9 @@ struct ServerState {
     cache_generation: std::sync::atomic::AtomicU64,
     recent_reindexes: Mutex<RecentReindexCache>,
     root: PathBuf,
+    /// The directory `root` named when the server started; a request that
+    /// opens another there (the root replaced by a link) refuses to read it.
+    root_identity: Option<ogrep_core::rooted::RootIdentity>,
     watcher_active: std::sync::atomic::AtomicBool,
     /// True while the initial index build is in progress.
     indexing: std::sync::atomic::AtomicBool,
@@ -1046,6 +1049,9 @@ pub fn run(root: &Path, index_path: Option<&Path>, options: ServeOptions<'_>) ->
             RECENT_REINDEX_MAX_BYTES,
             RECENT_REINDEX_MAX_ENTRY_BYTES,
         )),
+        root_identity: ogrep_core::rooted::RootDir::open(&root)
+            .and_then(|r| r.identity())
+            .ok(),
         root: root.clone(),
         watcher_active: std::sync::atomic::AtomicBool::new(false),
         indexing: std::sync::atomic::AtomicBool::new(needs_build),
@@ -2187,7 +2193,15 @@ fn handle_search(
     let rooted = std::sync::OnceLock::new();
     let root_dir = || {
         rooted
-            .get_or_init(|| ogrep_core::rooted::RootDir::open(&state.root))
+            .get_or_init(|| {
+                let rooted = ogrep_core::rooted::RootDir::open(&state.root)?;
+                match &state.root_identity {
+                    Some(started) if rooted.identity()? != *started => Err(std::io::Error::other(
+                        "it is no longer the directory the server started on",
+                    )),
+                    _ => Ok(rooted),
+                }
+            })
             .as_ref()
             .ok()
     };
@@ -9557,6 +9571,9 @@ mod tests {
                 RECENT_REINDEX_MAX_BYTES,
                 RECENT_REINDEX_MAX_ENTRY_BYTES,
             )),
+            root_identity: ogrep_core::rooted::RootDir::open(root)
+                .and_then(|r| r.identity())
+                .ok(),
             root: root.to_path_buf(),
             watcher_active: std::sync::atomic::AtomicBool::new(false),
             indexing: std::sync::atomic::AtomicBool::new(false),
