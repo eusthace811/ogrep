@@ -16,8 +16,12 @@ pub fn run(root: &Path, index_path: Option<&Path>) -> Result<()> {
         .map(|p| p.to_path_buf())
         .unwrap_or_else(|| builder::default_index_dir(&root));
 
-    // Try connecting to a running server
-    if let Ok(info) = ServerInfo::load(&index_dir)
+    // Try connecting to a running server. Not one whose address came along
+    // with an index copied from another tree: it serves that tree.
+    if matches!(
+        crate::search::index_tree(&index_dir, &root),
+        crate::search::IndexTree::Root(_)
+    ) && let Ok(info) = ServerInfo::load(&index_dir)
         && let Ok(status) = query_server_status(&info)
     {
         println!("Server status for {}", root.display());

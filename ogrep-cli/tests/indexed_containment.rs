@@ -301,6 +301,15 @@ fn a_copied_tree_is_not_answered_by_the_server_of_its_original() {
         assert!(stdout.contains("needle copied"), "{stdout}");
         assert!(!stdout.contains("needle kept"), "{stdout}");
         assert!(!stdout.contains("nested"), "{stdout}");
+        // Nor is it reported as the copy's server.
+        let status = Command::cargo_bin("ogrep")
+            .unwrap()
+            .current_dir(&copy)
+            .args(["status", "."])
+            .output()
+            .unwrap();
+        let status = String::from_utf8(status.stdout).unwrap();
+        assert!(status.contains("Server:     not running"), "{status}");
     }
 }
 

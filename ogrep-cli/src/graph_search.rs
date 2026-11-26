@@ -104,9 +104,9 @@ pub fn run(
     let index_root = match crate::search::index_tree(&dir, root) {
         IndexTree::Root(index_root) => index_root,
         // A copy of that tree, made with its index: read here.
-        IndexTree::Elsewhere => {
-            crate::search::index_holder(&dir).unwrap_or_else(|| root.to_path_buf())
-        }
+        IndexTree::Elsewhere => crate::search::index_holder(&dir)
+            .filter(|holder| canonical(root).starts_with(holder))
+            .unwrap_or_else(|| root.to_path_buf()),
         IndexTree::CopyOrOriginal => anyhow::bail!(
             "the index at {} is of a tree above it, or of a copy of that tree: \
              run `ogrep index . --graph` here, or search from the root it was built for",

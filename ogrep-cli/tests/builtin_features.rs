@@ -1820,6 +1820,72 @@ fn a_moved_tree_keeps_an_index_stored_outside_it() {
     assert!(all.contains("candidates: 1/6"), "not from the index: {all}");
 }
 
+/// A moved tree is found by its files, wherever its index was kept and
+/// whichever part of it is searched.
+#[test]
+fn a_moved_tree_is_found_by_its_files() {
+    // An index of a subdirectory, kept in `.ogrep` above it.
+    let temp = TempDir::new().unwrap();
+    let old = temp.path().join("a");
+    fs::create_dir_all(old.join("src")).unwrap();
+    fs::write(old.join("src/lib.rs"), "fn needle_one() {}\n").unwrap();
+    fs::write(old.join("top.rs"), "fn needle_one() {}\n").unwrap();
+    ogrep(&old)
+        .args(["index", "src", "--index-path", ".ogrep"])
+        .assert()
+        .success();
+    let moved = temp.path().join("b");
+    fs::rename(&old, &moved).unwrap();
+    let found = stdout(ogrep(&moved).args(["--index-path", ".ogrep", "--", "needle_one", "src"]));
+    assert!(found.contains("lib.rs"), "{found}");
+    let files = stdout(ogrep(&moved).args(["--index-path", ".ogrep", "--files", "src"]));
+    assert!(files.contains("lib.rs"), "{files}");
+    // The index covers only part of the directory above: that is scanned.
+    let above = stdout(ogrep(&moved).args(["--index-path", ".ogrep", "--", "needle_one", "."]));
+    assert!(
+        above.contains("src/lib.rs") && above.contains("top.rs"),
+        "{above}"
+    );
+
+    // An index kept outside the tree, searched below the tree's top.
+    let temp = TempDir::new().unwrap();
+    let old = temp.path().join("f");
+    fs::create_dir_all(old.join("src")).unwrap();
+    fs::write(old.join("src/lib.rs"), "fn needle_one() {}\n").unwrap();
+    ogrep(temp.path())
+        .args(["index", "f", "--index-path", "idx"])
+        .assert()
+        .success();
+    fs::rename(&old, temp.path().join("f2")).unwrap();
+    let found =
+        stdout(ogrep(temp.path()).args(["--index-path", "idx", "--", "needle_one", "f2/src"]));
+    assert!(found.contains("lib.rs"), "{found}");
+}
+
+/// The graph tools read a copy beside the original where it is searched,
+/// not in the directory an index kept elsewhere happens to be in.
+#[test]
+fn graph_tools_read_a_copy_whose_index_is_kept_elsewhere() {
+    let temp = TempDir::new().unwrap();
+    let tree = temp.path().join("t");
+    fs::create_dir(&tree).unwrap();
+    fs::write(tree.join("a.rs"), "fn foo() { bar() }\nfn bar() {}\n").unwrap();
+    ogrep(temp.path())
+        .args(["index", "t", "--index-path", "cache/.ogrep", "--graph"])
+        .assert()
+        .success();
+    copy_dir(&tree, &temp.path().join("t2"));
+    let callees = stdout(ogrep(temp.path()).args([
+        "--index-path",
+        "cache/.ogrep",
+        "--callees",
+        "-F",
+        "foo",
+        "t2",
+    ]));
+    assert!(callees.contains("bar ->"), "{callees}");
+}
+
 fn copy_dir(from: &std::path::Path, to: &std::path::Path) {
     fs::create_dir_all(to).unwrap();
     for entry in fs::read_dir(from).unwrap() {
