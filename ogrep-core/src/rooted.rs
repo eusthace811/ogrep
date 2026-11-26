@@ -267,16 +267,17 @@ impl RootDir {
             // A normal open follows whatever is at the path by now, so it must
             // be the file just checked and not a link swapped in since.
             // A file gone since the first open is gone; any other failure here
-            // is transient, and must not be taken for ineligible (`InvalidInput`).
+            // keeps its code (a sharing violation says it will pass), but must
+            // not be taken for ineligible (`InvalidInput`).
             // `ERROR_CANT_ACCESS_FILE` is a reparse point no open can read (an
             // app execution alias): as ineligible as a link.
             const ERROR_CANT_ACCESS_FILE: i32 = 1920;
             let transient = |e: std::io::Error| match e.kind() {
-                ErrorKind::NotFound | ErrorKind::NotADirectory => e,
                 _ if e.raw_os_error() == Some(ERROR_CANT_ACCESS_FILE) => {
                     Error::new(ErrorKind::InvalidInput, e)
                 }
-                _ => Error::other(e),
+                ErrorKind::InvalidInput => Error::other(e),
+                _ => e,
             };
             let reopened = std::fs::File::open(path).map_err(transient)?;
             // The data must come from where the path was checked to lead: a
@@ -286,7 +287,10 @@ impl RootDir {
             if final_path_of(&reopened).map_err(transient)? != opened_at {
                 // Transient, unlike the refusals above: the file is still
                 // there to retry, and must not be taken for ineligible.
-                return Err(Error::other("path changed while opening"));
+                return Err(Error::new(
+                    ErrorKind::Interrupted,
+                    "path changed while opening",
+                ));
             }
             file = reopened;
         }

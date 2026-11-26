@@ -1608,36 +1608,40 @@ fn process_request(
         && SearchScope::parse(&params).is_ok_and(|s| s.reaches_git_metadata());
     let overloaded = |message: &str| (json_rpc_error(id.clone(), OVERLOADED as i32, message), None);
     // A request that reaches `.git` applies its changes just before searching,
-    // with a search slot, as the work its answer needs. Waiting for another
-    // request's flush is done without one, or a few requests behind one large
-    // backlog would hold slots that unrelated searches wait for: it waits
-    // first, then takes a slot, and if a flush began meanwhile, gives the slot
-    // back and waits again. All of it within the admission wait.
+    // with a search slot, as the work its answer needs. Another request's
+    // flush in progress is waited out first, without one: requests behind one
+    // large backlog would otherwise hold slots that unrelated searches wait
+    // for. A flush that outlasts the admission wait is an error the client
+    // falls back from, not an overload it gives up on.
     let deadline = Instant::now() + REQUEST_WAIT;
+    let flush_timed_out = || {
+        (
+            json_rpc_error(id.clone(), -32603, "server .git flush wait timed out"),
+            None,
+        )
+    };
+    if reaches_git_metadata && !wait_for_git_metadata_flush(state, deadline) {
+        return flush_timed_out();
+    }
     let permit = if matches!(method, "search" | "files") {
-        loop {
-            if reaches_git_metadata && !flush_git_metadata_for_request(state, Some(deadline)) {
-                return overloaded("server .git flush wait timed out");
+        match state
+            .searches
+            .acquire(deadline.saturating_duration_since(Instant::now()))
+        {
+            Ok(permit) => Some(permit),
+            Err(crate::admission::Rejected::Full) => {
+                return overloaded("server search queue is full");
             }
-            let wait = deadline.saturating_duration_since(Instant::now());
-            let permit = match state.searches.acquire(wait) {
-                Ok(permit) => permit,
-                Err(crate::admission::Rejected::Full) => {
-                    return overloaded("server search queue is full");
-                }
-                Err(crate::admission::Rejected::Timeout) => {
-                    return overloaded("server search queue wait timed out");
-                }
-            };
-            // A deadline already past only tries: busy means a flush began.
-            if !reaches_git_metadata || flush_git_metadata_for_request(state, Some(Instant::now()))
-            {
-                break Some(permit);
+            Err(crate::admission::Rejected::Timeout) => {
+                return overloaded("server search queue wait timed out");
             }
         }
     } else {
         None
     };
+    if reaches_git_metadata && !flush_git_metadata_for_request(state, Some(deadline)) {
+        return flush_timed_out();
+    }
     let response = match method {
         "search" => handle_search(id, &params, state),
         "files" => handle_files(id, &params, state),
@@ -5414,6 +5418,18 @@ fn flush_git_metadata_for_request(state: &Arc<ServerState>, wait: Option<Instant
     true
 }
 
+/// Wait, until `deadline` at most, for a flush in progress to end, without
+/// taking the changes: `false` if it was still running.
+fn wait_for_git_metadata_flush(state: &Arc<ServerState>, deadline: Instant) -> bool {
+    state.git_metadata_waiters.fetch_add(1, Ordering::SeqCst);
+    let idle = state
+        .git_metadata_flush
+        .lock_until(Some(deadline))
+        .is_some();
+    state.git_metadata_waiters.fetch_sub(1, Ordering::SeqCst);
+    idle
+}
+
 /// One flush of the `.git` changes at a time. A mutex whose wait can end.
 #[derive(Default)]
 struct FlushLock {
@@ -5611,37 +5627,39 @@ fn classify_event_target(meta: &std::io::Result<std::fs::Metadata>) -> EventTarg
     }
 }
 
-/// Whether a failure to open a path establishes that it does not belong in the
-/// index, as opposed to merely being unreadable right now.
-///
-/// The distinction decides whether the watcher drops what it has indexed. A
-/// path that is gone, or that cannot be reached without traversing a symlink,
-/// is genuinely ineligible and the entry has to go. A path that is locked,
-/// unreadable, or lost to a descriptor limit is none of those things — dropping
-/// on that would evict live content because a build held the file open for a
-/// moment, and the stale path deliberately keeps unreadable files and retries
-/// them later.
 /// Whether a read failed for a reason that passes (out of descriptors or
 /// memory, I/O, a timeout), not one about the file (gone, a link, refused,
 /// replaced by something that cannot be read), which a scan skips too.
 fn is_passing_failure(error: &std::io::Error) -> bool {
     use std::io::ErrorKind;
-    if matches!(error.kind(), ErrorKind::OutOfMemory | ErrorKind::TimedOut) {
+    // `Interrupted` too: a file that changed while it was being opened.
+    if matches!(
+        error.kind(),
+        ErrorKind::OutOfMemory | ErrorKind::TimedOut | ErrorKind::Interrupted
+    ) {
         return true;
     }
     #[cfg(unix)]
-    if let Some(code) = error.raw_os_error() {
-        return [
-            libc::EMFILE,
-            libc::ENFILE,
-            libc::ENOMEM,
-            libc::EIO,
-            libc::ESTALE,
-            libc::ENOBUFS,
-        ]
-        .contains(&code);
-    }
-    false
+    let passing = [
+        libc::EMFILE,
+        libc::ENFILE,
+        libc::ENOMEM,
+        libc::EIO,
+        libc::ESTALE,
+        libc::ENOBUFS,
+        libc::ENOTCONN,
+        libc::ECONNRESET,
+        libc::EHOSTDOWN,
+    ];
+    // Too many open files, a sharing or lock violation (a build holding
+    // the file), out of system resources.
+    #[cfg(windows)]
+    let passing = [4, 32, 33, 1450];
+    #[cfg(not(any(unix, windows)))]
+    let passing: [i32; 0] = [];
+    error
+        .raw_os_error()
+        .is_some_and(|code| passing.contains(&code))
 }
 
 /// Whether a failure to open the served root says the tree itself is gone
@@ -5662,6 +5680,16 @@ fn root_is_unusable(error: &std::io::Error) -> bool {
     false
 }
 
+/// Whether a failure to open a path establishes that it does not belong in the
+/// index, as opposed to merely being unreadable right now.
+///
+/// The distinction decides whether the watcher drops what it has indexed. A
+/// path that is gone, or that cannot be reached without traversing a symlink,
+/// is genuinely ineligible and the entry has to go. A path that is locked,
+/// unreadable, or lost to a descriptor limit is none of those things — dropping
+/// on that would evict live content because a build held the file open for a
+/// moment, and the stale path deliberately keeps unreadable files and retries
+/// them later.
 fn proves_ineligible(error: &std::io::Error) -> bool {
     use std::io::ErrorKind;
 
@@ -9948,6 +9976,41 @@ mod tests {
         waiter.join().unwrap();
     }
 
+    /// A request waits out a flush in progress until its deadline, then
+    /// gives up, taking nothing; with none in progress it does not wait.
+    #[test]
+    fn a_request_waits_for_a_flush_until_its_deadline() {
+        let temp = TempDir::new().unwrap();
+        let root = temp.path().join("root");
+        std::fs::create_dir_all(&root).unwrap();
+        let state = test_server_state(&root, &temp.path().join("index"));
+        state
+            .git_metadata_events
+            .lock()
+            .unwrap()
+            .insert(root.join(".git/HEAD"), false);
+        let held = state.git_metadata_flush.lock_until(None);
+        let deadline = Instant::now() + Duration::from_millis(50);
+        assert!(!wait_for_git_metadata_flush(&state, deadline));
+        assert!(Instant::now() >= deadline);
+        assert!(!flush_git_metadata_for_request(
+            &state,
+            Some(Instant::now())
+        ));
+        assert_eq!(
+            state.git_metadata_events.lock().unwrap().len(),
+            1,
+            "it took the changes"
+        );
+        drop(held);
+        assert!(wait_for_git_metadata_flush(&state, Instant::now()));
+        assert_eq!(
+            state.git_metadata_events.lock().unwrap().len(),
+            1,
+            "waiting took them"
+        );
+    }
+
     /// The flush lock's wait ends at its deadline, and a release wakes it.
     #[test]
     fn a_flush_lock_wait_ends_at_its_deadline() {
@@ -11775,7 +11838,13 @@ mod tests {
         fill.pop(); // one left: the root takes it, and the file finds none
         let failed = uncached();
         drop(fill);
-        assert!(failed.contains("cannot read an indexed file"), "{failed}");
+        // The file's open, normally; the root's, if something in the search
+        // took the last descriptor first. Either way not an answer without it.
+        assert!(
+            failed.contains("cannot read an indexed file")
+                || failed.contains("cannot open the served root"),
+            "{failed}"
+        );
         assert!(search().contains("a.rs"));
     }
 
