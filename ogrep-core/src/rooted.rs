@@ -135,24 +135,36 @@ impl RootDir {
     /// and any escape from the root. `None` on any failure, for the walk to
     /// decide: the call may be missing (an old kernel) or refused (a sandbox,
     /// with whatever errno it was given), or the path too long for one lookup,
-    /// and the walk also reports a path that is really gone or a link. Nothing
-    /// is remembered, since no one answer says the call is gone for every
-    /// path; where it is, a failed call costs only itself.
+    /// and the walk also reports a path that is really gone or a link. Only
+    /// `ENOSYS` is remembered, since only it says the call is gone for every
+    /// path (a seccomp filter, which may answer with it too, applies to the
+    /// whole process and is never lifted); any other refusal costs only itself.
     #[cfg(target_os = "linux")]
     fn open_beneath(
         &self,
         components: &[std::ffi::OsString],
     ) -> Option<std::io::Result<std::fs::File>> {
         use std::os::fd::AsRawFd;
+        use std::sync::atomic::{AtomicBool, Ordering};
 
+        static MISSING: AtomicBool = AtomicBool::new(false);
+        if MISSING.load(Ordering::Relaxed) {
+            return None;
+        }
         let name = joined_name(components)?;
-        openat2(
+        match openat2(
             self.dir.as_raw_fd(),
             &name,
             libc::O_NOFOLLOW | libc::O_NONBLOCK,
-        )
-        .ok()
-        .map(Ok)
+        ) {
+            Ok(file) => Some(Ok(file)),
+            Err(e) => {
+                if e.raw_os_error() == Some(libc::ENOSYS) {
+                    MISSING.store(true, Ordering::Relaxed);
+                }
+                None
+            }
+        }
     }
 
     /// Each component with `openat` against the handle for its parent.
@@ -348,7 +360,26 @@ fn open_search_only(root: &Path) -> std::io::Result<std::fs::File> {
     let path = std::ffi::CString::new(root.as_os_str().as_bytes()).map_err(|_| {
         std::io::Error::new(std::io::ErrorKind::InvalidInput, "root contains a NUL")
     })?;
-    open_dir_at(libc::AT_FDCWD, &path, 0).map(std::fs::File::from)
+    let dir = open_dir_at(libc::AT_FDCWD, &path, 0)?;
+    // A search-only open needs no permission on the directory, nor does the
+    // read-only retry need permission to search it, so a root that may not
+    // be searched would open and then resolve nothing below it. Looking up
+    // `.` in it asks the kernel, with this process's effective credentials.
+    // SAFETY: `dir` is a live directory descriptor, the name is a NUL-
+    // terminated literal, and `stat` is written by the call.
+    let mut stat: libc::stat = unsafe { std::mem::zeroed() };
+    if unsafe {
+        libc::fstatat(
+            std::os::fd::AsRawFd::as_raw_fd(&dir),
+            c".".as_ptr(),
+            &mut stat,
+            0,
+        )
+    } != 0
+    {
+        return Err(std::io::Error::last_os_error());
+    }
+    Ok(std::fs::File::from(dir))
 }
 
 /// `name` below `parent` opened as a directory to look names up in, with
@@ -665,6 +696,42 @@ mod tests {
     /// index, so the walk (which decides whenever `openat2` fails) must say
     /// "gone" or "a link" as `openat2` would, also below a directory it may
     /// only search, not list.
+    /// A root that may be listed but not searched does not open: nothing
+    /// below it would resolve, and every read would fail one by one.
+    #[cfg(unix)]
+    #[test]
+    fn a_root_that_cannot_be_searched_does_not_open() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().join("root");
+        std::fs::create_dir(&root).unwrap();
+        std::fs::write(root.join("f.rs"), "x\n").unwrap();
+        assert!(RootDir::open(&root).is_ok());
+        struct Restore<'a>(&'a Path);
+        impl Drop for Restore<'_> {
+            fn drop(&mut self) {
+                let _ = std::fs::set_permissions(self.0, std::fs::Permissions::from_mode(0o755));
+            }
+        }
+        let _restore = Restore(&root);
+        for mode in [0o644, 0o000] {
+            std::fs::set_permissions(&root, std::fs::Permissions::from_mode(mode)).unwrap();
+            if std::fs::metadata(root.join("f.rs")).is_ok() {
+                eprintln!("skipped: permissions do not apply to this user");
+                return;
+            }
+            let error = RootDir::open(&root)
+                .err()
+                .expect("opened a root it cannot search");
+            assert_eq!(
+                error.kind(),
+                std::io::ErrorKind::PermissionDenied,
+                "{mode:o}: {error}"
+            );
+        }
+    }
+
     #[cfg(unix)]
     #[test]
     fn the_walk_reports_gone_and_links_below_a_search_only_directory() {

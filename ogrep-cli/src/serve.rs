@@ -2317,9 +2317,13 @@ fn handle_search(
     let (candidate_contents, per_file) = match limit {
         None => {
             let contents = resolve(candidate_info);
-            match verify_all(&contents) {
-                Ok(per_file) => (contents, per_file),
-                Err(e) => return json_rpc_error(id, -32603, &e),
+            if matches!(rooted.get(), Some(Err(_))) {
+                (Vec::new(), Vec::new()) // reported below, without matching
+            } else {
+                match verify_all(&contents) {
+                    Ok(per_file) => (contents, per_file),
+                    Err(e) => return json_rpc_error(id, -32603, &e),
+                }
             }
         }
         // Verify in growing chunks, in candidate order, until the files so far
@@ -5325,9 +5329,10 @@ fn is_git_metadata(rel_path: &str) -> bool {
 /// however many times Git wrote it.
 ///
 /// The background tick passes a `chunk`: it applies the backlog it found a
-/// chunk per hold of the lock, and stops early for a request waiting on it.
-/// The request waits for at most that chunk, then applies the rest itself,
-/// since its answer needs them.
+/// chunk per hold of the lock, and stops early for a request waiting on it,
+/// which then applies the rest itself, since its answer needs them. Behind
+/// another request's flush, a request waits for that whole flush: it is
+/// applying changes both answers need.
 fn flush_git_metadata_events(state: &Arc<ServerState>, chunk: Option<usize>) {
     let Some(chunk) = chunk else {
         state.git_metadata_waiters.fetch_add(1, Ordering::SeqCst);
