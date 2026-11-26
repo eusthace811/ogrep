@@ -17,9 +17,11 @@ pub fn run(root: &Path, index_path: Option<&Path>) -> Result<()> {
         .unwrap_or_else(|| builder::default_index_dir(&root));
 
     // Try connecting to a running server. Not one whose address came along
-    // with an index copied from another tree: it serves that tree.
+    // with an index copied from another tree: it serves that tree. One that
+    // holds this index's lock serves this index, though its tree has moved.
     if let Ok(info) = ServerInfo::load(&index_dir)
-        && crate::search::serves(&info, &index_dir, &root)
+        && (crate::search::serves(&info, &index_dir, &root)
+            || crate::serve::server_lock_is_held(&index_dir))
         && let Ok(status) = query_server_status(&info)
     {
         println!("Server status for {}", root.display());
@@ -29,6 +31,19 @@ pub fn run(root: &Path, index_path: Option<&Path>) -> Result<()> {
             println!(
                 "  Root:       cannot open ({error}); searches do not use this server. \
                  Stop it (pid {}) and start `ogrep serve .` where the tree is now",
+                info.pid
+            );
+        } else if let Some(served) = info
+            .root
+            .as_ref()
+            .filter(|served| served.is_dir() && !root.starts_with(served))
+        {
+            // Found by the lock: its tree moved here, and it serves what is
+            // now at the old path.
+            println!(
+                "  Root:       {}, not this tree; searches do not use this server. \
+                 Stop it (pid {}) and start `ogrep serve .` here",
+                served.display(),
                 info.pid
             );
         }
