@@ -383,16 +383,19 @@ fn open_dir_at(
         Ok(unsafe { std::os::fd::OwnedFd::from_raw_fd(fd) })
     };
     match open(SEARCH_ONLY) {
-        // A kernel without the mode (`O_SEARCH` is newer than some macOS
-        // releases ogrep runs on) refuses the flag itself.
+        // An answer about the path itself, which a read-only open would give
+        // too. Anything else (a kernel without the mode, or a sandbox refusing
+        // it, with whatever errno) is tried again read-only. A kernel that
+        // ignores the mode instead opens read-only, as before it existed.
         Err(e)
-            if SEARCH_ONLY != libc::O_RDONLY
-                && e.raw_os_error().is_some_and(|code| {
-                    [libc::EINVAL, libc::ENOTSUP, libc::EOPNOTSUPP].contains(&code)
+            if SEARCH_ONLY == libc::O_RDONLY
+                || e.raw_os_error().is_some_and(|code| {
+                    [libc::ENOENT, libc::ENOTDIR, libc::ELOOP].contains(&code)
                 }) =>
         {
-            open(libc::O_RDONLY)
+            Err(e)
         }
+        Err(_) => open(libc::O_RDONLY),
         opened => opened,
     }
 }
@@ -683,7 +686,9 @@ mod tests {
         }
         let _restore = Restore(&root.join("a"));
         if std::fs::read_dir(root.join("a")).is_ok() {
-            return; // Privileged: permissions do not apply, so this proves nothing.
+            // Privileged: permissions do not apply, so this would prove nothing.
+            eprintln!("skipped: permissions do not apply to this user");
+            return;
         }
         let rooted = RootDir::open(root).unwrap();
         let components = |rel: &str| relative_components(root, &root.join(rel)).unwrap();
