@@ -25,6 +25,8 @@ use ogrep_core::builder;
 use ogrep_core::hybrid::HybridIndex;
 use ogrep_core::query;
 
+use ogrep_core::rooted::open_within_root;
+
 mod index_cleanup;
 #[path = "serve/manual_refresh.rs"]
 mod manual_refresh;
@@ -592,9 +594,6 @@ struct ServerState {
     cache_generation: std::sync::atomic::AtomicU64,
     recent_reindexes: Mutex<RecentReindexCache>,
     root: PathBuf,
-    /// `root`, opened once at startup: every read of an indexed name goes
-    /// through it, so the root replaced by a link later is not followed.
-    rooted: ogrep_core::rooted::RootDir,
     watcher_active: std::sync::atomic::AtomicBool,
     /// True while the initial index build is in progress.
     indexing: std::sync::atomic::AtomicBool,
@@ -1047,7 +1046,6 @@ pub fn run(root: &Path, index_path: Option<&Path>, options: ServeOptions<'_>) ->
             RECENT_REINDEX_MAX_BYTES,
             RECENT_REINDEX_MAX_ENTRY_BYTES,
         )),
-        rooted: ogrep_core::rooted::RootDir::open(&root)?,
         root: root.clone(),
         watcher_active: std::sync::atomic::AtomicBool::new(false),
         indexing: std::sync::atomic::AtomicBool::new(needs_build),
@@ -2042,12 +2040,6 @@ fn handle_search(
         Ok(r) => r,
         Err(e) => return json_rpc_error(id, -32602, &e),
     };
-    // A root removed since the server opened it leaves nothing to read: an
-    // error the client falls back from, rather than an answer missing every
-    // file (or, from the cache, one about a tree that is gone).
-    if state.rooted.is_removed() {
-        return json_rpc_error(id, -32603, "the served root has been removed");
-    }
 
     let matcher = req.matcher;
     let file_filter = req.file_filter;
@@ -2186,15 +2178,24 @@ fn handle_search(
     let t_resolve = Instant::now();
     let candidate_count = candidate_info.len();
     // Each name is the index's, and may now run through a link that was not
-    // there when it was indexed: it is opened below the root the server
-    // started on without following one, or the response (and the shared
-    // cache) would hold content from outside the tree, as a scan or the local
-    // index never would.
+    // there when it was indexed: open it without following one, or the
+    // response (and the shared cache) would hold content from outside the
+    // tree, as a scan or the local index never would. The root is opened on
+    // first use. Without it every miss would drop out of an answer that still
+    // looked complete, so any failure is an error, and the client falls back
+    // to a search that can read them.
+    let rooted = std::sync::OnceLock::new();
+    let root_dir = || {
+        rooted
+            .get_or_init(|| ogrep_core::rooted::RootDir::open(&state.root))
+            .as_ref()
+            .ok()
+    };
     // A file that cannot be read is skipped, as a scan skips it, and one over
     // a query's `--max-filesize` too: sized by the handle the read uses, so
     // never through a link.
     let read_indexed = |full_path: &Path| {
-        let mut file = state.rooted.open_file(full_path).ok()?;
+        let mut file = root_dir()?.open_file(full_path).ok()?;
         if let Some(limit) = query_size_limit
             && file.metadata().ok()?.len() > limit
         {
@@ -2330,6 +2331,9 @@ fn handle_search(
                 (Vec::new(), Vec::new(), 0, 64);
             while rest.peek().is_some() {
                 let part = resolve(rest.by_ref().take(chunk).collect());
+                if matches!(rooted.get(), Some(Err(_))) {
+                    break; // reported below, without reading the rest
+                }
                 match verify_all(&part) {
                     Ok(verified) => {
                         found += verified.iter().map(results).sum::<usize>();
@@ -2347,6 +2351,9 @@ fn handle_search(
             (contents, per_file)
         }
     };
+    if let Some(Err(e)) = rooted.get() {
+        return json_rpc_error(id, -32603, &format!("cannot open the served root: {e}"));
+    }
     let mut matches = Vec::new();
     let mut file_stats = Vec::new();
     let mut listed: Vec<&str> = Vec::new();
@@ -4546,7 +4553,7 @@ fn sweep_removed_files(
         // Transient failures preserve, as they do in `reindex_file`: a
         // descriptor limit or a sharing violation says nothing about whether
         // the path belongs in the index, and the next reconcile will ask again.
-        match state.rooted.open_file(&state.root.join(rel)) {
+        match open_within_root(&state.root, &state.root.join(rel)) {
             Ok(file) => match file.metadata() {
                 // Back, and reachable without leaving the tree.
                 Ok(meta) if meta.file_type().is_file() => continue,
@@ -5562,14 +5569,14 @@ enum CappedRead {
 }
 
 fn file_still_has_bytes(
-    rooted: &ogrep_core::rooted::RootDir,
+    root: &Path,
     path: &Path,
     expected_version: &ogrep_core::builder::FileVersion,
     expected: &[u8],
 ) -> std::io::Result<bool> {
     use std::io::Read;
 
-    let mut file = rooted.open_file(path)?;
+    let mut file = open_within_root(root, path)?;
     if ogrep_core::builder::file_version(&file.metadata()?) != *expected_version {
         return Ok(false);
     }
@@ -5590,12 +5597,12 @@ fn file_still_has_bytes(
     {
         return Ok(false);
     }
-    let current = rooted.open_file(path)?;
+    let current = open_within_root(root, path)?;
     Ok(ogrep_core::builder::file_version(&current.metadata()?) == *expected_version)
 }
 
 fn current_path_is_ineligible(state: &ServerState, path: &Path) -> bool {
-    let file = match state.rooted.open_file(path) {
+    let file = match open_within_root(&state.root, path) {
         Ok(file) => file,
         Err(error) => return proves_ineligible(&error),
     };
@@ -5671,7 +5678,7 @@ fn reindex_file(state: &Arc<ServerState>, path: &Path, rel_path: &str, force: bo
     // type, size, mtime, bytes — read back off it. Nothing that happens to the
     // path in the meantime can then make the content we index disagree with the
     // metadata we judged it by, or put it outside the tree we serve.
-    let file = match state.rooted.open_file(path) {
+    let file = match open_within_root(&state.root, path) {
         Ok(f) => f,
         Err(e) if proves_ineligible(&e) => {
             // Gone, or not a regular file reachable without traversing a link.
@@ -5750,7 +5757,7 @@ fn reindex_file(state: &Arc<ServerState>, path: &Path, rel_path: &str, force: bo
         drop(file);
         let mut stable = None;
         for _ in 0..2 {
-            let mut verify = match state.rooted.open_file(path) {
+            let mut verify = match open_within_root(&state.root, path) {
                 Ok(file) => file,
                 Err(e) if proves_ineligible(&e) => {
                     drop_indexed_file(state, rel_path, "no longer eligible");
@@ -5832,7 +5839,7 @@ fn reindex_file(state: &Arc<ServerState>, path: &Path, rel_path: &str, force: bo
     };
     #[cfg(test)]
     run_stale_refresh_hook(state, StaleRefreshPhase::BeforeConcreteCommit);
-    match file_still_has_bytes(&state.rooted, path, &version, &data) {
+    match file_still_has_bytes(&state.root, path, &version, &data) {
         Ok(true) => {}
         Ok(false) => {
             if current_path_is_ineligible(state, path) {
@@ -7815,7 +7822,6 @@ fn background_index_build(state: &Arc<ServerState>, root: &Path, index_dir: &Pat
     }
 
     let mut incremental_flushes = 0u32;
-    let rooted = &state.rooted;
     for (batch_idx, batch) in new_files.chunks(BATCH_SIZE).enumerate() {
         // Parallel: read files + extract trigrams (no locks held). Run inside
         // the bounded pool when available so indexing CPU stays capped.
@@ -7824,7 +7830,7 @@ fn background_index_build(state: &Arc<ServerState>, root: &Path, index_dir: &Pat
                 .par_iter()
                 .filter_map(|path| {
                     let read = (|| -> Result<_> {
-                        let mut file = rooted.open_file(path)?;
+                        let mut file = open_within_root(root, path)?;
                         let version = builder::file_version(&file.metadata()?);
                         let data = match read_within_limit(
                             &mut file,
@@ -7837,7 +7843,7 @@ fn background_index_build(state: &Arc<ServerState>, root: &Path, index_dir: &Pat
                             }
                             CappedRead::Failed => anyhow::bail!("file read failed"),
                         };
-                        if !file_still_has_bytes(rooted, path, &version, &data)? {
+                        if !file_still_has_bytes(root, path, &version, &data)? {
                             anyhow::bail!("file changed during indexing");
                         }
                         Ok((data, version))
@@ -9551,11 +9557,6 @@ mod tests {
                 RECENT_REINDEX_MAX_BYTES,
                 RECENT_REINDEX_MAX_ENTRY_BYTES,
             )),
-            // A root a test leaves missing, to fail its walks, is never read:
-            // any read through the stand-in is refused as outside it.
-            rooted: ogrep_core::rooted::RootDir::open(root)
-                .or_else(|_| ogrep_core::rooted::RootDir::open(&std::env::temp_dir()))
-                .expect("open the test root"),
             root: root.to_path_buf(),
             watcher_active: std::sync::atomic::AtomicBool::new(false),
             indexing: std::sync::atomic::AtomicBool::new(false),
@@ -9900,22 +9901,6 @@ mod tests {
             let indexed = state.index.read().unwrap().all_paths().len();
             assert_eq!(indexed, 200, "round {round}");
         }
-    }
-
-    /// A root removed while the server runs leaves nothing to read: a search
-    /// is an error the client falls back from, not an empty answer.
-    #[test]
-    fn a_search_after_the_root_is_removed_is_an_error() {
-        let temp = TempDir::new().unwrap();
-        let root = temp.path().join("root");
-        std::fs::create_dir_all(&root).unwrap();
-        let state = test_server_state(&root, &temp.path().join("index"));
-        std::fs::remove_dir_all(&root).unwrap();
-        let response = handle_search(None, &serde_json::json!({"pattern": "needle"}), &state);
-        assert!(
-            response.contains("the served root has been removed"),
-            "{response}"
-        );
     }
 
     #[test]

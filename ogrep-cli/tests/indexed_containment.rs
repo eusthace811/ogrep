@@ -239,14 +239,14 @@ fn server_search_does_not_follow_a_directory_swapped_for_a_link() {
     );
 }
 
-/// The server reads through the root it opened at startup, so a tree moved
-/// while it runs is still the one it answers for.
+/// A server that cannot open its root answers with an error rather than an
+/// answer missing every file it would read, and the fallback says why.
 #[test]
-fn a_server_keeps_serving_its_tree_after_it_moves() {
+fn a_server_that_cannot_open_its_root_says_so() {
     let fixture = Fixture::new();
     let _server = Server::start(&fixture);
-    // Its index, and the server's address in it, move along, so the client
-    // still asks it.
+    // The tree moves away from the root the server opens; its index, and the
+    // server's address in it, move along, so the client still asks it.
     let moved = fixture.temp.path().join("moved");
     fs::rename(&fixture.root, &moved).unwrap();
     let output = Command::cargo_bin("ogrep")
@@ -259,11 +259,13 @@ fn a_server_keeps_serving_its_tree_after_it_moves() {
         String::from_utf8(output.stdout).unwrap(),
         String::from_utf8(output.stderr).unwrap(),
     );
-    assert!(output.status.success(), "{stderr}");
-    assert!(stdout.contains("kept"), "{stdout}");
     assert!(
-        !stderr.contains("falling back"),
-        "the server answers: {stderr}"
+        stderr.contains("falling back to local index: cannot open the served root"),
+        "{stderr}"
+    );
+    assert!(
+        stdout.contains("kept"),
+        "the fallback still answers: {stdout}"
     );
 }
 
@@ -285,50 +287,4 @@ fn indexed_search_needs_only_search_permission_on_the_root() {
     fs::set_permissions(&fixture.root, fs::Permissions::from_mode(0o755)).unwrap();
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert!(stdout.contains("kept"), "{stdout}");
-}
-
-/// The root itself replaced by a link, here to a look-alike tree: the server
-/// still reads the tree it opened at startup, never through the link.
-#[test]
-fn a_server_does_not_follow_its_root_replaced_by_a_link() {
-    let fixture = Fixture::new();
-    let _server = Server::start(&fixture);
-    let swapped = fixture.temp.path().join("swapped");
-    assert!(
-        std::process::Command::new("cp")
-            .args(["-R"])
-            .arg(&fixture.root)
-            .arg(&swapped)
-            .status()
-            .unwrap()
-            .success()
-    );
-    fs::write(
-        swapped.join("nested/dir/file.txt"),
-        format!("needle {SENTINEL}\n"),
-    )
-    .unwrap();
-    fs::rename(&fixture.root, fixture.temp.path().join("original")).unwrap();
-    std::os::unix::fs::symlink(&swapped, &fixture.root).unwrap();
-
-    let output = Command::cargo_bin("ogrep")
-        .unwrap()
-        .current_dir(fixture.temp.path())
-        .args(["-F", "--", "needle", "repo"])
-        .output()
-        .unwrap();
-    let (stdout, stderr) = (
-        String::from_utf8(output.stdout).unwrap(),
-        String::from_utf8(output.stderr).unwrap(),
-    );
-    assert!(output.status.success(), "{stderr}");
-    assert!(stdout.contains("kept"), "{stdout}");
-    assert!(
-        !stdout.contains(SENTINEL),
-        "read through the link: {stdout}"
-    );
-    assert!(
-        !stderr.contains("falling back"),
-        "the server answers: {stderr}"
-    );
 }

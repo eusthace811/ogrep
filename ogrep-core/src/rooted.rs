@@ -486,45 +486,6 @@ fn relative_components(root: &Path, path: &Path) -> std::io::Result<Vec<std::ffi
 }
 
 impl RootDir {
-    /// Whether the root has been removed since it was opened: nothing below
-    /// it can be read any more.
-    pub fn is_removed(&self) -> bool {
-        // Linux counts no links to a removed directory.
-        #[cfg(target_os = "linux")]
-        {
-            use std::os::unix::fs::MetadataExt;
-            self.dir.metadata().is_ok_and(|m| m.nlink() == 0)
-        }
-        // macOS keeps counting them, but the handle's path then no longer
-        // leads to it (a moved one's does: the tree is still there).
-        #[cfg(target_os = "macos")]
-        {
-            use std::os::fd::AsRawFd;
-            use std::os::unix::ffi::OsStrExt;
-            use std::os::unix::fs::MetadataExt;
-
-            let mut buf = vec![0u8; libc::PATH_MAX as usize];
-            // SAFETY: `dir` is a live descriptor and `buf` holds `PATH_MAX`
-            // bytes, as `F_GETPATH` requires.
-            if unsafe { libc::fcntl(self.dir.as_raw_fd(), libc::F_GETPATH, buf.as_mut_ptr()) } != 0
-            {
-                return false;
-            }
-            let len = buf.iter().position(|&b| b == 0).unwrap_or(buf.len());
-            let path = Path::new(std::ffi::OsStr::from_bytes(&buf[..len]));
-            match (std::fs::metadata(path), self.dir.metadata()) {
-                (Ok(now), Ok(opened)) => (now.dev(), now.ino()) != (opened.dev(), opened.ino()),
-                (Err(_), Ok(_)) => true,
-                _ => false,
-            }
-        }
-        // Elsewhere names are opened by path, so a root gone from its path is.
-        #[cfg(not(any(target_os = "linux", target_os = "macos")))]
-        {
-            std::fs::metadata(&self.root).is_err()
-        }
-    }
-
     /// Read all of `path` with [`RootDir::open_file`]'s guarantee.
     pub fn read(&self, path: &Path) -> std::io::Result<Vec<u8>> {
         let mut bytes = Vec::new();
