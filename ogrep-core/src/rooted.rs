@@ -141,20 +141,21 @@ impl RootDir {
     ) -> Option<std::io::Result<std::fs::File>> {
         use std::os::fd::AsRawFd;
 
+        use std::sync::atomic::{AtomicBool, Ordering};
+
         // Whether the call is there at all is the process's, so it is probed
         // once, on `/`: an `EPERM` for a file or a root (an EDR or a FUSE
         // mount refusing it) says nothing about the call, while a seccomp
-        // filter refuses it whatever it opens.
+        // filter refuses it whatever it opens. A `/` that cannot be opened
+        // proves nothing either way, and leaves it to each call.
         static AVAILABLE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-        let available = AVAILABLE.get_or_init(|| {
-            let probe = std::fs::File::open("/")
-                .and_then(|slash| openat2(slash.as_raw_fd(), c".", libc::O_DIRECTORY));
-            !matches!(
-                probe.err().and_then(|e| e.raw_os_error()),
-                Some(libc::ENOSYS | libc::EPERM)
-            )
+        // An `ENOSYS` from any call: never about the file.
+        static MISSING: AtomicBool = AtomicBool::new(false);
+        let available = AVAILABLE.get_or_init(|| match std::fs::File::open("/") {
+            Ok(slash) => openat2(slash.as_raw_fd(), c".", libc::O_DIRECTORY).is_ok(),
+            Err(_) => true,
         });
-        if !available {
+        if !available || MISSING.load(Ordering::Relaxed) {
             return None;
         }
         let name = joined_name(components)?;
@@ -164,12 +165,18 @@ impl RootDir {
             libc::O_NOFOLLOW | libc::O_NONBLOCK,
         ) {
             Ok(file) => Some(Ok(file)),
-            // Refused for this file, or a whole path past `PATH_MAX`, which
-            // the walk opens a name at a time: it decides.
+            Err(e) if e.raw_os_error() == Some(libc::ENOSYS) => {
+                MISSING.store(true, Ordering::Relaxed);
+                None
+            }
+            // Refused (a filter answers `EPERM`, `EACCES` or `EINVAL` as it
+            // was told to), or a whole path past `PATH_MAX`, which the walk
+            // opens a name at a time: the walk decides, and reports a file
+            // really refused.
             Err(e)
                 if matches!(
                     e.raw_os_error(),
-                    Some(libc::ENOSYS | libc::EPERM | libc::ENAMETOOLONG)
+                    Some(libc::EPERM | libc::EACCES | libc::EINVAL | libc::ENAMETOOLONG)
                 ) =>
             {
                 None
