@@ -5359,7 +5359,8 @@ fn queue_git_metadata_event(state: &ServerState, path: PathBuf, introduces_dir: 
 struct GitFlush {
     progress: Mutex<GitFlushProgress>,
     changed: std::sync::Condvar,
-    worker: std::sync::OnceLock<()>,
+    /// Whether the worker is running; a spawn that failed is tried again.
+    worker: Mutex<bool>,
 }
 
 #[derive(Default)]
@@ -5375,13 +5376,21 @@ struct GitFlushProgress {
 fn start_git_metadata_flush(state: &Arc<ServerState>) -> u64 {
     let target = state.git_metadata_queued.load(Ordering::SeqCst);
     let flush = &state.git_flush;
-    flush.worker.get_or_init(|| {
-        let (state, flush) = (Arc::downgrade(state), Arc::clone(flush));
-        thread::Builder::new()
-            .name("ogrep-git-flush".into())
-            .spawn(move || git_metadata_worker(&state, &flush))
-            .expect("spawn the .git flush worker");
-    });
+    {
+        let mut running = flush.worker.lock().unwrap();
+        if !*running {
+            let (state, worker_flush) = (Arc::downgrade(state), Arc::clone(flush));
+            // A spawn that fails (a thread limit) leaves the changes set aside:
+            // a waiting request falls back, and the next call tries again.
+            match thread::Builder::new()
+                .name("ogrep-git-flush".into())
+                .spawn(move || git_metadata_worker(&state, &worker_flush))
+            {
+                Ok(_) => *running = true,
+                Err(e) => eprintln!("[ogrep serve] cannot start the .git flush worker: {e}"),
+            }
+        }
+    }
     let mut progress = flush.progress.lock().unwrap();
     if progress.wanted < target {
         progress.wanted = target;
@@ -5407,13 +5416,21 @@ fn await_git_metadata(state: &Arc<ServerState>, deadline: Instant) -> bool {
 }
 
 /// Apply what is asked for until the server is gone. It holds the server
-/// only while applying, so it never keeps one alive.
+/// only while applying, so it never keeps one alive, and looks once a
+/// minute whether it is still there.
 fn git_metadata_worker(state: &std::sync::Weak<ServerState>, flush: &GitFlush) {
     loop {
         {
             let mut progress = flush.progress.lock().unwrap();
             while progress.wanted <= progress.applied {
-                progress = flush.changed.wait(progress).unwrap();
+                let (next, waited) = flush
+                    .changed
+                    .wait_timeout(progress, Duration::from_secs(60))
+                    .unwrap();
+                progress = next;
+                if waited.timed_out() && state.strong_count() == 0 {
+                    return;
+                }
             }
         }
         let Some(state) = state.upgrade() else {
@@ -5424,7 +5441,15 @@ fn git_metadata_worker(state: &std::sync::Weak<ServerState>, flush: &GitFlush) {
             let upto = state.git_metadata_queued.load(Ordering::SeqCst);
             (std::mem::take(&mut *events), upto)
         };
-        apply_git_metadata_events(&state, pending);
+        // A batch that panics is counted applied all the same, or every later
+        // request would wait for it in vain; its files are as stale as any
+        // missed event, until reconciliation.
+        let applied = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            apply_git_metadata_events(&state, pending);
+        }));
+        if applied.is_err() {
+            eprintln!("[ogrep serve] applying .git changes panicked; they wait for reconciliation");
+        }
         drop(state);
         let mut progress = flush.progress.lock().unwrap();
         progress.applied = progress.applied.max(upto);
@@ -5589,11 +5614,17 @@ fn classify_event_target(meta: &std::io::Result<std::fs::Metadata>) -> EventTarg
 }
 
 /// Whether a read failed for want of something the client's fallback, a
-/// fresh process, has: descriptors or memory. Any other failure (gone, a
+/// fresh process, has: descriptors or memory, or another try at a file
+/// that changed while it was opened. Any other failure (gone, a
 /// link, refused, locked by another program, a bad disk) the fallback
 /// meets too and skips, as a scan does, so the server skips it as well.
 fn is_passing_failure(error: &std::io::Error) -> bool {
-    if error.kind() == std::io::ErrorKind::OutOfMemory {
+    // `Interrupted` too: a file that changed while it was being opened,
+    // which the fallback opens again.
+    if matches!(
+        error.kind(),
+        std::io::ErrorKind::OutOfMemory | std::io::ErrorKind::Interrupted
+    ) {
         return true;
     }
     #[cfg(unix)]
@@ -6203,7 +6234,9 @@ fn auto_save_loop(state: Arc<ServerState>) {
         if state.indexing.load(Ordering::SeqCst) || state.flushing.load(Ordering::SeqCst) {
             continue;
         }
-        start_git_metadata_flush(&state);
+        // Waited for (a while at most), so what it applies counts toward this
+        // tick's save rather than the next.
+        await_git_metadata(&state, Instant::now() + Duration::from_secs(10));
 
         let dirty = {
             let index = state.index.read().unwrap();
@@ -9951,6 +9984,27 @@ mod tests {
         assert!(await_git_metadata(&state, far()));
         assert_eq!(indexed_paths(&state).len(), 201);
         assert!(state.git_metadata_events.lock().unwrap().is_empty());
+    }
+
+    /// A batch that panics (here on a poisoned index lock) does not end the
+    /// worker, and requests waiting for it are not kept waiting.
+    #[test]
+    fn a_panicking_git_batch_leaves_the_worker_running() {
+        let temp = TempDir::new().unwrap();
+        let (root, state) = git_test_state(&temp);
+        {
+            let state = Arc::clone(&state);
+            let _ = thread::spawn(move || {
+                let _write = state.index.write().unwrap();
+                panic!("poison the index lock");
+            })
+            .join();
+        }
+        let far = || Instant::now() + Duration::from_secs(30);
+        for name in ["HEAD", "ORIG_HEAD"] {
+            queue_git_file(&state, &root, name);
+            assert!(await_git_metadata(&state, far()), "{name}");
+        }
     }
 
     /// A `--hidden` request waiting on the worker holds no search slot
