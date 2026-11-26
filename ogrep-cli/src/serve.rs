@@ -25,8 +25,6 @@ use ogrep_core::builder;
 use ogrep_core::hybrid::HybridIndex;
 use ogrep_core::query;
 
-#[cfg(windows)]
-use ogrep_core::rooted::final_path_of;
 use ogrep_core::rooted::open_within_root;
 
 mod index_cleanup;
@@ -37,6 +35,10 @@ const MAX_CONNECTIONS: usize = 64;
 const MAX_QUEUED_SEARCHES: usize = 32;
 const MAX_REQUEST_BYTES: u64 = 1024 * 1024;
 const REQUEST_WAIT: Duration = Duration::from_secs(30);
+
+/// Changes under `.git` the background tick applies per hold of the flush
+/// lock; see [`flush_git_metadata_events`].
+const GIT_FLUSH_CHUNK: usize = 256;
 const SOCKET_IDLE_TIMEOUT: Duration = Duration::from_secs(30);
 pub const OVERLOADED: i64 = -32002;
 
@@ -347,16 +349,20 @@ struct DecodedFile {
     /// Offset of the first NUL in `text`, found once when the file is cached
     /// rather than rescanned by every query that verifies it.
     first_nul: Option<usize>,
+    /// The file's size on disk, for a query's `--max-filesize`.
+    byte_len: u64,
 }
 
 impl DecodedFile {
     fn new(bytes: Vec<u8>, encoding: ogrep_core::encoding::EncodingMode) -> Self {
+        let byte_len = bytes.len() as u64;
         let (text, fixups) = ogrep_core::encoding::decode_owned_with_fixups(bytes, encoding);
         let first_nul = memchr::memchr(0, text.as_bytes());
         Self {
             text,
             fixups,
             first_nul,
+            byte_len,
         }
     }
 
@@ -692,6 +698,13 @@ struct ServerState {
     /// Changes under a `.git` directory, set aside until something can see
     /// them; see [`flush_git_metadata_events`]. Keyed as `deferred_events`.
     git_metadata_events: Mutex<std::collections::HashMap<PathBuf, bool>>,
+    /// Held while those changes are applied, so a request that finds the map
+    /// already emptied by another flush waits for it to finish rather than
+    /// searching before the changes are in.
+    git_metadata_flush: Mutex<()>,
+    /// Requests waiting for that lock; the background flush stops between
+    /// chunks while there are any, since `Mutex` does not queue them fairly.
+    git_metadata_waiters: std::sync::atomic::AtomicUsize,
     /// Progress: number of files indexed so far.
     index_progress: std::sync::atomic::AtomicU64,
     /// Total files discovered for indexing.
@@ -1049,6 +1062,8 @@ pub fn run(root: &Path, index_path: Option<&Path>, options: ServeOptions<'_>) ->
         reindex_lock: Mutex::new(()),
         deferred_events: Mutex::new(Some(std::collections::HashMap::new())),
         git_metadata_events: Mutex::new(std::collections::HashMap::new()),
+        git_metadata_flush: Mutex::new(()),
+        git_metadata_waiters: std::sync::atomic::AtomicUsize::new(0),
         index_progress: std::sync::atomic::AtomicU64::new(0),
         index_total: std::sync::atomic::AtomicU64::new(0),
         watch_enabled: !no_watch,
@@ -1611,8 +1626,12 @@ fn process_request(
     } else {
         None
     };
+    // After admission, so the changes are applied just before the search
+    // reads them; one made while the request was queued is included. Waiting
+    // here for another flush holds the permit, as any search doing work its
+    // answer needs does.
     if permit.is_some() && SearchScope::parse(&params).is_ok_and(|s| s.reaches_git_metadata()) {
-        flush_git_metadata_events(state);
+        flush_git_metadata_events(state, None);
     }
     let response = match method {
         "search" => handle_search(id, &params, state),
@@ -2073,7 +2092,6 @@ fn handle_search(
             Hidden,
             Type,
             Glob(String),
-            TooLarge,
         }
         let root = &index.root;
         let decide = |&fid: &u32| {
@@ -2098,11 +2116,6 @@ fn handle_search(
                 return Filtered::Glob(rel_path);
             }
             let full_path = ogrep_core::hybrid::join_indexed_path(root, &rel_path);
-            if let Some(limit) = query_size_limit
-                && std::fs::metadata(&full_path).is_ok_and(|md| md.len() > limit)
-            {
-                return Filtered::TooLarge;
-            }
             Filtered::Keep(rel_path, full_path)
         };
         // Handing a few candidates to the pool costs more than filtering them.
@@ -2131,7 +2144,6 @@ fn handle_search(
                     filtered_count += 1;
                     filtered.push((rel_path, full_path));
                 }
-                Filtered::TooLarge => filtered_count += 1,
                 Filtered::NoPath => no_path_count += 1,
                 Filtered::Hidden => {}
                 Filtered::Type => type_filtered_count += 1,
@@ -2165,6 +2177,34 @@ fn handle_search(
     // lock, then a single write-lock to promote hits and insert misses.
     let t_resolve = Instant::now();
     let candidate_count = candidate_info.len();
+    // Each name is the index's, and may now run through a link that was not
+    // there when it was indexed: open it without following one, or the
+    // response (and the shared cache) would hold content from outside the
+    // tree, as a scan or the local index never would. The root is opened on
+    // first use. Without it every miss would drop out of an answer that still
+    // looked complete, so any failure is an error, and the client falls back
+    // to a search that can read them.
+    let rooted = std::sync::OnceLock::new();
+    let root_dir = || {
+        rooted
+            .get_or_init(|| ogrep_core::rooted::RootDir::open(&state.root))
+            .as_ref()
+            .ok()
+    };
+    // A file that cannot be read is skipped, as a scan skips it, and one over
+    // a query's `--max-filesize` too: sized by the handle the read uses, so
+    // never through a link.
+    let read_indexed = |full_path: &Path| {
+        let mut file = root_dir()?.open_file(full_path).ok()?;
+        if let Some(limit) = query_size_limit
+            && file.metadata().ok()?.len() > limit
+        {
+            return None;
+        }
+        let mut bytes = Vec::new();
+        std::io::Read::read_to_end(&mut file, &mut bytes).ok()?;
+        Some(bytes)
+    };
     let resolve = |candidate_info: Vec<(String, PathBuf)>| -> Vec<(String, Arc<DecodedFile>)> {
         if encoding.may_differ_from_index() {
             // The cache holds text decoded with the default (BOM-sniffing) rules and
@@ -2174,7 +2214,7 @@ fn handle_search(
             candidate_info
                 .into_iter()
                 .filter_map(|(rel_path, full_path)| {
-                    let bytes = std::fs::read(full_path).ok()?;
+                    let bytes = read_indexed(&full_path)?;
                     Some((rel_path, Arc::new(DecodedFile::new(bytes, encoding))))
                 })
                 .collect()
@@ -2202,7 +2242,7 @@ fn handle_search(
             // works with --no-index.
             let missing: Vec<usize> = (0..slots.len()).filter(|&i| slots[i].is_none()).collect();
             let read = |&i: &usize| {
-                let bytes = std::fs::read(&candidate_info[i].1).ok()?;
+                let bytes = read_indexed(&candidate_info[i].1)?;
                 let decoded = DecodedFile::new(bytes, ogrep_core::encoding::EncodingMode::Auto);
                 Some((i, Arc::new(decoded)))
             };
@@ -2233,6 +2273,8 @@ fn handle_search(
                 .into_iter()
                 .zip(slots)
                 .filter_map(|((rel_path, _), slot)| slot.map(|c| (rel_path, c)))
+                // A cached file is over the query's cap by its size when read.
+                .filter(|(_, c)| query_size_limit.is_none_or(|limit| c.byte_len <= limit))
                 .collect()
         }
     };
@@ -2289,6 +2331,9 @@ fn handle_search(
                 (Vec::new(), Vec::new(), 0, 64);
             while rest.peek().is_some() {
                 let part = resolve(rest.by_ref().take(chunk).collect());
+                if matches!(rooted.get(), Some(Err(_))) {
+                    break; // reported below, without reading the rest
+                }
                 match verify_all(&part) {
                     Ok(verified) => {
                         found += verified.iter().map(results).sum::<usize>();
@@ -2306,6 +2351,9 @@ fn handle_search(
             (contents, per_file)
         }
     };
+    if let Some(Err(e)) = rooted.get() {
+        return json_rpc_error(id, -32603, &format!("cannot open the served root: {e}"));
+    }
     let mut matches = Vec::new();
     let mut file_stats = Vec::new();
     let mut listed: Vec<&str> = Vec::new();
@@ -5275,8 +5323,60 @@ fn is_git_metadata(rel_path: &str) -> bool {
 /// inside it can return those files. Such requests call this first, and the
 /// auto-save tick applies the rest once a minute, one read per changed path
 /// however many times Git wrote it.
-fn flush_git_metadata_events(state: &Arc<ServerState>) {
-    let pending = std::mem::take(&mut *state.git_metadata_events.lock().unwrap());
+///
+/// The background tick passes a `chunk`: it applies the backlog it found a
+/// chunk per hold of the lock, and stops early for a request waiting on it.
+/// The request waits for at most that chunk, then applies the rest itself,
+/// since its answer needs them.
+fn flush_git_metadata_events(state: &Arc<ServerState>, chunk: Option<usize>) {
+    let Some(chunk) = chunk else {
+        state.git_metadata_waiters.fetch_add(1, Ordering::SeqCst);
+        let _flush = state
+            .git_metadata_flush
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        state.git_metadata_waiters.fetch_sub(1, Ordering::SeqCst);
+        let pending = std::mem::take(&mut *state.git_metadata_events.lock().unwrap());
+        apply_git_metadata_events(state, pending);
+        return;
+    };
+    let mut left = state.git_metadata_events.lock().unwrap().len();
+    while left > 0 && state.git_metadata_waiters.load(Ordering::SeqCst) == 0 {
+        let _flush = state
+            .git_metadata_flush
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        let pending: Vec<(PathBuf, bool)> = {
+            let mut events = state.git_metadata_events.lock().unwrap();
+            let paths: Vec<PathBuf> = events.keys().take(chunk.min(left)).cloned().collect();
+            paths
+                .into_iter()
+                .filter_map(|p| events.remove(&p).map(|dir| (p, dir)))
+                .collect()
+        };
+        if pending.is_empty() {
+            return;
+        }
+        left -= pending.len();
+        let mut pending = pending.into_iter();
+        for event in pending.by_ref() {
+            if state.git_metadata_waiters.load(Ordering::SeqCst) > 0 {
+                // A request arrived mid-chunk: this and the rest are its.
+                let mut events = state.git_metadata_events.lock().unwrap();
+                for (path, introduces_dir) in std::iter::once(event).chain(pending.by_ref()) {
+                    *events.entry(path).or_default() |= introduces_dir;
+                }
+                return;
+            }
+            apply_git_metadata_events(state, std::iter::once(event));
+        }
+    }
+}
+
+fn apply_git_metadata_events(
+    state: &Arc<ServerState>,
+    pending: impl IntoIterator<Item = (PathBuf, bool)>,
+) {
     for (path, introduces_dir) in pending {
         let kind = if introduces_dir {
             EventKind::Create(notify::event::CreateKind::Any)
@@ -6004,7 +6104,7 @@ fn auto_save_loop(state: Arc<ServerState>) {
         if state.indexing.load(Ordering::SeqCst) || state.flushing.load(Ordering::SeqCst) {
             continue;
         }
-        flush_git_metadata_events(&state);
+        flush_git_metadata_events(&state, Some(GIT_FLUSH_CHUNK));
 
         let dirty = {
             let index = state.index.read().unwrap();
@@ -8802,6 +8902,8 @@ fn ctrlc_handler<F: Fn() + Send + Sync + 'static>(handler: F) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[cfg(windows)]
+    use ogrep_core::rooted::final_path_of;
     use std::sync::atomic::AtomicBool;
     use tempfile::TempDir;
 
@@ -9226,6 +9328,7 @@ mod tests {
             text: String::from_utf8(bytes).unwrap(),
             fixups: Default::default(),
             first_nul: None,
+            byte_len: len as u64,
         })
     }
 
@@ -9468,6 +9571,8 @@ mod tests {
             reindex_lock: Mutex::new(()),
             deferred_events: Mutex::new(Some(std::collections::HashMap::new())),
             git_metadata_events: Mutex::new(std::collections::HashMap::new()),
+            git_metadata_flush: Mutex::new(()),
+            git_metadata_waiters: std::sync::atomic::AtomicUsize::new(0),
             index_progress: std::sync::atomic::AtomicU64::new(0),
             index_total: std::sync::atomic::AtomicU64::new(0),
             watch_enabled: true,
@@ -9689,6 +9794,113 @@ mod tests {
         assert_eq!(files(true), serde_json::json!([".git/HEAD", "main.rs"]));
         assert_eq!(indexed(&state), [".git/HEAD", "main.rs"]);
         assert!(state.git_metadata_events.lock().unwrap().is_empty());
+    }
+
+    /// A flush empties the pending map before it applies anything, so a
+    /// second `--hidden` request arriving meanwhile finds nothing to do. It
+    /// must still wait for the first to finish, or it searches without them.
+    #[test]
+    fn a_git_metadata_flush_waits_for_one_in_progress() {
+        let temp = TempDir::new().unwrap();
+        let root = temp.path().join("root");
+        std::fs::create_dir_all(&root).unwrap();
+        let state = test_server_state(&root, &temp.path().join("index"));
+        let in_progress = state.git_metadata_flush.lock().unwrap();
+        let (done_tx, done_rx) = std::sync::mpsc::channel();
+        let waiter = {
+            let state = Arc::clone(&state);
+            thread::spawn(move || {
+                flush_git_metadata_events(&state, None);
+                done_tx.send(()).unwrap();
+            })
+        };
+        assert!(
+            done_rx.recv_timeout(Duration::from_millis(200)).is_err(),
+            "the flush returned while another was still applying"
+        );
+        drop(in_progress);
+        done_rx.recv_timeout(Duration::from_secs(10)).unwrap();
+        waiter.join().unwrap();
+    }
+
+    /// The background flush applies its backlog a chunk at a time, and stops
+    /// for a request waiting to apply the rest.
+    #[test]
+    fn a_chunked_git_metadata_flush_applies_every_change() {
+        let temp = TempDir::new().unwrap();
+        let root = temp.path().join("root");
+        std::fs::create_dir_all(root.join(".git")).unwrap();
+        let state = test_server_state(&root, &temp.path().join("index"));
+        state.gitignore_pending.store(false, Ordering::SeqCst);
+        state.filename_index_ready.store(true, Ordering::SeqCst);
+        state.hidden_complete.store(true, Ordering::SeqCst);
+        for i in 0..5 {
+            let path = root.join(".git").join(format!("ref{i}"));
+            std::fs::write(&path, format!("ref {i}\n")).unwrap();
+            state
+                .git_metadata_events
+                .lock()
+                .unwrap()
+                .insert(path, false);
+        }
+        state.git_metadata_waiters.store(1, Ordering::SeqCst);
+        flush_git_metadata_events(&state, Some(2));
+        assert_eq!(
+            state.git_metadata_events.lock().unwrap().len(),
+            5,
+            "stopped for the waiter"
+        );
+        state.git_metadata_waiters.store(0, Ordering::SeqCst);
+        flush_git_metadata_events(&state, Some(2));
+        assert!(state.git_metadata_events.lock().unwrap().is_empty());
+        let mut indexed: Vec<String> = state
+            .index
+            .read()
+            .unwrap()
+            .all_paths()
+            .iter()
+            .map(|p| p.to_string())
+            .collect();
+        indexed.sort();
+        assert_eq!(
+            indexed,
+            (0..5).map(|i| format!(".git/ref{i}")).collect::<Vec<_>>()
+        );
+    }
+
+    /// A request that arrives while the tick is applying a chunk takes over
+    /// the rest: every change is applied once, by one or the other.
+    #[test]
+    fn a_request_taking_over_the_tick_flush_loses_no_change() {
+        for round in 0..5 {
+            let temp = TempDir::new().unwrap();
+            let root = temp.path().join("root");
+            std::fs::create_dir_all(root.join(".git")).unwrap();
+            let state = test_server_state(&root, &temp.path().join("index"));
+            state.gitignore_pending.store(false, Ordering::SeqCst);
+            state.filename_index_ready.store(true, Ordering::SeqCst);
+            state.hidden_complete.store(true, Ordering::SeqCst);
+            for i in 0..200 {
+                let path = root.join(".git").join(format!("obj{i}"));
+                std::fs::write(&path, format!("object {i}\n")).unwrap();
+                state
+                    .git_metadata_events
+                    .lock()
+                    .unwrap()
+                    .insert(path, false);
+            }
+            let tick = {
+                let state = Arc::clone(&state);
+                thread::spawn(move || flush_git_metadata_events(&state, Some(16)))
+            };
+            thread::sleep(Duration::from_millis(round));
+            flush_git_metadata_events(&state, None);
+            tick.join().unwrap();
+            flush_git_metadata_events(&state, None);
+            assert!(state.git_metadata_events.lock().unwrap().is_empty());
+            let indexed = state.index.read().unwrap().all_paths().len();
+            assert_eq!(indexed, 200, "round {round}");
+        }
     }
 
     #[test]

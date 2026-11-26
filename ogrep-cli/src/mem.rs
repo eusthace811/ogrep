@@ -521,23 +521,29 @@ mod tests {
     // The two figures are sampled at different instants, and the rest of the
     // suite is allocating on other threads meanwhile, so they are compared for
     // *provenance* rather than exact equality - an exact match made this test
-    // flaky. Private and RSS differ by far more than the tolerance whenever the
-    // distinction matters, so a wrong source still fails.
+    // flaky, on the RSS fallback (macOS) as much as on private bytes. Private
+    // and RSS differ by far more than the tolerance whenever the distinction
+    // matters, so a wrong source still fails.
     #[test]
     fn budgeted_memory_prefers_private_bytes() {
         let budgeted = budgeted_memory_bytes();
-        match process_private_bytes() {
-            Some(private) => {
-                let budgeted = budgeted.expect("private bytes are available, so a budget is too");
-                let drift = budgeted.abs_diff(private);
-                let tolerance = (private / 10).max(16 * 1024 * 1024);
-                assert!(
-                    drift <= tolerance,
-                    "budgeted {budgeted} should track private {private} (drift {drift} > {tolerance})"
-                );
-            }
-            None => assert_eq!(budgeted, process_rss_bytes()),
-        }
+        let (source, expected) = match process_private_bytes() {
+            Some(private) => ("private", Some(private)),
+            None => ("RSS", process_rss_bytes()),
+        };
+        let (Some(budgeted), Some(expected)) = (budgeted, expected) else {
+            assert_eq!(
+                budgeted, expected,
+                "a budget exists exactly when {source} does"
+            );
+            return;
+        };
+        let drift = budgeted.abs_diff(expected);
+        let tolerance = (expected / 10).max(16 * 1024 * 1024);
+        assert!(
+            drift <= tolerance,
+            "budgeted {budgeted} should track {source} {expected} (drift {drift} > {tolerance})"
+        );
     }
 
     #[test]

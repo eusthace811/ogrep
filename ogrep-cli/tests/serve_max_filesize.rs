@@ -83,11 +83,15 @@ fn send_request(port: u16, request: &str) -> std::io::Result<String> {
 /// Paths that matched, so a failure names the missing file instead of just
 /// reporting a count that is one too low.
 fn matching_paths(port: u16, pattern: &str) -> Vec<String> {
+    matching_paths_with(port, serde_json::json!({ "pattern": pattern }))
+}
+
+fn matching_paths_with(port: u16, params: serde_json::Value) -> Vec<String> {
     let request = serde_json::json!({
         "jsonrpc": "2.0",
         "method": "search",
         "id": 1,
-        "params": { "pattern": pattern }
+        "params": params
     })
     .to_string();
     let response = send_request(port, &request).expect("search request failed");
@@ -216,5 +220,21 @@ fn serving_an_index_built_with_an_explicit_max_filesize_keeps_large_files() {
         paths,
         vec!["big.txt".to_string(), "small.txt".to_string()],
         "the stale check evicted the oversized file from the index"
+    );
+
+    // A query's own, stricter cap leaves the big file out, whether it is read
+    // now or answered from the cache the search above filled.
+    for _ in 0..2 {
+        assert_eq!(
+            matching_paths_with(
+                port,
+                serde_json::json!({ "pattern": MARKER, "max_filesize": 1024 * 1024 }),
+            ),
+            vec!["small.txt".to_string()],
+        );
+    }
+    assert_eq!(
+        matching_paths(port, MARKER),
+        vec!["big.txt".to_string(), "small.txt".to_string()],
     );
 }

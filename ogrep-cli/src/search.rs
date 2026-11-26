@@ -40,6 +40,18 @@ impl std::fmt::Display for LimitShort {
 }
 impl std::error::Error for LimitShort {}
 
+/// Any other error the server answered with, kept apart from a server that
+/// did not answer so the fallback can say why.
+#[derive(Debug)]
+struct ServerReplied(String);
+
+impl std::fmt::Display for ServerReplied {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "server error: {}", self.0)
+    }
+}
+impl std::error::Error for ServerReplied {}
+
 fn server_error(error: &serde_json::Value) -> anyhow::Error {
     let message = error
         .get("message")
@@ -48,7 +60,7 @@ fn server_error(error: &serde_json::Value) -> anyhow::Error {
     if error.get("code").and_then(|v| v.as_i64()) == Some(crate::serve::OVERLOADED) {
         ServerOverloaded(message.to_owned()).into()
     } else {
-        anyhow::anyhow!("server error: {message}")
+        ServerReplied(message.to_owned()).into()
     }
 }
 
@@ -1077,9 +1089,20 @@ pub fn run(
             Err(error) if error.is::<ServerOverloaded>() || is_broken_pipe(&error) => {
                 return Err(error);
             }
-            Err(_) => {}
+            // A server that answered says why; one that did not is unavailable.
+            Err(error) => {
+                let why = error
+                    .downcast_ref::<ServerReplied>()
+                    .map(|e| format!(": {}", e.0))
+                    .unwrap_or_default();
+                warn_once(
+                    &root,
+                    format!(
+                        "Server unavailable or index coverage not ready, falling back to local index{why}"
+                    ),
+                );
+            }
         }
-        eprintln!("Server unavailable or index coverage not ready, falling back to local index");
     }
 
     // No server — use on-disk index directly (or brute force)
@@ -1087,7 +1110,7 @@ pub fn run(
         return brute_force_search(&root, &index_dir, opts, ci, writer);
     }
     if !index_dir.join("lookup.bin").exists() {
-        warn_missing_index(&index_dir, index_path.is_some(), opts.quiet);
+        warn_missing_index(&root, &index_dir, index_path.is_some(), opts.quiet);
         return brute_force_search(&root, &index_dir, opts, ci, writer);
     }
 
@@ -1118,6 +1141,18 @@ fn strip_verbatim_prefix(s: &str) -> String {
     }
 }
 
+/// Print a warning about how the search of `root` ran, once per process for
+/// that root: a follow-up search over the same roots (the "similar names"
+/// probe) would otherwise repeat it, while another root still gets its own.
+fn warn_once(root: &Path, message: String) {
+    static SEEN: std::sync::Mutex<Vec<(PathBuf, String)>> = std::sync::Mutex::new(Vec::new());
+    let mut seen = SEEN.lock().unwrap_or_else(|e| e.into_inner());
+    if !seen.iter().any(|(r, m)| r == root && *m == message) {
+        eprintln!("{message}");
+        seen.push((root.to_path_buf(), message));
+    }
+}
+
 /// Warn when a search silently degrades to scanning every file.
 ///
 /// This is the difference between a sub-second query and a multi-minute one on
@@ -1126,20 +1161,22 @@ fn strip_verbatim_prefix(s: &str) -> String {
 /// global, meaning it is accepted on every subcommand, not remembered between
 /// invocations. The client then looks for `serve.json` in the default location,
 /// finds nothing, and falls through to here without ever contacting the server.
-fn warn_missing_index(index_dir: &Path, explicit_path: bool, quiet: bool) {
+fn warn_missing_index(root: &Path, index_dir: &Path, explicit_path: bool, quiet: bool) {
     if quiet {
         return;
     }
     let dir = display_path(index_dir);
-    eprintln!("warning: no index at {dir} - scanning every file (slow on large trees)");
-    if explicit_path {
-        eprintln!("note: build one with `ogrep index --index-path {dir}`");
+    let note = if explicit_path {
+        format!("note: build one with `ogrep index --index-path {dir}`")
     } else {
-        eprintln!(
-            "note: if a server is running with `--index-path <dir>`, pass the same \
-             --index-path here; otherwise build an index with `ogrep index`"
-        );
-    }
+        "note: if a server is running with `--index-path <dir>`, pass the same \
+         --index-path here; otherwise build an index with `ogrep index`"
+            .to_string()
+    };
+    warn_once(
+        root,
+        format!("warning: no index at {dir} - scanning every file (slow on large trees)\n{note}"),
+    );
 }
 
 fn search_via_server(
@@ -1701,8 +1738,11 @@ fn search_local_index(
         Ok(meta) => meta,
         Err(error) => {
             if !opts.quiet && !opts.no_messages {
-                eprintln!(
-                    "warning: index coverage metadata unavailable ({error}) - scanning filesystem"
+                warn_once(
+                    root,
+                    format!(
+                        "warning: index coverage metadata unavailable ({error}) - scanning filesystem"
+                    ),
                 );
             }
             return brute_force_search(root, index_dir, opts, ci, writer);
@@ -1713,8 +1753,9 @@ fn search_local_index(
         || meta.version != ogrep_core::meta::INDEX_FORMAT_VERSION
     {
         if !opts.quiet && !opts.no_messages {
-            eprintln!(
-                "warning: index lacks complete hidden-file coverage - scanning filesystem; rebuild with `ogrep index` or upgrade with `ogrep serve`"
+            warn_once(
+                root,
+                "warning: index lacks complete hidden-file coverage - scanning filesystem; rebuild with `ogrep index` or upgrade with `ogrep serve`".into(),
             );
         }
         return brute_force_search(root, index_dir, opts, ci, writer);
@@ -1726,14 +1767,19 @@ fn search_local_index(
     };
     let Some(filename_visibility) = filename_visibility else {
         if !opts.quiet && !opts.no_messages {
-            eprintln!("warning: atomic index visibility unavailable - scanning filesystem");
+            warn_once(
+                root,
+                "warning: atomic index visibility unavailable - scanning filesystem".into(),
+            );
         }
         return brute_force_search(root, index_dir, opts, ci, writer);
     };
     if !filename_visibility.covers_index(&meta, reader.file_table_id()) {
         if !opts.quiet && !opts.no_messages {
-            eprintln!(
+            warn_once(
+                root,
                 "warning: index visibility, coverage, and path table differ - scanning filesystem"
+                    .into(),
             );
         }
         return brute_force_search(root, index_dir, opts, ci, writer);

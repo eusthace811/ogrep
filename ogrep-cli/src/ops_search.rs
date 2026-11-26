@@ -347,12 +347,13 @@ fn trace(repo: &Path, opts: &SearchOptions, out: &mut impl Write) -> Result<bool
     let files = ogrep_core::history::ls_files(repo, true)?;
     let frames = ogrep_core::trace::frames(&text);
     let mut found = false;
+    let read = ogrep_core::rooted::indexed_text_reader(repo);
     for f in &frames {
         let Some(path) = ogrep_core::trace::resolve(&f.raw_path, &files) else {
             continue;
         };
         found = true;
-        let source = ogrep_core::rooted::read_indexed_to_string(repo, path).unwrap_or_default();
+        let source = read(path).unwrap_or_default();
         let line_text = source
             .lines()
             .nth(f.line.saturating_sub(1))
@@ -735,13 +736,10 @@ fn similar_incidents(
         .collect();
     let q = terms(&query);
     let q_services: Vec<&String> = services.iter().filter(|s| q.contains(s)).collect();
+    let read = ogrep_core::rooted::indexed_text_reader(repo);
     let texts: Vec<(String, Vec<String>)> = docs
         .iter()
-        .filter_map(|p| {
-            ogrep_core::rooted::read_indexed_to_string(repo, p)
-                .ok()
-                .map(|t| ((*p).clone(), terms(&t)))
-        })
+        .filter_map(|p| read(p).ok().map(|t| ((*p).clone(), terms(&t))))
         .collect();
     let n = texts.len().max(1) as f64;
     let avg = texts.iter().map(|t| t.1.len()).sum::<usize>() as f64 / n;

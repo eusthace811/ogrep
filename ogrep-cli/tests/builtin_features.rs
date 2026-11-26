@@ -1589,3 +1589,56 @@ fn dated_entities_carry_the_commit_since_which_the_files_hold_them() {
     let alone = ogrep(dir.path()).args(["--dated", "web"]).output().unwrap();
     assert!(!alone.status.success(), "--dated needs --entities");
 }
+
+/// The graph's paths are relative to the root it recorded. Once that root is
+/// gone its files cannot be read, which leaves their text out rather than
+/// failing the command.
+#[test]
+fn graph_tools_survive_a_moved_tree() {
+    let temp = TempDir::new().unwrap();
+    let old = temp.path().join("proj");
+    fs::create_dir(&old).unwrap();
+    fs::write(old.join("a.rs"), "fn foo() { bar() }\nfn bar() {}\n").unwrap();
+    fs::write(old.join("b.rs"), "fn baz() { foo() }\n").unwrap();
+    ogrep(&old)
+        .args(["index", ".", "--graph"])
+        .assert()
+        .success();
+    let moved = temp.path().join("moved");
+    fs::rename(&old, &moved).unwrap();
+    for args in [
+        &["--near", "-F", "fn foo", "."][..],
+        &["--callees", "-F", "foo", "."],
+    ] {
+        let out = ogrep(&moved).args(args).output().unwrap();
+        let err = String::from_utf8(out.stderr).unwrap();
+        assert_ne!(out.status.code(), Some(2), "{args:?}: {err}");
+    }
+}
+
+/// An index built for a subdirectory reads that subdirectory's files.
+#[test]
+fn graph_tools_read_an_index_built_for_a_subdirectory() {
+    let tree = TempDir::new().unwrap();
+    fs::create_dir(tree.path().join("src")).unwrap();
+    fs::write(
+        tree.path().join("src/a.rs"),
+        "fn foo() { bar() }\nfn bar() {}\n",
+    )
+    .unwrap();
+    ogrep(tree.path())
+        .args(["index", "src", "--index-path", ".ogrep", "--graph"])
+        .assert()
+        .success();
+    // Shown as paths below the searched one, not the index root.
+    let callees = stdout(ogrep(tree.path()).args(["--callees", "-F", "foo", "."]));
+    assert!(callees.contains("bar -> src/a.rs:2"), "{callees}");
+    // Seeds found from the parent are the graph's files below it.
+    fs::write(tree.path().join("src/b.rs"), "fn baz() { bar() }\n").unwrap();
+    ogrep(tree.path())
+        .args(["index", "src", "--index-path", ".ogrep", "--graph"])
+        .assert()
+        .success();
+    let near = stdout(ogrep(tree.path()).args(["--near", "-F", "fn baz", "."]));
+    assert!(near.contains("src/a.rs"), "{near}");
+}

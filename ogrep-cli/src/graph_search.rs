@@ -94,7 +94,7 @@ pub fn run(
         let matched = search.map(|s| s.join().expect("seed search panicked"));
         (g, matched)
     });
-    let g = g?;
+    let mut g = g?;
     // The graph's paths are relative to the index root, a search's to the
     // path searched, which may be below it (with --index-path): translate.
     let index_root = ogrep_core::meta::IndexMeta::load(&dir)
@@ -105,24 +105,40 @@ pub fn run(
         .strip_prefix(canonical(&index_root))
         .map(|p| p.to_string_lossy().replace('\\', "/"))
         .unwrap_or_default();
+    // Or the index was built for a directory below the one searched.
+    let above = canonical(&index_root)
+        .strip_prefix(canonical(root))
+        .map(|p| format!("{}/", p.to_string_lossy().replace('\\', "/")))
+        .ok()
+        .filter(|p| p != "/");
     let named_file = root.is_file();
-    let in_graph = |rel: &str| {
+    let in_graph = |rel: &str| -> Option<String> {
         if named_file {
-            below.clone()
+            Some(below.clone())
+        } else if let Some(above) = &above {
+            rel.strip_prefix(above.as_str()).map(str::to_string)
         } else if below.is_empty() {
-            rel.to_string()
+            Some(rel.to_string())
         } else {
-            format!("{below}/{rel}")
+            Some(format!("{below}/{rel}"))
         }
     };
     // Matched lines per graph file; each file weighs by how many matched.
     let mut lines: HashMap<u32, Vec<usize>> = HashMap::new();
     for (path, line) in matched.transpose()?.unwrap_or_default() {
-        if let Some(f) = g.file(&in_graph(&path)) {
+        if let Some(f) = in_graph(&path).and_then(|p| g.file(&p)) {
             lines.entry(f).or_default().push(line);
         }
     }
-    let root = index_root.as_path();
+    // From above the index root, its files are shown, and read, as paths
+    // below the searched one.
+    let root = match &above {
+        Some(above) => {
+            g.prefix_paths(above);
+            root
+        }
+        None => index_root.as_path(),
+    };
     let mut seeds: Vec<(u32, f64)> = lines
         .iter()
         .map(|(&f, l)| (f, (1.0 + l.len() as f64).ln()))
@@ -166,12 +182,12 @@ fn near(
             .then_with(|| g.files[a as usize].cmp(&g.files[b as usize]))
     });
     order.truncate(budget);
+    // A root that cannot be opened (the tree has moved) leaves the evidence out.
+    let read = ogrep_core::rooted::indexed_text_reader(root);
     let seed_texts: Vec<String> = seeds
         .iter()
         .take(64)
-        .filter_map(|s| {
-            ogrep_core::rooted::read_indexed_to_string(root, &g.files[s.0 as usize]).ok()
-        })
+        .filter_map(|s| read(&g.files[s.0 as usize]).ok())
         .collect();
     let seed_words = words(&seed_texts);
     let top = order.first().map_or(1.0, |&f| rank[f as usize]).max(1e-12);
@@ -213,12 +229,12 @@ fn map(
             )
         })
         .collect();
+    // A root that cannot be opened (the tree has moved) leaves the evidence out.
+    let read = ogrep_core::rooted::indexed_text_reader(root);
     let seed_texts: Vec<String> = seeds
         .iter()
         .take(32)
-        .filter_map(|s| {
-            ogrep_core::rooted::read_indexed_to_string(root, &g.files[s.0 as usize]).ok()
-        })
+        .filter_map(|s| read(&g.files[s.0 as usize]).ok())
         .collect();
     let seed_words = words(&seed_texts);
     let mut order: Vec<u32> = (0..g.files.len() as u32).collect();
@@ -299,9 +315,10 @@ fn callees(g: &Graph, root: &Path, opts: &SearchOptions, out: &mut impl Write) -
     let name = opts.pattern.as_str();
     let defs: Vec<&Def> = g.defs_named(name).collect();
     let mut printed = false;
+    let read = ogrep_core::rooted::indexed_text_reader(root);
     for def in defs {
         let path = &g.files[def.file as usize];
-        let Ok(text) = ogrep_core::rooted::read_indexed_to_string(root, path) else {
+        let Ok(text) = read(path) else {
             continue;
         };
         let body: String = text

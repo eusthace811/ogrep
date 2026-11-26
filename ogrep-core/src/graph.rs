@@ -329,6 +329,15 @@ impl Graph {
         self.targets.len()
     }
 
+    /// Name every file `prefix` followed by its index path, as seen from a
+    /// directory above the index root; [`Graph::file`] takes the new names.
+    pub fn prefix_paths(&mut self, prefix: &str) {
+        for file in &mut self.files {
+            file.insert_str(0, prefix);
+        }
+        self.index_lookups();
+    }
+
     /// Index of a file by its index path.
     pub fn file(&self, path: &str) -> Option<u32> {
         self.by_path.get(path).copied()

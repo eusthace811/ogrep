@@ -713,9 +713,8 @@ fn read_by_scan(path: &str, text: &str) -> bool {
 
 /// Read every operations file among `paths` (relative to `root`).
 pub fn scan(root: &Path, paths: &[String]) -> OpsModel {
-    scan_with(paths, &|p| {
-        crate::rooted::read_indexed_to_string(root, p).ok()
-    })
+    let read = crate::rooted::indexed_text_reader(root);
+    scan_with(paths, &|p| read(p).ok())
 }
 
 /// [`scan`] over files `read` returns the text of, such as the files of a

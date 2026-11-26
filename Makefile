@@ -14,6 +14,7 @@ install: release
 # Agent skill: teaches coding agents to search with ogrep in any project.
 SKILLS_DIR ?= ~/.agents/skills
 install-skill:
+	$(if $(strip $(SKILLS_DIR)),,$(error SKILLS_DIR is empty))
 	mkdir -p $(SKILLS_DIR)
 	rm -rf $(SKILLS_DIR)/ogrep
 	cp -r .claude/skills/ogrep $(SKILLS_DIR)/ogrep

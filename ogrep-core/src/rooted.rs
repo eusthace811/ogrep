@@ -19,8 +19,7 @@ fn open_no_follow(path: &Path) -> std::io::Result<std::fs::File> {
     {
         use std::os::windows::fs::OpenOptionsExt;
         // Opens the reparse point rather than its target. Unlike O_NOFOLLOW
-        // this succeeds, so the caller's `is_file` check on the handle's
-        // metadata is what rejects it — a reparse point is not a regular file.
+        // this succeeds, so `RootDir::open_file` checks the handle's metadata.
         const FILE_FLAG_OPEN_REPARSE_POINT: u32 = 0x0020_0000;
         std::fs::OpenOptions::new()
             .read(true)
@@ -73,7 +72,7 @@ impl RootDir {
         Ok(Self {
             root: root.to_path_buf(),
             #[cfg(unix)]
-            dir: std::fs::File::open(root)?,
+            dir: open_search_only(root)?,
             #[cfg(windows)]
             anchor: std::fs::canonicalize(root)?,
         })
@@ -84,11 +83,52 @@ impl RootDir {
     #[cfg(unix)]
     pub fn open_file(&self, path: &Path) -> std::io::Result<std::fs::File> {
         let components = relative_components(&self.root, path)?;
-        #[cfg(target_os = "linux")]
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
         if let Some(opened) = self.open_beneath(&components) {
             return opened;
         }
         self.open_by_component(&components)
+    }
+
+    /// The whole path in one `openat` call with `O_NOFOLLOW_ANY`, which makes
+    /// the kernel refuse a link at any level: one call where the component
+    /// walk makes one per level. The components are plain names (no `..`), so
+    /// with no link to follow the path cannot leave the root. `None`, for the
+    /// caller to fall back, before macOS 11 (whose kernels predate the flag
+    /// and might ignore it) and wherever the flag is refused.
+    #[cfg(target_os = "macos")]
+    fn open_beneath(
+        &self,
+        components: &[std::ffi::OsString],
+    ) -> Option<std::io::Result<std::fs::File>> {
+        use std::os::fd::{AsRawFd, FromRawFd};
+
+        static SUPPORTED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+        if !*SUPPORTED.get_or_init(|| darwin_major().is_some_and(|major| major >= 20)) {
+            return None;
+        }
+        let name = joined_name(components)?;
+        // `O_NOFOLLOW_ANY` covers the last component too; adding `O_NOFOLLOW`
+        // makes the call fail with `EINVAL`.
+        let flags = libc::O_RDONLY | libc::O_NOFOLLOW_ANY | libc::O_CLOEXEC | libc::O_NONBLOCK;
+        // SAFETY: `dir` is a live directory descriptor and `name` is a
+        // NUL-terminated path that outlives the call.
+        let fd = retry_interrupted(|| unsafe {
+            libc::openat(self.dir.as_raw_fd(), name.as_ptr(), flags)
+        });
+        if fd < 0 {
+            let error = std::io::Error::last_os_error();
+            return match error.raw_os_error() {
+                // The walk decides: a path past `MAXPATHLEN`, which it opens a
+                // name at a time, and anything refusing the flag itself (the
+                // lookup applies it, so in practice nothing; and a socket
+                // answers `EOPNOTSUPP` to any open, so it is not remembered).
+                Some(libc::ENAMETOOLONG | libc::EINVAL | libc::ENOTSUP | libc::EOPNOTSUPP) => None,
+                _ => Some(Err(error)),
+            };
+        }
+        // SAFETY: `openat` returned a fresh descriptor owned here.
+        Some(Ok(unsafe { std::fs::File::from_raw_fd(fd) }))
     }
 
     /// The whole path in one `openat2` call, with the kernel refusing any link
@@ -100,22 +140,13 @@ impl RootDir {
         components: &[std::ffi::OsString],
     ) -> Option<std::io::Result<std::fs::File>> {
         use std::os::fd::{AsRawFd, FromRawFd};
-        use std::os::unix::ffi::OsStrExt;
         use std::sync::atomic::{AtomicBool, Ordering};
 
         static UNSUPPORTED: AtomicBool = AtomicBool::new(false);
         if UNSUPPORTED.load(Ordering::Relaxed) {
             return None;
         }
-        let mut joined = Vec::new();
-        for component in components {
-            if !joined.is_empty() {
-                joined.push(b'/');
-            }
-            joined.extend_from_slice(component.as_bytes());
-        }
-        // A NUL is reported by the component walk.
-        let name = std::ffi::CString::new(joined).ok()?;
+        let name = joined_name(components)?;
         // SAFETY: `open_how` is plain data, and all-zero is its documented
         // default for every field not set below.
         let mut how: libc::open_how = unsafe { std::mem::zeroed() };
@@ -124,7 +155,7 @@ impl RootDir {
             libc::RESOLVE_BENEATH | libc::RESOLVE_NO_SYMLINKS | libc::RESOLVE_NO_MAGICLINKS;
         // SAFETY: `dir` is a live directory descriptor, `name` is
         // NUL-terminated, and `how` is passed with its own size.
-        let fd = unsafe {
+        let fd = retry_interrupted(|| unsafe {
             libc::syscall(
                 libc::SYS_openat2,
                 self.dir.as_raw_fd(),
@@ -132,7 +163,7 @@ impl RootDir {
                 &how as *const libc::open_how,
                 std::mem::size_of::<libc::open_how>(),
             )
-        };
+        });
         if fd >= 0 {
             // SAFETY: `openat2` returned a fresh descriptor owned here.
             return Some(Ok(unsafe { std::fs::File::from_raw_fd(fd as i32) }));
@@ -143,8 +174,9 @@ impl RootDir {
                 UNSUPPORTED.store(true, Ordering::Relaxed);
                 None
             }
-            // What seccomp filters answer for a call they do not allow.
-            Some(libc::EPERM) => None,
+            // What seccomp filters answer for a call they do not allow, and a
+            // whole path past `PATH_MAX`, which the walk opens one name at a time.
+            Some(libc::EPERM | libc::ENAMETOOLONG) => None,
             _ => Some(Err(error)),
         }
     }
@@ -176,7 +208,7 @@ impl RootDir {
             let parent = dir.as_ref().map_or(self.dir.as_raw_fd(), |d| d.as_raw_fd());
             // SAFETY: `parent` is a live directory descriptor, and `name` is a
             // NUL-terminated single path component that outlives the call.
-            let fd = unsafe { libc::openat(parent, name.as_ptr(), flags) };
+            let fd = retry_interrupted(|| unsafe { libc::openat(parent, name.as_ptr(), flags) });
             if fd < 0 {
                 return Err(Error::last_os_error());
             }
@@ -199,19 +231,59 @@ impl RootDir {
     /// would still be followed. Asking the handle removes the second lookup
     /// entirely: whatever the open resolved through, the answer describes the
     /// object we are actually holding.
+    ///
+    /// A final link (a symlink or junction) is refused, as `O_NOFOLLOW`
+    /// refuses it on unix; reading the reparse point itself would hand back
+    /// an empty stream. Any other reparse point (a OneDrive placeholder, a
+    /// deduplicated file) is a regular file whose data only a normal open
+    /// returns, so it is opened again that way and checked like the first.
     #[cfg(windows)]
     pub fn open_file(&self, path: &Path) -> std::io::Result<std::fs::File> {
         use std::io::{Error, ErrorKind};
+        use std::os::windows::fs::MetadataExt;
+        const FILE_ATTRIBUTE_REPARSE_POINT: u32 = 0x400;
 
         // Rejects escapes and non-literal components before anything is opened.
         relative_components(&self.root, path)?;
-        let file = open_no_follow(path)?;
-        let opened = final_path_of(&file)?;
-        if !opened.starts_with(&self.anchor) {
+        let mut file = open_no_follow(path)?;
+        // Containment is the path's own object's: a reparse point's data may
+        // live elsewhere (a filter's store), by design.
+        if !final_path_of(&file)?.starts_with(&self.anchor) {
             return Err(Error::new(
                 ErrorKind::InvalidInput,
                 "path resolves outside the served root",
             ));
+        }
+        let meta = file.metadata()?;
+        if meta.file_type().is_symlink() {
+            return Err(Error::new(ErrorKind::InvalidInput, "path is a link"));
+        }
+        if meta.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT != 0 {
+            // A normal open follows whatever is at the path by now, so it must
+            // be the file just checked and not a link swapped in since.
+            // A file gone since the first open is gone; any other failure here
+            // is transient, and must not be taken for ineligible (`InvalidInput`).
+            // `ERROR_CANT_ACCESS_FILE` is a reparse point no open can read (an
+            // app execution alias): as ineligible as a link.
+            const ERROR_CANT_ACCESS_FILE: i32 = 1920;
+            let transient = |e: std::io::Error| match e.kind() {
+                ErrorKind::NotFound | ErrorKind::NotADirectory => e,
+                _ if e.raw_os_error() == Some(ERROR_CANT_ACCESS_FILE) => {
+                    Error::new(ErrorKind::InvalidInput, e)
+                }
+                _ => Error::other(e),
+            };
+            let reopened = std::fs::File::open(path).map_err(transient)?;
+            // The data must come from the object checked above: the path
+            // could name a link between the two opens, even one put back
+            // since. A filter that redirects to another object (a container
+            // layer) is refused too; a scan still reads those files.
+            if !same_file(&reopened, &file).map_err(transient)? {
+                // Transient, unlike the refusals above: the file is still
+                // there to retry, and must not be taken for ineligible.
+                return Err(Error::other("path changed while opening"));
+            }
+            file = reopened;
         }
         Ok(file)
     }
@@ -239,6 +311,50 @@ impl RootDir {
         }
         open_no_follow(path)
     }
+}
+
+/// Whether two handles are the same file, whatever names they were opened by:
+/// the volume and 128-bit file ID (ReFS does not keep the 64-bit one unique),
+/// or the 64-bit one for both where a file system does not report the other.
+#[cfg(windows)]
+fn same_file(a: &std::fs::File, b: &std::fs::File) -> std::io::Result<bool> {
+    use std::os::windows::io::AsRawHandle;
+    use windows_sys::Win32::Storage::FileSystem::{
+        BY_HANDLE_FILE_INFORMATION, FILE_ID_INFO, FileIdInfo, GetFileInformationByHandle,
+        GetFileInformationByHandleEx,
+    };
+
+    let id128 = |file: &std::fs::File| {
+        // SAFETY: plain data, filled in by the call below.
+        let mut info: FILE_ID_INFO = unsafe { std::mem::zeroed() };
+        // SAFETY: the handle is live for the duration of the call, and `info`
+        // is a writable `FILE_ID_INFO` of the size passed.
+        let ok = unsafe {
+            GetFileInformationByHandleEx(
+                file.as_raw_handle(),
+                FileIdInfo,
+                (&raw mut info).cast(),
+                std::mem::size_of::<FILE_ID_INFO>() as u32,
+            )
+        };
+        (ok != 0).then_some((info.VolumeSerialNumber, info.FileId.Identifier))
+    };
+    if let (Some(a), Some(b)) = (id128(a), id128(b)) {
+        return Ok(a == b);
+    }
+    let id64 = |file: &std::fs::File| {
+        // SAFETY: as above, for the older call and its structure.
+        let mut info: BY_HANDLE_FILE_INFORMATION = unsafe { std::mem::zeroed() };
+        if unsafe { GetFileInformationByHandle(file.as_raw_handle(), &mut info) } == 0 {
+            return Err(std::io::Error::last_os_error());
+        }
+        Ok((
+            info.dwVolumeSerialNumber,
+            info.nFileIndexHigh,
+            info.nFileIndexLow,
+        ))
+    };
+    Ok(id64(a)? == id64(b)?)
 }
 
 /// Where an open handle actually is, with every reparse point on the way
@@ -277,6 +393,82 @@ pub fn final_path_of(file: &std::fs::File) -> std::io::Result<PathBuf> {
     }
 }
 
+/// A reader of the `/`-separated paths below `root` that the index or Git
+/// records, as [`RootDir::read_indexed_to_string`], opening the root once. A
+/// root that cannot be opened fails every read, as each read would have.
+pub fn indexed_text_reader(root: &Path) -> impl Fn(&str) -> std::io::Result<String> {
+    let rooted = RootDir::open(root);
+    move |rel| match &rooted {
+        Ok(rooted) => rooted.read_indexed_to_string(rel),
+        Err(e) => Err(std::io::Error::new(e.kind(), e.to_string())),
+    }
+}
+
+/// Open the root as a directory to resolve names under, which needs only
+/// permission to search it (`--x`), as reading a file by its full path did;
+/// opened for reading where the system has no such mode.
+#[cfg(unix)]
+fn open_search_only(root: &Path) -> std::io::Result<std::fs::File> {
+    use std::os::unix::fs::OpenOptionsExt;
+
+    #[cfg(target_os = "linux")]
+    let search = libc::O_PATH | libc::O_DIRECTORY;
+    #[cfg(target_os = "macos")]
+    let search = libc::O_SEARCH;
+    #[cfg(any(target_os = "linux", target_os = "macos"))]
+    if let Ok(dir) = std::fs::OpenOptions::new()
+        .read(true)
+        .custom_flags(search)
+        .open(root)
+    {
+        return Ok(dir);
+    }
+    std::fs::File::open(root)
+}
+
+/// Run an open again while a signal interrupts it, as `std::fs::File::open`
+/// does; the result is the call's, with `errno` set when it is negative.
+#[cfg(unix)]
+fn retry_interrupted<T: PartialOrd + Default>(mut open: impl FnMut() -> T) -> T {
+    loop {
+        let fd = open();
+        if fd >= T::default() || std::io::Error::last_os_error().raw_os_error() != Some(libc::EINTR)
+        {
+            return fd;
+        }
+    }
+}
+
+/// `components` joined with `/` for a single `openat`. `None` for a NUL,
+/// which the component walk reports.
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+fn joined_name(components: &[std::ffi::OsString]) -> Option<std::ffi::CString> {
+    use std::os::unix::ffi::OsStrExt;
+
+    let mut joined = Vec::new();
+    for component in components {
+        if !joined.is_empty() {
+            joined.push(b'/');
+        }
+        joined.extend_from_slice(component.as_bytes());
+    }
+    std::ffi::CString::new(joined).ok()
+}
+
+/// The running kernel's major version (20 is macOS 11).
+#[cfg(target_os = "macos")]
+fn darwin_major() -> Option<u32> {
+    // SAFETY: `utsname` is plain data, filled in by `uname`.
+    let mut name: libc::utsname = unsafe { std::mem::zeroed() };
+    // SAFETY: `name` is a valid, writable `utsname`.
+    if unsafe { libc::uname(&mut name) } != 0 {
+        return None;
+    }
+    // SAFETY: `uname` NUL-terminates `release`.
+    let release = unsafe { std::ffi::CStr::from_ptr(name.release.as_ptr()) };
+    release.to_str().ok()?.split('.').next()?.parse().ok()
+}
+
 /// `path` split into the literal components below `root`.
 ///
 /// Anything that is not a plain name — `..`, a root, a prefix — is refused
@@ -306,22 +498,26 @@ fn relative_components(root: &Path, path: &Path) -> std::io::Result<Vec<std::ffi
     Ok(components)
 }
 
-/// Read `rel`, a `/`-separated path below `root` as the index or Git records
-/// it, refusing a link at any level just as the walker would.
-pub fn read_indexed(root: &Path, rel: &str) -> std::io::Result<Vec<u8>> {
-    use std::io::Read;
+impl RootDir {
+    /// Read all of `path` with [`RootDir::open_file`]'s guarantee.
+    pub fn read(&self, path: &Path) -> std::io::Result<Vec<u8>> {
+        let mut bytes = Vec::new();
+        std::io::Read::read_to_end(&mut self.open_file(path)?, &mut bytes)?;
+        Ok(bytes)
+    }
 
-    let mut file = open_within_root(root, &crate::hybrid::join_indexed_path(root, rel))?;
-    let mut bytes = Vec::new();
-    file.read_to_end(&mut bytes)?;
-    Ok(bytes)
-}
+    /// Read `rel`, a `/`-separated path below the root as the index or Git
+    /// records it, refusing a link at any level just as the walker would.
+    pub fn read_indexed(&self, rel: &str) -> std::io::Result<Vec<u8>> {
+        self.read(&crate::hybrid::join_indexed_path(&self.root, rel))
+    }
 
-/// [`read_indexed`] for UTF-8 text, failing on anything else as
-/// `std::fs::read_to_string` does.
-pub fn read_indexed_to_string(root: &Path, rel: &str) -> std::io::Result<String> {
-    String::from_utf8(read_indexed(root, rel)?)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+    /// [`RootDir::read_indexed`] for UTF-8 text, failing on anything else as
+    /// `std::fs::read_to_string` does.
+    pub fn read_indexed_to_string(&self, rel: &str) -> std::io::Result<String> {
+        String::from_utf8(self.read_indexed(rel)?)
+            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+    }
 }
 
 #[cfg(test)]
@@ -413,6 +609,51 @@ mod tests {
         );
     }
 
+    /// A path past the kernel's limit for one lookup (1024 bytes on macOS,
+    /// 4096 on Linux) still opens, a name at a time, as it did before the
+    /// single-call opens. Built with `*at` calls, since `std::fs` takes the
+    /// whole path at once.
+    #[cfg(unix)]
+    #[test]
+    fn a_path_longer_than_one_lookup_allows_still_opens() {
+        use std::os::fd::{AsRawFd, FromRawFd, OwnedFd};
+
+        let root = TempDir::new().unwrap();
+        let name = std::ffi::CString::new("d".repeat(100)).unwrap();
+        let mut dir = std::fs::File::open(root.path()).map(OwnedFd::from).unwrap();
+        for _ in 0..45 {
+            // SAFETY: `dir` is a live directory descriptor and `name` a
+            // NUL-terminated single component.
+            unsafe {
+                assert_eq!(libc::mkdirat(dir.as_raw_fd(), name.as_ptr(), 0o755), 0);
+                let fd = libc::openat(
+                    dir.as_raw_fd(),
+                    name.as_ptr(),
+                    libc::O_RDONLY | libc::O_DIRECTORY,
+                );
+                assert!(fd >= 0);
+                dir = OwnedFd::from_raw_fd(fd);
+            }
+        }
+        let file = std::ffi::CString::new("f.txt").unwrap();
+        // SAFETY: as above; the new descriptor is owned by the `File`.
+        let mut f = unsafe {
+            let fd = libc::openat(
+                dir.as_raw_fd(),
+                file.as_ptr(),
+                libc::O_WRONLY | libc::O_CREAT,
+                0o644,
+            );
+            assert!(fd >= 0);
+            std::fs::File::from_raw_fd(fd)
+        };
+        std::io::Write::write_all(&mut f, b"deep\n").unwrap();
+
+        let rel = format!("{}/f.txt", vec!["d".repeat(100); 45].join("/"));
+        let rooted = RootDir::open(root.path()).unwrap();
+        assert_eq!(rooted.read_indexed_to_string(&rel).unwrap(), "deep\n");
+    }
+
     /// The helper the index, graph and Git-path readers share: a plain read
     /// below the root works, and a link anywhere on the way is refused.
     #[cfg(unix)]
@@ -430,12 +671,13 @@ mod tests {
         )
         .unwrap();
 
+        let rooted = RootDir::open(root.path()).unwrap();
         assert_eq!(
-            read_indexed_to_string(root.path(), "src/a.rs").unwrap(),
+            rooted.read_indexed_to_string("src/a.rs").unwrap(),
             "fn a() {}\n"
         );
-        assert!(read_indexed(root.path(), "linked/secret.txt").is_err());
-        assert!(read_indexed(root.path(), "src/b.rs").is_err());
+        assert!(rooted.read_indexed("linked/secret.txt").is_err());
+        assert!(rooted.read_indexed("src/b.rs").is_err());
     }
 
     /// Linux resolves with `openat2`, so the per-component walk that older
