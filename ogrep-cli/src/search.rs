@@ -52,6 +52,19 @@ impl std::fmt::Display for ServerReplied {
 }
 impl std::error::Error for ServerReplied {}
 
+/// Parameters the server rejected, such as a bad regex. The local search
+/// rejects the same ones and says so; any it accepts are a fallback like any
+/// other.
+#[derive(Debug)]
+struct ServerRejected(String);
+
+impl std::fmt::Display for ServerRejected {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "server error: {}", self.0)
+    }
+}
+impl std::error::Error for ServerRejected {}
+
 fn server_error(error: &serde_json::Value) -> anyhow::Error {
     let message = error
         .get("message")
@@ -59,9 +72,7 @@ fn server_error(error: &serde_json::Value) -> anyhow::Error {
         .unwrap_or("unknown error");
     match error.get("code").and_then(|v| v.as_i64()) {
         Some(crate::serve::OVERLOADED) => ServerOverloaded(message.to_owned()).into(),
-        // Rejected parameters are the user's, such as a bad regex: the local
-        // search reports them itself, so they are no reason for the fallback.
-        Some(crate::serve::INVALID_PARAMS) => anyhow::anyhow!("server error: {message}"),
+        Some(crate::serve::INVALID_PARAMS) => ServerRejected(message.to_owned()).into(),
         _ => ServerReplied(message.to_owned()).into(),
     }
 }
@@ -749,6 +760,7 @@ pub fn list_files(root: &Path, index_path: Option<&Path>, opts: &SearchOptions) 
 
     if filename_index_compatible(opts) {
         if let Ok(info) = ServerInfo::load(&index_dir)
+            && !served_root_is_gone(&info, &root, opts)
             && let Some((index_root, scope)) = served_scope(&info, &index_dir, &root)
         {
             let paths = match list_files_via_server(&info, &scope, opts) {
@@ -1084,6 +1096,7 @@ pub fn run(
         && !opts.include_zero
         && opts.has_patterns()
         && let Ok(info) = ServerInfo::load(&index_dir)
+        && !served_root_is_gone(&info, &root, opts)
         && let Some((index_root, scope)) = served_scope(&info, &index_dir, &root)
     {
         match search_via_server(&info, &root, &index_root, &scope, opts, ci, writer) {
@@ -1091,34 +1104,92 @@ pub fn run(
             Err(error) if error.is::<ServerOverloaded>() || is_broken_pipe(&error) => {
                 return Err(error);
             }
+            // Told only once the local search has not rejected them too.
+            Err(error) if error.is::<ServerRejected>() => {
+                let result = search_without_server(
+                    &root,
+                    &index_dir,
+                    index_path,
+                    bypass_index,
+                    opts,
+                    ci,
+                    writer,
+                );
+                if result.is_ok() {
+                    warn_fallback(&root, opts, "");
+                }
+                return result;
+            }
             // A server that answered says why; one that did not is unavailable.
             Err(error) => {
-                if !opts.quiet && !opts.no_messages {
-                    let why = error
-                        .downcast_ref::<ServerReplied>()
-                        .map(|e| format!(": {}", e.0))
-                        .unwrap_or_default();
-                    warn_once(
-                        &root,
-                        format!(
-                            "Server unavailable or index coverage not ready, falling back to local index{why}"
-                        ),
-                    );
-                }
+                let why = error
+                    .downcast_ref::<ServerReplied>()
+                    .map(|e| format!(": {}", e.0))
+                    .unwrap_or_default();
+                warn_fallback(&root, opts, &why);
             }
         }
     }
 
-    // No server — use on-disk index directly (or brute force)
+    search_without_server(
+        &root,
+        &index_dir,
+        index_path,
+        bypass_index,
+        opts,
+        ci,
+        writer,
+    )
+}
+
+/// Search with the on-disk index, or by scanning when it cannot be used.
+fn search_without_server(
+    root: &Path,
+    index_dir: &Path,
+    index_path: Option<&Path>,
+    bypass_index: bool,
+    opts: &SearchOptions,
+    ci: bool,
+    writer: &mut OutputWriter,
+) -> Result<bool> {
     if opts.no_index || bypass_index {
-        return brute_force_search(&root, &index_dir, opts, ci, writer);
+        return brute_force_search(root, index_dir, opts, ci, writer);
     }
     if !index_dir.join("lookup.bin").exists() {
-        warn_missing_index(&root, &index_dir, index_path.is_some(), opts.quiet);
-        return brute_force_search(&root, &index_dir, opts, ci, writer);
+        warn_missing_index(root, index_dir, index_path.is_some(), opts.quiet);
+        return brute_force_search(root, index_dir, opts, ci, writer);
     }
+    search_local_index(root, index_dir, opts, ci, writer)
+}
 
-    search_local_index(&root, &index_dir, opts, ci, writer)
+/// Say that the server was not used, and `why` when known.
+fn warn_fallback(root: &Path, opts: &SearchOptions, why: &str) {
+    if !opts.quiet && !opts.no_messages {
+        warn_once(
+            root,
+            format!(
+                "Server unavailable or index coverage not ready, falling back to local index{why}"
+            ),
+        );
+    }
+}
+
+/// Whether the tree the server records serving is gone, as after a move:
+/// the server is then not asked, since one with nothing left to read can
+/// answer from what it remembers, and the user is told.
+fn served_root_is_gone(info: &ServerInfo, root: &Path, opts: &SearchOptions) -> bool {
+    let Some(served) = info.root.as_ref().filter(|served| !served.is_dir()) else {
+        return false;
+    };
+    warn_fallback(
+        root,
+        opts,
+        &format!(
+            ": cannot open the served root: {} is gone",
+            served.display()
+        ),
+    );
+    true
 }
 
 /// Render a path the way the user typed it.
@@ -2183,13 +2254,16 @@ fn resolve_scope(index_dir: &Path, root: &Path) -> Option<(PathBuf, IndexScope)>
 
 /// The tree a server serves and the slice of it that covers the canonical
 /// `root`, when it serves `root` and was not found through a copy of its
-/// index made inside that tree. A server that predates recording its tree in `serve.json`, or
-/// whose tree is gone, is taken to serve the tree of the index it was found
-/// beside: the second says it cannot open its root, which the user is told.
+/// index made inside that tree. A server that predates recording its tree in
+/// `serve.json` is taken to serve the tree of the index it was found beside;
+/// one whose tree is gone serves nothing.
 fn served_scope(info: &ServerInfo, index_dir: &Path, root: &Path) -> Option<(PathBuf, IndexScope)> {
-    let Some(served) = info.root.as_ref().filter(|served| served.is_dir()) else {
+    let Some(served) = &info.root else {
         return resolve_scope(index_dir, root);
     };
+    if !served.is_dir() {
+        return None;
+    }
     if copy_inside(index_dir, served, root) {
         return None;
     }
@@ -2197,9 +2271,13 @@ fn served_scope(info: &ServerInfo, index_dir: &Path, root: &Path) -> Option<(Pat
     Some((served.clone(), scope))
 }
 
-/// Whether the server described beside the index at `index_dir` serves `root`.
+/// Whether the server described beside the index at `index_dir` serves
+/// `root`, or served it until its tree moved away.
 pub(crate) fn serves(info: &ServerInfo, index_dir: &Path, root: &Path) -> bool {
-    served_scope(info, index_dir, root).is_some()
+    match &info.root {
+        Some(served) if !served.is_dir() => resolve_scope(index_dir, root).is_some(),
+        _ => served_scope(info, index_dir, root).is_some(),
+    }
 }
 
 /// What the index at some directory covers, for a search of some path.

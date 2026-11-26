@@ -374,7 +374,48 @@ fn a_pattern_the_server_rejects_is_reported_once() {
     let _server = Server::start(&fixture);
     let (_, stderr) = fixture.search(Path::new("."), &["--", "needle("]);
     assert_eq!(stderr.matches("unclosed group").count(), 1, "{stderr}");
-    assert!(!stderr.contains("local index:"), "{stderr}");
+    assert!(!stderr.contains("falling back"), "{stderr}");
+}
+
+/// A server whose tree is gone, as after a move across filesystems, is not
+/// asked about a copy of that tree, even for a listing, which it would answer
+/// from what it remembers. The user is told, and `status` says why.
+#[test]
+fn a_server_whose_tree_is_gone_is_not_asked() {
+    let fixture = Fixture::new();
+    let _server = Server::start(&fixture);
+    let copy = fixture.temp.path().join("copy");
+    fs::create_dir(&copy).unwrap();
+    for name in ["kept.txt", "nested"] {
+        fs::rename(fixture.root.join(name), copy.join(name)).unwrap();
+    }
+    fs::rename(fixture.root.join(".ogrep"), copy.join(".ogrep")).unwrap();
+    fs::remove_dir(&fixture.root).unwrap();
+    for args in [&["--files"][..], &["-F", "--", "needle"]] {
+        let output = Command::cargo_bin("ogrep")
+            .unwrap()
+            .current_dir(&copy)
+            .arg("--stats")
+            .args(args)
+            .arg(".")
+            .output()
+            .unwrap();
+        let (stdout, stderr) = (
+            String::from_utf8(output.stdout).unwrap(),
+            String::from_utf8(output.stderr).unwrap(),
+        );
+        assert!(stdout.contains("kept"), "{stdout}");
+        assert!(!stderr.contains("(via server)"), "{stderr}");
+        assert!(stderr.contains("cannot open the served root"), "{stderr}");
+    }
+    let status = Command::cargo_bin("ogrep")
+        .unwrap()
+        .current_dir(&copy)
+        .args(["status", "."])
+        .output()
+        .unwrap();
+    let status = String::from_utf8(status.stdout).unwrap();
+    assert!(status.contains("is gone"), "{status}");
 }
 
 /// The same once every candidate is cached: whether the root's loss is

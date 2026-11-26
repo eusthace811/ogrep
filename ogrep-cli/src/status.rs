@@ -25,6 +25,12 @@ pub fn run(root: &Path, index_path: Option<&Path>) -> Result<()> {
         println!("Server status for {}", root.display());
         println!("  PID:        {}", info.pid);
         println!("  Port:       {}", info.port);
+        if let Some(served) = info.root.as_ref().filter(|served| !served.is_dir()) {
+            println!(
+                "  Root:       {} is gone; searches do not use this server. Restart `ogrep serve .` here",
+                served.display()
+            );
+        }
         println!("  Files:      {}", status.num_files);
         println!("  Trigrams:   {}", status.num_trigrams);
         println!(
