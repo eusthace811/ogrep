@@ -374,16 +374,14 @@ fn open_search_only(root: &Path) -> std::io::Result<std::fs::File> {
     open_dir_at(libc::AT_FDCWD, &path, 0).map(std::fs::File::from)
 }
 
-/// `EACCES` (or a sandbox's `EPERM`) for a directory this process may not
-/// search. A search-only open
+/// `EACCES` for a directory this process may not search. A search-only open
 /// needs no permission on the directory, nor does the read-only retry need
 /// permission to search it, so such a root opens and then resolves nothing
 /// below it. Looking up `.` in it asks the kernel, with this process's
-/// effective credentials. A refusal is reported even where it is only the
-/// `fstatat` that is refused: a client then falls back to a slower search,
-/// where letting it through could answer with every file missing. Any
-/// other failure (a flaky network filesystem) says nothing about
-/// permission, and the reads below report their own errors.
+/// effective credentials. Only that answer is the kernel's own permission
+/// check, certain to fail every lookup below too; any other failure (a
+/// flaky network filesystem, a sandbox refusing `fstatat` alone with
+/// `EPERM`) says nothing about the reads, which report their own errors.
 #[cfg(unix)]
 fn refuse_unsearchable(dir: &std::fs::File) -> std::io::Result<()> {
     use std::os::fd::AsRawFd;
@@ -393,7 +391,7 @@ fn refuse_unsearchable(dir: &std::fs::File) -> std::io::Result<()> {
     let mut stat: libc::stat = unsafe { std::mem::zeroed() };
     if unsafe { libc::fstatat(dir.as_raw_fd(), c".".as_ptr(), &mut stat, 0) } != 0 {
         let error = std::io::Error::last_os_error();
-        if matches!(error.raw_os_error(), Some(libc::EACCES | libc::EPERM)) {
+        if error.raw_os_error() == Some(libc::EACCES) {
             return Err(error);
         }
     }
@@ -788,15 +786,18 @@ mod tests {
                 std::io::ErrorKind::PermissionDenied,
                 "{mode:o}: {error}"
             );
-            if let Ok(unchecked) = RootDir::open_unchecked(&root) {
-                let components = relative_components(&root, &root.join("f.rs")).unwrap();
-                let error = unchecked.open_by_component(&components).unwrap_err();
-                assert_eq!(
-                    error.kind(),
-                    std::io::ErrorKind::PermissionDenied,
-                    "walk {mode:o}: {error}"
-                );
-            }
+            // The walk, where the unchecked root opens at all (not 000 on
+            // macOS, which then refuses the root itself the same way).
+            let components = relative_components(&root, &root.join("f.rs")).unwrap();
+            let error = match RootDir::open_unchecked(&root) {
+                Ok(unchecked) => unchecked.open_by_component(&components).unwrap_err(),
+                Err(error) => error,
+            };
+            assert_eq!(
+                error.kind(),
+                std::io::ErrorKind::PermissionDenied,
+                "walk {mode:o}: {error}"
+            );
         }
     }
 
