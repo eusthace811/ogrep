@@ -348,7 +348,14 @@ fn open_search_only(root: &Path) -> std::io::Result<std::fs::File> {
     let path = std::ffi::CString::new(root.as_os_str().as_bytes()).map_err(|_| {
         std::io::Error::new(std::io::ErrorKind::InvalidInput, "root contains a NUL")
     })?;
-    open_dir_at(libc::AT_FDCWD, &path, 0).map(std::fs::File::from)
+    let dir = open_dir_at(libc::AT_FDCWD, &path, 0)?;
+    // `O_PATH` opens a directory it may not search: nothing below would then
+    // resolve, so it is refused here, as a read-only open would be.
+    // SAFETY: `path` is NUL-terminated and outlives the call.
+    if unsafe { libc::faccessat(libc::AT_FDCWD, path.as_ptr(), libc::X_OK, 0) } != 0 {
+        return Err(std::io::Error::last_os_error());
+    }
+    Ok(std::fs::File::from(dir))
 }
 
 /// `name` below `parent` opened as a directory to look names up in, with
@@ -383,21 +390,40 @@ fn open_dir_at(
         Ok(unsafe { std::os::fd::OwnedFd::from_raw_fd(fd) })
     };
     match open(SEARCH_ONLY) {
-        // An answer about the path itself, which a read-only open would give
-        // too. Anything else (a kernel without the mode, or a sandbox refusing
-        // it, with whatever errno) is tried again read-only. A kernel that
-        // ignores the mode instead opens read-only, as before it existed.
-        Err(e)
-            if SEARCH_ONLY == libc::O_RDONLY
-                || e.raw_os_error().is_some_and(|code| {
-                    [libc::ENOENT, libc::ENOTDIR, libc::ELOOP].contains(&code)
-                }) =>
-        {
-            Err(e)
+        Err(e) if SEARCH_ONLY != libc::O_RDONLY && retry_read_only(e.raw_os_error()) => {
+            // A directory opened read-only but not searchable resolves nothing
+            // below it: that is the first answer, as the search-only open said.
+            // SAFETY: as for the opens above; `faccessat` only reads `name`.
+            let searchable =
+                || unsafe { libc::faccessat(parent, name.as_ptr(), libc::X_OK, 0) } == 0;
+            match open(libc::O_RDONLY) {
+                Ok(dir) if searchable() => Ok(dir),
+                _ => Err(e),
+            }
         }
-        Err(_) => open(libc::O_RDONLY),
         opened => opened,
     }
+}
+
+/// Whether a search-only directory open that failed with `code` is worth
+/// trying read-only: not for an answer about the path (gone, not a
+/// directory, a link, too long) or the process (out of descriptors or
+/// memory), which a read-only open would give too. Anything else is a
+/// kernel without the mode, or a sandbox refusing it with whatever errno.
+#[cfg(unix)]
+fn retry_read_only(code: Option<i32>) -> bool {
+    !code.is_some_and(|code| {
+        [
+            libc::ENOENT,
+            libc::ENOTDIR,
+            libc::ELOOP,
+            libc::ENAMETOOLONG,
+            libc::EMFILE,
+            libc::ENFILE,
+            libc::ENOMEM,
+        ]
+        .contains(&code)
+    })
 }
 
 /// `name` opened read-only beneath `dir` with `openat2`, refusing any link
@@ -659,6 +685,48 @@ mod tests {
         let rel = format!("{}/f.txt", vec!["d".repeat(100); 45].join("/"));
         let rooted = RootDir::open(root.path()).unwrap();
         assert_eq!(rooted.read_indexed_to_string(&rel).unwrap(), "deep\n");
+    }
+
+    /// A refused search-only open is tried read-only only where that could
+    /// answer differently.
+    #[cfg(unix)]
+    #[test]
+    fn a_refused_search_only_open_is_retried_only_where_it_could_differ() {
+        for code in [libc::EINVAL, libc::ENOTSUP, libc::EPERM, libc::EACCES] {
+            assert!(retry_read_only(Some(code)), "{code}");
+        }
+        for code in [
+            libc::ENOENT,
+            libc::ENOTDIR,
+            libc::ELOOP,
+            libc::EMFILE,
+            libc::ENOMEM,
+        ] {
+            assert!(!retry_read_only(Some(code)), "{code}");
+        }
+    }
+
+    /// A root that can be listed but not searched resolves nothing below it,
+    /// so opening it fails, as it did before it was opened search-only.
+    #[cfg(unix)]
+    #[test]
+    fn a_root_that_cannot_be_searched_does_not_open() {
+        use std::os::unix::fs::PermissionsExt;
+
+        let tmp = TempDir::new().unwrap();
+        let root = tmp.path().join("r");
+        std::fs::create_dir(&root).unwrap();
+        std::fs::set_permissions(&root, std::fs::Permissions::from_mode(0o644)).unwrap();
+        // A lookup below it is refused, unless permissions do not apply.
+        let privileged = std::fs::metadata(root.join("x"))
+            .is_err_and(|e| e.kind() != std::io::ErrorKind::PermissionDenied);
+        let opened = RootDir::open(&root);
+        std::fs::set_permissions(&root, std::fs::Permissions::from_mode(0o755)).unwrap();
+        if privileged {
+            eprintln!("skipped: permissions do not apply to this user");
+            return;
+        }
+        assert!(opened.is_err(), "a root without search permission opened");
     }
 
     /// The server decides from the error's kind whether a path left the
