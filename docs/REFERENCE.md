@@ -1461,4 +1461,4 @@ exit code determined by the search alone. Suppress the message with
 | `graph/graph.bin` | File graph (`ogrep index --graph`): files, links, PageRank, definitions |
 | `history/` | History index (`ogrep index --history`): an index of commit diffs, `history.json` and `chunks.json` |
 | `meta.json` | Version, file/trigram counts, timestamps, coverage, visibility, file-table identity, and the sparse n-gram version and key count (`sparse_grams`, `sparse_gram_keys`; absent when the index has none) |
-| `serve.json` | Server PID, TCP port and served root (for client discovery; a client asks the server only about paths in that root) |
+| `serve.json` | Server PID, TCP port and served root (for client discovery; when that root exists on the client's side, the client asks the server only about paths in it) |

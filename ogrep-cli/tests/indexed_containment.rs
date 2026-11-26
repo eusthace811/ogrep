@@ -377,27 +377,6 @@ fn a_pattern_the_server_rejects_is_reported_once() {
     assert!(!stderr.contains("falling back"), "{stderr}");
 }
 
-/// A server whose tree moved away still holds the moved index's lock, so
-/// `status` there shows it, with its error, though the old path exists again:
-/// another server cannot start until it stops.
-#[test]
-fn status_shows_the_server_of_a_moved_tree_whose_old_path_exists_again() {
-    let fixture = Fixture::new();
-    let _server = Server::start(&fixture);
-    let moved = fixture.temp.path().join("moved");
-    fs::rename(&fixture.root, &moved).unwrap();
-    fs::create_dir(&fixture.root).unwrap();
-    let status = Command::cargo_bin("ogrep")
-        .unwrap()
-        .current_dir(&moved)
-        .args(["status", "."])
-        .output()
-        .unwrap();
-    let status = String::from_utf8(status.stdout).unwrap();
-    assert!(status.contains("Server status for"), "{status}");
-    assert!(status.contains("Stop it (pid"), "{status}");
-}
-
 /// A server in another namespace (a container sharing the volume, Windows
 /// seen from WSL) records a root that is not a path here: it is still used.
 #[test]

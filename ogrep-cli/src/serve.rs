@@ -320,22 +320,6 @@ fn process_is_gone(_pid: u32) -> bool {
 /// directory. Returns the held `File` (must be kept alive for the duration of
 /// the server) or an error with a user-friendly message when another server is
 /// already running.
-/// Whether a server holds the lock of the index at `index_dir`: that server
-/// serves this very index, wherever its tree has since moved, as a copy's
-/// lock, another file, is held by none.
-pub fn server_lock_is_held(index_dir: &Path) -> bool {
-    let Ok(file) = File::open(index_dir.join("serve.lock")) else {
-        return false;
-    };
-    match file.try_lock_shared() {
-        Ok(()) => {
-            let _ = FileExt::unlock(&file);
-            false
-        }
-        Err(_) => true,
-    }
-}
-
 fn try_acquire_server_lock(index_dir: &Path) -> Result<File> {
     std::fs::create_dir_all(index_dir)?;
     let lock_path = index_dir.join("serve.lock");
