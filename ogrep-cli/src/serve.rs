@@ -36,9 +36,6 @@ const MAX_QUEUED_SEARCHES: usize = 32;
 const MAX_REQUEST_BYTES: u64 = 1024 * 1024;
 const REQUEST_WAIT: Duration = Duration::from_secs(30);
 
-/// Changes under `.git` the background tick applies per hold of the flush
-/// lock; see [`flush_git_metadata_tick`].
-const GIT_FLUSH_CHUNK: usize = 256;
 const SOCKET_IDLE_TIMEOUT: Duration = Duration::from_secs(30);
 pub const OVERLOADED: i64 = -32002;
 
@@ -696,15 +693,12 @@ struct ServerState {
     /// unbounded.
     deferred_events: Mutex<Option<std::collections::HashMap<PathBuf, bool>>>,
     /// Changes under a `.git` directory, set aside until something can see
-    /// them; see [`flush_git_metadata_tick`]. Keyed as `deferred_events`.
+    /// them; see [`await_git_metadata`]. Keyed as `deferred_events`.
     git_metadata_events: Mutex<std::collections::HashMap<PathBuf, bool>>,
-    /// Held while those changes are applied, so a request that finds the map
-    /// already emptied by another flush waits for it to finish rather than
-    /// searching before the changes are in.
-    git_metadata_flush: FlushLock,
-    /// Requests waiting for that lock; the background flush stops between
-    /// chunks while there are any, since `Mutex` does not queue them fairly.
-    git_metadata_waiters: std::sync::atomic::AtomicUsize,
+    /// How many have been set aside, ever: a request waits until the worker
+    /// has applied as many as there were when it arrived.
+    git_metadata_queued: std::sync::atomic::AtomicU64,
+    git_flush: Arc<GitFlush>,
     /// Progress: number of files indexed so far.
     index_progress: std::sync::atomic::AtomicU64,
     /// Total files discovered for indexing.
@@ -1062,8 +1056,8 @@ pub fn run(root: &Path, index_path: Option<&Path>, options: ServeOptions<'_>) ->
         reindex_lock: Mutex::new(()),
         deferred_events: Mutex::new(Some(std::collections::HashMap::new())),
         git_metadata_events: Mutex::new(std::collections::HashMap::new()),
-        git_metadata_flush: FlushLock::default(),
-        git_metadata_waiters: std::sync::atomic::AtomicUsize::new(0),
+        git_metadata_queued: std::sync::atomic::AtomicU64::new(0),
+        git_flush: Arc::default(),
         index_progress: std::sync::atomic::AtomicU64::new(0),
         index_total: std::sync::atomic::AtomicU64::new(0),
         watch_enabled: !no_watch,
@@ -1607,27 +1601,19 @@ fn process_request(
     let reaches_git_metadata = matches!(method, "search" | "files")
         && SearchScope::parse(&params).is_ok_and(|s| s.reaches_git_metadata());
     let overloaded = |message: &str| (json_rpc_error(id.clone(), OVERLOADED as i32, message), None);
-    // A request that reaches `.git` applies its changes just before searching,
-    // with a search slot, as the work its answer needs. Another request's
-    // flush in progress is waited out first, without one: requests behind one
-    // large backlog would otherwise hold slots that unrelated searches wait
-    // for. A flush that outlasts the admission wait is an error the client
-    // falls back from, not an overload it gives up on.
-    let deadline = Instant::now() + REQUEST_WAIT;
-    let flush_timed_out = || {
-        (
-            json_rpc_error(id.clone(), -32603, "server .git flush wait timed out"),
+    // A request that reaches `.git` first waits, without a search slot, for
+    // the changes set aside before it to be applied: requests behind a large
+    // backlog would otherwise hold slots that unrelated searches wait for. A
+    // wait past `REQUEST_WAIT` is an error the client falls back from, not
+    // an overload it gives up on; admission then has a wait of its own.
+    if reaches_git_metadata && !await_git_metadata(state, Instant::now() + REQUEST_WAIT) {
+        return (
+            json_rpc_error(id, -32603, "server .git flush wait timed out"),
             None,
-        )
-    };
-    if reaches_git_metadata && !wait_for_git_metadata_flush(state, deadline) {
-        return flush_timed_out();
+        );
     }
     let permit = if matches!(method, "search" | "files") {
-        match state
-            .searches
-            .acquire(deadline.saturating_duration_since(Instant::now()))
-        {
+        match state.searches.acquire(REQUEST_WAIT) {
             Ok(permit) => Some(permit),
             Err(crate::admission::Rejected::Full) => {
                 return overloaded("server search queue is full");
@@ -1639,9 +1625,6 @@ fn process_request(
     } else {
         None
     };
-    if reaches_git_metadata && !flush_git_metadata_for_request(state, Some(deadline)) {
-        return flush_timed_out();
-    }
     let response = match method {
         "search" => handle_search(id, &params, state),
         "files" => handle_files(id, &params, state),
@@ -2214,8 +2197,8 @@ fn handle_search(
     }
     let root_dir = opened.as_ref().and_then(|r| r.as_ref().ok());
     let needed_root = std::sync::atomic::AtomicBool::new(false);
-    // A file that failed to read for a passing reason (out of descriptors,
-    // I/O) is not skipped as a gone or unreadable one is, or the answer would
+    // A file that failed to read for want of descriptors or memory is not
+    // skipped as a gone or unreadable one is, or the answer would
     // look complete without it: the first such error is reported, and the
     // client's fallback, a fresh process, reads it.
     let read_failure: Mutex<Option<std::io::Error>> = Mutex::new(None);
@@ -5227,12 +5210,7 @@ fn handle_fs_event_with(state: &Arc<ServerState>, root: &Path, event: &Event, de
         }
 
         if defer_git && is_git_metadata(&rel_path) {
-            *state
-                .git_metadata_events
-                .lock()
-                .unwrap()
-                .entry(path.clone())
-                .or_default() |= event_introduces_dir(&event.kind);
+            queue_git_metadata_event(state, path.clone(), event_introduces_dir(&event.kind));
             continue;
         }
 
@@ -5359,115 +5337,98 @@ fn is_git_metadata(rel_path: &str) -> bool {
     rel_path.split('/').any(|component| component == ".git")
 }
 
-/// Apply the changes under `.git` that [`handle_fs_event`] set aside.
+/// Set aside a change under `.git`, for [`await_git_metadata`].
+fn queue_git_metadata_event(state: &ServerState, path: PathBuf, introduces_dir: bool) {
+    let mut events = state.git_metadata_events.lock().unwrap();
+    *events.entry(path).or_default() |= introduces_dir;
+    // Counted under the map's lock, so the worker's count of what it took
+    // never includes a change it did not take.
+    state.git_metadata_queued.fetch_add(1, Ordering::SeqCst);
+}
+
+/// The worker that applies the changes under `.git`, and how far it got.
 ///
 /// Git rewrites its metadata on every commit, checkout, status and gc, and
 /// indexing each write as it happened kept the server busy for searches that
 /// never see it: `.git` is hidden, so only a `--hidden` request or one scoped
-/// inside it can return those files. Such requests call this first, and the
-/// auto-save tick applies the rest once a minute, one read per changed path
-/// however many times Git wrote it.
-///
-/// The background tick applies the backlog it found a `chunk` per hold of
-/// the lock, and stops early for a request waiting on it, which then
-/// applies the rest itself, since its answer needs them. Behind another
-/// request's flush, a request waits for that whole flush: it is applying
-/// changes both answers need.
-fn flush_git_metadata_tick(state: &Arc<ServerState>, chunk: usize) {
-    let mut left = state.git_metadata_events.lock().unwrap().len();
-    while left > 0 && state.git_metadata_waiters.load(Ordering::SeqCst) == 0 {
-        let _flush = state.git_metadata_flush.lock_until(None);
-        let pending: Vec<(PathBuf, bool)> = {
-            let mut events = state.git_metadata_events.lock().unwrap();
-            let paths: Vec<PathBuf> = events.keys().take(chunk.min(left)).cloned().collect();
-            paths
-                .into_iter()
-                .filter_map(|p| events.remove(&p).map(|dir| (p, dir)))
-                .collect()
-        };
-        if pending.is_empty() {
-            return;
-        }
-        left -= pending.len();
-        let mut pending = pending.into_iter();
-        for event in pending.by_ref() {
-            if state.git_metadata_waiters.load(Ordering::SeqCst) > 0 {
-                // A request arrived mid-chunk: this and the rest are its.
-                let mut events = state.git_metadata_events.lock().unwrap();
-                for (path, introduces_dir) in std::iter::once(event).chain(pending.by_ref()) {
-                    *events.entry(path).or_default() |= introduces_dir;
-                }
-                return;
-            }
-            apply_git_metadata_events(state, std::iter::once(event));
-        }
-    }
+/// inside it can return those files. Those changes are set aside, and one
+/// worker applies them, one read per changed path however many times Git
+/// wrote it: when such a request asks, and once a minute otherwise. Only the
+/// worker applies them, so requests never wait on one another, only on it.
+#[derive(Default)]
+struct GitFlush {
+    progress: Mutex<GitFlushProgress>,
+    changed: std::sync::Condvar,
+    worker: std::sync::OnceLock<()>,
 }
 
-/// A request's flush of the `.git` changes: `false` if another flush was
-/// still in progress when `wait` ran out, `None` waiting for none at all.
-fn flush_git_metadata_for_request(state: &Arc<ServerState>, wait: Option<Instant>) -> bool {
-    state.git_metadata_waiters.fetch_add(1, Ordering::SeqCst);
-    let flush = state.git_metadata_flush.lock_until(wait);
-    state.git_metadata_waiters.fetch_sub(1, Ordering::SeqCst);
-    let Some(_flush) = flush else {
-        return false;
-    };
-    let pending = std::mem::take(&mut *state.git_metadata_events.lock().unwrap());
-    apply_git_metadata_events(state, pending);
+#[derive(Default)]
+struct GitFlushProgress {
+    /// Changes asked to be applied, counted as `git_metadata_queued` counts.
+    wanted: u64,
+    /// Changes applied.
+    applied: u64,
+}
+
+/// Ask the worker, started on first use, to apply every change set aside
+/// so far, and return how many that is.
+fn start_git_metadata_flush(state: &Arc<ServerState>) -> u64 {
+    let target = state.git_metadata_queued.load(Ordering::SeqCst);
+    let flush = &state.git_flush;
+    flush.worker.get_or_init(|| {
+        let (state, flush) = (Arc::downgrade(state), Arc::clone(flush));
+        thread::Builder::new()
+            .name("ogrep-git-flush".into())
+            .spawn(move || git_metadata_worker(&state, &flush))
+            .expect("spawn the .git flush worker");
+    });
+    let mut progress = flush.progress.lock().unwrap();
+    if progress.wanted < target {
+        progress.wanted = target;
+        flush.changed.notify_all();
+    }
+    target
+}
+
+/// Wait, until `deadline` at most, for every change set aside before this
+/// call to be applied: `false` if the worker had not got that far.
+fn await_git_metadata(state: &Arc<ServerState>, deadline: Instant) -> bool {
+    let target = start_git_metadata_flush(state);
+    let flush = &state.git_flush;
+    let mut progress = flush.progress.lock().unwrap();
+    while progress.applied < target {
+        let left = deadline.saturating_duration_since(Instant::now());
+        if left.is_zero() {
+            return false;
+        }
+        progress = flush.changed.wait_timeout(progress, left).unwrap().0;
+    }
     true
 }
 
-/// Wait, until `deadline` at most, for a flush in progress to end, without
-/// taking the changes: `false` if it was still running.
-fn wait_for_git_metadata_flush(state: &Arc<ServerState>, deadline: Instant) -> bool {
-    state.git_metadata_waiters.fetch_add(1, Ordering::SeqCst);
-    let idle = state
-        .git_metadata_flush
-        .lock_until(Some(deadline))
-        .is_some();
-    state.git_metadata_waiters.fetch_sub(1, Ordering::SeqCst);
-    idle
-}
-
-/// One flush of the `.git` changes at a time. A mutex whose wait can end.
-#[derive(Default)]
-struct FlushLock {
-    busy: Mutex<bool>,
-    idle: std::sync::Condvar,
-}
-
-struct FlushGuard<'a>(&'a FlushLock);
-
-impl FlushLock {
-    /// Hold it once free, or `None` if `deadline` passes first; `None`
-    /// waits as long as it takes, and a deadline already past only tries.
-    fn lock_until(&self, deadline: Option<Instant>) -> Option<FlushGuard<'_>> {
-        let mut busy = self.busy.lock().unwrap_or_else(|e| e.into_inner());
-        while *busy {
-            busy = match deadline {
-                None => self.idle.wait(busy).unwrap_or_else(|e| e.into_inner()),
-                Some(deadline) => {
-                    let left = deadline.saturating_duration_since(Instant::now());
-                    if left.is_zero() {
-                        return None;
-                    }
-                    self.idle
-                        .wait_timeout(busy, left)
-                        .unwrap_or_else(|e| e.into_inner())
-                        .0
-                }
-            };
+/// Apply what is asked for until the server is gone. It holds the server
+/// only while applying, so it never keeps one alive.
+fn git_metadata_worker(state: &std::sync::Weak<ServerState>, flush: &GitFlush) {
+    loop {
+        {
+            let mut progress = flush.progress.lock().unwrap();
+            while progress.wanted <= progress.applied {
+                progress = flush.changed.wait(progress).unwrap();
+            }
         }
-        *busy = true;
-        Some(FlushGuard(self))
-    }
-}
-
-impl Drop for FlushGuard<'_> {
-    fn drop(&mut self) {
-        *self.0.busy.lock().unwrap_or_else(|e| e.into_inner()) = false;
-        self.0.idle.notify_all();
+        let Some(state) = state.upgrade() else {
+            return;
+        };
+        let (pending, upto) = {
+            let mut events = state.git_metadata_events.lock().unwrap();
+            let upto = state.git_metadata_queued.load(Ordering::SeqCst);
+            (std::mem::take(&mut *events), upto)
+        };
+        apply_git_metadata_events(&state, pending);
+        drop(state);
+        let mut progress = flush.progress.lock().unwrap();
+        progress.applied = progress.applied.max(upto);
+        flush.changed.notify_all();
     }
 }
 
@@ -5627,39 +5588,24 @@ fn classify_event_target(meta: &std::io::Result<std::fs::Metadata>) -> EventTarg
     }
 }
 
-/// Whether a read failed for a reason that passes (out of descriptors or
-/// memory, I/O, a timeout), not one about the file (gone, a link, refused,
-/// replaced by something that cannot be read), which a scan skips too.
+/// Whether a read failed for want of something the client's fallback, a
+/// fresh process, has: descriptors or memory. Any other failure (gone, a
+/// link, refused, locked by another program, a bad disk) the fallback
+/// meets too and skips, as a scan does, so the server skips it as well.
 fn is_passing_failure(error: &std::io::Error) -> bool {
-    use std::io::ErrorKind;
-    // `Interrupted` too: a file that changed while it was being opened.
-    if matches!(
-        error.kind(),
-        ErrorKind::OutOfMemory | ErrorKind::TimedOut | ErrorKind::Interrupted
-    ) {
+    if error.kind() == std::io::ErrorKind::OutOfMemory {
         return true;
     }
     #[cfg(unix)]
-    let passing = [
-        libc::EMFILE,
-        libc::ENFILE,
-        libc::ENOMEM,
-        libc::EIO,
-        libc::ESTALE,
-        libc::ENOBUFS,
-        libc::ENOTCONN,
-        libc::ECONNRESET,
-        libc::EHOSTDOWN,
-    ];
-    // Too many open files, a sharing or lock violation (a build holding
-    // the file), out of system resources.
+    let exhausted = [libc::EMFILE, libc::ENFILE, libc::ENOMEM, libc::ENOBUFS];
+    // Too many open files, not enough memory, out of system resources.
     #[cfg(windows)]
-    let passing = [4, 32, 33, 1450];
+    let exhausted = [4, 8, 1450];
     #[cfg(not(any(unix, windows)))]
-    let passing: [i32; 0] = [];
+    let exhausted: [i32; 0] = [];
     error
         .raw_os_error()
-        .is_some_and(|code| passing.contains(&code))
+        .is_some_and(|code| exhausted.contains(&code))
 }
 
 /// Whether a failure to open the served root says the tree itself is gone
@@ -6257,7 +6203,7 @@ fn auto_save_loop(state: Arc<ServerState>) {
         if state.indexing.load(Ordering::SeqCst) || state.flushing.load(Ordering::SeqCst) {
             continue;
         }
-        flush_git_metadata_tick(&state, GIT_FLUSH_CHUNK);
+        start_git_metadata_flush(&state);
 
         let dirty = {
             let index = state.index.read().unwrap();
@@ -9724,8 +9670,8 @@ mod tests {
             reindex_lock: Mutex::new(()),
             deferred_events: Mutex::new(Some(std::collections::HashMap::new())),
             git_metadata_events: Mutex::new(std::collections::HashMap::new()),
-            git_metadata_flush: FlushLock::default(),
-            git_metadata_waiters: std::sync::atomic::AtomicUsize::new(0),
+            git_metadata_queued: std::sync::atomic::AtomicU64::new(0),
+            git_flush: Arc::default(),
             index_progress: std::sync::atomic::AtomicU64::new(0),
             index_total: std::sync::atomic::AtomicU64::new(0),
             watch_enabled: true,
@@ -9949,108 +9895,76 @@ mod tests {
         assert!(state.git_metadata_events.lock().unwrap().is_empty());
     }
 
-    /// A flush empties the pending map before it applies anything, so a
-    /// second `--hidden` request arriving meanwhile finds nothing to do. It
-    /// must still wait for the first to finish, or it searches without them.
-    #[test]
-    fn a_git_metadata_flush_waits_for_one_in_progress() {
-        let temp = TempDir::new().unwrap();
+    fn git_test_state(temp: &TempDir) -> (PathBuf, Arc<ServerState>) {
         let root = temp.path().join("root");
-        std::fs::create_dir_all(&root).unwrap();
+        std::fs::create_dir_all(root.join(".git")).unwrap();
         let state = test_server_state(&root, &temp.path().join("index"));
-        let in_progress = state.git_metadata_flush.lock_until(None);
-        let (done_tx, done_rx) = std::sync::mpsc::channel();
-        let waiter = {
-            let state = Arc::clone(&state);
-            thread::spawn(move || {
-                flush_git_metadata_for_request(&state, None);
-                done_tx.send(()).unwrap();
-            })
-        };
-        assert!(
-            done_rx.recv_timeout(Duration::from_millis(200)).is_err(),
-            "the flush returned while another was still applying"
-        );
-        drop(in_progress);
-        done_rx.recv_timeout(Duration::from_secs(10)).unwrap();
-        waiter.join().unwrap();
+        state.gitignore_pending.store(false, Ordering::SeqCst);
+        state.filename_index_ready.store(true, Ordering::SeqCst);
+        state.hidden_complete.store(true, Ordering::SeqCst);
+        (root, state)
     }
 
-    /// A request waits out a flush in progress until its deadline, then
-    /// gives up, taking nothing; with none in progress it does not wait.
-    #[test]
-    fn a_request_waits_for_a_flush_until_its_deadline() {
-        let temp = TempDir::new().unwrap();
-        let root = temp.path().join("root");
-        std::fs::create_dir_all(&root).unwrap();
-        let state = test_server_state(&root, &temp.path().join("index"));
-        state
-            .git_metadata_events
-            .lock()
+    fn queue_git_file(state: &ServerState, root: &Path, name: &str) {
+        let path = root.join(".git").join(name);
+        std::fs::write(&path, format!("{name}\n")).unwrap();
+        queue_git_metadata_event(state, path, false);
+    }
+
+    fn indexed_paths(state: &ServerState) -> Vec<String> {
+        let mut paths: Vec<String> = state
+            .index
+            .read()
             .unwrap()
-            .insert(root.join(".git/HEAD"), false);
-        let held = state.git_metadata_flush.lock_until(None);
-        let deadline = Instant::now() + Duration::from_millis(50);
-        assert!(!wait_for_git_metadata_flush(&state, deadline));
-        assert!(Instant::now() >= deadline);
-        assert!(!flush_git_metadata_for_request(
-            &state,
-            Some(Instant::now())
-        ));
-        assert_eq!(
-            state.git_metadata_events.lock().unwrap().len(),
-            1,
-            "it took the changes"
-        );
-        drop(held);
-        assert!(wait_for_git_metadata_flush(&state, Instant::now()));
-        assert_eq!(
-            state.git_metadata_events.lock().unwrap().len(),
-            1,
-            "waiting took them"
-        );
+            .all_paths()
+            .iter()
+            .map(|p| p.to_string())
+            .collect();
+        paths.sort();
+        paths
     }
 
-    /// The flush lock's wait ends at its deadline, and a release wakes it.
+    /// A request's wait ends once the changes set aside before it are in,
+    /// and every change is applied once, however they interleave with the
+    /// worker's batches.
     #[test]
-    fn a_flush_lock_wait_ends_at_its_deadline() {
-        let lock = Arc::new(FlushLock::default());
-        let held = lock.lock_until(None).unwrap();
-        let start = Instant::now();
-        assert!(
-            lock.lock_until(Some(start + Duration::from_millis(50)))
-                .is_none()
-        );
-        assert!(start.elapsed() >= Duration::from_millis(50));
-        assert!(
-            lock.lock_until(Some(Instant::now())).is_none(),
-            "a past deadline only tries"
-        );
-        let waiter = {
-            let lock = Arc::clone(&lock);
+    fn a_request_waits_for_the_git_changes_before_it() {
+        let temp = TempDir::new().unwrap();
+        let (root, state) = git_test_state(&temp);
+        let far = || Instant::now() + Duration::from_secs(30);
+        assert!(await_git_metadata(&state, far()), "nothing set aside");
+        queue_git_file(&state, &root, "HEAD");
+        assert!(await_git_metadata(&state, far()));
+        assert_eq!(indexed_paths(&state), [".git/HEAD"]);
+        let writer = {
+            let (state, root) = (Arc::clone(&state), root.clone());
             thread::spawn(move || {
-                lock.lock_until(Some(Instant::now() + Duration::from_secs(10)))
-                    .is_some()
+                for i in 0..200 {
+                    queue_git_file(&state, &root, &format!("obj{i}"));
+                }
             })
         };
-        thread::sleep(Duration::from_millis(20));
-        drop(held);
-        assert!(
-            waiter.join().unwrap(),
-            "the release did not wake the waiter"
-        );
-        assert!(lock.lock_until(Some(Instant::now())).is_some());
+        while !writer.is_finished() {
+            assert!(await_git_metadata(&state, far()));
+        }
+        writer.join().unwrap();
+        assert!(await_git_metadata(&state, far()));
+        assert_eq!(indexed_paths(&state).len(), 201);
+        assert!(state.git_metadata_events.lock().unwrap().is_empty());
     }
 
-    /// A `--hidden` request waiting on another's flush of a `.git` backlog
-    /// holds no search slot meanwhile: unrelated searches would wait for it.
+    /// A `--hidden` request waiting on the worker holds no search slot
+    /// meanwhile, and its wait ends at its deadline.
     #[test]
-    fn a_hidden_request_waits_for_a_flush_without_a_search_slot() {
+    fn a_hidden_request_waits_for_the_worker_without_a_search_slot() {
         let temp = TempDir::new().unwrap();
-        let root = temp.path().join("root");
-        std::fs::create_dir_all(&root).unwrap();
-        let state = test_server_state(&root, &temp.path().join("index"));
-        let in_progress = state.git_metadata_flush.lock_until(None);
+        let (root, state) = git_test_state(&temp);
+        queue_git_file(&state, &root, "HEAD");
+        // The worker cannot take the changes while the map is held.
+        let held = state.git_metadata_events.lock().unwrap();
+        let deadline = Instant::now() + Duration::from_millis(50);
+        assert!(!await_git_metadata(&state, deadline));
+        assert!(Instant::now() >= deadline);
         let (done_tx, done_rx) = std::sync::mpsc::channel();
         let waiter = {
             let state = Arc::clone(&state);
@@ -10062,102 +9976,16 @@ mod tests {
                 done_tx.send(response).unwrap();
             })
         };
-        let start = Instant::now();
-        while state.git_metadata_waiters.load(Ordering::SeqCst) == 0 {
-            assert!(
-                start.elapsed() < Duration::from_secs(10),
-                "the request never waited"
-            );
-            thread::sleep(Duration::from_millis(5));
-        }
+        assert!(done_rx.recv_timeout(Duration::from_millis(200)).is_err());
         assert_eq!(
             state.searches.status().active,
             0,
             "it waited holding a search slot"
         );
-        drop(in_progress);
-        done_rx.recv_timeout(Duration::from_secs(10)).unwrap();
+        drop(held);
+        let response = done_rx.recv_timeout(Duration::from_secs(10)).unwrap();
+        assert!(response.contains(".git/HEAD"), "{response}");
         waiter.join().unwrap();
-    }
-
-    /// The background flush applies its backlog a chunk at a time, and stops
-    /// for a request waiting to apply the rest.
-    #[test]
-    fn a_chunked_git_metadata_flush_applies_every_change() {
-        let temp = TempDir::new().unwrap();
-        let root = temp.path().join("root");
-        std::fs::create_dir_all(root.join(".git")).unwrap();
-        let state = test_server_state(&root, &temp.path().join("index"));
-        state.gitignore_pending.store(false, Ordering::SeqCst);
-        state.filename_index_ready.store(true, Ordering::SeqCst);
-        state.hidden_complete.store(true, Ordering::SeqCst);
-        for i in 0..5 {
-            let path = root.join(".git").join(format!("ref{i}"));
-            std::fs::write(&path, format!("ref {i}\n")).unwrap();
-            state
-                .git_metadata_events
-                .lock()
-                .unwrap()
-                .insert(path, false);
-        }
-        state.git_metadata_waiters.store(1, Ordering::SeqCst);
-        flush_git_metadata_tick(&state, 2);
-        assert_eq!(
-            state.git_metadata_events.lock().unwrap().len(),
-            5,
-            "stopped for the waiter"
-        );
-        state.git_metadata_waiters.store(0, Ordering::SeqCst);
-        flush_git_metadata_tick(&state, 2);
-        assert!(state.git_metadata_events.lock().unwrap().is_empty());
-        let mut indexed: Vec<String> = state
-            .index
-            .read()
-            .unwrap()
-            .all_paths()
-            .iter()
-            .map(|p| p.to_string())
-            .collect();
-        indexed.sort();
-        assert_eq!(
-            indexed,
-            (0..5).map(|i| format!(".git/ref{i}")).collect::<Vec<_>>()
-        );
-    }
-
-    /// A request that arrives while the tick is applying a chunk takes over
-    /// the rest: every change is applied once, by one or the other.
-    #[test]
-    fn a_request_taking_over_the_tick_flush_loses_no_change() {
-        for round in 0..5 {
-            let temp = TempDir::new().unwrap();
-            let root = temp.path().join("root");
-            std::fs::create_dir_all(root.join(".git")).unwrap();
-            let state = test_server_state(&root, &temp.path().join("index"));
-            state.gitignore_pending.store(false, Ordering::SeqCst);
-            state.filename_index_ready.store(true, Ordering::SeqCst);
-            state.hidden_complete.store(true, Ordering::SeqCst);
-            for i in 0..200 {
-                let path = root.join(".git").join(format!("obj{i}"));
-                std::fs::write(&path, format!("object {i}\n")).unwrap();
-                state
-                    .git_metadata_events
-                    .lock()
-                    .unwrap()
-                    .insert(path, false);
-            }
-            let tick = {
-                let state = Arc::clone(&state);
-                thread::spawn(move || flush_git_metadata_tick(&state, 16))
-            };
-            thread::sleep(Duration::from_millis(round));
-            flush_git_metadata_for_request(&state, None);
-            tick.join().unwrap();
-            flush_git_metadata_for_request(&state, None);
-            assert!(state.git_metadata_events.lock().unwrap().is_empty());
-            let indexed = state.index.read().unwrap().all_paths().len();
-            assert_eq!(indexed, 200, "round {round}");
-        }
     }
 
     #[test]
