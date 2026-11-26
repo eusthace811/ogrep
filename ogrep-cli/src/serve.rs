@@ -2183,8 +2183,9 @@ fn handle_search(
     // tree, as a scan or the local index never would. Without the root every
     // miss would drop out of an answer that still looked complete, so failing
     // to open it is an error, and the client falls back to a search that can
-    // read them. It is opened even when every candidate is cached, so whether
-    // that is reported does not depend on the cache.
+    // read them. It is opened whenever there are candidates, even all cached,
+    // so whether that is reported does not depend on the cache. (With none,
+    // nothing would be read, and the answer is the index's.)
     let root_dir = if candidate_info.is_empty() {
         None
     } else {
