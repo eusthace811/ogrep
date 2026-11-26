@@ -97,9 +97,13 @@ pub fn run(
     let mut g = g?;
     // The graph's paths are relative to the index root, a search's to the
     // path searched, which may be below it (with --index-path): translate.
+    // A recorded root that no longer exists is a tree moved since it was
+    // indexed: its files are read where it is now, the path searched.
     let index_root = ogrep_core::meta::IndexMeta::load(&dir)
         .map(|m| std::path::PathBuf::from(m.root_path))
-        .unwrap_or_else(|_| root.to_path_buf());
+        .ok()
+        .filter(|recorded| recorded.is_dir())
+        .unwrap_or_else(|| root.to_path_buf());
     let canonical = |p: &Path| std::fs::canonicalize(p).unwrap_or_else(|_| p.to_path_buf());
     let below = canonical(root)
         .strip_prefix(canonical(&index_root))

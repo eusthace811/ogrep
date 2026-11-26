@@ -37,7 +37,7 @@ const MAX_REQUEST_BYTES: u64 = 1024 * 1024;
 const REQUEST_WAIT: Duration = Duration::from_secs(30);
 
 /// Changes under `.git` the background tick applies per hold of the flush
-/// lock; see [`flush_git_metadata_events`].
+/// lock; see [`flush_git_metadata_tick`].
 const GIT_FLUSH_CHUNK: usize = 256;
 const SOCKET_IDLE_TIMEOUT: Duration = Duration::from_secs(30);
 pub const OVERLOADED: i64 = -32002;
@@ -696,12 +696,12 @@ struct ServerState {
     /// unbounded.
     deferred_events: Mutex<Option<std::collections::HashMap<PathBuf, bool>>>,
     /// Changes under a `.git` directory, set aside until something can see
-    /// them; see [`flush_git_metadata_events`]. Keyed as `deferred_events`.
+    /// them; see [`flush_git_metadata_tick`]. Keyed as `deferred_events`.
     git_metadata_events: Mutex<std::collections::HashMap<PathBuf, bool>>,
     /// Held while those changes are applied, so a request that finds the map
     /// already emptied by another flush waits for it to finish rather than
     /// searching before the changes are in.
-    git_metadata_flush: Mutex<()>,
+    git_metadata_flush: FlushLock,
     /// Requests waiting for that lock; the background flush stops between
     /// chunks while there are any, since `Mutex` does not queue them fairly.
     git_metadata_waiters: std::sync::atomic::AtomicUsize,
@@ -1062,7 +1062,7 @@ pub fn run(root: &Path, index_path: Option<&Path>, options: ServeOptions<'_>) ->
         reindex_lock: Mutex::new(()),
         deferred_events: Mutex::new(Some(std::collections::HashMap::new())),
         git_metadata_events: Mutex::new(std::collections::HashMap::new()),
-        git_metadata_flush: Mutex::new(()),
+        git_metadata_flush: FlushLock::default(),
         git_metadata_waiters: std::sync::atomic::AtomicUsize::new(0),
         index_progress: std::sync::atomic::AtomicU64::new(0),
         index_total: std::sync::atomic::AtomicU64::new(0),
@@ -1606,39 +1606,38 @@ fn process_request(
 
     let reaches_git_metadata = matches!(method, "search" | "files")
         && SearchScope::parse(&params).is_ok_and(|s| s.reaches_git_metadata());
-    // The backlog is applied, or another request's flush of it waited for,
-    // before admission: one flush runs at a time, and the requests behind it
-    // would otherwise hold search slots that unrelated searches wait for.
-    if reaches_git_metadata {
-        flush_git_metadata_events(state, None);
-    }
+    let overloaded = |message: &str| (json_rpc_error(id.clone(), OVERLOADED as i32, message), None);
+    // A request that reaches `.git` applies its changes just before searching,
+    // with a search slot, as the work its answer needs. Waiting for another
+    // request's flush is done without one, or a few requests behind one large
+    // backlog would hold slots that unrelated searches wait for: it waits
+    // first, then takes a slot, and if a flush began meanwhile, gives the slot
+    // back and waits again. All of it within the admission wait.
+    let deadline = Instant::now() + REQUEST_WAIT;
     let permit = if matches!(method, "search" | "files") {
-        match state.searches.acquire(REQUEST_WAIT) {
-            Ok(permit) => Some(permit),
-            Err(reason) => {
-                return (
-                    json_rpc_error(
-                        id,
-                        OVERLOADED as i32,
-                        match reason {
-                            crate::admission::Rejected::Full => "server search queue is full",
-                            crate::admission::Rejected::Timeout => {
-                                "server search queue wait timed out"
-                            }
-                        },
-                    ),
-                    None,
-                );
+        loop {
+            if reaches_git_metadata && !flush_git_metadata_for_request(state, Some(deadline)) {
+                return overloaded("server .git flush wait timed out");
+            }
+            let wait = deadline.saturating_duration_since(Instant::now());
+            let permit = match state.searches.acquire(wait) {
+                Ok(permit) => permit,
+                Err(crate::admission::Rejected::Full) => {
+                    return overloaded("server search queue is full");
+                }
+                Err(crate::admission::Rejected::Timeout) => {
+                    return overloaded("server search queue wait timed out");
+                }
+            };
+            // A deadline already past only tries: busy means a flush began.
+            if !reaches_git_metadata || flush_git_metadata_for_request(state, Some(Instant::now()))
+            {
+                break Some(permit);
             }
         }
     } else {
         None
     };
-    // Again after admission, for the changes made while the request queued,
-    // so they are applied just before the search reads them.
-    if permit.is_some() && reaches_git_metadata {
-        flush_git_metadata_events(state, None);
-    }
     let response = match method {
         "search" => handle_search(id, &params, state),
         "files" => handle_files(id, &params, state),
@@ -2211,6 +2210,16 @@ fn handle_search(
     }
     let root_dir = opened.as_ref().and_then(|r| r.as_ref().ok());
     let needed_root = std::sync::atomic::AtomicBool::new(false);
+    // A file that failed to read for a passing reason (out of descriptors,
+    // I/O) is not skipped as a gone or unreadable one is, or the answer would
+    // look complete without it: the first such error is reported, and the
+    // client's fallback, a fresh process, reads it.
+    let read_failure: Mutex<Option<std::io::Error>> = Mutex::new(None);
+    let failed = |e: std::io::Error| {
+        if is_passing_failure(&e) {
+            read_failure.lock().unwrap().get_or_insert(e);
+        }
+    };
     // A file that cannot be read is skipped, as a scan skips it, and one over
     // a query's `--max-filesize` too: sized by the handle the read uses, so
     // never through a link.
@@ -2219,14 +2228,16 @@ fn handle_search(
             needed_root.store(true, Ordering::Relaxed);
             return None;
         };
-        let mut file = root_dir.open_file(full_path).ok()?;
+        let mut file = root_dir.open_file(full_path).map_err(failed).ok()?;
         if let Some(limit) = query_size_limit
-            && file.metadata().ok()?.len() > limit
+            && file.metadata().map_err(failed).ok()?.len() > limit
         {
             return None;
         }
         let mut bytes = Vec::new();
-        std::io::Read::read_to_end(&mut file, &mut bytes).ok()?;
+        std::io::Read::read_to_end(&mut file, &mut bytes)
+            .map_err(failed)
+            .ok()?;
         Some(bytes)
     };
     let resolve = |candidate_info: Vec<(String, PathBuf)>| -> Vec<(String, Arc<DecodedFile>)> {
@@ -2355,7 +2366,7 @@ fn handle_search(
                 (Vec::new(), Vec::new(), 0, 64);
             while rest.peek().is_some() {
                 let part = resolve(rest.by_ref().take(chunk).collect());
-                if needed_root.load(Ordering::Relaxed) {
+                if needed_root.load(Ordering::Relaxed) || read_failure.lock().unwrap().is_some() {
                     break; // reported below, without reading the rest
                 }
                 match verify_all(&part) {
@@ -2379,6 +2390,9 @@ fn handle_search(
         && let Some(Err(e)) = &opened
     {
         return root_error(e);
+    }
+    if let Some(e) = read_failure.lock().unwrap().take() {
+        return json_rpc_error(id, -32603, &format!("cannot read an indexed file: {e}"));
     }
     let mut matches = Vec::new();
     let mut file_stats = Vec::new();
@@ -5350,31 +5364,15 @@ fn is_git_metadata(rel_path: &str) -> bool {
 /// auto-save tick applies the rest once a minute, one read per changed path
 /// however many times Git wrote it.
 ///
-/// The background tick passes a `chunk`: it applies the backlog it found a
-/// chunk per hold of the lock, and stops early for a request waiting on it,
-/// which then applies the rest itself, since its answer needs them. Behind
-/// another request's flush, a request waits for that whole flush: it is
-/// applying changes both answers need. Requests flush before admission, so
-/// neither waits holding a search slot, and again after it for whatever
-/// arrived while they queued.
-fn flush_git_metadata_events(state: &Arc<ServerState>, chunk: Option<usize>) {
-    let Some(chunk) = chunk else {
-        state.git_metadata_waiters.fetch_add(1, Ordering::SeqCst);
-        let _flush = state
-            .git_metadata_flush
-            .lock()
-            .unwrap_or_else(|e| e.into_inner());
-        state.git_metadata_waiters.fetch_sub(1, Ordering::SeqCst);
-        let pending = std::mem::take(&mut *state.git_metadata_events.lock().unwrap());
-        apply_git_metadata_events(state, pending);
-        return;
-    };
+/// The background tick applies the backlog it found a `chunk` per hold of
+/// the lock, and stops early for a request waiting on it, which then
+/// applies the rest itself, since its answer needs them. Behind another
+/// request's flush, a request waits for that whole flush: it is applying
+/// changes both answers need.
+fn flush_git_metadata_tick(state: &Arc<ServerState>, chunk: usize) {
     let mut left = state.git_metadata_events.lock().unwrap().len();
     while left > 0 && state.git_metadata_waiters.load(Ordering::SeqCst) == 0 {
-        let _flush = state
-            .git_metadata_flush
-            .lock()
-            .unwrap_or_else(|e| e.into_inner());
+        let _flush = state.git_metadata_flush.lock_until(None);
         let pending: Vec<(PathBuf, bool)> = {
             let mut events = state.git_metadata_events.lock().unwrap();
             let paths: Vec<PathBuf> = events.keys().take(chunk.min(left)).cloned().collect();
@@ -5399,6 +5397,61 @@ fn flush_git_metadata_events(state: &Arc<ServerState>, chunk: Option<usize>) {
             }
             apply_git_metadata_events(state, std::iter::once(event));
         }
+    }
+}
+
+/// A request's flush of the `.git` changes: `false` if another flush was
+/// still in progress when `wait` ran out, `None` waiting for none at all.
+fn flush_git_metadata_for_request(state: &Arc<ServerState>, wait: Option<Instant>) -> bool {
+    state.git_metadata_waiters.fetch_add(1, Ordering::SeqCst);
+    let flush = state.git_metadata_flush.lock_until(wait);
+    state.git_metadata_waiters.fetch_sub(1, Ordering::SeqCst);
+    let Some(_flush) = flush else {
+        return false;
+    };
+    let pending = std::mem::take(&mut *state.git_metadata_events.lock().unwrap());
+    apply_git_metadata_events(state, pending);
+    true
+}
+
+/// One flush of the `.git` changes at a time. A mutex whose wait can end.
+#[derive(Default)]
+struct FlushLock {
+    busy: Mutex<bool>,
+    idle: std::sync::Condvar,
+}
+
+struct FlushGuard<'a>(&'a FlushLock);
+
+impl FlushLock {
+    /// Hold it once free, or `None` if `deadline` passes first; `None`
+    /// waits as long as it takes, and a deadline already past only tries.
+    fn lock_until(&self, deadline: Option<Instant>) -> Option<FlushGuard<'_>> {
+        let mut busy = self.busy.lock().unwrap_or_else(|e| e.into_inner());
+        while *busy {
+            busy = match deadline {
+                None => self.idle.wait(busy).unwrap_or_else(|e| e.into_inner()),
+                Some(deadline) => {
+                    let left = deadline.saturating_duration_since(Instant::now());
+                    if left.is_zero() {
+                        return None;
+                    }
+                    self.idle
+                        .wait_timeout(busy, left)
+                        .unwrap_or_else(|e| e.into_inner())
+                        .0
+                }
+            };
+        }
+        *busy = true;
+        Some(FlushGuard(self))
+    }
+}
+
+impl Drop for FlushGuard<'_> {
+    fn drop(&mut self) {
+        *self.0.busy.lock().unwrap_or_else(|e| e.into_inner()) = false;
+        self.0.idle.notify_all();
     }
 }
 
@@ -5568,6 +5621,29 @@ fn classify_event_target(meta: &std::io::Result<std::fs::Metadata>) -> EventTarg
 /// on that would evict live content because a build held the file open for a
 /// moment, and the stale path deliberately keeps unreadable files and retries
 /// them later.
+/// Whether a read failed for a reason that passes (out of descriptors or
+/// memory, I/O, a timeout), not one about the file (gone, a link, refused,
+/// replaced by something that cannot be read), which a scan skips too.
+fn is_passing_failure(error: &std::io::Error) -> bool {
+    use std::io::ErrorKind;
+    if matches!(error.kind(), ErrorKind::OutOfMemory | ErrorKind::TimedOut) {
+        return true;
+    }
+    #[cfg(unix)]
+    if let Some(code) = error.raw_os_error() {
+        return [
+            libc::EMFILE,
+            libc::ENFILE,
+            libc::ENOMEM,
+            libc::EIO,
+            libc::ESTALE,
+            libc::ENOBUFS,
+        ]
+        .contains(&code);
+    }
+    false
+}
+
 /// Whether a failure to open the served root says the tree itself is gone
 /// or refused, rather than something passing (out of descriptors, I/O).
 fn root_is_unusable(error: &std::io::Error) -> bool {
@@ -6153,7 +6229,7 @@ fn auto_save_loop(state: Arc<ServerState>) {
         if state.indexing.load(Ordering::SeqCst) || state.flushing.load(Ordering::SeqCst) {
             continue;
         }
-        flush_git_metadata_events(&state, Some(GIT_FLUSH_CHUNK));
+        flush_git_metadata_tick(&state, GIT_FLUSH_CHUNK);
 
         let dirty = {
             let index = state.index.read().unwrap();
@@ -9620,7 +9696,7 @@ mod tests {
             reindex_lock: Mutex::new(()),
             deferred_events: Mutex::new(Some(std::collections::HashMap::new())),
             git_metadata_events: Mutex::new(std::collections::HashMap::new()),
-            git_metadata_flush: Mutex::new(()),
+            git_metadata_flush: FlushLock::default(),
             git_metadata_waiters: std::sync::atomic::AtomicUsize::new(0),
             index_progress: std::sync::atomic::AtomicU64::new(0),
             index_total: std::sync::atomic::AtomicU64::new(0),
@@ -9854,12 +9930,12 @@ mod tests {
         let root = temp.path().join("root");
         std::fs::create_dir_all(&root).unwrap();
         let state = test_server_state(&root, &temp.path().join("index"));
-        let in_progress = state.git_metadata_flush.lock().unwrap();
+        let in_progress = state.git_metadata_flush.lock_until(None);
         let (done_tx, done_rx) = std::sync::mpsc::channel();
         let waiter = {
             let state = Arc::clone(&state);
             thread::spawn(move || {
-                flush_git_metadata_events(&state, None);
+                flush_git_metadata_for_request(&state, None);
                 done_tx.send(()).unwrap();
             })
         };
@@ -9872,6 +9948,37 @@ mod tests {
         waiter.join().unwrap();
     }
 
+    /// The flush lock's wait ends at its deadline, and a release wakes it.
+    #[test]
+    fn a_flush_lock_wait_ends_at_its_deadline() {
+        let lock = Arc::new(FlushLock::default());
+        let held = lock.lock_until(None).unwrap();
+        let start = Instant::now();
+        assert!(
+            lock.lock_until(Some(start + Duration::from_millis(50)))
+                .is_none()
+        );
+        assert!(start.elapsed() >= Duration::from_millis(50));
+        assert!(
+            lock.lock_until(Some(Instant::now())).is_none(),
+            "a past deadline only tries"
+        );
+        let waiter = {
+            let lock = Arc::clone(&lock);
+            thread::spawn(move || {
+                lock.lock_until(Some(Instant::now() + Duration::from_secs(10)))
+                    .is_some()
+            })
+        };
+        thread::sleep(Duration::from_millis(20));
+        drop(held);
+        assert!(
+            waiter.join().unwrap(),
+            "the release did not wake the waiter"
+        );
+        assert!(lock.lock_until(Some(Instant::now())).is_some());
+    }
+
     /// A `--hidden` request waiting on another's flush of a `.git` backlog
     /// holds no search slot meanwhile: unrelated searches would wait for it.
     #[test]
@@ -9880,7 +9987,7 @@ mod tests {
         let root = temp.path().join("root");
         std::fs::create_dir_all(&root).unwrap();
         let state = test_server_state(&root, &temp.path().join("index"));
-        let in_progress = state.git_metadata_flush.lock().unwrap();
+        let in_progress = state.git_metadata_flush.lock_until(None);
         let (done_tx, done_rx) = std::sync::mpsc::channel();
         let waiter = {
             let state = Arc::clone(&state);
@@ -9931,14 +10038,14 @@ mod tests {
                 .insert(path, false);
         }
         state.git_metadata_waiters.store(1, Ordering::SeqCst);
-        flush_git_metadata_events(&state, Some(2));
+        flush_git_metadata_tick(&state, 2);
         assert_eq!(
             state.git_metadata_events.lock().unwrap().len(),
             5,
             "stopped for the waiter"
         );
         state.git_metadata_waiters.store(0, Ordering::SeqCst);
-        flush_git_metadata_events(&state, Some(2));
+        flush_git_metadata_tick(&state, 2);
         assert!(state.git_metadata_events.lock().unwrap().is_empty());
         let mut indexed: Vec<String> = state
             .index
@@ -9978,12 +10085,12 @@ mod tests {
             }
             let tick = {
                 let state = Arc::clone(&state);
-                thread::spawn(move || flush_git_metadata_events(&state, Some(16)))
+                thread::spawn(move || flush_git_metadata_tick(&state, 16))
             };
             thread::sleep(Duration::from_millis(round));
-            flush_git_metadata_events(&state, None);
+            flush_git_metadata_for_request(&state, None);
             tick.join().unwrap();
-            flush_git_metadata_events(&state, None);
+            flush_git_metadata_for_request(&state, None);
             assert!(state.git_metadata_events.lock().unwrap().is_empty());
             let indexed = state.index.read().unwrap().all_paths().len();
             assert_eq!(indexed, 200, "round {round}");
@@ -11605,6 +11712,71 @@ mod tests {
             index.reader_has_path("ignored/forced.rs") || index.live.has_path("ignored/forced.rs"),
             "the correction must make reload's index agree with final B"
         );
+    }
+
+    /// A file the server cannot open for want of a descriptor is not dropped
+    /// from an answer that would look complete: the query fails, and the
+    /// client's fallback reads it. Run in a child process, whose descriptor
+    /// limit it lowers until exactly one is left, for the root.
+    #[cfg(unix)]
+    #[test]
+    fn a_file_that_cannot_be_opened_for_now_fails_the_query() {
+        const CHILD: &str = "OGREP_TEST_EMFILE_CHILD";
+        let name = "serve::tests::a_file_that_cannot_be_opened_for_now_fails_the_query";
+        if std::env::var_os(CHILD).is_none() {
+            let out = std::process::Command::new(std::env::current_exe().unwrap())
+                .args([name, "--exact", "--nocapture", "--test-threads=1"])
+                .env(CHILD, "1")
+                .output()
+                .unwrap();
+            let text = String::from_utf8_lossy(&out.stdout).into_owned()
+                + &String::from_utf8_lossy(&out.stderr);
+            assert!(out.status.success() && text.contains("1 passed"), "{text}");
+            return;
+        }
+        let tmp = TempDir::new().unwrap();
+        let root = std::fs::canonicalize(tmp.path()).unwrap();
+        test_git(&root, &["init", "--quiet"]);
+        std::fs::write(root.join("a.rs"), "fn alpha_marker() {}\n").unwrap();
+        let mut state = test_server_state(&root, &root.join(".ogrep"));
+        Arc::get_mut(&mut state).unwrap().watch_enabled = false;
+        state.gitignore_pending.store(false, Ordering::SeqCst);
+        let response = handle_reload(None, &state);
+        assert!(response.contains("\"status\":\"reloaded\""), "{response}");
+        let search = || {
+            handle_search(
+                None,
+                &serde_json::json!({"pattern": "alpha_marker"}),
+                &state,
+            )
+        };
+        // Not cached: a search with a different encoding neither reads nor
+        // writes the cache, so every candidate is read from disk.
+        let uncached = || {
+            handle_search(
+                None,
+                &serde_json::json!({"pattern": "alpha_marker", "encoding": "utf-8"}),
+                &state,
+            )
+        };
+        assert!(uncached().contains("a.rs"));
+
+        // SAFETY: plain calls on this child process's own limits and fds.
+        unsafe {
+            let mut limit: libc::rlimit = std::mem::zeroed();
+            libc::getrlimit(libc::RLIMIT_NOFILE, &mut limit);
+            limit.rlim_cur = limit.rlim_cur.min(256);
+            libc::setrlimit(libc::RLIMIT_NOFILE, &limit);
+        }
+        let mut fill = Vec::new();
+        while let Ok(f) = std::fs::File::open("/dev/null") {
+            fill.push(f);
+        }
+        fill.pop(); // one left: the root takes it, and the file finds none
+        let failed = uncached();
+        drop(fill);
+        assert!(failed.contains("cannot read an indexed file"), "{failed}");
+        assert!(search().contains("a.rs"));
     }
 
     /// A root that fails to open for a reason that says nothing about the

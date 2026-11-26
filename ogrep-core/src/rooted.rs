@@ -143,14 +143,12 @@ impl RootDir {
     }
 
     /// The whole path in one `openat2` call, with the kernel refusing any link
-    /// and any escape from the root. `None` on any failure, for the walk to
-    /// decide: the call may be missing (an old kernel) or refused (a sandbox,
-    /// with whatever errno it was given), or the path too long for one lookup,
-    /// and the walk also reports a path that is really gone or a link. Only a
-    /// missing call is remembered: `ENOSYS`, confirmed by a call the kernel
-    /// rejects before looking at any path (an unknown resolve flag, `EINVAL`
-    /// where the call exists), since a file's own open handler may answer
-    /// `ENOSYS` too. Any other refusal costs only itself.
+    /// and any escape from the root. `None` for the walk to decide: wherever
+    /// the call is missing (an old kernel) or refused (a sandbox, with
+    /// whatever errno it was given), which the first failure finds out once
+    /// for the process, and on any failure but a path that is not there,
+    /// which the walk would report alike: a link, an escape, a path too long
+    /// for one lookup.
     #[cfg(target_os = "linux")]
     fn open_beneath(
         &self,
@@ -158,10 +156,8 @@ impl RootDir {
     ) -> Option<std::io::Result<std::fs::File>> {
         use std::os::fd::AsRawFd;
 
-        // Whether the call is missing, asked once, on the first ENOSYS: a
-        // file whose own open answers ENOSYS again does not ask again.
-        static MISSING: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
-        if MISSING.get() == Some(&true) {
+        static USABLE: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+        if USABLE.get() == Some(&false) {
             return None;
         }
         let name = joined_name(components)?;
@@ -171,10 +167,16 @@ impl RootDir {
             libc::O_NOFOLLOW | libc::O_NONBLOCK,
         ) {
             Ok(file) => Some(Ok(file)),
-            Err(e) => {
-                if e.raw_os_error() == Some(libc::ENOSYS) {
-                    MISSING.get_or_init(openat2_missing);
-                }
+            // A sandbox may answer ENOENT for every path; only a call that
+            // works means the path is gone.
+            Err(e)
+                if e.raw_os_error() == Some(libc::ENOENT)
+                    && *USABLE.get_or_init(openat2_usable) =>
+            {
+                Some(Err(e))
+            }
+            Err(_) => {
+                USABLE.get_or_init(openat2_usable);
                 None
             }
         }
@@ -359,7 +361,12 @@ pub fn indexed_text_reader(root: &Path) -> impl Fn(&str) -> std::io::Result<Stri
     let rooted = RootDir::open(root);
     move |rel| match &rooted {
         Ok(rooted) => rooted.read_indexed_to_string(rel),
-        Err(e) => Err(std::io::Error::new(e.kind(), e.to_string())),
+        // The same error each time, with its raw code where it has one, for
+        // callers that read `ELOOP` and the like from it.
+        Err(e) => Err(match e.raw_os_error() {
+            Some(code) => std::io::Error::from_raw_os_error(code),
+            None => std::io::Error::new(e.kind(), e.to_string()),
+        }),
     }
 }
 
@@ -477,11 +484,12 @@ fn openat2(
     Ok(unsafe { std::fs::File::from_raw_fd(fd as i32) })
 }
 
-/// Whether `openat2` itself is missing (or refused with `ENOSYS`): asked
-/// with a resolve flag no kernel defines, which one with the call rejects
-/// with `EINVAL` before any lookup.
+/// Whether `openat2` works here: asked with a resolve flag no kernel
+/// defines, which a kernel with the call rejects with `EINVAL` before any
+/// lookup. Anything else is the call missing (`ENOSYS`) or a filter
+/// refusing it, whatever errno it was given.
 #[cfg(target_os = "linux")]
-fn openat2_missing() -> bool {
+fn openat2_usable() -> bool {
     // SAFETY: as in `openat2`; all-zero is `open_how`'s default.
     let mut how: libc::open_how = unsafe { std::mem::zeroed() };
     how.resolve = 1 << 63;
@@ -497,11 +505,12 @@ fn openat2_missing() -> bool {
         )
     };
     if fd >= 0 {
-        // SAFETY: an unexpected descriptor, owned here and closed.
+        // SAFETY: an unexpected descriptor, owned here and closed. A kernel
+        // that accepts an unknown flag is not trusted with the rest.
         unsafe { libc::close(fd as i32) };
         return false;
     }
-    std::io::Error::last_os_error().raw_os_error() == Some(libc::ENOSYS)
+    std::io::Error::last_os_error().raw_os_error() == Some(libc::EINVAL)
 }
 
 /// Run an open again while a signal interrupts it, as `std::fs::File::open`
@@ -732,14 +741,26 @@ mod tests {
         assert_eq!(rooted.read_indexed_to_string(&rel).unwrap(), "deep\n");
     }
 
-    /// The probe says `openat2` is missing exactly when a real call says so:
-    /// not with it (an ordinary kernel), yes under a filter answering ENOSYS.
+    /// The probe says `openat2` works exactly when a real call does: on an
+    /// ordinary kernel, and not under a filter refusing it with any errno.
     #[cfg(target_os = "linux")]
     #[test]
     fn the_openat2_probe_agrees_with_a_real_call() {
         let real = openat2(libc::AT_FDCWD, c".", libc::O_DIRECTORY);
-        let missing = real.as_ref().err().and_then(|e| e.raw_os_error()) == Some(libc::ENOSYS);
-        assert_eq!(openat2_missing(), missing, "{real:?}");
+        assert_eq!(openat2_usable(), real.is_ok(), "{real:?}");
+    }
+
+    /// A reader whose root did not open says so on every read, with the
+    /// raw code, for callers that tell a link loop or a missing root apart.
+    #[cfg(unix)]
+    #[test]
+    fn an_indexed_reader_keeps_the_root_error_code() {
+        let tmp = TempDir::new().unwrap();
+        let missing = tmp.path().join("missing");
+        let read = indexed_text_reader(&missing);
+        for _ in 0..2 {
+            assert_eq!(read("a.rs").unwrap_err().raw_os_error(), Some(libc::ENOENT));
+        }
     }
 
     /// A root that may be listed but not searched does not open: nothing

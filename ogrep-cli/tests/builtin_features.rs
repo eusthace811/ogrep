@@ -1612,8 +1612,11 @@ fn graph_tools_survive_a_moved_tree() {
     ] {
         let out = ogrep(&moved).args(args).output().unwrap();
         let err = String::from_utf8(out.stderr).unwrap();
-        assert_ne!(out.status.code(), Some(2), "{args:?}: {err}");
+        assert_eq!(out.status.code(), Some(0), "{args:?}: {err}");
     }
+    // Read from where the tree is now, not where it was indexed.
+    let callees = stdout(ogrep(&moved).args(["--callees", "-F", "foo", "."]));
+    assert!(callees.contains("bar -> a.rs:2"), "{callees}");
 }
 
 /// An index built for a subdirectory reads that subdirectory's files.

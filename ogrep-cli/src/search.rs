@@ -1091,16 +1091,18 @@ pub fn run(
             }
             // A server that answered says why; one that did not is unavailable.
             Err(error) => {
-                let why = error
-                    .downcast_ref::<ServerReplied>()
-                    .map(|e| format!(": {}", e.0))
-                    .unwrap_or_default();
-                warn_once(
-                    &root,
-                    format!(
-                        "Server unavailable or index coverage not ready, falling back to local index{why}"
-                    ),
-                );
+                if !opts.quiet && !opts.no_messages {
+                    let why = error
+                        .downcast_ref::<ServerReplied>()
+                        .map(|e| format!(": {}", e.0))
+                        .unwrap_or_default();
+                    warn_once(
+                        &root,
+                        format!(
+                            "Server unavailable or index coverage not ready, falling back to local index{why}"
+                        ),
+                    );
+                }
             }
         }
     }

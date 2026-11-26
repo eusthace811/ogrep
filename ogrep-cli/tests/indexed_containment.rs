@@ -267,6 +267,16 @@ fn a_server_that_cannot_open_its_root_says_so() {
         stdout.contains("kept"),
         "the fallback still answers: {stdout}"
     );
+    // Quietly under -q, as the warnings beside it.
+    let quiet = Command::cargo_bin("ogrep")
+        .unwrap()
+        .current_dir(fixture.temp.path())
+        .args(["-q", "-F", "--", "needle", "moved"])
+        .output()
+        .unwrap();
+    assert_eq!(quiet.status.code(), Some(0));
+    let stderr = String::from_utf8(quiet.stderr).unwrap();
+    assert!(!stderr.contains("falling back"), "{stderr}");
 }
 
 /// The same once every candidate is cached: whether the root's loss is
