@@ -61,6 +61,12 @@ impl GlobFilter {
         self.overrides.is_empty() && self.only.is_none()
     }
 
+    /// Whether a positive glob is given. A file that passes such a filter
+    /// matched one, which admits a hidden file as ripgrep's overrides do.
+    pub fn names_files(&self) -> bool {
+        self.overrides.num_whitelists() > 0
+    }
+
     /// Check if a path passes this glob filter.
     pub fn matches(&self, path: &str) -> bool {
         if self.only.as_ref().is_some_and(|only| !only.contains(path)) {

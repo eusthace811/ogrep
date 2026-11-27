@@ -2110,6 +2110,8 @@ fn handle_search(
             Glob(String),
         }
         let root = &index.root;
+        // A positive type or glob names the file, which admits it even if hidden.
+        let whitelist_files = type_filter.has_selection() || glob_filter.names_files();
         let decide = |&fid: &u32| {
             let Some(rel_path) = index.resolve_path(fid, &reader_snapshot) else {
                 return Filtered::NoPath;
@@ -2121,7 +2123,7 @@ fn handle_search(
                 &rel_path,
                 &scope.prefix,
                 scope.hidden,
-                type_filter.has_selection(),
+                whitelist_files,
             ) {
                 return Filtered::Hidden;
             }

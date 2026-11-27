@@ -936,7 +936,7 @@ fn write_indexed_file_paths(
                     path,
                     scope.prefix(),
                     opts.hidden,
-                    type_filter.has_selection(),
+                    type_filter.has_selection() || glob_filter.names_files(),
                 )
             })
         })
@@ -969,7 +969,7 @@ fn list_files_via_server(
         serde_json::json!({
             "jsonrpc": "2.0",
             "method": "files",
-            "params": { "hidden": opts.hidden, "scope": scope.prefix(), "whitelist_files": !opts.types.is_empty() },
+            "params": { "hidden": opts.hidden, "scope": scope.prefix(), "whitelist_files": !opts.types.is_empty() || opts.glob_filter()?.names_files() },
             "id": 1,
         })
         .to_string(),
@@ -1903,6 +1903,8 @@ fn search_local_index(
     // relative to it, so globs, `--max-depth` and printed paths all agree with
     // what the brute-force walk of the same directory would produce.
     let filter_span = crate::profile::span(crate::profile::Phase::Filter);
+    // A positive type or glob names the file, which admits it even if hidden.
+    let whitelist_files = type_filter.has_selection() || glob_filter.names_files();
     let mut candidates: Vec<(u32, String)> = candidate_ids
         .iter()
         .filter_map(|&fid| {
@@ -1912,7 +1914,7 @@ fn search_local_index(
                     indexed,
                     scope.prefix(),
                     opts.hidden,
-                    type_filter.has_selection(),
+                    whitelist_files,
                 )
                 .then_some(())?;
             let rel = scope.relativize(indexed, root)?;

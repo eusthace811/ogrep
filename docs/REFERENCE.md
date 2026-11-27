@@ -1315,7 +1315,9 @@ when a compatible index or server is available, for content searches and
 in indexed mode. Use `--no-index` when those matches are needed: filesystem
 scans retain ripgrep-style glob overrides, which can reinclude ignored files.
 Negative globs, such as `--glob '!.git'`, exclude entire matching directory
-subtrees. `--hidden` never disables ignore rules.
+subtrees. `--hidden` never disables ignore rules. As in ripgrep, a hidden file
+that a positive glob or `-t` type matches is searched without `--hidden`, but
+files under a hidden directory are not.
 
 Legacy indexes without proven hidden-file coverage and incomplete builds fall
 back to a filesystem scan, rather than returning partial results. Run

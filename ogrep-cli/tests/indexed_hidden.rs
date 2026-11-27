@@ -382,6 +382,32 @@ impl Corpus {
     }
 }
 
+impl Corpus {
+    /// A positive glob names files, as ripgrep's overrides do: it admits a
+    /// hidden file it matches, but not one inside a hidden directory.
+    fn expected_glob(
+        &self,
+        hidden: bool,
+        mode: OutputMode,
+        suffix: &str,
+    ) -> BTreeMap<String, usize> {
+        assert!(
+            self.hidden_attributes.is_empty(),
+            "names are the only hidden marks here"
+        );
+        self.expected("", true, mode)
+            .into_iter()
+            .filter(|(path, _)| {
+                path.ends_with(suffix)
+                    && (hidden
+                        || !path
+                            .rsplit_once('/')
+                            .is_some_and(|(dirs, _)| dirs.split('/').any(|d| d.starts_with('.'))))
+            })
+            .collect()
+    }
+}
+
 fn parsed_output(fixture: &Fixture, mode: OutputMode, output: &Output) -> BTreeMap<String, usize> {
     let stdout = std::str::from_utf8(&output.stdout).unwrap();
     let mut paths = BTreeMap::new();
@@ -786,10 +812,8 @@ fn positive_globs_filter_local_and_server_indexed_corpora() {
             for hidden in [false, true] {
                 for &mode in OUTPUT_MODES {
                     let output = fixture.query_with_args("", NEEDLE, mode, hidden, args);
-                    let mut expected = corpus.expected("", hidden, mode);
-                    expected.retain(|path, _| {
-                        path.ends_with(".txt") && (!exclude_nested || !path.starts_with("nested/"))
-                    });
+                    let mut expected = corpus.expected_glob(hidden, mode, ".txt");
+                    expected.retain(|path, _| !exclude_nested || !path.starts_with("nested/"));
                     let diagnostic =
                         format!("{backend:?}, {mode:?}, {args:?}, hidden={hidden}\n{output:?}");
                     assert_eq!(
@@ -1212,10 +1236,11 @@ fn hidden_fallback_walks_exclude_custom_index_storage() {
                     assert!(output.status.success(), "{output:?}");
                     let paths = parsed_output(&fixture, mode, &output);
                     assert!(paths.contains_key("visible.txt"), "{paths:?}");
-                    let mut indexed_paths = corpus.expected("", hidden, mode);
-                    if args.contains(&"--glob") {
-                        indexed_paths.retain(|path, _| path.ends_with(".txt"));
-                    }
+                    let indexed_paths = if args.contains(&"--glob") {
+                        corpus.expected_glob(hidden, mode, ".txt")
+                    } else {
+                        corpus.expected("", hidden, mode)
+                    };
                     baselines.push((args, hidden, mode, paths, indexed_paths));
                 }
             }

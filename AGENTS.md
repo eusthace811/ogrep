@@ -222,7 +222,10 @@ indexed, for both content searches and `--files`. They filter the indexed
 corpus only, so a positive glob does not reinclude ignored files in indexed
 mode. Use `--no-index` when those matches are needed; filesystem scans retain
 ripgrep-style glob overrides. Negative globs such as `--glob '!.git'` exclude
-entire matching directory subtrees.
+entire matching directory subtrees. As in ripgrep, a hidden file that a
+positive glob or `-t` type matches is searched without `--hidden`
+(`--glob '*.toml'` finds `.rustfmt.toml`), but files under a hidden directory
+are not.
 The configured index directory and all its staging/retired generations are
 excluded from indexing, watcher processing, and query filesystem walks, even
 with a custom path.
