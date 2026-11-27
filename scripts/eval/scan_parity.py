@@ -65,18 +65,20 @@ def part_a():
     results = {}
     info = os.path.join(corpus, ".ogrep/serve.json")
     for name, b in BIN.items():
-        # A killed server leaves its serve.json behind: local queries must not try it.
+        # A serve.json left by an earlier run must not be tried by local queries.
         if os.path.exists(info):
             os.remove(info)
         for i, q in enumerate(QUERIES):
             results[(name, "local", i)] = run(b, with_path(q), corpus)
-        # The corpus server is queried only once its startup stale check is done.
         p = server(b, corpus, f"{S}/eval-serve.log", 300, ("stale check: index is up-to-date", "stale check: streamed"))
         try:
             for i, q in enumerate(QUERIES):
                 results[(name, "server", i)] = run(b, ["--stats", *with_path(q)], corpus)
         finally:
             p.kill(); p.wait()
+            # Leave no address of a dead server for later searches of CORPUS.
+            if os.path.exists(info):
+                os.remove(info)
     bad = 0
     for i, q in enumerate(QUERIES):
         tcode, tout, _ = truth[i]
@@ -87,14 +89,11 @@ def part_a():
                 if mode == "server":  # drop the summary lines --stats adds
                     out = "\n".join(l for l in out.splitlines() if not l.startswith(("Search completed", "Filename search")))
                 ok = code == tcode and norm(out) == norm(tout)
-                via = "via server" in err
-                if mode == "server":
-                    row.append(f"{name}/{mode}={'ok' if ok else 'DIFF'}{'' if via else '(no-server)'}")
-                else:
-                    row.append(f"{name}/{mode}={'ok' if ok else 'DIFF'}")
+                missed = mode == "server" and "via server" not in err
+                row.append(f"{name}/{mode}={'ok' if ok else 'DIFF'}{'(no-server)' if missed else ''}")
                 # A query the base build answered through its server must reach the new one too.
-                if name == "new" and (not ok or (mode == "server" and not via
-                                                 and "via server" in results[("base", mode, i)][2])):
+                lost = missed and "via server" in results[("base", mode, i)][2]
+                if name == "new" and (not ok or lost):
                     bad += 1
         print(f"  {' '.join(q):45} truth: exit {tcode} {len(norm(tout)):6} lines | " + " ".join(row), flush=True)
     return bad
@@ -112,9 +111,18 @@ def server(b, root, log_path=None, timeout=60, log_markers=()):
     and, if markers are given, the log holds one of them."""
     log_path = log_path or os.path.join(os.path.dirname(root), "serve.log")
     p = subprocess.Popen([b, "serve", ".", "--no-watch"], cwd=root, stderr=open(log_path, "w"), stdout=subprocess.DEVNULL)
+
+    def ready():
+        if log_markers:
+            text = open(log_path).read()
+            if not any(m in text for m in log_markers):
+                return False
+        return "Hidden coverage: complete" in run(b, ["status", "."], root)[1]
+
     t0 = time.time()
-    while not ((not log_markers or any(m in open(log_path).read() for m in log_markers))
-               and "Hidden coverage: complete" in run(b, ["status", "."], root)[1]):
+    while not ready():
+        if p.poll() is not None:
+            raise SystemExit(f"server in {root} exited: {open(log_path).read()[-500:]}")
         if time.time() - t0 > timeout:
             p.kill(); p.wait()
             raise SystemExit(f"server in {root} did not get ready")

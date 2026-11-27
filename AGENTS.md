@@ -226,8 +226,9 @@ entire matching directory subtrees. As in ripgrep, a hidden file that a
 positive glob or `-t` type matches is searched without `--hidden`
 (`--glob '*.toml'` finds `.rustfmt.toml`), but files under a hidden directory
 are not. One difference remains: a glob that also matches a hidden directory's
-own name, such as `'*'` or `'.*'`, makes ripgrep and `--no-index` search inside
-that directory, while indexed searches do not; add `--hidden` for those.
+own name, such as `'*'` or `'.*'`, makes ripgrep and `--no-index` search the
+files inside that directory that the glob also matches, while indexed searches
+do not; add `--hidden` for those.
 The configured index directory and all its staging/retired generations are
 excluded from indexing, watcher processing, and query filesystem walks, even
 with a custom path.

@@ -1319,7 +1319,8 @@ subtrees. `--hidden` never disables ignore rules. As in ripgrep, a hidden file
 that a positive glob or `-t` type matches is searched without `--hidden`, but
 files under a hidden directory are not. A glob that also matches a hidden
 directory's own name, such as `'*'` or `'.*'`, makes ripgrep and `--no-index`
-search inside that directory; indexed searches do not, so add `--hidden`.
+search the files inside that directory that the glob also matches; indexed
+searches do not, so add `--hidden`.
 
 Legacy indexes without proven hidden-file coverage and incomplete builds fall
 back to a filesystem scan, rather than returning partial results. Run
