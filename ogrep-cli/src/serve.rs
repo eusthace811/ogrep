@@ -2110,8 +2110,7 @@ fn handle_search(
             Glob(String),
         }
         let root = &index.root;
-        // A positive type or glob names the file, which admits it even if hidden.
-        let whitelist_files = type_filter.has_selection() || glob_filter.names_files();
+        let whitelist_files = crate::search::names_files(&glob_filter, &type_filter);
         let decide = |&fid: &u32| {
             let Some(rel_path) = index.resolve_path(fid, &reader_snapshot) else {
                 return Filtered::NoPath;

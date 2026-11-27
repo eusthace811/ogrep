@@ -762,7 +762,12 @@ pub fn list_files(root: &Path, index_path: Option<&Path>, opts: &SearchOptions) 
         if let Ok(info) = ServerInfo::load(&index_dir)
             && let Some((index_root, scope)) = served_scope(&info, &index_dir, &root)
         {
-            let paths = match list_files_via_server(&info, &scope, opts) {
+            let paths = match list_files_via_server(
+                &info,
+                &scope,
+                opts,
+                names_files(&glob_filter, &type_filter),
+            ) {
                 Ok(paths) => Some(paths),
                 Err(error) if error.is::<ServerOverloaded>() => return Err(error),
                 // Said only when the server gives a reason: a listing falls
@@ -926,6 +931,7 @@ fn write_indexed_file_paths(
     type_filter: &filetypes::TypeFilter,
     opts: &SearchOptions,
 ) -> Result<()> {
+    let whitelist_files = names_files(glob_filter, type_filter);
     let mut seen = std::collections::HashSet::new();
     let mut paths: Vec<String> = paths
         .into_iter()
@@ -936,7 +942,7 @@ fn write_indexed_file_paths(
                     path,
                     scope.prefix(),
                     opts.hidden,
-                    type_filter.has_selection() || glob_filter.names_files(),
+                    whitelist_files,
                 )
             })
         })
@@ -961,6 +967,7 @@ fn list_files_via_server(
     info: &ServerInfo,
     scope: &IndexScope,
     opts: &SearchOptions,
+    whitelist_files: bool,
 ) -> Result<Vec<String>> {
     let mut stream = info.connect(None)?;
     stream.set_read_timeout(Some(std::time::Duration::from_secs(300)))?;
@@ -969,7 +976,7 @@ fn list_files_via_server(
         serde_json::json!({
             "jsonrpc": "2.0",
             "method": "files",
-            "params": { "hidden": opts.hidden, "scope": scope.prefix(), "whitelist_files": !opts.types.is_empty() || opts.glob_filter()?.names_files() },
+            "params": { "hidden": opts.hidden, "scope": scope.prefix(), "whitelist_files": whitelist_files },
             "id": 1,
         })
         .to_string(),
@@ -1903,8 +1910,7 @@ fn search_local_index(
     // relative to it, so globs, `--max-depth` and printed paths all agree with
     // what the brute-force walk of the same directory would produce.
     let filter_span = crate::profile::span(crate::profile::Phase::Filter);
-    // A positive type or glob names the file, which admits it even if hidden.
-    let whitelist_files = type_filter.has_selection() || glob_filter.names_files();
+    let whitelist_files = names_files(&glob_filter, &type_filter);
     let mut candidates: Vec<(u32, String)> = candidate_ids
         .iter()
         .filter_map(|&fid| {
@@ -3036,6 +3042,15 @@ fn explicit_file_display_path(path: &Path) -> String {
         .unwrap_or_else(|| path.to_path_buf());
 
     strip_verbatim_prefix(&display_path.to_string_lossy()).replace('\\', "/")
+}
+
+/// A positive type or glob names files: as in ripgrep, it admits a hidden file
+/// it matches, though not the contents of a hidden directory.
+pub(crate) fn names_files(
+    glob_filter: &crate::glob_filter::GlobFilter,
+    type_filter: &filetypes::TypeFilter,
+) -> bool {
+    type_filter.has_selection() || glob_filter.names_files()
 }
 
 fn passes_filters(

@@ -63,24 +63,16 @@ def part_a():
     for i, q in enumerate(QUERIES):
         truth[i] = run(BIN["new"], ["--no-index", *with_path(q)], corpus)
     results = {}
+    info = os.path.join(corpus, ".ogrep/serve.json")
     for name, b in BIN.items():
-        for i, q in enumerate(QUERIES):
-            results[(name, "local", i)] = run(b, with_path(q), corpus)
-        info = os.path.join(corpus, ".ogrep/serve.json")
+        # A killed server leaves its serve.json behind: local queries must not try it.
         if os.path.exists(info):
             os.remove(info)
-        log = open(f"{S}/eval-serve.log", "w")
-        p = subprocess.Popen([b, "serve", ".", "--no-watch"], cwd=corpus, stderr=log, stdout=subprocess.DEVNULL)
+        for i, q in enumerate(QUERIES):
+            results[(name, "local", i)] = run(b, with_path(q), corpus)
+        # The corpus server is queried only once its startup stale check is done.
+        p = server(b, corpus, f"{S}/eval-serve.log", 300, ("stale check: index is up-to-date", "stale check: streamed"))
         try:
-            t0 = time.time()
-            while True:
-                text = open(f"{S}/eval-serve.log").read()
-                if "stale check: index is up-to-date" in text or "stale check: streamed" in text:
-                    if "Hidden coverage: complete" in run(b, ["status", "."], corpus)[1]:
-                        break
-                if time.time() - t0 > 300:
-                    raise SystemExit("server did not get ready")
-                time.sleep(0.05)
             for i, q in enumerate(QUERIES):
                 results[(name, "server", i)] = run(b, ["--stats", *with_path(q)], corpus)
         finally:
@@ -92,15 +84,17 @@ def part_a():
         for name in BIN:
             for mode in ("local", "server"):
                 code, out, err = results[(name, mode, i)]
+                if mode == "server":  # drop the summary lines --stats adds
+                    out = "\n".join(l for l in out.splitlines() if not l.startswith(("Search completed", "Filename search")))
                 ok = code == tcode and norm(out) == norm(tout)
+                via = "via server" in err
                 if mode == "server":
-                    out_lines = [l for l in out.splitlines() if not l.startswith(("Search completed", "Filename search"))]
-                    ok = code == tcode and norm("\n".join(out_lines)) == norm(tout)
-                    via = "via server" in err
                     row.append(f"{name}/{mode}={'ok' if ok else 'DIFF'}{'' if via else '(no-server)'}")
                 else:
                     row.append(f"{name}/{mode}={'ok' if ok else 'DIFF'}")
-                if name == "new" and not ok:
+                # A query the base build answered through its server must reach the new one too.
+                if name == "new" and (not ok or (mode == "server" and not via
+                                                 and "via server" in results[("base", mode, i)][2])):
                     bad += 1
         print(f"  {' '.join(q):45} truth: exit {tcode} {len(norm(tout)):6} lines | " + " ".join(row), flush=True)
     return bad
@@ -113,13 +107,17 @@ def tree(root):
     open(os.path.join(root, "top.txt"), "w").write("needle top\n")
 
 
-def server(b, root):
-    log = open(os.path.join(os.path.dirname(root), "serve.log"), "w")
-    p = subprocess.Popen([b, "serve", ".", "--no-watch"], cwd=root, stderr=log, stdout=subprocess.DEVNULL)
+def server(b, root, log_path=None, timeout=60, log_markers=()):
+    """Start `serve` in root; return once status reports full hidden coverage
+    and, if markers are given, the log holds one of them."""
+    log_path = log_path or os.path.join(os.path.dirname(root), "serve.log")
+    p = subprocess.Popen([b, "serve", ".", "--no-watch"], cwd=root, stderr=open(log_path, "w"), stdout=subprocess.DEVNULL)
     t0 = time.time()
-    while "Hidden coverage: complete" not in run(b, ["status", "."], root)[1]:
-        if time.time() - t0 > 60:
-            raise SystemExit("layout server did not get ready")
+    while not ((not log_markers or any(m in open(log_path).read() for m in log_markers))
+               and "Hidden coverage: complete" in run(b, ["status", "."], root)[1]):
+        if time.time() - t0 > timeout:
+            p.kill(); p.wait()
+            raise SystemExit(f"server in {root} did not get ready")
         time.sleep(0.05)
     return p
 
@@ -132,9 +130,9 @@ def scenario(name, b):
     rows = []
     procs = []
 
-    def check(label, args, cwd, truth_args=None):
+    def check(label, args, cwd):
         got = run(b, args, cwd)
-        truth = run(BIN["new"], ["--no-index", *(truth_args or args)], cwd)
+        truth = run(BIN["new"], ["--no-index", *args], cwd)
         rows.append((label, got, truth))
 
     try:

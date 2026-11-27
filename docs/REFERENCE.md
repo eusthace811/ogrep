@@ -1317,7 +1317,9 @@ scans retain ripgrep-style glob overrides, which can reinclude ignored files.
 Negative globs, such as `--glob '!.git'`, exclude entire matching directory
 subtrees. `--hidden` never disables ignore rules. As in ripgrep, a hidden file
 that a positive glob or `-t` type matches is searched without `--hidden`, but
-files under a hidden directory are not.
+files under a hidden directory are not. A glob that also matches a hidden
+directory's own name, such as `'*'` or `'.*'`, makes ripgrep and `--no-index`
+search inside that directory; indexed searches do not, so add `--hidden`.
 
 Legacy indexes without proven hidden-file coverage and incomplete builds fall
 back to a filesystem scan, rather than returning partial results. Run
